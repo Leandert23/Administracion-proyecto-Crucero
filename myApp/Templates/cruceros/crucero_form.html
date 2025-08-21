@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Crucero</title>
+</head>
+<body>
+    {% if crucero %}
+        <h1>Editar Crucero: {{ crucero.nombre }}</h1>
+    {% else %}
+        <h1>Registrar Nuevo Crucero</h1>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="crucero-form">
+        {% csrf_token %}
+        <section class="seccion">
+            <h2 class="titulo-seccion">Datos básicos</h2>
+            <div class="campo-form">
+                <label for="{{ form.nombre.id_for_label }}" class="crucero-form__label">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.tipo_crucero.id_for_label }}" class="crucero-form__label">Tipo de crucero</label>
+                {{ form.tipo_crucero }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.codigo_identificacion.id_for_label }}" class="crucero-form__label">Código de identificación</label>
+                {{ form.codigo_identificacion }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.fecha_botadura.id_for_label }}" class="crucero-form__label">Fecha botadura</label>
+                {{ form.fecha_botadura }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.fecha_adquisicion.id_for_label }}" class="crucero-form__label">Fecha adquisición</label>
+                {{ form.fecha_adquisicion }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.capacidad_pasajeros.id_for_label }}" class="crucero-form__label">Capacidad de pasajeros</label>
+                {{ form.capacidad_pasajeros }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.capacidad_tripulacion.id_for_label }}" class="crucero-form__label">Capacidad de la tripulación</label>
+                {{ form.capacidad_tripulacion }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.tonelaje.id_for_label }}" class="crucero-form__label">Tonelaje</label>
+                {{ form.tonelaje }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.puntal.id_for_label }}" class="crucero-form__label">Puntal (Altura)</label>
+                {{ form.puntal }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.eslora.id_for_label }}" class="crucero-form__label">Eslora (Longitud)</label>
+                {{ form.eslora }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.manga.id_for_label }}" class="crucero-form__label">Manga (Ancho)</label>
+                {{ form.manga }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.bandera.id_for_label }}" class="crucero-form__label">Bandera</label>
+                {{ form.bandera }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.puerto_base.id_for_label }}" class="crucero-form__label">Puerto Base</label>
+                {{ form.puerto_base }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.estado_operativo.id_for_label }}" class="crucero-form__label">Estado Operativo</label>
+                {{ form.estado_operativo }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.descripcion.id_for_label }}" class="crucero-form__label">Descripción</label>
+                {{ form.descripcion }}
+            </div>
+        </section>
+        <section class="seccion-form seccion-tecnica">
+            <h2 class="titulo-seccion">Datos técnicos y mantenimiento</h2>
+            <div class="campo-form">
+                    <label for="{{ form.modelo_motor.id_for_label }}" class="crucero-form__label">Modelo del Motor</label>
+                {{ form.modelo_motor }}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.velocidad_maxima.id_for_label }}" class="crucero-form__label">Velocidad Máxima</label>
+                {{ form.velocidad_maxima }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.ultimo_mantenimiento.id_for_label }}" class="crucero-form__label">Último mantenimiento</label>
+                {{ form.ultimo_mantenimiento }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.proximo_mantenimiento.id_for_label }}" class="crucero-form__label">Próximo mantenimiento programado</label>
+                {{ form.proximo_mantenimiento }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.tipo_combustible.id_for_label }}" class="crucero-form__label">Tipo de combustible</label>
+                {{ form.tipo_combustible }}
+            </div>
+            <div class="campo-form">
+                    <label for="{{ form.consumo_combustible.id_for_label }}" class="crucero-form__label">Consumo promedio de combustible</label>
+                {{ form.consumo_combustible }}
+            </div>
+        </section>
+        <section class="seccion-form seccion-documentacion">
+            <h2 class="titulo-seccion">Documentación y archivos</h2>
+            <div class="campo-form">
+                <label for="{{ form.seguro_vigente.id_for_label }}">Seguro vigente</label>
+                {{ form.seguro_vigente }}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.fecha_vencimiento_seguro.id_for_label }}">Fecha vencimiento seguro</label>
+                {{ form.fecha_vencimiento_seguro }}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.certificado_sanitario.id_for_label }}">Certificado sanitario</label>
+                {{ form.certificado_sanitario }}
+                {% if crucero and crucero.certificado_sanitario %}
+                    <div>Archivo actual: <a href="{{ crucero.certificado_sanitario.url }}">Ver</a></div>
+                {% endif %}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.certificado_seguridad.id_for_label }}">Certificado de seguridad</label>
+                {{ form.certificado_seguridad }}
+                {% if crucero and crucero.certificado_seguridad %}
+                    <div>Archivo actual: <a href="{{ crucero.certificado_seguridad.url }}">Ver</a></div>
+                {% endif %}
+            </div>
+        </section>
+        <section class="seccion-form seccion-multimedia">
+            <h2 class="titulo-seccion">Multimedia</h2>
+            <div class="campo-form">
+                <label for="{{ form.foto_barco.id_for_label }}">Foto del barco</label>
+                {{ form.foto_barco }}
+                {% if crucero and crucero.foto_barco %}
+                    <div><img src="{{ crucero.foto_barco.url }}" alt="Foto" width="200"></div>
+                {% endif %}
+            </div>
+            <div class="campo-form">
+                <label for="{{ form.plano_barco.id_for_label }}">Plano del barco</label>
+                {{ form.plano_barco }}
+                {% if crucero and crucero.plano_barco %}
+                    <div><img src="{{ crucero.plano_barco.url }}" alt="Plano" width="200"></div>
+                {% endif %}
+            </div>
+        </section>
+        <section class="crucero-form__section crucero-form__section--instalaciones">
+            <h2 class="crucero-form__title">Instalaciones</h2>
+            <div class="crucero-form__instalaciones-list">
+                {% for instalacion in instalaciones %}
+                    <div class="crucero-form__instalacion-item">
+                        <h3 class="crucero-form__instalacion-name">{{ instalacion.nombre }}</h3>
+                        <p class="crucero-form__instalacion-type"><strong>Tipo:</strong> {{ instalacion.get_tipo_display }}</p>
+                        <p class="crucero-form__instalacion-capacity"><strong>Capacidad:</strong> {{ instalacion.capacidad }}</p>
+                        <p class="crucero-form__instalacion-location"><strong>Ubicación:</strong> {{ instalacion.ubicacion }}</p>
+                        <p class="crucero-form__instalacion-description"><strong>Descripción:</strong> {{ instalacion.descripcion }}</p>
+                    </div>
+                {% empty %}
+                    <p class="crucero-form__no-instalaciones">No hay instalaciones registradas para este crucero.</p>
+                {% endfor %}
+            </div>
+            <h3 class="crucero-form__subtitle">Agregar nueva instalación</h3>
+            <form method="post" class="crucero-form__instalacion-form">
+                {% csrf_token %}
+                {{ instalacion_form.as_p }}
+                <button type="submit" name="agregar_instalacion" class="crucero-form__button crucero-form__button--add">Agregar Instalación</button>
+            </form>
+        </section>
+            <button type="submit" class="crucero-form__btn crucero-form__btn--guardar">Guardar</button>
+    </form>
+        <a href="{% url 'lista_cruceros' %}" class="crucero-form__btn crucero-form__btn--volver">Volver a la lista</a>
+</body>
+</html>
