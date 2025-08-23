@@ -23,10 +23,6 @@ class SeccionAlmacen(models.Model):
         ('CUARTO_FRIO', 'Cuarto Frío'),
         ('SILOS', 'Silos'),
         ('TANQUES', 'Tanques'),
-        ('SEGURIDAD', 'Área de Seguridad'),
-        ('OFICINA', 'Oficina Administrativa'),
-        ('RECEPCION', 'Área de Recepción'),
-        ('DESPACHO', 'Área de Despacho'),
     ]
     
     almacen = models.ForeignKey(
