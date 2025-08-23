@@ -53,3 +53,21 @@ class SeccionAlmacen(models.Model):
 
     def __str__(self):
         return f"{self.almacen.nombre} - {self.nombre} ({self.tipo})"
+
+
+class Producto(models.Model):
+    nombre = models.CharField(max_length=100)
+    precio = models.DecimalField(max_digits=5, decimal_places=2)
+    tipo = models.CharField(max_length=20) # TODO: Necesitamos tener un tipo de producto, CUANDO LOS OTROS MODULOS SE ORGANICEN
+    cantidad = models.IntegerField()
+
+    seccion_almacen = models.ForeignKey(
+        SeccionAlmacen,
+        on_delete=models.CASCADE,
+        related_name="productos"
+    )
+
+    def save(self, *args, **kwargs):
+        if self.cantidad < 0:
+            return # TODO: Implementar excepciones personalizadas
+        super().save(*args, **kwargs)
