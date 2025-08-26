@@ -1,0 +1,90 @@
+[
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 1,
+        "fields": {
+            "nombre": "Camarote básico sencillo vista mar",
+            "capacidad": 2,
+            "precio_base": "120.00",
+            "descripcion": "Camarote sencillo con vista al mar, ideal para parejas o viajeros individuales que buscan una experiencia cómoda y luminosa. Incluye cama matrimonial, baño privado compacto, armario y ventana panorámica.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 2,
+        "fields": {
+            "nombre": "Camarote básico sencillo interior",
+            "capacidad": 2,
+            "precio_base": "100.00",
+            "descripcion": "Camarote sencillo sin vista al exterior, opción económica y funcional. Cuenta con cama matrimonial o dos individuales, iluminación ambiental y baño privado eficiente.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 3,
+        "fields": {
+            "nombre": "Camarote básico doble vista mar",
+            "capacidad": 4,
+            "precio_base": "180.00",
+            "descripcion": "Camarote doble familiar con vista al mar. Dispone de cama matrimonial más litera abatible o sofá cama, espacio de almacenamiento adicional y gran ventana exterior.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 4,
+        "fields": {
+            "nombre": "Camarote básico doble interior",
+            "capacidad": 4,
+            "precio_base": "155.00",
+            "descripcion": "Camarote interior doble pensado para familias o grupos pequeños. Funcional y acogedor, con baño privado, climatización y mobiliario modular para optimizar el espacio.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 5,
+        "fields": {
+            "nombre": "Camarote premium sencillo vista mar",
+            "capacidad": 2,
+            "precio_base": "190.00",
+            "descripcion": "Camarote premium con amplia vista al mar, acabados de calidad, cama queen, escritorio de trabajo, minibar básico y baño mejorado con amenidades superiores.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 6,
+        "fields": {
+            "nombre": "Camarote premium sencillo interior",
+            "capacidad": 2,
+            "precio_base": "165.00",
+            "descripcion": "Camarote premium interior que prioriza el confort: cama queen, aislamiento acústico mejorado, iluminación regulable y paquete de amenidades ampliado.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 7,
+        "fields": {
+            "nombre": "Camarote premium doble vista mar",
+            "capacidad": 4,
+            "precio_base": "250.00",
+            "descripcion": "Amplio camarote premium doble con espectacular vista al mar, zona de estar, opciones flexibles de cama, armario ampliado y baño con acabados superiores.",
+            "imagen": null
+        }
+    },
+    {
+        "model": "almacen.tipohabitacion",
+        "pk": 8,
+        "fields": {
+            "nombre": "Camarote premium doble interior",
+            "capacidad": 4,
+            "precio_base": "220.00",
+            "descripcion": "Camarote premium doble interior enfocado en confort y privacidad. Ideal para familias que buscan calidad a mejor precio. Incluye zona de descanso y mobiliario multifuncional.",
+            "imagen": null
+        }
+    }
+]

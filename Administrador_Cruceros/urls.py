@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('myApp.urls')),
+    path('almacen/', include('apps.almacen.urls')),
 ]
 
 # Servir archivos de medios en desarrollo

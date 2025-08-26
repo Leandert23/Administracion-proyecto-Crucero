@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Cruceros</title>
+</head>
+<body>
+    <div class="container-cruceros">
+        <h1 class="titulo-lista">Cruceros Registrados</h1>
+        <a href="{% url 'crucero_nuevo' %}" class="btn-agregar-crucero"><button class="btn btn-primary">Agregar Crucero</button></a>
+        <div class="tarjetas-cruceros">
+            {% for crucero in cruceros %}
+            <a href="{% url 'crucero_editar' crucero.pk %}" class="tarjeta-crucero-link">
+            <div class="tarjeta-crucero">
+                <div class="icono-crucero">
+                    {% if crucero.foto_barco %}
+                        <img src="{{ crucero.foto_barco.url }}" alt="Foto del crucero {{ crucero.nombre }}" width="64" height="64">
+                    {% else %}
+                        <img src="{% static 'CruceroPredeterminado.png' %}" alt="Crucero" width="64" height="64">
+                    {% endif %}
+                </div>
+                <div class="info-crucero">
+                    <h2 class="nombre-crucero">{{ crucero.nombre }}</h2>
+                    <p class="tipo-crucero"><strong>Tipo:</strong> {{ crucero.get_tipo_crucero_display }}</p>
+                    <p class="codigo-crucero"><strong>Código:</strong> {{ crucero.codigo_identificacion }}</p>
+                    <p class="pasajeros-crucero"><strong>Pasajeros:</strong> {{ crucero.capacidad_pasajeros }}</p>
+                    <p class="tripulacion-crucero"><strong>Tripulación:</strong> {{ crucero.capacidad_tripulacion }}</p>
+                    <p class="bandera-crucero"><strong>Bandera:</strong> {{ crucero.bandera }}</p>
+                    <p class="puerto-base-crucero"><strong>Puerto Base:</strong> {{ crucero.puerto_base }}</p>
+                    <p class="estado-crucero"><strong>Estado:</strong> {{ crucero.get_estado_operativo_display }}</p>
+                </div>
+            </div>
+            </a>
+            {% empty %}
+            <div class="sin-cruceros">No hay cruceros registrados.</div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

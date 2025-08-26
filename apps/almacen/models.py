@@ -1,0 +1,370 @@
+from django.db import models
+from django.db.models import QuerySet
+from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+class Crucero(models.Model):
+    class EstadoOperativo(models.TextChoices):
+        ACTIVO = "activo", "Activo"
+        INACTIVO = "inactivo", "Inactivo"
+        MANTENIMIENTO = "mantenimiento", "En mantenimiento"
+        VIAJE = "viaje", "En viaje"
+    
+    class TipoCombustible(models.TextChoices):
+        DIESEL = "diesel", "Diésel"
+        GASOLINA = "gasolina", "Gasolina"
+        GNL = "gnl", "Gas Natural Licuado"
+        HIBRIDO = "hibrido", "Híbrido"
+
+    class TipoCrucero(models.TextChoices):
+        PEQUENO = "pequeno", "Pequeño"
+        MEDIANO = "mediano", "Mediano"
+        GRANDE = "grande", "Grande"
+        
+    nombre = models.CharField(max_length=100)
+
+    tipo_crucero = models.CharField(
+        max_length=30,
+        choices=TipoCrucero.choices,
+    default=TipoCrucero.MEDIANO,
+        help_text="Tipo de crucero"
+    )
+    codigo_identificacion = models.CharField(max_length=50, unique=True)
+    fecha_botadura = models.DateField()
+    fecha_adquisicion = models.DateField()
+    
+    capacidad_pasajeros = models.PositiveIntegerField()
+    capacidad_tripulacion = models.PositiveIntegerField()
+    
+    tonelaje = models.DecimalField(max_digits=10, decimal_places=2, help_text="Toneladas de peso muerto")
+    eslora = models.DecimalField(max_digits=7, decimal_places=2, help_text="Longitud total (m)")
+    manga = models.DecimalField(max_digits=7, decimal_places=2, help_text="Ancho máximo (m)")
+    altura = models.DecimalField(max_digits=7, decimal_places=2, help_text="Altura (m)")
+    numero_cubiertas = models.PositiveIntegerField(default=0, help_text="Número de cubiertas")
+    
+    bandera = models.CharField(max_length=50)
+    puerto_base = models.CharField(max_length=100)
+    estado_operativo = models.CharField(
+        max_length=20, 
+        choices=EstadoOperativo.choices, 
+        default=EstadoOperativo.ACTIVO
+    )
+    descripcion = models.TextField(blank=True, default="", help_text="Descripción general del crucero")
+
+    # DATOS TÉCNICOS
+    modelo_motor = models.CharField(max_length=100, blank=True)
+    velocidad_maxima = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        help_text="Velocidad máxima en nudos"
+    )
+    ultimo_mantenimiento = models.DateField(blank=True, null=True)
+    proximo_mantenimiento = models.DateField(blank=True, null=True)
+    tipo_combustible = models.CharField(
+        max_length=20, 
+        choices=TipoCombustible.choices, 
+        default=TipoCombustible.DIESEL
+    )
+    consumo_combustible = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        help_text="Consumo promedio en litros/hora",
+        blank=True, 
+        null=True
+    )
+
+    # DOCUMENTACIÓN 
+    seguro_vigente = models.BooleanField(default=False, null=True, help_text="Indica si el seguro está vigente")
+    fecha_vencimiento_seguro = models.DateField(blank=True, null=True)
+    certificado_sanitario = models.FileField(
+        upload_to="certificados/", 
+        blank=True, 
+        null=True,
+        help_text="Certificado sanitario vigente"
+    )
+    certificado_seguridad = models.FileField(
+    upload_to="certificados/seguridad/", 
+    blank=True, 
+    null=True,
+    help_text="Certificado de seguridad del crucero"
+)
+
+    # MULTIMEDIA
+    foto_barco = models.ImageField(
+        upload_to="fotos_barco/", 
+        blank=True, 
+        null=True,
+        help_text="Foto principal del crucero"
+    )
+    plano_barco = models.ImageField(
+        upload_to="planos_barco/", 
+        blank=True, 
+        null=True,
+        help_text="Plano de distribución del crucero"
+    )
+
+    # MÉTODOS  
+    def clean(self):
+        errors = {}
+        
+        if self.fecha_botadura and self.fecha_adquisicion:
+            if self.fecha_botadura > self.fecha_adquisicion:
+                errors['fecha_botadura'] = 'No puede ser posterior a la fecha de adquisición'
+        
+        if self.ultimo_mantenimiento and self.proximo_mantenimiento:
+            if self.ultimo_mantenimiento > self.proximo_mantenimiento:
+                errors['ultimo_mantenimiento'] = 'No puede ser posterior al próximo mantenimiento'
+        
+        if errors:
+            raise ValidationError(errors)
+
+    def necesita_mantenimiento(self):
+        if self.proximo_mantenimiento:
+            return self.proximo_mantenimiento <= timezone.now().date() + timezone.timedelta(days=30)
+        return False
+
+    def capacidad_total(self):
+        return self.capacidad_pasajeros + self.capacidad_tripulacion
+
+    # --- METADATOS ---
+    class Meta:
+        verbose_name = "Crucero"
+        verbose_name_plural = "Cruceros"
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.nombre} ({self.codigo_identificacion})"
+
+
+class TipoHabitacion(models.Model):
+    nombre = models.CharField(max_length=50)
+    capacidad = models.PositiveIntegerField()
+    precio_base = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion = models.TextField(blank=True, null=True)
+    imagen = models.ImageField(upload_to="tipos_habitacion/", blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+    class Meta:
+        verbose_name = "Tipo de Habitación"
+        verbose_name_plural = "Tipos de habitaciones"
+        ordering = ['nombre']
+
+
+class Habitacion(models.Model):
+    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name="habitaciones")
+    tipo_habitacion = models.ForeignKey(TipoHabitacion, on_delete=models.PROTECT, related_name="habitaciones")
+    cubierta = models.PositiveIntegerField(help_text="Número de cubierta")
+    LADO_CHOICES = [
+        ("babor", "Babor"),
+        ("estribor", "Estribor"),
+    ]
+    lado = models.CharField(max_length=10, choices=LADO_CHOICES, help_text="Lado del barco")
+    codigo_ubicacion = models.CharField(max_length=5, blank=True, help_text="Código fijo DD U II (5 dígitos: 2 cubierta, 1 uso, 2 consecutivo)")
+    numero = models.CharField(max_length=20)
+    ocupada = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.crucero.nombre} - {self.tipo_habitacion} - cubierta {self.cubierta} - {self.lado} - {self.numero}"
+
+    def _generar_codigo(self):
+        """Devuelve un código nuevo en formato DD U II (total 5 dígitos).
+
+        - DD: cubierta (2 dígitos, zero-pad)
+        - U: uso (0=babor, 1=estribor)
+        - II: identificador incremental (01-99) por (crucero, uso)
+
+        La búsqueda del siguiente identificador ignora la cubierta (puede
+        repetirse el mismo consecutivo en otra cubierta para el mismo uso).
+        """
+        uso = '0' if self.lado == 'babor' else '1'
+
+        existentes = Habitacion.objects.filter(
+            crucero=self.crucero,
+            codigo_ubicacion__regex=rf'^\d{{2}}{uso}\d{{2}}$'
+        ).values_list('codigo_ubicacion', flat=True)
+
+        ids = []
+        for cod in existentes:
+            if len(cod) == 5 and cod.isdigit():
+                try:
+                    ids.append(int(cod[-2:]))
+                except ValueError:
+                    continue
+        siguiente = (max(ids) + 1) if ids else 1
+        if siguiente > 99:
+            raise ValidationError({
+                "codigo_ubicacion": "Se alcanzó el límite (99) de identificadores para este uso en el crucero."
+            })
+        return f"{int(self.cubierta):02d}{uso}{siguiente:02d}"
+
+    def clean(self):
+        errors = {}
+        if self.crucero_id and self.cubierta and self.crucero.numero_cubiertas and self.cubierta > self.crucero.numero_cubiertas:
+            errors['cubierta'] = "La cubierta excede el número de cubiertas del crucero"
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_ubicacion and self.crucero_id:
+            self.codigo_ubicacion = self._generar_codigo()
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Habitación"
+        verbose_name_plural = "Habitaciones"
+
+class Instalacion(models.Model):
+    TIPO_CHOICES = [
+        ("restaurante", "Restaurante"),
+        ("bar", "Bar"),
+        ("piscina", "Piscina"),
+        ("entretenimiento", "Zona de entretenimiento"),
+        ("gimnasio", "Gimnasio"),
+        ("enfermeria", "Enfermería"),
+        ("otro", "Otro"),
+    ]
+    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name="instalaciones")
+    cubierta = models.PositiveIntegerField(default=1, help_text="Número de cubierta")
+    codigo_ubicacion = models.CharField(max_length=5, blank=True, help_text="Código fijo DD U II (5 dígitos: 2 cubierta, 1 uso, 2 consecutivo)")
+    nombre = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    capacidad = models.PositiveIntegerField()
+    ubicacion = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.crucero.nombre}"
+
+    USO_MAP = {
+        'restaurante': '2',
+        'bar/café': '3',
+        'almacen': '4',
+        'sitios de entretenimiento': '5',
+        'enfermeria': '6',
+        'otro': '9',
+    }
+
+    def _generar_codigo(self):
+        """Genera código DD U II para instalaciones (5 dígitos).
+
+        - DD: cubierta (2 dígitos)
+        - U: uso derivado de tipo mediante USO_MAP
+        - II: incremental (01-99) por (crucero, uso)
+        """
+        uso = self.USO_MAP.get(self.tipo, '9')
+        existentes = Instalacion.objects.filter(
+            crucero=self.crucero,
+            codigo_ubicacion__regex=rf'^\d{{2}}{uso}\d{{2}}$'
+        ).values_list('codigo_ubicacion', flat=True)
+        ids = []
+        for cod in existentes:
+            if len(cod) == 5 and cod.isdigit():
+                try:
+                    ids.append(int(cod[-2:]))
+                except ValueError:
+                    continue
+        siguiente = (max(ids) + 1) if ids else 1
+        if siguiente > 99:
+            raise ValidationError({
+                "codigo_ubicacion": "Se alcanzó el límite (99) de identificadores para este tipo en el crucero."
+            })
+        return f"{int(self.cubierta):02d}{uso}{siguiente:02d}"
+
+    def clean(self):
+        errors = {}
+        if self.crucero_id and self.cubierta and self.crucero.numero_cubiertas and self.cubierta > self.crucero.numero_cubiertas:
+            errors['cubierta'] = "La cubierta excede el número de cubiertas del crucero"
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_ubicacion and self.crucero_id:
+            self.codigo_ubicacion = self._generar_codigo()
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Instalación"
+        verbose_name_plural = "Instalaciones"
+        ordering = ['nombre']
+
+
+class Almacen(models.Model):
+    nombre = models.CharField(max_length=5, unique=True)
+    capacidad_total = models.IntegerField(help_text="Capacidad total en m²")
+    secciones: QuerySet["SeccionAlmacen"]
+
+    def __str__(self):
+        return str(self.nombre)
+    
+    def capacidad_utilizada(self):
+        return sum(seccion.capacidad for seccion in self.secciones.all())
+    
+    def capacidad_disponible(self):
+        return self.capacidad_total.value_from_object(self) - self.capacidad_utilizada()
+    
+    class Meta:
+        verbose_name = "Almacén"
+        verbose_name_plural = "Almacenes"
+
+class SeccionAlmacen(models.Model):
+    # Tipos de secciones
+    TIPO_SECCION = [
+        ('REFRIGERACION', 'Cámara de Refrigeración'),
+        ('CONGELACION', 'Cámara de Congelación'),
+        ('SECO', 'Almacén Seco'),
+        ('ESTANTERIAS', 'Estanterías'),
+        ('CUARTO_FRIO', 'Cuarto Frío'),
+        ('SILOS', 'Silos'),
+        ('TANQUES', 'Tanques'),
+    ]
+    
+    almacen_fk = models.ForeignKey(
+        Almacen, 
+        on_delete=models.CASCADE,
+        related_name="secciones"
+    )
+    almacen: Almacen
+    nombre = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=20, choices=TIPO_SECCION)
+    capacidad = models.IntegerField(help_text="Capacidad en m²")
+    temperatura = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True,help_text="Temperatura en °C (si aplica)")
+    humedad = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Humedad relativa % (si aplica)"
+    )
+    esta_activa = models.BooleanField()
+
+    class Meta:
+        verbose_name = "Sección de Almacén"
+        verbose_name_plural = "Secciones de Almacén"
+        unique_together = ['almacen_fk', 'nombre']
+
+    def __str__(self):
+        return f"{self.almacen.nombre} - {self.nombre} ({self.tipo})"
+
+
+class Producto(models.Model):
+    nombre = models.CharField(max_length=100)
+    precio = models.DecimalField(max_digits=5, decimal_places=2)
+    tipo = models.CharField(max_length=20) # TODO: Necesitamos tener un tipo de producto, CUANDO LOS OTROS MODULOS SE ORGANICEN
+    cantidad = models.IntegerField()
+
+    seccion_almacen = models.ForeignKey(
+        SeccionAlmacen,
+        on_delete=models.CASCADE,
+        related_name="productos"
+    )
+
+    def save(self, *args, **kwargs):
+        if self.cantidad < 0:
+            return # TODO: Implementar excepciones personalizadas
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Producto"
+        verbose_name_plural = "Productos"
