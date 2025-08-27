@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" class="crucero-create__meta" />
+    <title>Creación de Crucero</title>
+</head>
+<body>
+    <header class="crucero-create__header">
+        <h1 class="crucero-create__heading">Creación de crucero</h1>
+    </header>
+    <main class="crucero-create__main">
+        <form method="post" class="crucero-create__form">
+            {% csrf_token %}
+            <div class="crucero-create__field crucero-create__field--nombre">
+                <label for="id_nombre" class="crucero-create__label">Nombre</label>
+                <div class="crucero-create__control">
+                    {{ form.nombre }}
+                </div>
+            </div>
+            <div class="crucero-create__field crucero-create__field--tipo">
+                <label for="id_tipo_crucero" class="crucero-create__label">Tipo de crucero</label>
+                <div class="crucero-create__control">
+                    {{ form.tipo_crucero }}
+                </div>
+            </div>
+            <div class="crucero-create__field crucero-create__field--fecha">
+                <label for="id_fecha_botadura" class="crucero-create__label">Fecha de botadura</label>
+                <div class="crucero-create__control">
+                    {{ form.fecha_botadura }}
+                </div>
+            </div>
+            <div class="crucero-create__field crucero-create__field--descripcion">
+                <label for="id_descripcion" class="crucero-create__label">Descripción</label>
+                <div class="crucero-create__control">
+                    {{ form.descripcion }}
+                </div>
+            </div>
+            <div class="crucero-create__actions">
+                <button type="submit" class="crucero-create__submit">Crear</button>
+                <a href="{% url 'lista_cruceros' %}" class="crucero-create__link crucero-create__link--back">Volver a la lista</a>
+            </div>
+        </form>
+    </main>
+    <footer class="crucero-create__footer"></footer>
+</body>
+</html>

@@ -52,7 +52,6 @@ class Crucero(models.Model):
     )
     descripcion = models.TextField(blank=True, default="", help_text="Descripción general del crucero")
 
-    # DATOS TÉCNICOS
     modelo_motor = models.CharField(max_length=100, blank=True)
     velocidad_maxima = models.DecimalField(
         max_digits=6, 
@@ -74,7 +73,6 @@ class Crucero(models.Model):
         null=True
     )
 
-    # DOCUMENTACIÓN 
     seguro_vigente = models.BooleanField(default=False, null=True, help_text="Indica si el seguro está vigente")
     fecha_vencimiento_seguro = models.DateField(blank=True, null=True)
     certificado_sanitario = models.FileField(
@@ -90,7 +88,6 @@ class Crucero(models.Model):
     help_text="Certificado de seguridad del crucero"
 )
 
-    # MULTIMEDIA
     foto_barco = models.ImageField(
         upload_to="fotos_barco/", 
         blank=True, 
@@ -104,7 +101,6 @@ class Crucero(models.Model):
         help_text="Plano de distribución del crucero"
     )
 
-    # MÉTODOS  
     def clean(self):
         errors = {}
         
@@ -119,22 +115,16 @@ class Crucero(models.Model):
         if errors:
             raise ValidationError(errors)
 
-    def necesita_mantenimiento(self):
-        if self.proximo_mantenimiento:
-            return self.proximo_mantenimiento <= timezone.now().date() + timezone.timedelta(days=30)
-        return False
-
     def capacidad_total(self):
         return self.capacidad_pasajeros + self.capacidad_tripulacion
 
-    # --- METADATOS ---
     class Meta:
         verbose_name = "Crucero"
         verbose_name_plural = "Cruceros"
         ordering = ['nombre']
 
     def __str__(self):
-        return f"{self.nombre} ({self.codigo_identificacion})"
+        return f"{self.nombre} - ({self.codigo_identificacion})"
 
 
 class TipoHabitacion(models.Model):
@@ -146,6 +136,7 @@ class TipoHabitacion(models.Model):
 
     def __str__(self):
         return self.nombre
+    
     class Meta:
         verbose_name = "Tipo de Habitación"
         verbose_name_plural = "Tipos de habitaciones"
@@ -161,7 +152,11 @@ class Habitacion(models.Model):
         ("estribor", "Estribor"),
     ]
     lado = models.CharField(max_length=10, choices=LADO_CHOICES, help_text="Lado del barco")
-    codigo_ubicacion = models.CharField(max_length=5, blank=True, help_text="Código fijo DD U II (5 dígitos: 2 cubierta, 1 uso, 2 consecutivo)")
+    codigo_ubicacion = models.CharField(
+        max_length=6,
+        blank=True,
+        help_text="Código UUAIII: UU=cubierta (2 dígitos), A=lado (0 babor / 1 estribor), III=consecutivo (001-999) por cubierta y lado"
+    )
     numero = models.CharField(max_length=20)
     ocupada = models.BooleanField(default=False)
 
@@ -169,35 +164,31 @@ class Habitacion(models.Model):
         return f"{self.crucero.nombre} - {self.tipo_habitacion} - cubierta {self.cubierta} - {self.lado} - {self.numero}"
 
     def _generar_codigo(self):
-        """Devuelve un código nuevo en formato DD U II (total 5 dígitos).
+        """Genera un código en formato UUAIII (6 dígitos numéricos):
 
-        - DD: cubierta (2 dígitos, zero-pad)
-        - U: uso (0=babor, 1=estribor)
-        - II: identificador incremental (01-99) por (crucero, uso)
-
-        La búsqueda del siguiente identificador ignora la cubierta (puede
-        repetirse el mismo consecutivo en otra cubierta para el mismo uso).
+        - UU: cubierta (00-99)
+        - A : lado (0=babor, 1=estribor)
+        - III: consecutivo (001-999) reiniciado por (crucero, cubierta, lado)
         """
-        uso = '0' if self.lado == 'babor' else '1'
-
+        lado_dig = '0' if self.lado == 'babor' else '1'
+        prefijo = f"{int(self.cubierta):02d}{lado_dig}"
         existentes = Habitacion.objects.filter(
             crucero=self.crucero,
-            codigo_ubicacion__regex=rf'^\d{{2}}{uso}\d{{2}}$'
+            codigo_ubicacion__startswith=prefijo
         ).values_list('codigo_ubicacion', flat=True)
-
         ids = []
         for cod in existentes:
-            if len(cod) == 5 and cod.isdigit():
+            if len(cod) == 6 and cod.isdigit() and cod.startswith(prefijo):
                 try:
-                    ids.append(int(cod[-2:]))
+                    ids.append(int(cod[-3:]))
                 except ValueError:
                     continue
         siguiente = (max(ids) + 1) if ids else 1
-        if siguiente > 99:
+        if siguiente > 999:
             raise ValidationError({
-                "codigo_ubicacion": "Se alcanzó el límite (99) de identificadores para este uso en el crucero."
+                "codigo_ubicacion": "Se alcanzó el límite (999) de habitaciones para esta cubierta y lado."
             })
-        return f"{int(self.cubierta):02d}{uso}{siguiente:02d}"
+        return f"{prefijo}{siguiente:03d}"
 
     def clean(self):
         errors = {}
@@ -217,43 +208,37 @@ class Habitacion(models.Model):
 
 class Instalacion(models.Model):
     TIPO_CHOICES = [
-        ("restaurante", "Restaurante"),
-        ("bar", "Bar"),
-        ("piscina", "Piscina"),
-        ("entretenimiento", "Zona de entretenimiento"),
-        ("gimnasio", "Gimnasio"),
-        ("enfermeria", "Enfermería"),
+        ("restaurantes", "Restaurantes"),
+        ("bares_cafes", "Bares y Cafés"),
+        ("almacenes", "Almacenes"),
+        ("entretenimiento", "Sitios de Entretenimiento"),
         ("otro", "Otro"),
     ]
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name="instalaciones")
     cubierta = models.PositiveIntegerField(default=1, help_text="Número de cubierta")
-    codigo_ubicacion = models.CharField(max_length=5, blank=True, help_text="Código fijo DD U II (5 dígitos: 2 cubierta, 1 uso, 2 consecutivo)")
+    codigo_ubicacion = models.CharField(
+        max_length=5,
+        blank=True,
+        help_text="Código XXABC: XX=cubierta (2 dígitos), A=uso (2=rest.,3=bares/cafés,4=almacenes,5=entretenimiento,6=otros), BC=consecutivo (01-99)"
+    )
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
     capacidad = models.PositiveIntegerField()
-    ubicacion = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.crucero.nombre}"
 
     USO_MAP = {
-        'restaurante': '2',
-        'bar/café': '3',
-        'almacen': '4',
-        'sitios de entretenimiento': '5',
-        'enfermeria': '6',
-        'otro': '9',
+        'restaurantes': '2',
+        'bares_cafes': '3',
+        'almacenes': '4',
+        'entretenimiento': '5',
+        'otro': '6',
     }
 
     def _generar_codigo(self):
-        """Genera código DD U II para instalaciones (5 dígitos).
-
-        - DD: cubierta (2 dígitos)
-        - U: uso derivado de tipo mediante USO_MAP
-        - II: incremental (01-99) por (crucero, uso)
-        """
-        uso = self.USO_MAP.get(self.tipo, '9')
+        uso = self.USO_MAP.get(self.tipo, '6')
         existentes = Instalacion.objects.filter(
             crucero=self.crucero,
             codigo_ubicacion__regex=rf'^\d{{2}}{uso}\d{{2}}$'
@@ -268,7 +253,7 @@ class Instalacion(models.Model):
         siguiente = (max(ids) + 1) if ids else 1
         if siguiente > 99:
             raise ValidationError({
-                "codigo_ubicacion": "Se alcanzó el límite (99) de identificadores para este tipo en el crucero."
+                "codigo_ubicacion": "Se alcanzó el límite (99) de identificadores para este uso en el crucero."
             })
         return f"{int(self.cubierta):02d}{uso}{siguiente:02d}"
 

@@ -1,102 +1,72 @@
+from __future__ import annotations
+
+from typing import Dict
+
 from django import forms
-from .models import Crucero, Instalacion
 
+from .models import Crucero
+from .Services.creacion_crucero_por_plantilla import crear_crucero_desde_plantilla, PlantillaNoEncontrada
 
-class CruceroForm(forms.ModelForm):
-    class Meta:
-        model = Crucero
-        fields = '__all__'
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'tipo_crucero': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'codigo_identificacion': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'fecha_botadura': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'fecha_adquisicion': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'capacidad_pasajeros': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'capacidad_tripulacion': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'tonelaje': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'altura': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'eslora': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'manga': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'bandera': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'puerto_base': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'estado_operativo': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'descripcion': forms.Textarea(attrs={'class': 'crucero-form__input'}),
-            'modelo_motor': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'velocidad_maxima': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'ultimo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'proximo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'tipo_combustible': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'consumo_combustible': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'fecha_vencimiento_seguro': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'seguro_vigente': forms.CheckboxInput(attrs={'class': 'crucero-form__checkbox'}),
-            # File/Image fields will use default ClearableFileInput; add classes if desired
-            'certificado_sanitario': forms.ClearableFileInput(attrs={'class': 'crucero-form__input'}),
-            'certificado_seguridad': forms.ClearableFileInput(attrs={'class': 'crucero-form__input'}),
-            'foto_barco': forms.ClearableFileInput(attrs={'class': 'crucero-form__input'}),
-            'plano_barco': forms.ClearableFileInput(attrs={'class': 'crucero-form__input'}),
-        }
+PREFIJOS_TIPO: Dict[str, str] = {
+    'pequeno': 'SM',
+    'mediano': 'MD',
+    'grande': 'LG',
+}
 
+def generar_codigo_identificacion(tipo_crucero: str) -> str:
+    prefijo = PREFIJOS_TIPO.get(tipo_crucero, 'CR')
+    existentes = (
+        Crucero.objects
+        .filter(codigo_identificacion__startswith=f"{prefijo}-")
+        .values_list('codigo_identificacion', flat=True)
+    )
+    max_num = 0
+    for cod in existentes:
+        try:
+            sufijo = cod.split('-', 1)[1]
+            if sufijo.isdigit():
+                max_num = max(max_num, int(sufijo))
+        except (IndexError, ValueError):
+            continue
+    return f"{prefijo}-{(max_num + 1):03d}"
 
-class CruceroCreateForm(forms.ModelForm):
+class creacionCruceroForm(forms.Form):
+    nombre = forms.CharField(max_length=100, label="Nombre")
+    tipo_crucero = forms.ChoiceField(choices=Crucero.TipoCrucero.choices, label="Tipo de crucero")
+    fecha_botadura = forms.DateField(label="Fecha de botadura", widget=forms.DateInput(attrs={'type': 'date'}))
+    descripcion = forms.CharField(label="Descripción", required=False, widget=forms.Textarea)
+
+    def crear_crucero(self) -> Crucero:
+        if not self.is_valid():
+            raise ValueError("Formulario no válido")
+        tipo = self.cleaned_data['tipo_crucero']
+        codigo = generar_codigo_identificacion(tipo)
+        try:
+            crucero = crear_crucero_desde_plantilla(
+                tipo_crucero=tipo,
+                codigo_identificacion=codigo,
+                nombre=self.cleaned_data['nombre'],
+                fecha_botadura=self.cleaned_data['fecha_botadura'],
+                descripcion=self.cleaned_data.get('descripcion') or None,
+            )
+        except PlantillaNoEncontrada as e:
+            raise ValueError(str(e))
+        return crucero
+
+class cruceroEdicionParcialForm(forms.ModelForm):
     class Meta:
         model = Crucero
         fields = [
-            'nombre',
-            'tipo_crucero',
-            'codigo_identificacion',
-            'fecha_botadura',
-            'fecha_adquisicion',
-            'capacidad_pasajeros',
-            'capacidad_tripulacion',
-            'tonelaje',
-            'eslora',
-            'manga',
-            'altura',
-            'bandera',
-            'puerto_base',
-            'estado_operativo',
-            'descripcion',
-            'modelo_motor',
-            'velocidad_maxima',
-            'ultimo_mantenimiento',
-            'proximo_mantenimiento',
-            'tipo_combustible',
-            'consumo_combustible',
+            'nombre', 'estado_operativo', 'ultimo_mantenimiento', 'proximo_mantenimiento',
+            'seguro_vigente', 'fecha_vencimiento_seguro',
+            'certificado_sanitario', 'certificado_seguridad',
+            'foto_barco', 'plano_barco',
         ]
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'tipo_crucero': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'codigo_identificacion': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'fecha_botadura': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'fecha_adquisicion': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'capacidad_pasajeros': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'capacidad_tripulacion': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'tonelaje': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'eslora': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'manga': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'altura': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
-            'bandera': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'puerto_base': forms.TextInput(attrs={'class': 'crucero-form__input'}),
             'estado_operativo': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'descripcion': forms.Textarea(attrs={'class': 'crucero-form__input'}),
-            'modelo_motor': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'velocidad_maxima': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
             'ultimo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
             'proximo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'tipo_combustible': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'consumo_combustible': forms.NumberInput(attrs={'class': 'crucero-form__input'}),
+            'fecha_vencimiento_seguro': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
         }
 
-
-class InstalacionForm(forms.ModelForm):
-    class Meta:
-        model = Instalacion
-        fields = ['nombre', 'tipo', 'capacidad', 'ubicacion', 'descripcion']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'tipo': forms.Select(attrs={'class': 'form-control'}),
-            'capacidad': forms.NumberInput(attrs={'class': 'form-control'}),
-            'ubicacion': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-        }
