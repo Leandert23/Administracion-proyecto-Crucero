@@ -6,6 +6,7 @@
     <title>Bares - Dashboard</title>
     <link rel="stylesheet" href="bares.css">
     <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="promociones.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -270,6 +271,15 @@
                 </section>
                 <section id="promociones" class="menu-section" style="display:none;">
                     <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Promociones</h2>
+                    <div class="promociones-section">
+                        <!-- Día actual -->
+                        <div id="promocion-dia-actual" class="promo-dia-actual"></div>
+                        <!-- Todas las promociones -->
+                        <div class="promociones-lista">
+                            <h3 class="promo-list-title">Promociones Especiales por Día</h3>
+                            <ul id="lista-promociones" class="promo-list"></ul>
+                        </div>
+                    </div>
                 </section>
                 <section id="analisis" class="menu-section" style="display:none;">
                     <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Análisis</h2>
@@ -369,4 +379,5 @@
   <script src="js/pedidos.js"></script>
   <script src="js/productos.js"></script>
   <script src="js/miniMenu.js"></script>
+  <script src="js/promociones.js"></script>
 </html>
