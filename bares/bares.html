@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bares - Dashboard</title>
+    <link rel="stylesheet" href="bares.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/Administracion-proyecto-Crucero/bares/bares.html" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/Administracion-proyecto-Crucero/entretenimiento/entretenimiento.html" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+                        <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-content">
+                        <h1 class="page-title">Entretenimiento</h1>
+                        <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
+                    </div>
+                </div>
+            </header>
+            <!-- Mini menú lateral flotante -->
+            <nav class="mini-menu">
+                <ul>
+                    <li>
+                        <a href="#ordenes" class="mini-menu-icon active" title="Órdenes">
+                            <img src="src/storage/vectors/order.svg" alt="🍹">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#pedidos" class="mini-menu-icon" title="Pedidos">
+                            <img src="src/storage/vectors/pedidos.svg" alt="🚲">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#productos" class="mini-menu-icon" title="Productos">
+                            <img src="src/storage/vectors/productos.svg" alt="🍆">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#promociones" class="mini-menu-icon" title="Promociones">
+                            <img src="src/storage/vectors/promociones.svg" alt="➗">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#analisis" class="mini-menu-icon" title="Análisis">
+                            <img src="src/storage/vectors/analisis.svg" alt="📚">
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-content">
+                        <h1 class="page-title">Bares</h1>
+                        <p class="page-subtitle">Gestión de bares y bebidas</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Date Display -->
+                <div class="date-container">
+                    <div class="date-display">
+                        <span class="date-text" id="current-date">Hoy, 12 de Agosto de 2025</span>
+                    </div>
+                    <button class="select-day-btn" onclick="selectDay()">
+                        Seleccionar Día
+                    </button>
+                </div>
+
+                <!-- Secciones del mini menú -->
+                <section id="ordenes" class="menu-section">
+                    <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Órdenes</h2>
+                    <!-- Pedidos activos -->
+                    <div class="pedidos-section">
+                        <h2 class="pedidos-title">Pedidos Activos</h2>
+                        <form>
+                            <table class="pedidos-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Productos</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Bar</th>
+                                        <th>Asignado a</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pedidos-activos-body">
+                                    <!-- Los pedidos activos se cargarán aquí desde la base de datos -->
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                </section>
+                <section id="pedidos" class="menu-section" style="display:none;">
+                    <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Pedidos</h2>
+                    <!-- Botón para crear pedidos -->
+                    <div style="text-align:center; margin:24px 0;">
+                        <button class="btn detalles" id="crear-pedido-btn">Crear Pedido</button>
+                    </div>
+                    <!-- Formulario modal para crear pedido -->
+                    <div id="modal-crear-pedido" class="modal" style="display:none;">
+                        <div class="modal-content">
+                            <span class="close-modal" id="close-modal">&times;</span>
+                            <h3 style="text-align:center; margin-bottom:18px;">Crear Pedido</h3>
+                            <form id="form-crear-pedido">
+                                <div class="form-group">
+                                    <label for="producto">Producto:</label>
+                                    <input type="text" id="producto" name="producto" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cantidad">Cantidad:</label>
+                                    <input type="number" id="cantidad" name="cantidad" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="quien">Quien Ingresa El Pedido?:</label>
+                                    <input type="text" id="quien" name="quien" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="precio">Precio:</label>
+                                    <input type="number" id="precio" name="precio" min="0" step="0.01" required>
+                                </div>
+                                <div style="text-align:center; margin-top:18px;">
+                                    <button type="submit" class="btn completar">Guardar Pedido</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Historial de pedidos pendientes -->
+                    <div class="pedidos-historial">
+                        <h3 class="pedidos-title">Pedidos Pendientes</h3>
+                        <table class="pedidos-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Productos</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Bar</th>
+                                    <th>Asignado a</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historial-pedidos-pendientes">
+                                <!-- Los pedidos pendientes se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Historial de pedidos completados -->
+                    <div class="pedidos-historial">
+                        <h3 class="pedidos-title">Pedidos Completados</h3>
+                        <table class="pedidos-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Productos</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Bar</th>
+                                    <th>Asignado a</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historial-pedidos-completados">
+                                <!-- Los pedidos completados se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <section id="productos" class="menu-section" style="display:none;">
+                    <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Productos</h2>
+                </section>
+                <section id="promociones" class="menu-section" style="display:none;">
+                    <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Promociones</h2>
+                </section>
+                <section id="analisis" class="menu-section" style="display:none;">
+                    <h2 style="text-align:center; color:#1e293b;">Estás en el menú de Análisis</h2>
+                </section>
+                <!-- Modal para ver detalles del pedido tipo factura (debe estar fuera de las secciones) -->
+                <div id="modal-detalle-pedido" class="modal" style="display:none;">
+                    <div class="modal-content" id="detalle-pedido-content">
+                        <!-- El contenido se genera por JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+  <script src="js/pedidos.js"></script>
+</html>
+<script>
+    // Mini menú navegación
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuIcons = document.querySelectorAll('.mini-menu-icon');
+        const sections = document.querySelectorAll('.menu-section');
+
+        menuIcons.forEach((icon, idx) => {
+            icon.addEventListener('click', function(e) {
+                e.preventDefault();
+                menuIcons.forEach(i => i.classList.remove('active'));
+                icon.classList.add('active');
+                sections.forEach(s => s.style.display = 'none');
+                // Mostrar la sección correspondiente
+                if (icon.getAttribute('href') === '#ordenes') {
+                    sections[0].style.display = 'block';
+                } else if (icon.getAttribute('href') === '#pedidos') {
+                    sections[1].style.display = 'block';
+                } else if (icon.getAttribute('href') === '#productos') {
+                    sections[2].style.display = 'block';
+                } else if (icon.getAttribute('href') === '#promociones') {
+                    sections[3].style.display = 'block';
+                } else if (icon.getAttribute('href') === '#analisis') {
+                    sections[4].style.display = 'block';
+                }
+            });
+        });
+
+        // Inicialmente mostrar solo Órdenes
+        sections.forEach((s, i) => {
+            s.style.display = i === 0 ? 'block' : 'none';
+        });
+    });
+</script>
