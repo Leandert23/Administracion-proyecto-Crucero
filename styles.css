@@ -1,0 +1,246 @@
+/* Reset general */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #ffffff;
+  color: #000;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Container */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background-color: #f0f9ff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 30px 3px #0074d9cc;
+}
+
+/* Title */
+.title {
+  text-align: center;
+  font-size: 2.8rem;
+  color: #003d66;
+  margin-bottom: 30px;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px #88bce0;
+}
+
+/* Headings */
+h2, h3 {
+  color: #005a9c;
+  margin-bottom: 15px;
+}
+
+/* Form */
+form {
+  margin-bottom: 30px;
+  background-color: #d9f0ff;
+  border-radius: 10px;
+  padding: 15px 20px;
+  box-shadow: inset 0 0 10px #0070d6;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #004080;
+}
+
+input[type='text'],
+input[type='number'],
+select {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1.5px solid #007acc;
+  background-color: #e7f4ff;
+  color: #003366;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input[type='text']:focus,
+input[type='number']:focus,
+select:focus {
+  outline: none;
+  border-color: #0057b7;
+  background-color: #c6ddff;
+  box-shadow: 0 0 8px #0057b7aa;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(90deg, #007acc, #003d66);
+  border: none;
+  padding: 12px 28px;
+  margin-top: 20px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #e0f7ff;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px #006494aa;
+  user-select: none;
+}
+
+.btn:hover {
+  background: linear-gradient(90deg, #005fa3, #002746);
+  box-shadow: 0 6px 12px #00487b99;
+}
+
+/* Hide sections */
+.hidden {
+  display: none !important;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #bbd9ff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 15px #8ac2ffaa;
+  margin-bottom: 15px;
+}
+
+thead {
+  background: linear-gradient(90deg, #007acc, #005f99);
+}
+
+thead th {
+  padding: 12px 10px;
+  font-weight: 700;
+  color: #e0efff;
+  text-align: center;
+  border-right: 1px solid #004477;
+  user-select: none;
+}
+
+thead th:last-child {
+  border-right: none;
+}
+
+tbody tr {
+  border-bottom: 1px solid #75aaff;
+  transition: background-color 0.25s ease;
+}
+
+tbody tr:hover {
+  background-color: #99bfff;
+}
+
+tbody td {
+  padding: 8px 10px;
+  text-align: center;
+  background-color: #90c3ff;
+  color: #000;
+  user-select: none;
+}
+
+/* Editable cells */
+.editable-salario,
+.editable-puesto {
+  cursor: text;
+  border-radius: 6px;
+  user-select: text;
+  background-color: #629ce9;
+  color: #000;
+  outline: none;
+}
+
+.editable-salario:focus,
+.editable-puesto:focus {
+  outline: 2px solid #003366;
+  background-color: #4179c3;
+  color: #fff;
+  user-select: text;
+}
+
+/* Action buttons */
+button.edit-btn,
+button.delete-btn,
+button.hire-btn {
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin: 2px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+button.edit-btn {
+  background: #007acc;
+  color: white;
+}
+
+button.edit-btn:hover {
+  background-color: #005fa3;
+}
+
+button.delete-btn {
+  background-color: #cc3300;
+  color: white;
+}
+
+button.delete-btn:hover {
+  background-color: #ff4d26;
+}
+
+button.hire-btn {
+  background-color: #1a8f11;
+  color: white;
+}
+
+button.hire-btn:hover {
+  background-color: #12810a;
+}
+
+/* Notices */
+.notice {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #004a99;
+  text-align: right;
+  text-shadow: 1px 1px 3px #cbe2ff;
+  margin-bottom: 20px;
+}
+
+/* Form-row */
+.form-row {
+  margin-bottom: 12px;
+}
+
+.filter-block {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: #004a99;
+}
+
+/* Top controls */
+.top-controls {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Empty row */
+.empty-row {
+  font-style: italic;
+  color: #003366aa;
+}
