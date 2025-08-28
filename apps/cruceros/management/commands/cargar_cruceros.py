@@ -6,10 +6,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils.dateparse import parse_date
 
-from apps.almacen.Services.creacion_crucero_por_plantilla import crear_crucero_desde_plantilla
-from apps.almacen.models import Crucero
+from ...Services.creacion_crucero_por_plantilla import crear_crucero_desde_plantilla
+from ...models import Crucero
 
-FIXTURES_DIR = Path(__file__).resolve().parents[3] / 'almacen' / 'fixtures'
+FIXTURES_DIR = Path(__file__).resolve().parents[3] / 'cruceros' / 'fixtures'
 ARCHIVO_CRUCEROS = FIXTURES_DIR / 'cruceros_template.json'
 
 class Command(BaseCommand):

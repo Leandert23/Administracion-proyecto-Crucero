@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from django.db import transaction
 from django.utils import timezone
 
-from apps.almacen.models import Crucero, Habitacion, Instalacion, TipoHabitacion
+from ..models import Crucero, Habitacion, Instalacion, TipoHabitacion
 
 class PlantillaNoEncontrada(Exception):
     pass

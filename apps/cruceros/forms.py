@@ -47,26 +47,8 @@ class creacionCruceroForm(forms.Form):
                 codigo_identificacion=codigo,
                 nombre=self.cleaned_data['nombre'],
                 fecha_botadura=self.cleaned_data['fecha_botadura'],
-                descripcion=self.cleaned_data.get('descripcion') or None,
+                descripcion=self.cleaned_data.get('descripcion'),
             )
         except PlantillaNoEncontrada as e:
             raise ValueError(str(e))
         return crucero
-
-class cruceroEdicionParcialForm(forms.ModelForm):
-    class Meta:
-        model = Crucero
-        fields = [
-            'nombre', 'estado_operativo', 'ultimo_mantenimiento', 'proximo_mantenimiento',
-            'seguro_vigente', 'fecha_vencimiento_seguro',
-            'certificado_sanitario', 'certificado_seguridad',
-            'foto_barco', 'plano_barco',
-        ]
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'crucero-form__input'}),
-            'estado_operativo': forms.Select(attrs={'class': 'crucero-form__input'}),
-            'ultimo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'proximo_mantenimiento': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-            'fecha_vencimiento_seguro': forms.DateInput(attrs={'type': 'date', 'class': 'crucero-form__input'}),
-        }
-
