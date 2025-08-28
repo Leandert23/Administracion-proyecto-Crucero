@@ -13,8 +13,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">
-                    <span class="logo-text">Panel de Control</span>
+                    <img src="/Administracion-proyecto-Crucero/svg/logo_Blanco.svg" alt="Logo" class="logo-icon">
                 </div>
             </div>
             
@@ -99,8 +98,10 @@
                         <span></span>
                     </button>
                     <div class="header-content">
-                        <h1 class="page-title">Entretenimiento</h1>
-                        <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
+                        <h1 class="page-title">Hola Ricardo, bienvenido!</h1>
+                        <p class="page-subtitle">
+                            Tu cargo es: supervisor.
+                        </p>
                     </div>
                 </div>
             </header>
@@ -118,7 +119,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#productos" class="mini-menu-icon" title="Productos">
+                        <a href="#menu" class="mini-menu-icon" title="Productos">
                             <img src="src/storage/vectors/productos.svg" alt="🍆">
                         </a>
                     </li>
@@ -143,8 +144,8 @@
                         <span></span>
                     </button>
                     <div class="header-content">
-                        <h1 class="page-title">Bares</h1>
-                        <p class="page-subtitle">Gestión de bares y bebidas</p>
+                        <h4 class="page-title">Te encuentras en: Bar Piscina</h4>
+                        <p class="page-subtitle">modelo de crucero, 2000 pasajeros a bordo</p>
                     </div>
                 </div>
             </header>
@@ -202,20 +203,18 @@
                             <form id="form-crear-pedido">
                                 <div class="form-group">
                                     <label for="producto">Producto:</label>
-                                    <input type="text" id="producto" name="producto" required>
+                                    <input type="text" id="producto" name="producto" required> <!-- Este input será reemplazado por el select -->
                                 </div>
                                 <div class="form-group">
                                     <label for="cantidad">Cantidad:</label>
                                     <input type="number" id="cantidad" name="cantidad" min="1" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="quien">Quien Ingresa El Pedido?:</label>
+                                    <label for="quien">Nombre Del Cliente?:</label>
                                     <input type="text" id="quien" name="quien" required>
                                 </div>
-                                <div class="form-group">
-                                    <label for="precio">Precio:</label>
-                                    <input type="number" id="precio" name="precio" min="0" step="0.01" required>
-                                </div>
+                                <!-- El campo tipo-pedido se agrega por JS -->
+                                <!-- El campo precio se elimina por JS -->
                                 <div style="text-align:center; margin-top:18px;">
                                     <button type="submit" class="btn completar">Guardar Pedido</button>
                                 </div>
@@ -280,42 +279,93 @@
                         <!-- El contenido se genera por JS -->
                     </div>
                 </div>
+                <!-- Menú de Productos (sección añadida) -->
+                <section id="menu" class="menu-section" style="display:none;">
+                    <h2 style="text-align:center; color:#1e293b; margin-bottom:32px;">Menú de Productos</h2>
+                    <!-- Botón para crear producto -->
+                    <div style="text-align:center; margin-bottom:32px;">
+                        <button class="btn btn-crear-producto" id="crear-producto-btn">
+                            <span style="font-size:1.2rem; font-weight:700;">+ Crear Producto</span>
+                        </button>
+                    </div>
+                    <div class="menu-categorias-caja">
+                        <!-- All Inclusive -->
+                        <div class="menu-categoria-caja">
+                            <h3 class="menu-categoria-titulo" style="color:#22c55e;">All Inclusive (Gratis)</h3>
+                            <div id="productos-menu-gratis" class="menu-productos-grid"></div>
+                        </div>
+                        <!-- Tragos Seleccionados -->
+                        <div class="menu-categoria-caja">
+                            <h3 class="menu-categoria-titulo" style="color:#f59e42;">Tragos Premium (Pago)</h3>
+                            <div id="productos-menu-pago" class="menu-productos-grid"></div>
+                        </div>
+                    </div>
+                    <!-- Modal para crear producto -->
+                    <div id="modal-crear-producto" class="modal" style="display:none;">
+                        <div class="modal-content">
+                            <span class="close-modal" id="close-modal-producto">&times;</span>
+                            <h3 style="text-align:center; margin-bottom:18px;">Crear Producto</h3>
+                            <form id="form-crear-producto">
+                                <div class="form-group">
+                                    <label for="nombre-producto">Nombre del Producto:</label>
+                                    <input type="text" id="nombre-producto" name="nombre-producto" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>¿Es premium/pago?</label>
+                                    <select id="tipo-producto" name="tipo-producto" required>
+                                        <option value="gratis">All Inclusive (Gratis)</option>
+                                        <option value="pago">Premium (Pago)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="precio-producto-group" style="display:none;">
+                                    <label for="precio-producto">Precio:</label>
+                                    <input type="number" id="precio-producto" name="precio-producto" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ingredientes:</label>
+                                    <div id="ingredientes-list">
+                                        <!-- Ejemplo de ingrediente, elimina esto cuando conectes la base de datos Django -->
+                                        <div class="ingrediente-item">
+                                            <input type="text" name="ingrediente-nombre[]" placeholder="Nombre" value="Ron blanco">
+                                            <input type="text" name="ingrediente-cantidad[]" placeholder="Cantidad" value="60 ml">
+                                        </div>
+                                        <div class="ingrediente-item">
+                                            <input type="text" name="ingrediente-nombre[]" placeholder="Nombre" value="Jugo de limón fresco">
+                                            <input type="text" name="ingrediente-cantidad[]" placeholder="Cantidad" value="30 ml">
+                                        </div>
+                                        <!-- Elimina los ingredientes de ejemplo al conectar con Django -->
+                                    </div>
+                                    <button type="button" class="btn completar" id="agregar-ingrediente-btn" style="margin-top:10px;">Agregar Ingrediente</button>
+                                </div>
+                                <div style="text-align:center; margin-top:18px;">
+                                    <button type="submit" class="btn completar">Guardar Producto</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Modal para eliminar producto -->
+                    <div id="modal-eliminar-producto" class="modal" style="display:none;">
+                        <div class="modal-content">
+                            <span class="close-modal" id="close-modal-eliminar">&times;</span>
+                            <div class="factura-header">
+                                <h2>Advertencia</h2>
+                            </div>
+                            <p style="text-align:center; color:#ef4444; font-size:1.1rem;">
+                                ¿Estás seguro que deseas eliminar este producto?<br>
+                                Esta acción es irreversible.
+                            </p>
+                            <div style="text-align:center; margin-top:18px;">
+                                <button class="btn eliminar" id="confirmar-eliminar-producto">Eliminar</button>
+                                <button class="btn detalles" id="cancelar-eliminar-producto">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
 </body>
   <script src="js/pedidos.js"></script>
+  <script src="js/productos.js"></script>
+  <script src="js/miniMenu.js"></script>
 </html>
-<script>
-    // Mini menú navegación
-    document.addEventListener('DOMContentLoaded', function() {
-        const menuIcons = document.querySelectorAll('.mini-menu-icon');
-        const sections = document.querySelectorAll('.menu-section');
-
-        menuIcons.forEach((icon, idx) => {
-            icon.addEventListener('click', function(e) {
-                e.preventDefault();
-                menuIcons.forEach(i => i.classList.remove('active'));
-                icon.classList.add('active');
-                sections.forEach(s => s.style.display = 'none');
-                // Mostrar la sección correspondiente
-                if (icon.getAttribute('href') === '#ordenes') {
-                    sections[0].style.display = 'block';
-                } else if (icon.getAttribute('href') === '#pedidos') {
-                    sections[1].style.display = 'block';
-                } else if (icon.getAttribute('href') === '#productos') {
-                    sections[2].style.display = 'block';
-                } else if (icon.getAttribute('href') === '#promociones') {
-                    sections[3].style.display = 'block';
-                } else if (icon.getAttribute('href') === '#analisis') {
-                    sections[4].style.display = 'block';
-                }
-            });
-        });
-
-        // Inicialmente mostrar solo Órdenes
-        sections.forEach((s, i) => {
-            s.style.display = i === 0 ? 'block' : 'none';
-        });
-    });
-</script>
