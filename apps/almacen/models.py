@@ -61,10 +61,33 @@ class SeccionAlmacen(models.Model):
 
 
 class Producto(models.Model):
+    TIPO_MEDIDA = [
+        ('L', 'Litros'),
+        ('M', 'Metros'),
+        ('G', 'Gramos'),
+        ('U', 'Unidades'),
+    ]
+    TIPO_PRODUCTO = [
+        'Comida',
+        'Bienes'
+    ]
+    SUBTIPO_PRODUCTO = [
+        'Caducable',
+        'No caducable'
+        'Refrigerado',
+        'No refrigerado',
+        'Bebida',
+        'Licor',
+        'Repuestos',
+        'Materiales de limpieza',
+        'Materiales medicos',
+        'Bienes activos'
+    ]
     nombre = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=5, decimal_places=2)
     tipo = models.CharField(max_length=20) # TODO: Necesitamos tener un tipo de producto, CUANDO LOS OTROS MODULOS SE ORGANICEN
     cantidad = models.IntegerField()
+    medida = models.CharField(choices=TIPO_MEDIDA)
 
     seccion_almacen = models.ForeignKey(
         SeccionAlmacen,
@@ -80,3 +103,4 @@ class Producto(models.Model):
     class Meta:
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
+
