@@ -1,0 +1,190 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="{% static 'Css/inicio_sin_rutas.css' %}">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> -->
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">{{ crucero.nombre }}</h1>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="empty-state">
+                    <h2 class="empty-state__title">Aún no se ha agendado un viaje para este crucero</h2>
+                    <p class="empty-state__text">Asigna una ruta y fecha de inicio para crear el primer viaje.</p>
+                    <button class="btn-primario" id="btnAbrirAsignacion">Asignar ruta</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Asignar Ruta -->
+    <div class="modal" id="modalAsignar" aria-hidden="true">
+        <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalAsignarTitulo">
+            <div class="modal__header">
+                <h2 id="modalAsignarTitulo" class="modal__title">Asignar Ruta</h2>
+                <button type="button" class="modal__close" id="cerrarModalAsignar" aria-label="Cerrar">×</button>
+            </div>
+            <form method="post" class="modal__form">
+                {% csrf_token %}
+                <div class="modal__field">
+                    <label for="id_ruta" class="modal__label">Ruta</label>
+                    {{ form_asignar.ruta }}
+                </div>
+                <div class="modal__field">
+                    <label for="id_fecha_inicio" class="modal__label">Fecha de inicio</label>
+                    {{ form_asignar.fecha_inicio }}
+                </div>
+                <div class="modal__actions">
+                    <button type="submit" class="modal__btn modal__btn--primary">Crear viaje</button>
+                    <button type="button" class="modal__btn modal__btn--secondary" id="cancelarModalAsignar">Cancelar</button>
+                </div>
+            </form>
+        </div>
+        <div class="modal__backdrop" id="backdropAsignar"></div>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        (function(){
+            const abrir=document.getElementById('btnAbrirAsignacion');
+            const modal=document.getElementById('modalAsignar');
+            const cerrar=document.getElementById('cerrarModalAsignar');
+            const cancelar=document.getElementById('cancelarModalAsignar');
+            const backdrop=document.getElementById('backdropAsignar');
+            function abrirModal(){modal.setAttribute('aria-hidden','false');modal.classList.add('modal--visible');const first=modal.querySelector('select,input');if(first)first.focus();}
+            function cerrarModal(){modal.setAttribute('aria-hidden','true');modal.classList.remove('modal--visible');abrir.focus();}
+            abrir&&abrir.addEventListener('click',abrirModal);
+            cerrar&&cerrar.addEventListener('click',cerrarModal);
+            cancelar&&cancelar.addEventListener('click',cerrarModal);
+            backdrop&&backdrop.addEventListener('click',cerrarModal);
+            document.addEventListener('keydown',e=>{if(e.key==='Escape' && modal.classList.contains('modal--visible')) cerrarModal();});
+        })();
+    </script>
+</body>
+</html>

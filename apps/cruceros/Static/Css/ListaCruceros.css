@@ -275,3 +275,20 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 .no-scroll { overflow: hidden; }
+
+
+
+/* === Fecha del sistema === */
+.sistema-fecha {display:flex;align-items:center;justify-content:space-between;background:#ffffff;border:1px solid #e2e8f0;margin:0 40px 10px;padding:14px 22px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);gap:20px;flex-wrap:wrap;}
+.sistema-fecha__info {display:flex;align-items:center;gap:10px;font-size:15px;color:#1e293b;font-weight:500;}
+.sistema-fecha__label {color:#64748b;font-weight:500;}
+.sistema-fecha__valor {background:#f1f5f9;padding:6px 14px;border-radius:8px;font-weight:600;letter-spacing:.5px;border:1px solid #e2e8f0;}
+.sistema-fecha__form {margin:0;}
+.sistema-fecha__btn {background:#6366f1;color:#fff;border:none;padding:10px 18px;font-size:14px;font-weight:500;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(99,102,241,.35);transition:background .25s ease, transform .25s ease, box-shadow .25s ease;}
+.sistema-fecha__btn:hover {background:#4f46e5;transform:translateY(-2px);}
+.sistema-fecha__btn:active {transform:translateY(0);box-shadow:0 2px 6px rgba(99,102,241,.3);}
+@media (max-width:640px){
+  .sistema-fecha{margin:0 20px 14px;padding:14px 18px;}
+  .sistema-fecha__info{font-size:14px;}
+  .sistema-fecha__btn{width:100%;justify-content:center;margin-top:8px;}
+}

@@ -8,10 +8,20 @@
 </head>
 <body>
     <div class="container-cruceros">
-
         <div class="header-cruceros">
             <h1 class="titulo-seccion">Cruceros</h1>
             <p class="subtitulo-seccion">Gestión y control de cruceros registrados</p>
+        </div>
+
+        <div class="sistema-fecha">
+            <div class="sistema-fecha__info">
+                <span class="sistema-fecha__label">Fecha del sistema:</span>
+                <span class="sistema-fecha__valor">{{ fecha_sistema }}</span>
+            </div>
+            <form method="post" class="sistema-fecha__form">
+                {% csrf_token %}
+                <button name="advance_day" value="1" class="sistema-fecha__btn" type="submit">Avanzar día</button>
+            </form>
         </div>
 
         <div class="cruceros-list__actions">
@@ -20,7 +30,7 @@
 
     <div class="tarjetas-cruceros">
             {% for crucero in cruceros %}
-            <a href="#" class="tarjeta-crucero-link">
+            <a href="{% url 'gestion_crucero' crucero.id %}" class="tarjeta-crucero-link">
                 <div class="tarjeta-crucero">
                     <div class="icono-crucero">
                         {% if crucero.foto_barco %}

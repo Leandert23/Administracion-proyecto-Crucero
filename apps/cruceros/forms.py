@@ -4,7 +4,7 @@ from typing import Dict
 
 from django import forms
 
-from .models import Crucero
+from .models import Crucero, Viaje, FechaDelSistema
 from .Services.creacion_crucero_por_plantilla import crear_crucero_desde_plantilla, PlantillaNoEncontrada
 
 PREFIJOS_TIPO: Dict[str, str] = {
@@ -52,3 +52,36 @@ class creacionCruceroForm(forms.Form):
         except PlantillaNoEncontrada as e:
             raise ValueError(str(e))
         return crucero
+
+class AsignarRutaForm(forms.ModelForm):
+    class Meta:
+        model = Viaje
+        fields = ["ruta", "fecha_inicio"]
+        widgets = {
+            "fecha_inicio": forms.DateInput(attrs={"type": "date"}),
+        }
+        labels = {
+            "ruta": "Ruta",
+            "fecha_inicio": "Fecha de inicio",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        fs = FechaDelSistema.objects.first()
+        if fs:
+            self.fields["fecha_inicio"].initial = fs.fecha_actual
+
+
+class CruceroEditForm(forms.ModelForm):
+    class Meta:
+        model = Crucero
+        fields = [
+            'nombre', 'fecha_botadura', 'bandera', 'puerto_base', 'estado_operativo',
+            'descripcion', 'ultimo_mantenimiento', 'proximo_mantenimiento'
+        ]
+        widgets = {
+            'fecha_botadura': forms.DateInput(attrs={'type': 'date'}),
+            'ultimo_mantenimiento': forms.DateInput(attrs={'type': 'date'}),
+            'proximo_mantenimiento': forms.DateInput(attrs={'type': 'date'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
+        }
