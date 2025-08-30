@@ -15,7 +15,7 @@ class Almacen(models.Model):
         return sum(seccion.capacidad for seccion in self.secciones.all())
 
     def capacidad_disponible(self):
-        return self.capacidad_total.value_from_object(self) - self.capacidad_utilizada()
+        return self.capacidad_total - self.capacidad_utilizada()
 
     class Meta:
         verbose_name = "Almacén"
