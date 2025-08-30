@@ -1,5 +1,5 @@
 from django.db import models
-from django.db import models
+from datetime import timedelta
 from django.core.exceptions import ValidationError
 
 class Crucero(models.Model):
@@ -113,8 +113,35 @@ class Crucero(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    @property
     def capacidad_total(self):
         return self.capacidad_pasajeros + self.capacidad_tripulacion
+    
+    @property
+    def se_encuentra_en_planificacion(self) -> bool:
+        viaje = self.viajes.filter(estado = "planificacion").first()
+        if viaje is None:
+            return False
+        else:
+            return True
+        
+    @property
+    def se_encuentra_en_viaje(self) -> bool:
+        viaje = self.viajes.filter(estado = "activo").first()
+        if viaje is None:
+            return False
+        else:
+            return True
+
+    @property
+    def dia_actual_de_viaje(self) -> int:
+        viaje = self.viajes.filter(estado="activo").first()
+        if not viaje:
+            raise Exception("Error: El barco no está en un viaje")
+        else: 
+            hoy = FechaDelSistema.objects.first().fecha_actual
+            dias_transcurridos = (hoy - viaje.fecha_inicio).days + 1
+            return dias_transcurridos
 
     class Meta:
         verbose_name = "Crucero"
@@ -271,3 +298,76 @@ class Instalacion(models.Model):
         verbose_name = "Instalación"
         verbose_name_plural = "Instalaciones"
         ordering = ['nombre']
+
+class FechaDelSistema(models.Model):
+    fecha_actual = models.DateField()
+    
+    
+
+class Ruta(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+    duracion_dias = models.IntegerField(help_text="Duración total del ciclo de la ruta")
+    
+    def __str__(self):
+        return self.nombre
+
+class EtapaRuta(models.Model):
+    TIPO_ETAPA = (
+        ('puerto', 'Puerto'),
+        ('navegacion', 'Navegación'),
+    )
+    
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, related_name='etapas')
+    nombre_lugar = models.CharField(max_length=100, help_text="Nombre del puerto o 'Navegación'")
+    pais = models.CharField(max_length=100, blank=True)
+    dia_llegada = models.IntegerField(help_text="Día en que se llega a esta etapa")
+    tipo = models.CharField(max_length=20, choices=TIPO_ETAPA)
+    descripcion = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['dia_llegada']
+        unique_together = ['ruta', 'dia_llegada']
+    
+    def __str__(self):
+        return f"{self.ruta.nombre} - Día {self.dia_llegada}: {self.nombre_lugar}"
+
+class Viaje(models.Model):
+    ESTADOS = (
+        ('planificacion', 'En Planificación'),
+        ('activo', 'Activo'),
+        ('completado', 'Completado'),
+    )
+    
+    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='viajes')
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
+    fecha_inicio = models.DateField(null=True, blank=True)
+    fecha_fin = models.DateField(null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='planificacion')
+    
+    class Meta:
+        ordering = ['-fecha_inicio']
+    
+    def __str__(self):
+        return f"{self.crucero.nombre} - {self.ruta.nombre} - {self.estado}"
+
+    def calcular_fecha_fin(self):
+        if self.fecha_inicio and self.ruta and self.ruta.duracion_dias is not None:
+            dias = self.ruta.duracion_dias - 1
+            return self.fecha_inicio + timedelta(days=dias)
+        return None
+
+    def save(self, *args, **kwargs):
+        nueva_fecha_fin = self.calcular_fecha_fin()
+        if nueva_fecha_fin:
+            self.fecha_fin = nueva_fecha_fin
+        super().save(*args, **kwargs)
+
+class EstadoViaje(models.Model):
+    viaje = models.OneToOneField(Viaje, on_delete=models.CASCADE, related_name='estado_actual')
+    dia_actual = models.IntegerField(default=1)
+    etapa_actual = models.ForeignKey(EtapaRuta, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    def __str__(self):
+        ubicacion = self.etapa_actual.nombre_lugar if self.en_puerto else "Navegación"
+        return f"{self.viaje} - Día {self.dia_actual}: {ubicacion}"

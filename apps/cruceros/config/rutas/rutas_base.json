@@ -1,0 +1,19 @@
+{
+    "rutas": [
+        {
+            "nombre": "Ruta del Caribe",
+            "descripcion": "Hermosa ruta por el Caribe visitando Panamá, Colombia, Aruba, Bonaire y Curazao",
+            "duracion_dias": 8,
+            "etapas": [
+                {"orden": 1, "nombre_lugar": "Colón", "pais": "Panamá", "dia_llegada": 1, "tipo": "puerto", "descripcion": "Embarque y partida desde el puerto de Colón, Panamá."},
+                {"orden": 2, "nombre_lugar": "Cartagena", "pais": "Colombia", "dia_llegada": 2, "tipo": "puerto", "descripcion": "Explora la histórica ciudad amurallada, sus fuertes y el encanto colonial."},
+                {"orden": 3, "nombre_lugar": "Navegación", "pais": "", "dia_llegada": 3, "tipo": "navegacion", "descripcion": "Un día completo en el mar para disfrutar de las instalaciones del crucero."},
+                {"orden": 4, "nombre_lugar": "Oranjestad", "pais": "Aruba", "dia_llegada": 4, "tipo": "puerto", "descripcion": "Descubre las playas de arena blanca y la arquitectura de influencia holandesa."},
+                {"orden": 5, "nombre_lugar": "Kralendijk", "pais": "Bonaire", "dia_llegada": 5, "tipo": "puerto", "descripcion": "Famosa por sus sitios de buceo y snorkel, ideal para explorar la vida marina."},
+                {"orden": 6, "nombre_lugar": "Willemstad", "pais": "Curazao", "dia_llegada": 6, "tipo": "puerto", "descripcion": "Ciudad con edificios de colores pastel, Patrimonio de la Humanidad."},
+                {"orden": 7, "nombre_lugar": "Navegación", "pais": "", "dia_llegada": 7, "tipo": "navegacion", "descripcion": "Relájate y disfruta del viaje de regreso."},
+                {"orden": 8, "nombre_lugar": "Colón", "pais": "Panamá", "dia_llegada": 8, "tipo": "puerto", "descripcion": "Desembarque en el puerto de Colón."}
+            ]
+        }
+    ]
+}
