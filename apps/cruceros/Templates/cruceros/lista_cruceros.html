@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cruceros</title>
+    <link rel="stylesheet" href="{% static 'Css/ListaCruceros.css' %}">
+</head>
+<body>
+    <div class="container-cruceros">
+        <div class="header-cruceros">
+            <h1 class="titulo-seccion">Cruceros</h1>
+            <p class="subtitulo-seccion">Gestión y control de cruceros registrados</p>
+        </div>
+
+        <div class="sistema-fecha">
+            <div class="sistema-fecha__info">
+                <span class="sistema-fecha__label">Fecha del sistema:</span>
+                <span class="sistema-fecha__valor">{{ fecha_sistema }}</span>
+            </div>
+            <form method="post" class="sistema-fecha__form">
+                {% csrf_token %}
+                <button name="advance_day" value="1" class="sistema-fecha__btn" type="submit">Avanzar día</button>
+            </form>
+        </div>
+
+        <div class="cruceros-list__actions">
+            <button class="cruceros-list__btn cruceros-list__btn--nuevo" id="btnAbrirModal">Crear Crucero</button>
+        </div>
+
+    <div class="tarjetas-cruceros">
+            {% for crucero in cruceros %}
+            <a href="{% url 'gestion_crucero' crucero.id %}" class="tarjeta-crucero-link">
+                <div class="tarjeta-crucero">
+                    <div class="icono-crucero">
+                        {% if crucero.foto_barco %}
+                            <img src="{{ crucero.foto_barco.url }}" alt="{{ crucero.nombre }}">
+                        {% else %}
+                            <img src="{% static 'Images/CruceroPredeterminado.png' %}" alt="Crucero">
+                        {% endif %}
+                    </div>
+                    <div class="info-crucero">
+                        <h2 class="nombre-crucero">{{ crucero.nombre }}</h2>
+                        <p><strong>Tipo:</strong> {{ crucero.get_tipo_crucero_display }}</p>
+                        <p><strong>Código:</strong> {{ crucero.codigo_identificacion }}</p>
+                        <p><strong>Pasajeros:</strong> {{ crucero.capacidad_pasajeros }}</p>
+                        <p><strong>Tripulación:</strong> {{ crucero.capacidad_tripulacion }}</p>
+                        <p><strong>Bandera:</strong> {{ crucero.bandera }}</p>
+                        <p><strong>Puerto Base:</strong> {{ crucero.puerto_base }}</p>
+                        <p><strong>Estado:</strong> {{ crucero.get_estado_operativo_display }}</p>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="sin-cruceros">No hay cruceros registrados.</div>
+            {% endfor %}
+        </div>
+
+        <div class="crucero-modal" id="cruceroModal" aria-hidden="true">
+            <div class="crucero-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="cruceroModalTitulo">
+                <div class="crucero-modal__header">
+                    <h2 class="crucero-modal__title" id="cruceroModalTitulo">Crear Crucero</h2>
+                    <button type="button" class="crucero-modal__close" id="btnCerrarModal" aria-label="Cerrar">×</button>
+                </div>
+                <form method="post" class="crucero-modal__form">
+                    {% csrf_token %}
+                    <div class="crucero-modal__field crucero-modal__field--nombre">
+                        <label class="crucero-modal__label" for="id_nombre">Nombre</label>
+                        <div class="crucero-modal__control">{{ form.nombre }}</div>
+                    </div>
+                    <div class="crucero-modal__field crucero-modal__field--tipo">
+                        <label class="crucero-modal__label" for="id_tipo_crucero">Tipo</label>
+                        <div class="crucero-modal__control">{{ form.tipo_crucero }}</div>
+                    </div>
+                    <div class="crucero-modal__field crucero-modal__field--fecha">
+                        <label class="crucero-modal__label" for="id_fecha_botadura">Fecha botadura</label>
+                        <div class="crucero-modal__control">{{ form.fecha_botadura }}</div>
+                    </div>
+                    <div class="crucero-modal__field crucero-modal__field--descripcion">
+                        <label class="crucero-modal__label" for="id_descripcion">Descripción</label>
+                        <div class="crucero-modal__control">{{ form.descripcion }}</div>
+                    </div>
+                    <div class="crucero-modal__actions">
+                        <button type="submit" class="crucero-modal__btn crucero-modal__btn--crear">Crear</button>
+                        <button type="button" class="crucero-modal__btn crucero-modal__btn--cancelar" id="btnCancelarModal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            <div class="crucero-modal__backdrop" id="modalBackdrop"></div>
+        </div>
+    </div>
+    <script>
+    (function(){
+        const abrir = document.getElementById('btnAbrirModal');
+        const modal = document.getElementById('cruceroModal');
+        const cerrar = document.getElementById('btnCerrarModal');
+        const cancelar = document.getElementById('btnCancelarModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const body = document.body;
+
+        function abrirModal(){
+            modal.setAttribute('aria-hidden','false');
+            modal.classList.add('crucero-modal--visible');
+            body.classList.add('no-scroll');
+            const firstInput = modal.querySelector('input, select, textarea');
+            if(firstInput) firstInput.focus();
+        }
+        function cerrarModal(){
+            modal.setAttribute('aria-hidden','true');
+            modal.classList.remove('crucero-modal--visible');
+            body.classList.remove('no-scroll');
+            abrir.focus();
+        }
+        abrir.addEventListener('click', abrirModal);
+        cerrar.addEventListener('click', cerrarModal);
+        cancelar.addEventListener('click', cerrarModal);
+        backdrop.addEventListener('click', cerrarModal);
+        document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('crucero-modal--visible')) cerrarModal(); });
+    })();
+    </script>
+</body>
+</html>
+

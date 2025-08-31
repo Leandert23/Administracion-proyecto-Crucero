@@ -1,0 +1,68 @@
+{
+    "tipo_crucero": "pequeno",
+    "especificaciones": {
+        "capacidad_pasajeros": 2000,
+        "capacidad_tripulacion": 667,
+        "tonelaje": "78340.00",
+        "eslora": "278.00",
+        "manga": "32.20",
+        "altura": "60.00",
+        "numero_cubiertas": 12,
+        "bandera": "Bahamas",
+        "puerto_base": "Colón, Panamá",
+        "estado_operativo": "activo",
+        "modelo_motor": "Wartsila 12V46C",
+        "velocidad_maxima": "23.00",
+        "tipo_combustible": "diesel",
+        "consumo_combustible": "150.00",
+        "descripcion": "Crucero pequeño de referencia generado por plantilla."
+    },
+    "habitaciones": {
+        "tipos_habitacion": {
+            "basico_sencillo_vista": {"nombre": "Camarote básico sencillo vista mar", "capacidad": 2, "precio_base": "100.00", "descripcion": "Sencillo básico con vista al mar"},
+            "basico_sencillo_interior": {"nombre": "Camarote básico sencillo interior", "capacidad": 2, "precio_base": "90.00", "descripcion": "Sencillo básico interior"},
+            "basico_doble_vista": {"nombre": "Camarote básico doble vista mar", "capacidad": 4, "precio_base": "180.00", "descripcion": "Doble básico con vista"},
+            "basico_doble_interior": {"nombre": "Camarote básico doble interior", "capacidad": 4, "precio_base": "160.00", "descripcion": "Doble básico interior"},
+            "premium_sencillo_vista": {"nombre": "Camarote premium sencillo vista mar", "capacidad": 2, "precio_base": "140.00", "descripcion": "Sencillo premium vista mar"},
+            "premium_sencillo_interior": {"nombre": "Camarote premium sencillo interior", "capacidad": 2, "precio_base": "125.00", "descripcion": "Sencillo premium interior"},
+            "premium_doble_vista": {"nombre": "Camarote premium doble vista mar", "capacidad": 4, "precio_base": "250.00", "descripcion": "Doble premium vista mar"},
+            "premium_doble_interior": {"nombre": "Camarote premium doble interior", "capacidad": 4, "precio_base": "220.00", "descripcion": "Doble premium interior"}
+        },
+        "reglas": [
+            {
+                "categoria": "basico",
+                "pisos": [2,3,4,5],
+                "sencillos_por_piso": 125,
+                "dobles_por_piso": 25,
+                "porcentaje_vista": 0.6
+            },
+            {
+                "categoria": "premium",
+                "pisos": [6,7,8],
+                "sencillos_por_piso": 50,
+                "dobles_por_piso": 25,
+                "porcentaje_vista": 0.6
+            }
+        ]
+    },
+    "instalaciones": {
+        "items": [
+            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 320, "cubierta": 5, "descripcion": "Buffet principal (1 de 2)"},
+            {"nombre": "Restaurante Buffet Caribe", "tipo": "restaurantes", "capacidad": 180, "cubierta": 6, "descripcion": "Segundo buffet (2 de 2)"},
+            {"nombre": "Restaurante A la Carta Marina", "tipo": "restaurantes", "capacidad": 140, "cubierta": 7, "descripcion": "Restaurante a la carta"},
+            {"nombre": "Restaurante Especialidad Fusión Asiática (Pago)", "tipo": "restaurantes", "capacidad": 90, "cubierta": 8, "descripcion": "Especialidad con cargo adicional (1 de 2)"},
+            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 80, "cubierta": 4, "descripcion": "Especialidad con cargo adicional (2 de 2)"},
+            {"nombre": "Bar Panorama", "tipo": "bares_cafes", "capacidad": 120, "cubierta": 6},
+            {"nombre": "Bar Piscina", "tipo": "bares_cafes", "capacidad": 70, "cubierta": 9, "descripcion": "Bar de apoyo a piscina"},
+            {"nombre": "Café Promenade", "tipo": "bares_cafes", "capacidad": 60, "cubierta": 4, "descripcion": "Café y bollería"},
+            {"nombre": "Snack Grill Exterior", "tipo": "otro", "capacidad": 50, "cubierta": 9, "descripcion": "Snacks rápidos"},
+            {"nombre": "Heladería Marina", "tipo": "otro", "capacidad": 30, "cubierta": 6, "descripcion": "Helados y postres"},
+            {"nombre": "Lounge Nocturno", "tipo": "bares_cafes", "capacidad": 90, "cubierta": 8, "descripcion": "Bar nocturno"},
+            {"nombre": "Sports Bar", "tipo": "bares_cafes", "capacidad": 55, "cubierta": 7, "descripcion": "Pantallas deportivas"},
+            {"nombre": "Coffee Corner", "tipo": "bares_cafes", "capacidad": 40, "cubierta": 5, "descripcion": "Café especialidad"},
+            {"nombre": "Piscina Exterior", "tipo": "entretenimiento", "capacidad": 80, "cubierta": 9},
+            {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 60, "cubierta": 7},
+            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 15, "cubierta": 3}
+        ]
+    }
+}

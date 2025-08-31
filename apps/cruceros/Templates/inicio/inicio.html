@@ -1,0 +1,431 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="{% static 'Css/inicio.css' %}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">{{ crucero.nombre }}</h1>
+                    <p class="page-subtitle">{{ crucero.descripcion }}</p>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Tarjetas resumen superiores -->
+                <div class="quick-cards">
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Informacion General</h3>
+                            <p class="quick-card__text">Editar información general del crucero</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Instalaciones</h3>
+                            <p class="quick-card__text">Ver instalaciones disponibles</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Distribución de habitaciones</h3>
+                            <p class="quick-card__text">Ver distribución de habitaciones del crucero</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Sección dinámica: planificación o timeline activo -->
+                {% if primer_viaje %}
+                    {% if primer_viaje.estado == 'planificacion' %}
+                        <div class="viaje-planificacion">
+                            <h2 class="viaje-planificacion__title">Viaje en planificación</h2>
+                            {% if primer_viaje.fecha_inicio %}
+                                {% if dias_para_zarpe > 0 %}
+                                    <p class="viaje-planificacion__text">Faltan <strong>{{ dias_para_zarpe }}</strong> día{{ dias_para_zarpe|pluralize:"s" }} para zarpar ({{ primer_viaje.fecha_inicio }})</p>
+                                {% elif dias_para_zarpe == 0 %}
+                                    <p class="viaje-planificacion__text">Zarpa hoy ({{ primer_viaje.fecha_inicio }})</p>
+                                {% else %}
+                                    <p class="viaje-planificacion__text">La fecha programada de inicio ya pasó ({{ primer_viaje.fecha_inicio }})</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="viaje-planificacion__text">Aún no se ha definido una fecha de inicio.</p>
+                            {% endif %}
+                        </div>
+                    {% elif primer_viaje.estado == 'activo' %}
+                        {% with progress_width=progreso_porcentaje|default:0 %}
+                        <div class="viaje-timeline" style="--progress-width: {{ progress_width }}%;">
+                            <div class="progress-container">
+                                <div class="progress-title">
+                                    <h2>Progreso del Viaje</h2>
+                                    {% if progreso_porcentaje != None %}<div class="progress-percentage">{{ progreso_porcentaje }}%</div>{% endif %}
+                                </div>
+                                <div class="progress-bar"><div class="progress-fill"></div></div>
+                                <div class="progress-days">
+                                    <span>Día 1</span>
+                                    {% if dias_transcurridos and dias_transcurridos > 1 and dias_transcurridos < dias_totales %}
+                                        <span>Día {{ dias_transcurridos }}</span>
+                                    {% endif %}
+                                    <span>Día {{ dias_totales }}</span>
+                                </div>
+                            </div>
+                            <div class="timeline-container">
+                                <div class="connector"></div>
+                                <div class="timeline">
+                                    {% for e in etapas_datos %}
+                                        <div class="day">
+                                            <div class="circle {{ e.status }}">
+                                                <span class="day-number">{{ e.dia }}</span>
+                                                <span class="day-type">{{ e.tipo }}</span>
+                                            </div>
+                                            <div class="day-content">
+                                                <p class="location">{{ e.nombre_lugar }}</p>
+                                                {% if e.descripcion %}<p class="description">{{ e.descripcion }}</p>{% endif %}
+                                                <div class="status-indicator status-{{ e.status }}">
+                                                    {% if e.status == 'past' %}Completado{% elif e.status == 'current' %}En curso{% else %}Próximo{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Instalaciones -->
+    <div class="modal-overlay" id="modalInstalaciones" aria-hidden="true">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalInstTitle">
+            <div class="modal-header">
+                <h2 id="modalInstTitle">Instalaciones del Crucero</h2>
+                <button type="button" class="modal-close" aria-label="Cerrar" onclick="cerrarModalInstalaciones()">×</button>
+            </div>
+            <div class="modal-body">
+                {% if instalaciones %}
+                <table class="inst-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Cubierta</th>
+                            <th>Código</th>
+                            <th>Capacidad</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inst in instalaciones %}
+                        <tr>
+                            <td>{{ inst.nombre }}</td>
+                            <td><span class="badge-tipo tipo-{{ inst.tipo }}">{{ inst.get_tipo_display }}</span></td>
+                            <td>{{ inst.cubierta }}</td>
+                            <td>{{ inst.codigo_ubicacion }}</td>
+                            <td>{{ inst.capacidad }}</td>
+                            <td>{% if inst.descripcion %}{{ inst.descripcion|truncatechars:90 }}{% else %}<em>—</em>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <div class="empty-state">Este crucero no tiene instalaciones registradas.</div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalInstalaciones()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Distribución Habitaciones -->
+    <div class="modal-overlay" id="modalDistribucion" aria-hidden="true">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalDistTitle">
+            <div class="modal-header">
+                <h2 id="modalDistTitle">Distribución de Habitaciones</h2>
+                <button type="button" class="modal-close" aria-label="Cerrar" onclick="cerrarModalDistribucion()">×</button>
+            </div>
+            <div class="modal-body">
+                {% if distribucion_habitaciones %}
+                <table class="dist-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Capacidad Tipo</th>
+                            <th>Cant. Habitaciones</th>
+                            <th>Capacidad Total</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in distribucion_habitaciones %}
+                        <tr>
+                            <td>{{ d.nombre }}</td>
+                            <td><span class="tag-cap">{{ d.capacidad_tipo }}</span></td>
+                            <td>{{ d.cantidad_habitaciones }}</td>
+                            <td><span class="tag-cap tag-total">{{ d.capacidad_total }}</span></td>
+                            <td>{% if d.descripcion %}{{ d.descripcion|truncatechars:90 }}{% else %}<em>—</em>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No hay habitaciones registradas.</div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalDistribucion()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Información General (Edición Crucero) -->
+    <div class="modal-overlay" id="modalInfoGeneral" aria-hidden="true">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalInfoTitle">
+            <div class="modal-header">
+                <h2 id="modalInfoTitle">Editar Información General</h2>
+                <button type="button" class="modal-close" aria-label="Cerrar" onclick="cerrarModalInfoGeneral()">×</button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="formInfoGeneral">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="editar_crucero" />
+                    <div class="form-section">
+                        <div class="form-section-header">
+                            <span class="section-icon">⚙</span>
+                            <div>
+                                <h3>Información del Crucero</h3>
+                                <p>Actualiza los datos básicos operativos y descriptivos del crucero.</p>
+                            </div>
+                        </div>
+                        <div class="form-section-body">
+                            <div class="form-grid">
+                                {% for field in form_crucero_edit %}
+                                <div class="form-field form-field-{{ field.name }}">
+                                    <label for="id_{{ field.name }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}<small class="help-text">{{ field.help_text }}</small>{% endif %}
+                                    {% for error in field.errors %}<div class="error-text">{{ error }}</div>{% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="divider-line"></div>
+                            <div class="info-box">
+                                <ul>
+                                    <li><strong>Estado:</strong> Ajusta el estado operativo según mantenimiento o viaje.</li>
+                                    <li><strong>Fechas:</strong> La botadura debe ser coherente con el historial del barco.</li>
+                                    <li><strong>Mantenimiento:</strong> Último &lt; próximo mantenimiento.</li>
+                                    <li><strong>Descripción:</strong> Úsala para detallar rasgos, servicios o notas internas.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="cerrarModalInfoGeneral()">Cancelar</button>
+                <button type="button" class="btn btn-info" onclick="limpiarFormularioInfo()">Limpiar</button>
+                <button type="submit" form="formInfoGeneral" class="btn btn-success">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // Modal Instalaciones
+    const modalInst = document.getElementById('modalInstalaciones');
+    const modalDist = document.getElementById('modalDistribucion');
+    const modalInfo = document.getElementById('modalInfoGeneral');
+        document.querySelectorAll('.quick-card').forEach(card => {
+            const title = card.querySelector('.quick-card__title');
+            if(!title) return;
+            const txt = title.textContent.trim().toLowerCase();
+            card.addEventListener('click', (e)=>{
+        if(txt === 'informacion general' || txt === 'información general') { e.preventDefault(); abrirModalInfoGeneral(); }
+        else if(txt === 'instalaciones') { e.preventDefault(); abrirModalInstalaciones(); }
+        else if(txt === 'distribución de habitaciones' || txt === 'distribucion de habitaciones') { e.preventDefault(); abrirModalDistribucion(); }
+            });
+        });
+        function abrirModalInstalaciones(){
+            modalInst.classList.add('active');
+            modalInst.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+        }
+        function cerrarModalInstalaciones(){
+            modalInst.classList.remove('active');
+            modalInst.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+        }
+        function abrirModalDistribucion(){
+            modalDist.classList.add('active');
+            modalDist.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+        }
+        function cerrarModalDistribucion(){
+            modalDist.classList.remove('active');
+            modalDist.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+        }
+        function abrirModalInfoGeneral(){
+            modalInfo.classList.add('active');
+            modalInfo.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+        }
+        function cerrarModalInfoGeneral(){
+            modalInfo.classList.remove('active');
+            modalInfo.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+        }
+        document.addEventListener('keydown', (e)=>{ 
+            if(e.key==='Escape'){
+                if(modalInst.classList.contains('active')) cerrarModalInstalaciones();
+                if(modalDist.classList.contains('active')) cerrarModalDistribucion();
+                if(modalInfo.classList.contains('active')) cerrarModalInfoGeneral();
+            }
+        });
+        modalInst.addEventListener('click', (e)=>{ if(e.target===modalInst) cerrarModalInstalaciones(); });
+        modalDist.addEventListener('click', (e)=>{ if(e.target===modalDist) cerrarModalDistribucion(); });
+        modalInfo.addEventListener('click', (e)=>{ if(e.target===modalInfo) cerrarModalInfoGeneral(); });
+        // Focus styling for form fields
+        const formInfo = document.getElementById('formInfoGeneral');
+        if(formInfo){
+            formInfo.querySelectorAll('input,select,textarea').forEach(el=>{
+                el.addEventListener('focus', ()=>{ const ff=el.closest('.form-field'); if(ff) ff.classList.add('focused'); });
+                el.addEventListener('blur', ()=>{ const ff=el.closest('.form-field'); if(ff) ff.classList.remove('focused'); });
+            });
+            // Guardar valores iniciales para restaurar
+            window.__formInfoInitial = Array.from(formInfo.elements).filter(e=>e.name && !['csrfmiddlewaretoken','accion'].includes(e.name)).map(e=>({name:e.name,value:e.type==='checkbox'?e.checked:e.value}));
+        }
+        function limpiarFormularioInfo(){
+            const form=formInfo; if(!form) return;
+            window.__formInfoInitial?.forEach(item=>{const el=form.elements[item.name]; if(!el) return; if(el.type==='checkbox') el.checked=false; else el.value='';});
+        }
+    </script>
+</body>
+</html>
