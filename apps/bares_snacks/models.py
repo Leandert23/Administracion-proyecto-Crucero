@@ -66,23 +66,7 @@ class PuntoVenta(models.Model):
     def __str__(self):
      return f"{self.nombre} - {self.ubicacion} // Apertura: {self.hora_aper} - Cierre: {self.hora_cierre}"
 
-class Cargos(models.Model):
-    nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(max_length=100)
     
-    def __str__(self):
-        return self.nombre
-    
-class Empleados(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=100)
-    apellido = models.CharField(max_length=100)
-    cargo=models.ForeignKey(Cargos, on_delete=models.CASCADE, related_name='empleados')
-    status=models.BooleanField(default=True)
-    
-    def __str__(self):
-        return f"{self.nombre} {self.apellido}"
-
 class Clientes(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
@@ -99,7 +83,7 @@ class Pedidos(models.Model):
     ptoventa=models.ForeignKey(PuntoVenta, on_delete=models.CASCADE, related_name='pedidos')
     fecha_hora = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-    empleado=models.ForeignKey(Empleados, on_delete=models.CASCADE, related_name='pedidos_atendidos')
+   # empleado=models.ForeignKey(Empleados, on_delete=models.CASCADE, related_name='pedidos_atendidos')
     cliente=models.ForeignKey(Clientes, on_delete=models.CASCADE, related_name='pedidos')
     
     def __str__(self):
