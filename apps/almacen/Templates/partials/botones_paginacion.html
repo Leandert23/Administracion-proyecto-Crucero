@@ -1,0 +1,35 @@
+<div class="summary" id="inventario-summary">
+    {% if page_obj %}
+        Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} productos
+    {% else %}
+        Sin resultados
+    {% endif %}
+</div>
+<ul class="pagination" style="list-style:none; display:flex; gap:6px; padding:0; margin:0;">
+    {# Botones anterior / primera #}
+    {% if page_obj and page_obj.has_previous %}
+        <li><button class="pagination-btn" type="button" onclick="cargarPagina(1)" title="Primera página">&laquo;</button></li>
+        <li><button class="pagination-btn" type="button" onclick="cargarPagina('{{ page_obj.previous_page_number }}')" title="Página anterior">&lsaquo;</button></li>
+    {% else %}
+        <li><button class="pagination-btn" type="button" disabled>&laquo;</button></li>
+        <li><button class="pagination-btn" type="button" disabled>&lsaquo;</button></li>
+    {% endif %}
+    {# Rango centrado alrededor de la página actual #}
+    {% if page_obj %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <li><button class="pagination-btn active" type="button" disabled>{{ num }}</button></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li><button class="pagination-btn" type="button" onclick="cargarPagina('{{ num }}')">{{ num }}</button></li>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {# Botones siguiente / última #}
+    {% if page_obj and page_obj.has_next %}
+        <li><button class="pagination-btn" type="button" onclick="cargarPagina('{{ page_obj.next_page_number }}')" title="Página siguiente">&rsaquo;</button></li>
+        <li><button class="pagination-btn" type="button" onclick="cargarPagina('{{ page_obj.paginator.num_pages }}')" title="Última página">&raquo;</button></li>
+    {% else %}
+        <li><button class="pagination-btn" type="button" disabled>&rsaquo;</button></li>
+        <li><button class="pagination-btn" type="button" disabled>&raquo;</button></li>
+    {% endif %}
+</ul>

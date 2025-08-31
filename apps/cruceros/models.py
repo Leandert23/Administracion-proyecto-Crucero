@@ -235,7 +235,7 @@ class Instalacion(models.Model):
     TIPO_CHOICES = [
         ("restaurantes", "Restaurantes"),
         ("bares_cafes", "Bares y Cafés"),
-        ("almacenes", "Almacenes"),
+        ("almacen", "Almacen"),
         ("entretenimiento", "Sitios de Entretenimiento"),
         ("otro", "Otro"),
     ]
@@ -248,7 +248,7 @@ class Instalacion(models.Model):
     )
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
-    capacidad = models.PositiveIntegerField()
+    capacidad = models.PositiveIntegerField(null=True)
     descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):

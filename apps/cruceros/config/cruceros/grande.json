@@ -73,8 +73,52 @@
             {"nombre": "Piscina Central", "tipo": "entretenimiento", "capacidad": 300, "cubierta": 16},
             {"nombre": "Piscina Familiar", "tipo": "entretenimiento", "capacidad": 180, "cubierta": 17},
             {"nombre": "Zona Entretenimiento", "tipo": "entretenimiento", "capacidad": 500, "cubierta": 8},
-            {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 200, "cubierta": 14},
-            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 40, "cubierta": 5}
+            {
+                "nombre": "Almacén de Alimentos y Bebidas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 8,
+                "descripcion": "Almacén principal para provisiones de alimentos y bebidas",
+                "secciones": [
+                    {"nombre": "Cámara de Refrigeración", "tipo": "REFRIGERACION", "capacidad": 450},
+                    {"nombre": "Cámara de Congelación", "tipo": "CONGELACION", "capacidad": 400},
+                    {"nombre": "Almacén Seco", "tipo": "SECO", "capacidad": 300},
+                    {"nombre": "Almacén de vinos y licores", "tipo": "CUARTO_FRIO", "capacidad": 100},
+                    {"nombre": "Bodega de Bebidas", "tipo": "CUARTO_FRIO", "capacidad": 100}
+                ]
+            },
+            {
+                "nombre": "Almacén de Logística General",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 7,
+                "descripcion": "Almacén para equipos, herramientas y logística a bordo",
+                "secciones": [
+                    {"nombre": "Almacén de Repuestos y Mantenimiento", "tipo": "ESTANTERIAS", "capacidad": 225},
+                    {"nombre": "Almacenes de Seguridad", "tipo": "SECO", "capacidad": 125},
+                    {"nombre": "Equipamiento de Emergencia", "tipo": "ESTANTERIAS", "capacidad": 100}
+                ]
+            },
+            {
+                "nombre": "Almacenes de Suministros de Hotel",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 9,
+                "descripcion": "Almacén para amenities, lencería y suministros del área hotelera",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 500}
+                ]
+            },
+            {
+                "nombre": "Almacén de Mercancía para Tiendas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 7,
+                "descripcion": "Almacén de soporte para las tiendas y boutiques",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 250}
+                ]
+            }
         ]
     }
 }

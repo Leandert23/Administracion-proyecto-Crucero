@@ -1,0 +1,302 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
+    <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
+</head>
+<body>
+    <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">Almacén</h1>
+                    <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Tarjetas resumen superiores -->
+                <div class="quick-cards">
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Inventario</h3>
+                            <p class="quick-card__text">Maneja el inventario general</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Historial de Movimientos</h3>
+                            <p class="quick-card__text">Ver historial de entradas y salidas</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Ordenes de Compra</h3>
+                            <p class="quick-card__text">Ver ordenes de compra en camino y completadas</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Reportes de Mermas</h3>
+                            <p class="quick-card__text">Reportar algún daño a productos</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Entrada de Lote</h3>
+                            <p class="quick-card__text">Registrar manualmente la entrada de un lote</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Salida de producto</h3>
+                            <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
+                        </div>
+                    </a>
+                </div> <!-- quick-cards -->
+            </div> <!-- dashboard-content -->
+        </main>
+    </div> <!-- dashboard-container -->
+
+    {% include 'partials/inventario_modal.html' %}
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+    // Modal Inventario
+        (function(){
+            const modal = document.getElementById('modalInventario');
+            if(!modal) return;
+            const openCards = document.querySelectorAll('.quick-card');
+            function abrir(){
+                modal.style.display='block';
+                modal.setAttribute('aria-hidden','false');
+                document.body.style.overflow='hidden';
+                cargarPagina(1)
+            }
+            function cerrar(){
+                modal.style.display='none';
+                modal.setAttribute('aria-hidden','true');
+                document.body.style.overflow='';
+            }
+            openCards.forEach(card=>{
+                const title = card.querySelector('.quick-card__title');
+                if(title && title.textContent.trim().toLowerCase()==='inventario'){
+                    card.addEventListener('click', e=>{ e.preventDefault(); abrir(); });
+                }
+            });
+            modal.addEventListener('click', e=>{
+                if(e.target.dataset.close==='true' || e.target.classList.contains('inventario-overlay')) cerrar();
+            });
+            document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.getAttribute('aria-hidden')==='false') cerrar(); });
+        })();
+
+        // Función principal para cargar datos
+        function cargarPagina(pagina) {
+            paginaActual = pagina;
+            mostrarLoading(true);
+
+            // Solo búsqueda (tipo removido temporalmente)
+            const busqueda = document.getElementById('inventario-buscar').value;
+            filtrosActuales = { busqueda };
+
+            const cruceroId = document.getElementById('almacen-root').dataset.cruceroId;
+            const params = new URLSearchParams({
+                page: pagina,
+                ...(busqueda && { busqueda }),
+                crucero_id: cruceroId
+            });
+            // Realizar petición AJAX
+            fetch(`inventario/modal-ajax/?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar tabla y paginación
+                    document.getElementById('table-container').innerHTML = data.tabla_html;
+                    document.getElementById('table-footer').innerHTML = data.paginacion_html;
+                    
+                } else {
+                    mostrarError('Error al cargar los datos');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            })
+            .finally(() => {
+                mostrarLoading(false);
+            });
+        }
+
+        // Aplicar filtros (vuelve a la página 1)
+        function aplicarFiltros() {
+            cargarPagina(1);
+        }
+
+        // Limpiar filtros
+        function limpiarFiltros() {
+            // Tipo eliminado temporalmente
+            const inputBusqueda = document.getElementById('inputBusqueda') || document.getElementById('inventario-buscar');
+            if (inputBusqueda) inputBusqueda.value = '';
+            aplicarFiltros();
+        }
+
+
+        // Mostrar/ocultar loading
+        function mostrarLoading(mostrar) {
+            if (mostrar) {
+                document.getElementById('table-container').innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">Cargando productos...</p>
+                    </div>
+                `;
+                document.getElementById('table-footer').innerHTML = '';
+            }
+        }
+
+        // Mostrar error
+        function mostrarError(mensaje) {
+            document.getElementById('table-container').innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="mt-2">${mensaje}</p>
+                    <button class="btn btn-sm btn-outline-danger" onclick="cargarPagina(${paginaActual})">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+
+    </script>
+</body>
+</html>

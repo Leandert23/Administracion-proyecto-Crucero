@@ -1,0 +1,57 @@
+{# ========================== MODAL INVENTARIO (INICIO) ========================== #}
+<div id="modalInventario" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <!-- ===================== OVERLAY ===================== -->
+    <div class="inventario-overlay" data-close="true"></div>
+    <!-- ===================== DIALOG / CONTENEDOR PRINCIPAL ===================== -->
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog" role="document" tabindex="-1">
+            <!-- ===================== BOTÓN SALIR (ESQUINA) ===================== -->
+            <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
+            <!-- ===================== CABECERA ===================== -->
+            <div class="inventario-header">
+                <div class="inventario-header-content">
+                    <h2 class="inventario-title">Gestión de Inventario</h2>
+                </div>
+            </div>
+            <!-- ===================== BODY ===================== -->
+            <div class="inventario-body">
+                <!-- ===================== CONTENEDOR INTERIOR ===================== -->
+                <div class="inventory-container no-shadow">
+                    <!-- ===================== ACCIONES SUPERIORES (BUSCADOR + BOTONES) ===================== -->
+                    <div class="actions-container">
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar por nombre, SKU o categoría..." id="inventario-buscar" />
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" type="button" id="btnFiltrosInv">Filtros</button>
+                            <button class="btn btn-primary" type="button" id="btnAgregarProducto">Nuevo Producto</button>
+                        </div>
+                    </div>
+                    <!-- ===================== FILTROS ===================== -->
+                    <div class="filters-container">
+                        <div class="filters" id="inventario-filtros">
+                            <button class="filter-btn active" type="button" data-filter="all">Todos</button>
+                            <button class="filter-btn" type="button" data-filter="low">Stock Bajo</button>
+                            <button class="filter-btn" type="button" data-filter="elec">Electrónicos</button>
+                            <button class="filter-btn" type="button" data-filter="food">Alimentos</button>
+                            <button class="filter-btn" type="button" data-filter="drink">Bebidas</button>
+                        </div>
+                        <div class="filter-info">
+                            <span id="filter-active-text">Mostrando todos los productos</span>
+                        </div>
+                    </div>
+                    <!-- ===================== TABLA DE PRODUCTOS ===================== -->
+                    <div class="table-container" id="table-container">
+
+                    </div>
+                    
+                    <!-- ===================== FOOTER / PAGINACIÓN ===================== -->
+                    <nav class="table-footer" id="table-footer">
+                    
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{# ========================== MODAL INVENTARIO (FIN) =========================== #}
