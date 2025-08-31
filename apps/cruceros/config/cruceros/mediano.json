@@ -1,0 +1,81 @@
+{
+    "tipo_crucero": "mediano",
+    "especificaciones": {
+        "capacidad_pasajeros": 4000,
+        "capacidad_tripulacion": 1333,
+        "tonelaje": "137276.00",
+        "eslora": "310.00",
+        "manga": "47.00",
+        "altura": "63.00",
+        "numero_cubiertas": 15,
+        "bandera": "Bahamas",
+        "puerto_base": "Colón, Panamá",
+        "estado_operativo": "activo",
+        "modelo_motor": "Wartsila 12V46",
+        "velocidad_maxima": "23.70",
+        "tipo_combustible": "diesel",
+        "consumo_combustible": "160.00",
+        "descripcion": "Crucero mediano de referencia generado por plantilla."
+    },
+    "habitaciones": {
+        "tipos_habitacion": {
+            "basico_sencillo_vista": {"nombre": "Camarote básico sencillo vista mar", "capacidad": 2, "precio_base": "110.00", "descripcion": "Sencillo básico vista mar"},
+            "basico_sencillo_interior": {"nombre": "Camarote básico sencillo interior", "capacidad": 2, "precio_base": "95.00", "descripcion": "Sencillo básico interior"},
+            "basico_doble_vista": {"nombre": "Camarote básico doble vista mar", "capacidad": 4, "precio_base": "190.00", "descripcion": "Doble básico vista"},
+            "basico_doble_interior": {"nombre": "Camarote básico doble interior", "capacidad": 4, "precio_base": "170.00", "descripcion": "Doble básico interior"},
+            "premium_sencillo_vista": {"nombre": "Camarote premium sencillo vista mar", "capacidad": 2, "precio_base": "150.00", "descripcion": "Sencillo premium vista"},
+            "premium_sencillo_interior": {"nombre": "Camarote premium sencillo interior", "capacidad": 2, "precio_base": "130.00", "descripcion": "Sencillo premium interior"},
+            "premium_doble_vista": {"nombre": "Camarote premium doble vista mar", "capacidad": 4, "precio_base": "270.00", "descripcion": "Doble premium vista"},
+            "premium_doble_interior": {"nombre": "Camarote premium doble interior", "capacidad": 4, "precio_base": "240.00", "descripcion": "Doble premium interior"}
+        },
+        "reglas": [
+            {
+                "categoria": "basico",
+                "pisos": [2,3,4,5,6],
+                "sencillos_por_piso": 200,
+                "dobles_por_piso": 40,
+                "porcentaje_vista": 0.6
+            },
+            {
+                "categoria": "premium",
+                "pisos": [7,8],
+                "sencillos_por_piso": 75,
+                "dobles_por_piso": 38,
+                "porcentaje_vista": 0.6
+            },
+            {
+                "categoria": "premium",
+                "pisos": [9,10],
+                "sencillos_por_piso": 75,
+                "dobles_por_piso": 37,
+                "porcentaje_vista": 0.6
+            }
+        ]
+    },
+    "instalaciones": {
+        "items": [
+            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 520, "cubierta": 5, "descripcion": "Buffet principal (1 de 3)"},
+            {"nombre": "Restaurante Buffet Mediterráneo", "tipo": "restaurantes", "capacidad": 300, "cubierta": 6, "descripcion": "Buffet temático (2 de 3)"},
+            {"nombre": "Restaurante Buffet Grill & Fresh", "tipo": "restaurantes", "capacidad": 260, "cubierta": 11, "descripcion": "Buffet exterior (3 de 3)"},
+            {"nombre": "Restaurante A la Carta Oceanía", "tipo": "restaurantes", "capacidad": 180, "cubierta": 8, "descripcion": "A la carta (1 de 2)"},
+            {"nombre": "Restaurante A la Carta Tradición", "tipo": "restaurantes", "capacidad": 170, "cubierta": 9, "descripcion": "A la carta (2 de 2)"},
+            {"nombre": "Restaurante Especialidad Sushi (Pago)", "tipo": "restaurantes", "capacidad": 90, "cubierta": 10, "descripcion": "Especialidad con cargo (1 de 2)"},
+            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 110, "cubierta": 7, "descripcion": "Especialidad con cargo (2 de 2)"},
+            {"nombre": "Bar Panorámico", "tipo": "bares_cafes", "capacidad": 180, "cubierta": 13},
+            {"nombre": "Bar Piscina", "tipo": "bares_cafes", "capacidad": 140, "cubierta": 12, "descripcion": "Bar exterior"},
+            {"nombre": "Café Promenade", "tipo": "bares_cafes", "capacidad": 90, "cubierta": 5, "descripcion": "Café y repostería"},
+            {"nombre": "Snack Grill", "tipo": "otro", "capacidad": 80, "cubierta": 11, "descripcion": "Snacks calientes"},
+            {"nombre": "Heladería Central", "tipo": "otro", "capacidad": 50, "cubierta": 6, "descripcion": "Helados y batidos"},
+            {"nombre": "Chocolatería Boutique", "tipo": "otro", "capacidad": 40, "cubierta": 8, "descripcion": "Chocolate y bombonería"},
+            {"nombre": "Pub Irlandés", "tipo": "bares_cafes", "capacidad": 160, "cubierta": 7},
+            {"nombre": "Wine Bar", "tipo": "bares_cafes", "capacidad": 100, "cubierta": 9},
+            {"nombre": "Sky Lounge", "tipo": "bares_cafes", "capacidad": 200, "cubierta": 14},
+            {"nombre": "Juice Bar Saludable", "tipo": "bares_cafes", "capacidad": 60, "cubierta": 9},
+            {"nombre": "Coffee Lab", "tipo": "bares_cafes", "capacidad": 70, "cubierta": 10},
+            {"nombre": "Piscina Central", "tipo": "entretenimiento", "capacidad": 150, "cubierta": 12},
+            {"nombre": "Zona Entretenimiento", "tipo": "entretenimiento", "capacidad": 300, "cubierta": 6},
+            {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 130, "cubierta": 9},
+            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 25, "cubierta": 4}
+        ]
+    }
+}

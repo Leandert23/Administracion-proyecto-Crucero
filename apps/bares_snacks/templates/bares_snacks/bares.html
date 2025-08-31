@@ -1,0 +1,526 @@
+{% load static %}
+<!--Para render-->
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bares - Dashboard</title>
+    <link rel="stylesheet" href="bares.css" />
+    <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="promociones.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'bares_snacks/css/bares.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'bares_snacks/css/promociones.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'bares_snacks/css/sidebar.css' %}"
+    />
+    <script src="{% static 'bares_snacks/js/miniMenu.js' %}"></script>
+    <script src="{% static 'bares_snacks/js/pedidos.js' %}"></script>
+    <script src="{% static 'bares_snacks/js/productos.js' %}"></script>
+    <script src="{% static 'bares_snacks/js/promociones.js' %}"></script>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo" onclick="toggleSidebar()" style="cursor: pointer">
+            <img
+              src="{% static 'svg/logo/logo_Blanco.svg' %}"
+              alt="Logo"
+              class="logo-icon"
+            />
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Inicio</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Ventas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Reservas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Restaurante</span>
+              </a>
+            </li>
+            <li class="nav-item active">
+              <a
+                href="/Administracion-proyecto-Crucero/bares/bares.html"
+                class="nav-link"
+              >
+                <span class="nav-text">Bares</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                href="/Administracion-proyecto-Crucero/entretenimiento/entretenimiento.html"
+                class="nav-link"
+              >
+                <span class="nav-text">Entretenimiento</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Compras</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Almacen</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Recursos Humanos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Servicios Medicos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Mantenimiento</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <!-- Footer del sidebar -->
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <header class="main-header">
+          <div class="header-left">
+            <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="header-content">
+              <h1 class="page-title">¡Hola Ricardo, bienvenido!</h1>
+              <p class="page-subtitle">Tu cargo es: supervisor.</p>
+            </div>
+          </div>
+        </header>
+        <!-- Mini menú lateral flotante -->
+        <nav class="mini-menu">
+          <ul>
+            <li>
+              <a href="#ordenes" class="mini-menu-icon active" title="Órdenes">
+                <img src="{% static 'svg/dashboard/orden.svg' %}" alt="🍹" />
+              </a>
+            </li>
+            <li>
+              <a href="#pedidos" class="mini-menu-icon" title="Pedidos">
+                <img src="{% static 'svg/dashboard/pedido.svg' %}" alt="🚲" />
+              </a>
+            </li>
+            <li>
+              <a href="#menu" class="mini-menu-icon" title="Menú">
+                <img src="{% static 'svg/dashboard/menu.svg' %}" alt="🍆" />
+              </a>
+            </li>
+            <li>
+              <a href="#promociones" class="mini-menu-icon" title="Promociones">
+                <img src="{% static 'svg/dashboard/promos.svg' %}" alt="➗" />
+              </a>
+            </li>
+            <li>
+              <a href="#analisis" class="mini-menu-icon" title="Análisis">
+                <img src="{% static 'svg/dashboard/analisis.svg' %}" alt="📚" />
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <!-- Header -->
+        <header class="main-header">
+          <div class="header-left">
+            <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+            <div class="header-content">
+              <h4 class="page-title">Te encuentras en: Bar Piscina</h4>
+              <p class="page-subtitle">
+                Modelo de crucero, 2000 pasajeros a bordo
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+          <!-- Date Display -->
+          <div class="date-container">
+            <div class="date-display">
+              <span class="date-text" id="current-date"
+                >Hoy, 12 de Agosto de 2025</span
+              >
+            </div>
+            <button class="select-day-btn" onclick="selectDay()">
+              Seleccionar Día
+            </button>
+          </div>
+
+          <!-- Secciones del mini menú -->
+          <section id="ordenes" class="menu-section">
+            <h2 style="text-align: center; color: #1e293b">
+              Estás en el menú de Órdenes
+            </h2>
+            <!-- Pedidos activos -->
+            <div class="pedidos-section">
+              <h2 class="pedidos-title">Pedidos Activos</h2>
+              <form>
+                <table class="pedidos-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Cliente</th>
+                      <th>Productos</th>
+                      <th>Total</th>
+                      <th>Estado</th>
+                      <th>Bar</th>
+                      <th>Asignado a</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pedidos-activos-body">
+                    <!-- Los pedidos activos se cargarán aquí desde la base de datos -->
+                  </tbody>
+                </table>
+              </form>
+            </div>
+          </section>
+          <section id="pedidos" class="menu-section" style="display: none">
+            <h2 style="text-align: center; color: #1e293b">
+              Estás en el menú de Pedidos
+            </h2>
+            <!-- Botón para crear pedidos -->
+            <div style="text-align: center; margin: 24px 0">
+              <button class="btn detalles" id="crear-pedido-btn">
+                Crear Pedido
+              </button>
+            </div>
+            <!-- Formulario modal para crear pedido -->
+            <div id="modal-crear-pedido" class="modal" style="display: none">
+              <div class="modal-content">
+                <span class="close-modal" id="close-modal">&times;</span>
+                <h3 style="text-align: center; margin-bottom: 18px">
+                  Crear Pedido
+                </h3>
+                <form id="form-crear-pedido">
+                  <div class="form-group">
+                    <label for="producto">Producto:</label>
+                    <input type="text" id="producto" name="producto" required />
+                    <!-- Este input será reemplazado por el select -->
+                  </div>
+                  <div class="form-group">
+                    <label for="cantidad">Cantidad:</label>
+                    <input
+                      type="number"
+                      id="cantidad"
+                      name="cantidad"
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="quien">Nombre Del Cliente:</label>
+                    <input type="text" id="quien" name="quien" required />
+                  </div>
+                  <!-- El campo tipo-pedido se agrega por JS -->
+                  <!-- El campo precio se elimina por JS -->
+                  <div style="text-align: center; margin-top: 18px">
+                    <button type="submit" class="btn completar">
+                      Guardar Pedido
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <!-- Historial de pedidos pendientes -->
+            <div class="pedidos-historial">
+              <h3 class="pedidos-title">Pedidos Pendientes</h3>
+              <table class="pedidos-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Bar</th>
+                    <th>Asignado a</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="historial-pedidos-pendientes">
+                  <!-- Los pedidos pendientes se cargan aquí -->
+                </tbody>
+              </table>
+            </div>
+            <!-- Historial de pedidos completados -->
+            <div class="pedidos-historial">
+              <h3 class="pedidos-title">Pedidos Completados</h3>
+              <table class="pedidos-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Bar</th>
+                    <th>Asignado a</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="historial-pedidos-completados">
+                  <!-- Los pedidos completados se cargan aquí -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section id="productos" class="menu-section" style="display: none">
+            <h2 style="text-align: center; color: #1e293b">
+              Estás en el menú de Productos
+            </h2>
+          </section>
+          <section id="promociones" class="menu-section" style="display: none">
+            <h2 style="text-align: center; color: #1e293b">
+              Estás en el menú de Promociones
+            </h2>
+            <div class="promociones-section">
+              <!-- Día actual -->
+              <div id="promocion-dia-actual" class="promo-dia-actual"></div>
+              <!-- Todas las promociones -->
+              <!--Para cargar las imagenes de las promos-->
+              {% load static %}
+              <script>
+                const promoImages = {
+                  "2x1 en Cervezas": "{% static 'svg/promos/two-mugs.svg' %}",
+                  "Martes de Tacos": "{% static 'svg/promos/taco.svg' %}",
+                  "Jarra de Cerveza a Precio Especial":
+                    "{% static 'svg/promos/beer.svg' %}",
+                  "Cócteles a Precio de Happy Hour toda la noche":
+                    "{% static 'svg/promos/cocktail-glass.svg' %}",
+                  "Brunch con Mimosa o Bloody Mary incluido":
+                    "{% static 'svg/promos/tropical-drinks.svg' %}",
+                  "Lunes de Trabajo": "{% static 'svg/promos/coffee.svg' %}",
+                  "Miércoles de Dulce": "{% static 'svg/promos/bagel.svg' %}",
+                  "Viernes de Tarde":
+                    "{% static 'svg/promos/bubble-tea.svg' %}",
+                };
+              </script>
+              <div class="promociones-lista">
+                <h3 class="promo-list-title">Promociones Especiales por Día</h3>
+                <ul id="lista-promociones" class="promo-list"></ul>
+              </div>
+            </div>
+          </section>
+          <section id="analisis" class="menu-section" style="display: none">
+            <h2 style="text-align: center; color: #1e293b">
+              Estás en el menú de Análisis
+            </h2>
+          </section>
+          <!-- Modal para ver detalles del pedido tipo factura (debe estar fuera de las secciones) -->
+          <div id="modal-detalle-pedido" class="modal" style="display: none">
+            <div class="modal-content" id="detalle-pedido-content">
+              <!-- El contenido se genera por JS -->
+            </div>
+          </div>
+          <!-- Menú de Productos (sección añadida) -->
+          <section id="menu" class="menu-section" style="display: none">
+            <h2 style="text-align: center; color: #1e293b; margin-bottom: 32px">
+              Menú de Productos
+            </h2>
+            <!-- Botón para crear producto -->
+            <div style="text-align: center; margin-bottom: 32px">
+              <button class="btn btn-crear-producto" id="crear-producto-btn">
+                <span style="font-size: 1.2rem; font-weight: 700"
+                  >+ Crear Producto</span
+                >
+              </button>
+            </div>
+            <div class="menu-categorias-caja">
+              <!-- All Inclusive -->
+              <div class="menu-categoria-caja">
+                <h3 class="menu-categoria-titulo" style="color: #22c55e">
+                  All Inclusive (Gratis)
+                </h3>
+                <div
+                  id="productos-menu-gratis"
+                  class="menu-productos-grid"
+                ></div>
+              </div>
+              <!-- Tragos Seleccionados -->
+              <div class="menu-categoria-caja">
+                <h3 class="menu-categoria-titulo" style="color: #f59e42">
+                  Tragos Premium (Pago)
+                </h3>
+                <div id="productos-menu-pago" class="menu-productos-grid"></div>
+              </div>
+            </div>
+            <!-- Modal para crear producto -->
+            <div id="modal-crear-producto" class="modal" style="display: none">
+              <div class="modal-content">
+                <span class="close-modal" id="close-modal-producto"
+                  >&times;</span
+                >
+                <h3 style="text-align: center; margin-bottom: 18px">
+                  Crear Producto
+                </h3>
+                <form id="form-crear-producto">
+                  <div class="form-group">
+                    <label for="nombre-producto">Nombre del Producto:</label>
+                    <input
+                      type="text"
+                      id="nombre-producto"
+                      name="nombre-producto"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>¿Es premium/pago?</label>
+                    <select id="tipo-producto" name="tipo-producto" required>
+                      <option value="gratis">All Inclusive (Gratis)</option>
+                      <option value="pago">Premium (Pago)</option>
+                    </select>
+                  </div>
+                  <div
+                    class="form-group"
+                    id="precio-producto-group"
+                    style="display: none"
+                  >
+                    <label for="precio-producto">Precio:</label>
+                    <input
+                      type="number"
+                      id="precio-producto"
+                      name="precio-producto"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Ingredientes:</label>
+                    <div id="ingredientes-list">
+                      <!-- Ejemplo de ingrediente, elimina esto cuando conectes la base de datos Django -->
+                      <div class="ingrediente-item">
+                        <input
+                          type="text"
+                          name="ingrediente-nombre[]"
+                          placeholder="Nombre"
+                          value="Ron blanco"
+                        />
+                        <input
+                          type="text"
+                          name="ingrediente-cantidad[]"
+                          placeholder="Cantidad"
+                          value="60 ml"
+                        />
+                      </div>
+                      <div class="ingrediente-item">
+                        <input
+                          type="text"
+                          name="ingrediente-nombre[]"
+                          placeholder="Nombre"
+                          value="Jugo de limón fresco"
+                        />
+                        <input
+                          type="text"
+                          name="ingrediente-cantidad[]"
+                          placeholder="Cantidad"
+                          value="30 ml"
+                        />
+                      </div>
+                      <!-- Elimina los ingredientes de ejemplo al conectar con Django -->
+                    </div>
+                    <button
+                      type="button"
+                      class="btn completar"
+                      id="agregar-ingrediente-btn"
+                      style="margin-top: 10px"
+                    >
+                      Agregar Ingrediente
+                    </button>
+                  </div>
+                  <div style="text-align: center; margin-top: 18px">
+                    <button type="submit" class="btn completar">
+                      Guardar Producto
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <!-- Modal para eliminar producto -->
+            <div
+              id="modal-eliminar-producto"
+              class="modal"
+              style="display: none"
+            >
+              <div class="modal-content">
+                <span class="close-modal" id="close-modal-eliminar"
+                  >&times;</span
+                >
+                <div class="factura-header">
+                  <h2>Advertencia</h2>
+                </div>
+                <p
+                  style="text-align: center; color: #ef4444; font-size: 1.1rem"
+                >
+                  ¿Estás seguro que deseas eliminar este producto?<br />
+                  Esta acción es irreversible.
+                </p>
+                <div style="text-align: center; margin-top: 18px">
+                  <button class="btn eliminar" id="confirmar-eliminar-producto">
+                    Eliminar
+                  </button>
+                  <button class="btn detalles" id="cancelar-eliminar-producto">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+  <script src="js/pedidos.js"></script>
+  <script src="js/productos.js"></script>
+  <script src="js/miniMenu.js"></script>
+  <script src="js/promociones.js"></script>
+</html>
