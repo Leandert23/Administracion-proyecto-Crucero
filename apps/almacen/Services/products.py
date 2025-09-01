@@ -1,6 +1,14 @@
 from models import Producto, SeccionAlmacen, MovimientoAlmacen, Lote
 from django.db import transaction
+from models import Producto, SeccionAlmacen, MovimientoAlmacen
+from apps.almacen.models import Producto
+from typing import List, Tuple
 
+cantidadesIniciales = {}
+
+def registrar_cantidad_inicial(producto: Producto):
+    if producto.nombre not in cantidadesIniciales:
+        cantidadesIniciales[producto.nombre] = producto.cantidad
 
 def save_product(nombre, precio, tipo, cantidad, medida, seccion_almacen_id, modulo):
     secciones_almacen = SeccionAlmacen.objects.filter(id=seccion_almacen_id)
@@ -33,6 +41,7 @@ def save_product(nombre, precio, tipo, cantidad, medida, seccion_almacen_id, mod
         MovimientoAlmacen.objects.create(
             producto=producto, cantidad=cantidad, tipo="NEW", modulo=modulo
         )
+        registrar_cantidad_inicial(producto)
 
 
 def remove_product(name, modulo, cantidad=1):
@@ -49,6 +58,15 @@ def remove_product(name, modulo, cantidad=1):
     MovimientoAlmacen.objects.create(
         producto=producto, cantidad=cantidad, tipo="OUT", modulo=modulo
     )
+
+
+def productosPocasUnidades(cantidadesIniciales: dict, porcentajeMinimo: float = 0.2) -> List[Tuple[str, int]]:
+    productosPocos = []
+    for producto in Producto.objects.all():
+        inicial = cantidadesIniciales.get(producto.nombre, producto.cantidad)
+        if inicial > 0 and producto.cantidad <= inicial * porcentajeMinimo:
+            productosPocos.append((producto.nombre, producto.cantidad))
+    return productosPocos
 
 
 # -------------------------------------------------------------
