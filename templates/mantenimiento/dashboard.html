@@ -98,6 +98,51 @@
         </div>
     </div>
     
+    <!-- Mantenimientos por tamaño de crucero y tipo -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-ship me-2"></i>
+                        Mantenimientos por Tamaño de Crucero
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Reemplazo del chart por barras de progreso -->
+                    <div class="mb-4">
+                        {% for item in crucero_progress %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ item.label }}</strong>
+                                <small>{{ item.total }} (Prev: {{ item.preventivo }} / Corr: {{ item.correctivo }})</small>
+                            </div>
+                            <div class="progress" style="height: 18px; background-color: #1f1f1f; border-radius: 12px;">
+                                <div class="progress-bar {{ item.color }}" role="progressbar" data-progress-pct="{{ item.percent }}" style="width: 0%; border-radius: 12px; transition: width .6s ease;"
+                                     aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="row mt-3">
+                        {% for seg in crucero_segments %}
+                        <div class="col-md-4 mb-3">
+                            <div class="d-grid gap-2">
+                                <a class="btn btn-outline-primary" href="{% url 'mantenimiento:tarea_list' %}?tipo_crucero={{ seg.id }}&tipo=preventivo">
+                                    {{ seg.label }} - Preventivo ({{ seg.preventivo }})
+                                </a>
+                                <a class="btn btn-outline-danger" href="{% url 'mantenimiento:tarea_list' %}?tipo_crucero={{ seg.id }}&tipo=correctivo">
+                                    {{ seg.label }} - Correctivo ({{ seg.correctivo }})
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Alertas y próximas actividades -->
     <div class="row">
         <!-- Tareas próximas a vencer -->
@@ -216,6 +261,12 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
+                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-water me-2"></i>
+                                Registrar Medición Piscina
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
                             <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-warning w-100">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 Reportar Incidente
@@ -242,16 +293,22 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ crucero_labels|json_script:"crucero-labels-data" }}
+{{ preventivo_counts|json_script:"preventivo-counts-data" }}
+{{ correctivo_counts|json_script:"correctivo-counts-data" }}
+{{ equipos_chart_data|json_script:"equipos-chart-data" }}
+{{ tareas_chart_data|json_script:"tareas-chart-data" }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Gráfico de estado de equipos
     const equiposCtx = document.getElementById('equiposChart').getContext('2d');
+    const equiposData = JSON.parse(document.getElementById('equipos-chart-data').textContent);
     const equiposChart = new Chart(equiposCtx, {
         type: 'doughnut',
         data: {
             labels: ['Operativos', 'En Mantenimiento', 'Averiados', 'Fuera de Servicio'],
             datasets: [{
-                data: [{{ equipos_operativos }}, {{ equipos_mantenimiento }}, {{ equipos_averiados }}, {{ total_equipos|add:"-"|add:equipos_operativos|add:"-"|add:equipos_mantenimiento|add:"-"|add:equipos_averiados }}],
+                data: equiposData,
                 backgroundColor: [
                     '#198754',
                     '#0dcaf0',
@@ -275,13 +332,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gráfico de estado de tareas
     const tareasCtx = document.getElementById('tareasChart').getContext('2d');
+    const tareasData = JSON.parse(document.getElementById('tareas-chart-data').textContent);
     const tareasChart = new Chart(tareasCtx, {
         type: 'bar',
         data: {
             labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
             datasets: [{
                 label: 'Cantidad',
-                data: [{{ tareas_pendientes }}, {{ tareas_en_progreso }}, {{ tareas_pendientes|add:tareas_en_progreso|add:tareas_vencidas|add:"-"|add:tareas_pendientes|add:"-"|add:tareas_en_progreso|add:"-"|add:tareas_vencidas }}, {{ tareas_vencidas }}],
+                data: tareasData,
                 backgroundColor: [
                     '#ffc107',
                     '#0dcaf0',
@@ -310,6 +368,62 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Animar las barras de progreso de cruceros
+    document.querySelectorAll('.progress-bar[data-progress-pct]').forEach(function(bar){
+        const pct = parseInt(bar.getAttribute('data-progress-pct') || '0', 10);
+        requestAnimationFrame(function(){ bar.style.width = pct + '%'; });
+    });
+
+    // Gráfico por tamaño de crucero y tipo
+    const cruceroCtx = document.getElementById('cruceroChart').getContext('2d');
+    const cruceroLabels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
+    const preventivoCounts = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
+    const correctivoCounts = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
+    (function(){
+        const maxVal = Math.max(...preventivoCounts.concat(correctivoCounts), 0);
+        const suggested = maxVal <= 3 ? 3 : maxVal + 1;
+        new Chart(cruceroCtx, {
+            type: 'bar',
+            data: {
+                labels: cruceroLabels,
+                datasets: [
+                    {
+                        label: 'Preventivo',
+                        data: preventivoCounts,
+                        backgroundColor: '#0dcaf0',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Correctivo',
+                        data: correctivoCounts,
+                        backgroundColor: '#dc3545',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y', // barras horizontales
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 600 },
+                interaction: { intersect: false },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        suggestedMax: suggested,
+                        ticks: { stepSize: 1, precision: 0 }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                }
+            }
+        });
+    })();
 });
 </script>
 {% endblock %}

@@ -11,11 +11,13 @@ from datetime import timedelta
 from .models import (
     TipoCrucero, Ubicacion, CategoriaProducto, Producto, InventarioProducto,
     TipoEquipo, Equipo, TareaMantenimiento, ProductoUtilizado, 
-    HistorialMantenimiento, ReporteIncidente, Personal, AsignacionPersonal, CambioEstado
+    HistorialMantenimiento, ReporteIncidente, Personal, AsignacionPersonal, CambioEstado,
+    Piscina, MedicionPiscina
 )
 from .forms import (
     UbicacionForm, ProductoForm, InventarioProductoForm, EquipoForm,
-    TareaMantenimientoForm, ReporteIncidenteForm, AsignacionPersonalForm, ProductoUtilizadoForm
+    TareaMantenimientoForm, ReporteIncidenteForm, AsignacionPersonalForm, ProductoUtilizadoForm,
+    PiscinaForm, MedicionPiscinaForm
 )
 
 
@@ -27,10 +29,12 @@ def dashboard(request):
     equipos_operativos = Equipo.objects.filter(estado='operativo').count()
     equipos_mantenimiento = Equipo.objects.filter(estado='mantenimiento').count()
     equipos_averiados = Equipo.objects.filter(estado='averiado').count()
+    equipos_fuera_servicio = Equipo.objects.filter(estado='fuera_servicio').count()
     
     # Tareas por estado actualizado
     tareas_pendientes = TareaMantenimiento.objects.filter(estado__in=['creada', 'planificada', 'asignada']).count()
     tareas_en_progreso = TareaMantenimiento.objects.filter(estado='en_progreso').count()
+    tareas_completadas = TareaMantenimiento.objects.filter(estado='completada').count()
     tareas_vencidas = TareaMantenimiento.objects.filter(
         estado__in=['creada', 'planificada', 'asignada'],
         fecha_programada__lt=timezone.now()
@@ -60,19 +64,113 @@ def dashboard(request):
             timezone.now() + timedelta(days=30)
         ]
     )[:5]
+
+    # Mantenimientos por tamaño de crucero y tipo (preventivo/correctivo)
+    # Construir etiquetas en orden definido por el catálogo del modelo
+    label_map = dict(TipoCrucero.TIPOS_CRUCERO)
+    tipos_orden = [codigo for codigo, _ in TipoCrucero.TIPOS_CRUCERO]
+    crucero_labels = [label_map.get(codigo, codigo) for codigo in tipos_orden]
+    # Inicializar conteos en 0
+    preventivo_counts = [0, 0, 0]
+    correctivo_counts = [0, 0, 0]
+    agregados = (
+        TareaMantenimiento.objects
+        .filter(tipo__in=['preventivo', 'correctivo'], tipo_crucero__tipo__in=tipos_orden)
+        .values('tipo_crucero__tipo', 'tipo')
+        .annotate(total=Count('id'))
+    )
+    indice_por_tipo = {codigo: idx for idx, codigo in enumerate(tipos_orden)}
+    for fila in agregados:
+        idx = indice_por_tipo.get(fila['tipo_crucero__tipo'])
+        if idx is None:
+            continue
+        if fila['tipo'] == 'preventivo':
+            preventivo_counts[idx] = fila['total']
+        elif fila['tipo'] == 'correctivo':
+            correctivo_counts[idx] = fila['total']
+
+    # Datos para charts
+    equipos_chart_data = [
+        equipos_operativos,
+        equipos_mantenimiento,
+        equipos_averiados,
+        equipos_fuera_servicio,
+    ]
+    tareas_chart_data = [
+        tareas_pendientes,
+        tareas_en_progreso,
+        tareas_completadas,
+        tareas_vencidas,
+    ]
     
+    # Construir segmentos para enlaces rápidos
+    tipos_qs = TipoCrucero.objects.filter(tipo__in=tipos_orden).values('id', 'tipo')
+    tipo_to_id = {t['tipo']: t['id'] for t in tipos_qs}
+    crucero_segments = []
+    for idx, codigo in enumerate(tipos_orden):
+        crucero_segments.append({
+            'id': tipo_to_id.get(codigo),
+            'label': crucero_labels[idx],
+            'preventivo': preventivo_counts[idx],
+            'correctivo': correctivo_counts[idx],
+        })
+    
+    # Asegurar que los datos sean válidos para Chart.js
+    preventivo_counts = [max(0, int(x)) for x in preventivo_counts]
+    correctivo_counts = [max(0, int(x)) for x in correctivo_counts]
+
+    # Progreso (barras horizontales) por tipo de crucero
+    totals_counts = [p + c for p, c in zip(preventivo_counts, correctivo_counts)]
+    max_total = max(totals_counts) if totals_counts else 0
+    if max_total == 0:
+        crucero_progress = [
+            {
+                'label': crucero_labels[idx],
+                'percent': 0,
+                'total': totals_counts[idx] if idx < len(totals_counts) else 0,
+                'preventivo': preventivo_counts[idx] if idx < len(preventivo_counts) else 0,
+                'correctivo': correctivo_counts[idx] if idx < len(correctivo_counts) else 0,
+                'color': color
+            }
+            for idx, color in enumerate(['bg-success', 'bg-warning', 'bg-info'])
+        ]
+    else:
+        crucero_progress = []
+        color_classes = ['bg-success', 'bg-warning', 'bg-info']
+        for idx, total in enumerate(totals_counts):
+            percent = int(round((total / max_total) * 100))
+            crucero_progress.append({
+                'label': crucero_labels[idx],
+                'percent': percent,
+                'total': total,
+                'preventivo': preventivo_counts[idx],
+                'correctivo': correctivo_counts[idx],
+                'color': color_classes[idx % len(color_classes)]
+            })
+
     context = {
         'total_equipos': total_equipos,
         'equipos_operativos': equipos_operativos,
         'equipos_mantenimiento': equipos_mantenimiento,
         'equipos_averiados': equipos_averiados,
+        'equipos_fuera_servicio': equipos_fuera_servicio,
         'tareas_pendientes': tareas_pendientes,
         'tareas_en_progreso': tareas_en_progreso,
         'tareas_vencidas': tareas_vencidas,
+        'tareas_completadas': tareas_completadas,
         'productos_stock_bajo': productos_stock_bajo,
         'incidentes_pendientes': incidentes_pendientes,
         'proximas_vencer': proximas_vencer,
         'equipos_revision_proxima': equipos_revision_proxima,
+        # datos para gráfico por tamaño de crucero
+        'crucero_labels': crucero_labels,
+        'preventivo_counts': preventivo_counts,
+        'correctivo_counts': correctivo_counts,
+        # datos para charts de estado
+        'equipos_chart_data': equipos_chart_data,
+        'tareas_chart_data': tareas_chart_data,
+        'crucero_segments': crucero_segments,
+        'crucero_progress': crucero_progress,
     }
     
     return render(request, 'mantenimiento/dashboard.html', context)
@@ -434,6 +532,7 @@ def tarea_list(request):
     estado = request.GET.get('estado')
     prioridad = request.GET.get('prioridad')
     asignado = request.GET.get('asignado')
+    tipo_crucero_id = request.GET.get('tipo_crucero')
     
     if tipo:
         tareas = tareas.filter(tipo=tipo)
@@ -443,6 +542,8 @@ def tarea_list(request):
         tareas = tareas.filter(prioridad=prioridad)
     if asignado:
         tareas = tareas.filter(asignado_a__id=asignado)
+    if tipo_crucero_id:
+        tareas = tareas.filter(tipo_crucero__id=tipo_crucero_id)
     
     # Paginación
     paginator = Paginator(tareas, 20)
@@ -454,6 +555,7 @@ def tarea_list(request):
         'tipos': TareaMantenimiento.TIPOS_TAREA,
         'estados': TareaMantenimiento.ESTADOS,
         'prioridades': TareaMantenimiento.PRIORIDADES,
+        'tipos_crucero': TipoCrucero.objects.all(),
     }
     return render(request, 'mantenimiento/tarea_list.html', context)
 
@@ -660,7 +762,9 @@ def reportes(request):
 
 def reporte_tareas_pendientes(request):
     """Reporte de tareas pendientes"""
-    tareas_pendientes = TareaMantenimiento.objects.filter(estado='pendiente').order_by('fecha_programada')
+    tareas_pendientes = TareaMantenimiento.objects.filter(
+        estado__in=['creada', 'planificada', 'asignada']
+    ).order_by('fecha_programada')
     tareas_vencidas = tareas_pendientes.filter(fecha_programada__lt=timezone.now())
     
     context = {
@@ -780,7 +884,8 @@ def tarea_cambiar_estado(request, pk):
             tarea=tarea,
             estado_anterior=estado_anterior,
             estado_nuevo=nuevo_estado,
-            observaciones=observaciones
+            observaciones=observaciones,
+            usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None
         )
         
         messages.success(request, f'Estado cambiado a: {dict(TareaMantenimiento.ESTADOS)[nuevo_estado]}')
@@ -814,5 +919,58 @@ def tarea_workflow(request, pk):
     }
     return render(request, 'mantenimiento/tarea_workflow.html', context)
 
+
+# ------------------------
+# Piscinas
+# ------------------------
+
+def piscina_list(request):
+    piscinas = ( 
+        Piscina.objects.select_related('ubicacion', 'tipo_crucero')
+    )
+    return render(request, 'mantenimiento/piscina_list.html', {'piscinas': piscinas})
+
+
+def piscina_create(request):
+    if request.method == 'POST':
+        form = PiscinaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Piscina creada exitosamente.')
+            return redirect('mantenimiento:piscina_list')
+    else:
+        form = PiscinaForm()
+    return render(request, 'mantenimiento/piscina_form.html', {'form': form, 'action': 'Crear'})
+
+
+def piscina_update(request, pk):
+    piscina = get_object_or_404(Piscina, pk=pk)
+    if request.method == 'POST':
+        form = PiscinaForm(request.POST, instance=piscina)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Piscina actualizada exitosamente.')
+            return redirect('mantenimiento:piscina_list')
+    else:
+        form = PiscinaForm(instance=piscina)
+    return render(request, 'mantenimiento/piscina_form.html', {'form': form, 'action': 'Editar', 'piscina': piscina})
+
+
+def piscina_detail(request, pk):
+    piscina = get_object_or_404(Piscina, pk=pk)
+    mediciones = piscina.mediciones.all()[:20]
+    return render(request, 'mantenimiento/piscina_detail.html', {'piscina': piscina, 'mediciones': mediciones})
+
+
+def medicion_piscina_create(request):
+    if request.method == 'POST':
+        form = MedicionPiscinaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Medición registrada exitosamente.')
+            return redirect('mantenimiento:piscina_list')
+    else:
+        form = MedicionPiscinaForm()
+    return render(request, 'mantenimiento/medicion_piscina_form.html', {'form': form})
 
 

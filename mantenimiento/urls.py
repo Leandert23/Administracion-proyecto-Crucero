@@ -58,5 +58,11 @@ urlpatterns = [
     path('reportes/equipos-vencidos/', views.reporte_equipos_vencidos, name='reporte_equipos_vencidos'),
     path('reportes/consumo-productos/', views.reporte_consumo_productos, name='reporte_consumo_productos'),
     
+    # Piscinas
+    path('piscinas/', views.piscina_list, name='piscina_list'),
+    path('piscinas/crear/', views.piscina_create, name='piscina_create'),
+    path('piscinas/<int:pk>/', views.piscina_detail, name='piscina_detail'),
+    path('piscinas/<int:pk>/editar/', views.piscina_update, name='piscina_update'),
+    path('piscinas/medicion/crear/', views.medicion_piscina_create, name='medicion_piscina_create'),
 
 ]

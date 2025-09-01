@@ -506,3 +506,65 @@ class ReporteIncidente(models.Model):
         verbose_name = "Reporte de Incidente"
         verbose_name_plural = "Reportes de Incidentes"
         ordering = ['-fecha_reporte']
+
+
+# ------------------------
+# Módulo de Piscinas
+# ------------------------
+
+class Piscina(models.Model):
+    """Piscinas del crucero"""
+    nombre = models.CharField(max_length=100)
+    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
+    tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.SET_NULL, null=True, blank=True)
+    volumen_m3 = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(Decimal('0.1'))])
+    en_servicio = models.BooleanField(default=True)
+    fecha_ultima_limpieza = models.DateField(null=True, blank=True)
+    observaciones = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"Piscina {self.nombre} ({self.ubicacion.codigo_ubicacion})"
+    
+    class Meta:
+        verbose_name = "Piscina"
+        verbose_name_plural = "Piscinas"
+
+
+class MedicionPiscina(models.Model):
+    """Mediciones de parámetros de piscinas"""
+    ESTADO_FILTRO = [
+        ('ok', 'OK'),
+        ('retrolavado', 'Requiere Retrolavado'),
+        ('mantenimiento', 'Mantenimiento Requerido'),
+    ]
+    piscina = models.ForeignKey(Piscina, on_delete=models.CASCADE, related_name='mediciones')
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    ph = models.DecimalField(max_digits=4, decimal_places=2, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('14.0'))])
+    cloro_mg_l = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('10.0'))])
+    temperatura_c = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    turbidez_ntu = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    presion_filtro_bar = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    estado_filtro = models.CharField(max_length=20, choices=ESTADO_FILTRO, default='ok')
+    retrolavado_realizado = models.BooleanField(default=False)
+    observaciones = models.TextField(blank=True)
+    
+    def clean(self):
+        if self.ph is not None and (self.ph < Decimal('0') or self.ph > Decimal('14')):
+            raise ValidationError('El pH debe estar entre 0 y 14.')
+        if self.cloro_mg_l is not None and (self.cloro_mg_l < Decimal('0') or self.cloro_mg_l > Decimal('10')):
+            raise ValidationError('El cloro debe estar entre 0 y 10 mg/L.')
+    
+    @property
+    def en_rango(self):
+        """Rangos típicos: pH 7.2-7.8, Cloro 1-3 mg/L"""
+        ok_ph = self.ph is not None and Decimal('7.2') <= self.ph <= Decimal('7.8')
+        ok_cl = self.cloro_mg_l is not None and Decimal('1') <= self.cloro_mg_l <= Decimal('3')
+        return ok_ph and ok_cl
+    
+    def __str__(self):
+        return f"Medición {self.piscina.nombre} - {self.fecha_hora:%Y-%m-%d %H:%M}"
+    
+    class Meta:
+        verbose_name = "Medición de Piscina"
+        verbose_name_plural = "Mediciones de Piscina"
+        ordering = ['-fecha_hora']

@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import (
     Ubicacion, Producto, InventarioProducto, Equipo, TareaMantenimiento, 
-    ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto, Personal, AsignacionPersonal, ProductoUtilizado
+    ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto, Personal, AsignacionPersonal, ProductoUtilizado,
+    Piscina, MedicionPiscina
 )
 
 
@@ -157,6 +158,38 @@ class ProductoUtilizadoForm(forms.ModelForm):
         widgets = {
             'producto': forms.Select(attrs={'class': 'form-control'}),
             'cantidad_utilizada': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+        }
+
+
+class PiscinaForm(forms.ModelForm):
+    class Meta:
+        model = Piscina
+        fields = ['nombre', 'ubicacion', 'tipo_crucero', 'volumen_m3', 'en_servicio', 'fecha_ultima_limpieza', 'observaciones']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'ubicacion': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_crucero': forms.Select(attrs={'class': 'form-control'}),
+            'volumen_m3': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.1'}),
+            'en_servicio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'fecha_ultima_limpieza': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class MedicionPiscinaForm(forms.ModelForm):
+    class Meta:
+        model = MedicionPiscina
+        fields = ['piscina', 'ph', 'cloro_mg_l', 'temperatura_c', 'turbidez_ntu', 'presion_filtro_bar', 'estado_filtro', 'retrolavado_realizado', 'observaciones']
+        widgets = {
+            'piscina': forms.Select(attrs={'class': 'form-control'}),
+            'ph': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '14'}),
+            'cloro_mg_l': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '10'}),
+            'temperatura_c': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
+            'turbidez_ntu': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'presion_filtro_bar': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'estado_filtro': forms.Select(attrs={'class': 'form-control'}),
+            'retrolavado_realizado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 

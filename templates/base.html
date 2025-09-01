@@ -285,6 +285,13 @@
                                 Reportes
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'piscina' in request.resolver_match.url_name %}active{% endif %}"
+                               href="{% url 'mantenimiento:piscina_list' %}">
+                                <i class="fas fa-water"></i>
+                                Piscinas
+                            </a>
+                        </li>
                     </ul>
                     
                     <hr class="text-white-50">
