@@ -1,0 +1,23 @@
+[
+    {
+        "tipo_crucero": "pequeno",
+        "codigo_identificacion": "PEQ-001",
+        "nombre": "Vision of the Seas",
+        "fecha_botadura": "2023-05-15",
+        "descripcion": "Crucero pequeño orientado a rutas cortas y exclusivas."
+    },
+    {
+        "tipo_crucero": "mediano",
+        "codigo_identificacion": "MED-001",
+        "nombre": "Voyager of the Seas",
+        "fecha_botadura": "2022-08-10",
+        "descripcion": "Crucero mediano balance entre capacidad y servicios a bordo."
+    },
+    {
+        "tipo_crucero": "grande",
+        "codigo_identificacion": "GRA-001",
+        "nombre": "Oasis of the Seas",
+        "fecha_botadura": "2021-11-01",
+        "descripcion": "Crucero grande de alta capacidad con amplia oferta de entretenimiento."
+    }
+]

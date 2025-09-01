@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Cruceros</title>
+  
+  <link rel="stylesheet" href="..\static\css\styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <label for="shipSelector" style="font-weight:bold; margin-bottom:10px;">Seleccionar barco:</label>
+      <select id="shipSelector" class="sidebar-select">
+        <option value="all">Todos los barcos</option>
+        <!-- Opciones de barcos que se agregan dinámicamente -->
+      </select>
+    </aside>
+    <main class="main-content">
+      <div id="dashboard"></div>
+    </main>
+  </div>
+  <script src="..\static\js\script.js"></script>
+</body>
+</html>

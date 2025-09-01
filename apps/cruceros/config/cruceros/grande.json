@@ -1,0 +1,80 @@
+{
+    "tipo_crucero": "grande",
+    "especificaciones": {
+        "capacidad_pasajeros": 6000,
+        "capacidad_tripulacion": 2000,
+        "tonelaje": "226838.00",
+        "eslora": "361.00",
+        "manga": "65.00",
+        "altura": "72.00",
+        "numero_cubiertas": 18,
+        "bandera": "Bahamas",
+        "puerto_base": "Colón, Panamá",
+        "estado_operativo": "activo",
+        "modelo_motor": "Wartsila 16V46",
+        "velocidad_maxima": "22.00",
+        "tipo_combustible": "diesel",
+        "consumo_combustible": "200.00",
+        "descripcion": "Crucero grande "
+    },
+    "habitaciones": {
+        "tipos_habitacion": {
+            "basico_sencillo_vista": {"nombre": "Camarote básico sencillo vista mar", "capacidad": 2, "precio_base": "115.00", "descripcion": "Sencillo básico vista mar"},
+            "basico_sencillo_interior": {"nombre": "Camarote básico sencillo interior", "capacidad": 2, "precio_base": "98.00", "descripcion": "Sencillo básico interior"},
+            "basico_doble_vista": {"nombre": "Camarote básico doble vista mar", "capacidad": 4, "precio_base": "200.00", "descripcion": "Doble básico vista"},
+            "basico_doble_interior": {"nombre": "Camarote básico doble interior", "capacidad": 4, "precio_base": "175.00", "descripcion": "Doble básico interior"},
+            "premium_sencillo_vista": {"nombre": "Camarote premium sencillo vista mar", "capacidad": 2, "precio_base": "160.00", "descripcion": "Sencillo premium vista"},
+            "premium_sencillo_interior": {"nombre": "Camarote premium sencillo interior", "capacidad": 2, "precio_base": "140.00", "descripcion": "Sencillo premium interior"},
+            "premium_doble_vista": {"nombre": "Camarote premium doble vista mar", "capacidad": 4, "precio_base": "290.00", "descripcion": "Doble premium vista"},
+            "premium_doble_interior": {"nombre": "Camarote premium doble interior", "capacidad": 4, "precio_base": "255.00", "descripcion": "Doble premium interior"}
+        },
+        "reglas": [
+            {
+                "categoria": "basico",
+                "pisos": [2,3,4,5,6,7],
+                "sencillos_por_piso": 250,
+                "dobles_por_piso": 50,
+                "porcentaje_vista": 0.6
+            },
+            {
+                "categoria": "premium",
+                "pisos": [8,9,10,11,12],
+                "sencillos_por_piso": 90,
+                "dobles_por_piso": 45,
+                "porcentaje_vista": 0.6
+            }
+        ]
+    },
+    "instalaciones": {
+        "items": [
+            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 750, "cubierta": 6, "descripcion": "Buffet principal"},
+            {"nombre": "Restaurante Buffet Internacional", "tipo": "restaurantes", "capacidad": 520, "cubierta": 7, "descripcion": "Buffet internacional"},
+            {"nombre": "Restaurante Buffet Mercado del Mar", "tipo": "restaurantes", "capacidad": 400, "cubierta": 11, "descripcion": "Buffet mariscos)"},
+            {"nombre": "Restaurante Buffet Grill & Salads", "tipo": "restaurantes", "capacidad": 380, "cubierta": 15, "descripcion": "Buffet saludable"},
+            {"nombre": "Restaurante A la Carta Oceanía", "tipo": "restaurantes", "capacidad": 260, "cubierta": 12, "descripcion": "A la carta"},
+            {"nombre": "Restaurante A la Carta Mediterráneo", "tipo": "restaurantes", "capacidad": 240, "cubierta": 10, "descripcion": "A la carta"},
+            {"nombre": "Restaurante A la Carta Fusión", "tipo": "restaurantes", "capacidad": 230, "cubierta": 9, "descripcion": "A la carta"},
+            {"nombre": "Restaurante Especialidad Sushi (Pago)", "tipo": "restaurantes", "capacidad": 110, "cubierta": 13, "descripcion": "Especialidad con cargo"},
+            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 140, "cubierta": 8, "descripcion": "Especialidad con cargo "},
+            {"nombre": "Bar Panorámico", "tipo": "bares_cafes", "capacidad": 250, "cubierta": 16},
+            {"nombre": "Rooftop Bar", "tipo": "bares_cafes", "capacidad": 220, "cubierta": 17, "descripcion": "Bar terraza"},
+            {"nombre": "Sky Lounge", "tipo": "bares_cafes", "capacidad": 300, "cubierta": 18, "descripcion": "Lounge panorámico"},
+            {"nombre": "Bar Piscina Principal", "tipo": "bares_cafes", "capacidad": 180, "cubierta": 16},
+            {"nombre": "Bar Piscina Familiar", "tipo": "bares_cafes", "capacidad": 140, "cubierta": 17},
+            {"nombre": "Sports Bar", "tipo": "bares_cafes", "capacidad": 210, "cubierta": 9},
+            {"nombre": "Pub Cervecería", "tipo": "bares_cafes", "capacidad": 190, "cubierta": 8},
+            {"nombre": "Wine & Cheese Bar", "tipo": "bares_cafes", "capacidad": 160, "cubierta": 10},
+            {"nombre": "Martini Bar", "tipo": "bares_cafes", "capacidad": 150, "cubierta": 11},
+            {"nombre": "Coffee Roasters", "tipo": "bares_cafes", "capacidad": 110, "cubierta": 7},
+            {"nombre": "Café Promenade", "tipo": "bares_cafes", "capacidad": 130, "cubierta": 6},
+            {"nombre": "Heladería Gourmet", "tipo": "otro", "capacidad": 70, "cubierta": 12},
+            {"nombre": "Juice Bar Vitality", "tipo": "bares_cafes", "capacidad": 90, "cubierta": 14},
+            {"nombre": "Snack Grill Burgers", "tipo": "otro", "capacidad": 120, "cubierta": 15},
+            {"nombre": "Piscina Central", "tipo": "entretenimiento", "capacidad": 300, "cubierta": 16},
+            {"nombre": "Piscina Familiar", "tipo": "entretenimiento", "capacidad": 180, "cubierta": 17},
+            {"nombre": "Zona Entretenimiento", "tipo": "entretenimiento", "capacidad": 500, "cubierta": 8},
+            {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 200, "cubierta": 14},
+            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 40, "cubierta": 5}
+        ]
+    }
+}
