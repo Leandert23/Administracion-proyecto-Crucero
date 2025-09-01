@@ -5,55 +5,59 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=50) 
+    descripcion=models.CharField(max_length=100, default='')
     def __str__(self):
-        return self.nombre 
+        return self.nombre, self.descripcion
+        
 
-class Productos(models.Model): 
-    nombre = models.CharField(max_length=50) 
-    descripcion=models.CharField(max_length=100)
-    precio=models.DecimalField(max_digits=10, decimal_places=2)
-    categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    stock_act=models.IntegerField(
-        validators=[MinValueValidator(0),
-                    MaxValueValidator(9999)], default=0)
-    stock_minimo=models.IntegerField(
-        validators=[MinValueValidator(0),
-                    MaxValueValidator(999)], default=0)
-    def __str__(self):
-        return self.nombre 
-    
-class Menu(models.Model):
-    nombre = models.CharField(max_length=50)
-    descripcion=models.CharField(max_length=100)
-    instruccion=models.CharField(max_length=800)
-    precio_vta=models.DecimalField(max_digits=10, decimal_places=2)
-    ingredientes = models.ManyToManyField(
-        Productos,
-        through='IngredientesReceta',  # Tabla intermedia
+
+    class Menu(models.Model):
+     nombre = models.CharField(max_length=50)
+     descripcion = models.CharField(max_length=100)
+     instruccion = models.CharField(max_length=800)
+     precio_vta = models.DecimalField(max_digits=10, decimal_places=2) 
+     categoria = models.ForeignKey('Categoria', on_delete=models.SET_NULL,  # Si se borra la categoría, el campo queda NULL
+        null=True,
+        blank=True,
+        related_name='menus',  # Para acceder: categoria.menus.all()
+        verbose_name='Categoría'
+    )
+     
+    # La tabla intermedia IngredientesReceta conecta Menu con Producto
+     ingredientes = models.ManyToManyField(
+        'almacen.Producto', 
+        through='IngredientesReceta',
         through_fields=('receta', 'producto')
-    )  
-    
+    )
+
     def __str__(self):
         return self.nombre
-    
- #Tabla para unir los productos y la receta 
-class IngredientesReceta(models.Model):
-    receta = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='lista_ingredientes')
-    producto=models.ForeignKey(Productos, on_delete=models.CASCADE, related_name='ingrediente_enreceta')
-    cantidad=models.IntegerField(
+     
+    class IngredientesReceta(models.Model):
+    # Enlaza a Menu
+     receta = models.ForeignKey('Menu', on_delete=models.CASCADE, related_name='ingredientes_detalle')
+    # Enlaza a Producto de la app 'almacen'
+     producto = models.ForeignKey('almacen.Producto', on_delete=models.CASCADE, related_name='producto_enrecetas')
+     cantidad = models.IntegerField(
         validators=[MinValueValidator(0),
                     MaxValueValidator(99)], default=0)
-    und_medida=models.CharField(max_length=20) #gr, kg
-    class Meta:
+     medida = models.CharField(max_length=10,choices=[
+    ('unidades', 'Unidades'),
+    ('gramos', 'Gramos'),
+    ('litros', 'Litros'),
+    ('ml', 'Mililitros'),
+    ('kg', 'Kilogramos'),
+],  default='unidades')  # Ejemplo: gramos, litros, unidades
+     class Meta:
         unique_together = ['receta', 'producto']
     def __str__(self):
-        return f"{self.cantidad} {self.und_medida} de {self.producto} para {self.receta}"    
+        return f"{self.cantidad} {self.medida} de {self.producto} para {self.receta}" 
 
 #Puntos de venta de los distintos bares del crucero
 class PuntoVenta(models.Model):
     nombre = models.CharField(max_length=50)
     ubicacion = models.CharField(max_length=150)
-    hora_aper=models.DateTimeField(null=False)
+    hora_aper=models.DateTimeField(null=False) #YYYY-MM-DD HH:MM:SS
     hora_cierre=models.DateTimeField(null=False)
     
     class Meta:
@@ -95,7 +99,7 @@ class Pedidos(models.Model):
     
 class DetallePedido(models.Model):
     pedido=models.ForeignKey(Pedidos, on_delete=models.CASCADE, related_name='detalles')
-    menu=models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='detalles_pedido')
+    menu=models.ForeignKey('Menu', on_delete=models.CASCADE, related_name='detalles_pedido')
     cantidad=models.IntegerField(
         validators=[MinValueValidator(0),
                     MaxValueValidator(50)], default=0)
