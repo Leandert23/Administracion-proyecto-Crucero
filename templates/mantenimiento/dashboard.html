@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Mantenimiento{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number">{{ total_equipos }}</div>
+                        <div class="stats-label">Total Equipos</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number">{{ tareas_pendientes }}</div>
+                        <div class="stats-label">Tareas Pendientes</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number">{{ productos_stock_bajo }}</div>
+                        <div class="stats-label">Stock Bajo</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number">{{ incidentes_pendientes }}</div>
+                        <div class="stats-label">Incidentes Pendientes</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estado de equipos -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Estado de Equipos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="equiposChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Estado de Tareas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="tareasChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alertas y próximas actividades -->
+    <div class="row">
+        <!-- Tareas próximas a vencer -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Tareas Próximas a Vencer
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if proximas_vencer %}
+                        <div class="list-group list-group-flush">
+                            {% for tarea in proximas_vencer %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ tarea.titulo }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ tarea.ubicacion.codigo_ubicacion }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning text-dark">
+                                            {{ tarea.dias_vencimiento }} días
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ tarea.fecha_programada|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-warning btn-sm">
+                                Ver todas las tareas
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay tareas próximas a vencer</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipos con revisión próxima -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2"></i>
+                        Equipos con Revisión Próxima
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if equipos_revision_proxima %}
+                        <div class="list-group list-group-flush">
+                            {% for equipo in equipos_revision_proxima %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ equipo.nombre }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ equipo.ubicacion.codigo_ubicacion }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info text-dark">
+                                            {{ equipo.dias_hasta_revision }} días
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ equipo.proxima_revision|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-info btn-sm">
+                                Ver todos los equipos
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay equipos con revisión próxima</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones rápidas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Nueva Tarea
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Reportar Incidente
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-cog me-2"></i>
+                                Registrar Equipo
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-box me-2"></i>
+                                Agregar Producto
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de estado de equipos
+    const equiposCtx = document.getElementById('equiposChart').getContext('2d');
+    const equiposChart = new Chart(equiposCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Operativos', 'En Mantenimiento', 'Averiados', 'Fuera de Servicio'],
+            datasets: [{
+                data: [{{ equipos_operativos }}, {{ equipos_mantenimiento }}, {{ equipos_averiados }}, {{ total_equipos|add:"-"|add:equipos_operativos|add:"-"|add:equipos_mantenimiento|add:"-"|add:equipos_averiados }}],
+                backgroundColor: [
+                    '#198754',
+                    '#0dcaf0',
+                    '#dc3545',
+                    '#6c757d'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Gráfico de estado de tareas
+    const tareasCtx = document.getElementById('tareasChart').getContext('2d');
+    const tareasChart = new Chart(tareasCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
+            datasets: [{
+                label: 'Cantidad',
+                data: [{{ tareas_pendientes }}, {{ tareas_en_progreso }}, {{ tareas_pendientes|add:tareas_en_progreso|add:tareas_vencidas|add:"-"|add:tareas_pendientes|add:"-"|add:tareas_en_progreso|add:"-"|add:tareas_vencidas }}, {{ tareas_vencidas }}],
+                backgroundColor: [
+                    '#ffc107',
+                    '#0dcaf0',
+                    '#198754',
+                    '#dc3545'
+                ],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
