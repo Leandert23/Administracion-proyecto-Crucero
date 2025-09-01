@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Consumo - {{ block.super }}{% endblock %}
+
+{% block page_title %}Registro de Consumo{% endblock %}
+
+{% block content %}
+<div class="consumption-management">
+    <h2 class="section-title">
+        <i class="fas fa-utensils"></i> Registro de Consumo
+    </h2>
+
+    <div class="filters">
+        <form class="filter-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="cruiseSelect">Crucero:</label>
+                <select id="cruiseSelect" class="form-control">
+                    <option value="">Todos los Cruceros</option>
+                    {% if cruceros %}
+                        {% for c in cruceros %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="daySelect">Día del crucero:</label>
+                <select id="daySelect" class="form-control">
+                    <option value="">Día</option>
+                    {% for day in "12345678" %}
+                        <option value="{{ day }}">Día {{ day }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="stock-grid" id="menusContainer">
+        <div class="empty-state">
+            <i class="fas fa-list"></i>
+            <p>No hay registros de consumo con los filtros seleccionados</p>
+        </div>
+    </div>
+
+    <div class="add-item-section register-actions">
+        <button id="registerConsumptions" class="btn btn-primary">
+            <i class="fas fa-check"></i> Registrar consumos
+        </button>
+    </div>
+
+    <div id="consumptionAlerts" class="alerts-container"></div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para panel de consumo */
+.consumption-management{padding:0;margin-top:6px}
+.filters{margin-bottom:16px}
+.filter-form{display:flex;gap:12px}
+.filter-form .form-group{flex:1}
+.form-control{padding:10px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}
+.stock-card{background:#fff;border:1px solid #e9f2fb;border-radius:10px;padding:14px}
+.stock-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;min-height:44px}
+.stock-header h4{margin:0}
+.stock-info{display:flex;flex-direction:column;gap:8px}
+.menu-item-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px dashed #eef6fb;min-height:38px}
+.menu-item-row:first-of-type{border-top:0}
+.item-label{flex:1}
+.item-qty{width:100px;padding:8px;border-radius:8px;border:1px solid #e6eef8}
+.item-price{width:110px;text-align:right;color:#334155}
+.register-actions{margin-top:16px}
+.register-actions .btn{padding:12px 18px;border-radius:12px}
+.help{color:#64748b}
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:24px}
+.loading{color:#64748b}
+@media(max-width:640px){.filter-form{flex-direction:column}}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cargar menús disponibles según crucero y día
+function fetchMenus(cruiseId, day){
+    const container = document.getElementById('menusContainer');
+    container.innerHTML = '<p class="loading">Cargando menús...</p>';
+    if(!cruiseId || !day){
+        container.innerHTML = '<p class="help">Seleccione crucero y día para ver los menús disponibles ese día.</p>';
+        return;
+    }
+
+    fetch(`{% url "restaurant:get_menus_for_day" %}?cruise_id=${cruiseId}&day=${day}`)
+        .then(r => r.json())
+        .then(data => {
+            if(!data.menus || data.menus.length === 0){
+                container.innerHTML = '<div class="empty-msg">No hay menús disponibles para este día</div>';
+                return;
+            }
+
+            // Construir UI de menús con tarjetas similar a stock
+            container.innerHTML = '';
+            data.menus.forEach(menu => {
+                const card = document.createElement('div');
+                card.className = 'stock-card';
+
+                const header = document.createElement('div');
+                header.className = 'stock-header';
+                const title = document.createElement('h4');
+                title.textContent = menu.name;
+                header.appendChild(title);
+                card.appendChild(header);
+
+                const info = document.createElement('div');
+                info.className = 'stock-info';
+
+                menu.items.forEach(item => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'menu-item-row';
+
+                    const label = document.createElement('div');
+                    label.className = 'item-label';
+                    label.textContent = item.name;
+
+                    const qtyInput = document.createElement('input');
+                    qtyInput.type = 'number';
+                    qtyInput.min = 0;
+                    qtyInput.value = 0;
+                    qtyInput.className = 'item-qty';
+                    qtyInput.dataset.itemId = item.id;
+                    qtyInput.dataset.included = item.included;
+
+                    const priceSpan = document.createElement('span');
+                    priceSpan.className = 'item-price';
+                    priceSpan.textContent = item.included ? 'Incluido' : `$${item.price}`;
+
+                    itemRow.appendChild(label);
+                    itemRow.appendChild(qtyInput);
+                    itemRow.appendChild(priceSpan);
+
+                    info.appendChild(itemRow);
+                });
+
+                card.appendChild(info);
+                container.appendChild(card);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('menusContainer').innerHTML = '<div class="empty-msg">Error al cargar menús</div>';
+        });
+}
+
+document.getElementById('cruiseSelect').addEventListener('change', function(){
+    const cruiseId = this.value;
+    const day = document.getElementById('daySelect').value;
+    fetchMenus(cruiseId, day);
+});
+
+document.getElementById('daySelect').addEventListener('change', function(){
+    const day = this.value;
+    const cruiseId = document.getElementById('cruiseSelect').value;
+    fetchMenus(cruiseId, day);
+});
+
+// Registrar consumos en bloque: toma todos los inputs con valor > 0
+document.getElementById('registerConsumptions').addEventListener('click', function(){
+    const cruiseId = document.getElementById('cruiseSelect').value;
+    const day = document.getElementById('daySelect').value;
+    if(!cruiseId || !day){
+        showAlert('Seleccione crucero y día antes de registrar consumos', 'error');
+        return;
+    }
+
+    const qtyInputs = Array.from(document.querySelectorAll('.item-qty'));
+    const items = qtyInputs
+        .map(i => ({id: i.dataset.itemId, qty: parseInt(i.value) || 0, included: i.dataset.included === 'true'}))
+        .filter(x => x.qty > 0);
+
+    if(items.length === 0){
+        showAlert('No hay consumos para registrar (ingrese cantidades mayores a 0)', 'error');
+        return;
+    }
+
+    const payload = {cruise_id: cruiseId, day: day, items: items};
+
+    fetch('{% url "restaurant:register_bulk_consumption" %}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value},
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success){
+            showAlert(data.message || 'Consumos registrados', 'success');
+            // Reset inputs
+            qtyInputs.forEach(i => i.value = 0);
+        }else{
+            showAlert(data.message || 'Error al registrar consumos', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showAlert('Error al conectar con el servidor', 'error');
+    });
+});
+
+function showAlert(msg, type){
+    const c = document.getElementById('consumptionAlerts');
+    c.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+    setTimeout(()=> c.innerHTML = '', 5000);
+}
+
+</script>
+{% endblock %}

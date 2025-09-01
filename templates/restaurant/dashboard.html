@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - {{ block.super }}{% endblock %}
+
+{% block page_title %}Dashboard del Restaurante{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2 class="section-title">
+        <i class="fas fa-tachometer-alt"></i> Dashboard del Restaurante
+    </h2>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-ship"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_cruceros }}</h3>
+                <p>Cruceros Activos</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_restaurants }}</h3>
+                <p>Restaurantes</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_employees }}</h3>
+                <p>Empleados Activos</p>
+            </div>
+        </div>
+        
+        <div class="stat-card alert-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ low_stock_items }}</h3>
+                <p>Items con Stock Bajo</p>
+            </div>
+        </div>
+        
+        <div class="stat-card maintenance-card">
+            <div class="stat-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ pending_maintenance }}</h3>
+                <p>Mantenimientos Pendientes</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+        <div class="actions-grid">
+            <a href="{% url 'restaurant:stock' %}" class="action-btn">
+                <i class="fas fa-boxes"></i>
+                <span>Gestionar Stock</span>
+            </a>
+            <a href="{% url 'restaurant:consumption' %}" class="action-btn">
+                <i class="fas fa-utensils"></i>
+                <span>Registrar Consumo</span>
+            </a>
+            <a href="{% url 'restaurant:employees' %}" class="action-btn">
+                <i class="fas fa-user-plus"></i>
+                <span>Agregar Empleado</span>
+            </a>
+            <a href="{% url 'restaurant:maintenance' %}" class="action-btn">
+                <i class="fas fa-wrench"></i>
+                <span>Reportar Problema</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
