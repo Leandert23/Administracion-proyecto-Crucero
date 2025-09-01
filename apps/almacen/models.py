@@ -72,7 +72,7 @@ class Producto(models.Model):
     MEDIDA_CHOICES = [
         ("L", "Litros"),
         ("M", "Metros"),
-        ("G", "Gramos"),
+        ("K", "Kilogramos"),
         ("U", "Unidades"),
     ]
 

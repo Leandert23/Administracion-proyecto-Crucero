@@ -106,6 +106,8 @@
                     <h1 class="page-title">Almacén</h1>
                     <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
                 </div>
+                <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                </div>
             </header>
 
             <!-- Dashboard Content -->
@@ -160,143 +162,19 @@
     </div> <!-- dashboard-container -->
 
     {% include 'partials/inventario_modal.html' %}
+    <!-- Modal Crear Producto -->
+    <div id="modalCrearProducto" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Nuevo Producto</h2>
+                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body">
+                {% include 'partials/formulario_producto.html' %}
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // Funciones básicas para el sidebar
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('collapsed');
-        }
-
-        function toggleMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-            
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            toggle.classList.toggle('active');
-        }
-
-        function closeMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-            
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            toggle.classList.remove('active');
-        }
-
-    // Modal Inventario
-        (function(){
-            const modal = document.getElementById('modalInventario');
-            if(!modal) return;
-            const openCards = document.querySelectorAll('.quick-card');
-            function abrir(){
-                modal.style.display='block';
-                modal.setAttribute('aria-hidden','false');
-                document.body.style.overflow='hidden';
-                cargarPagina(1)
-            }
-            function cerrar(){
-                modal.style.display='none';
-                modal.setAttribute('aria-hidden','true');
-                document.body.style.overflow='';
-            }
-            openCards.forEach(card=>{
-                const title = card.querySelector('.quick-card__title');
-                if(title && title.textContent.trim().toLowerCase()==='inventario'){
-                    card.addEventListener('click', e=>{ e.preventDefault(); abrir(); });
-                }
-            });
-            modal.addEventListener('click', e=>{
-                if(e.target.dataset.close==='true' || e.target.classList.contains('inventario-overlay')) cerrar();
-            });
-            document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.getAttribute('aria-hidden')==='false') cerrar(); });
-        })();
-
-        // Función principal para cargar datos
-        function cargarPagina(pagina) {
-            paginaActual = pagina;
-            mostrarLoading(true);
-
-            // Solo búsqueda (tipo removido temporalmente)
-            const busqueda = document.getElementById('inventario-buscar').value;
-            filtrosActuales = { busqueda };
-
-            const cruceroId = document.getElementById('almacen-root').dataset.cruceroId;
-            const params = new URLSearchParams({
-                page: pagina,
-                ...(busqueda && { busqueda }),
-                crucero_id: cruceroId
-            });
-            // Realizar petición AJAX
-            fetch(`inventario/modal-ajax/?${params.toString()}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Actualizar tabla y paginación
-                    document.getElementById('table-container').innerHTML = data.tabla_html;
-                    document.getElementById('table-footer').innerHTML = data.paginacion_html;
-                    
-                } else {
-                    mostrarError('Error al cargar los datos');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarError('Error de conexión');
-            })
-            .finally(() => {
-                mostrarLoading(false);
-            });
-        }
-
-        // Aplicar filtros (vuelve a la página 1)
-        function aplicarFiltros() {
-            cargarPagina(1);
-        }
-
-        // Limpiar filtros
-        function limpiarFiltros() {
-            // Tipo eliminado temporalmente
-            const inputBusqueda = document.getElementById('inputBusqueda') || document.getElementById('inventario-buscar');
-            if (inputBusqueda) inputBusqueda.value = '';
-            aplicarFiltros();
-        }
-
-
-        // Mostrar/ocultar loading
-        function mostrarLoading(mostrar) {
-            if (mostrar) {
-                document.getElementById('table-container').innerHTML = `
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary"></div>
-                        <p class="mt-2">Cargando productos...</p>
-                    </div>
-                `;
-                document.getElementById('table-footer').innerHTML = '';
-            }
-        }
-
-        // Mostrar error
-        function mostrarError(mensaje) {
-            document.getElementById('table-container').innerHTML = `
-                <div class="alert alert-danger text-center">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <p class="mt-2">${mensaje}</p>
-                    <button class="btn btn-sm btn-outline-danger" onclick="cargarPagina(${paginaActual})">
-                        Reintentar
-                    </button>
-                </div>
-            `;
-        }
-
-    </script>
+    <script src="{% static 'Js/almacen.js' %}"></script>
 </body>
 </html>

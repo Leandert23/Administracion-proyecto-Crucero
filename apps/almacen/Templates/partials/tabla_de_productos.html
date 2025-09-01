@@ -32,7 +32,7 @@
             </td>
             <td>{{ producto.cantidad }}</td>
             <td>{% if producto.get_medida_display %}{{ producto.get_medida_display }}{% else %}{{ producto.medida }}{% endif %}</td>
-            <td>{% if producto.seccion_almacen %}{{ producto.seccion_almacen.nombre }}{% else %}-{% endif %}</td>
+            <td>{% if producto.seccion %}{{ producto.seccion.nombre }}{% else %}-{% endif %}</td>
             <td>
                 {% with estado=producto.estado %}
                 {% if estado == 'BAJO' %}
