@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-project-diagram"></i> Workflow: {{ tarea.titulo }}</h3>
+        </div>
+        <div class="card-body">
+          <div class="workflow-container">
+            {% for evento in timeline %}
+            <div class="workflow-step">
+              <div class="workflow-icon">
+                <i class="fas fa-circle"></i>
+              </div>
+              <div class="workflow-content">
+                <div class="workflow-header">
+                  <h5>{{ evento.estado }}</h5>
+                  <small class="text-muted">{{ evento.fecha|date:'d/m/Y H:i' }} - {{ evento.usuario }}</small>
+                </div>
+                {% if evento.observaciones %}
+                <p class="workflow-text">{{ evento.observaciones }}</p>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a class="btn btn-secondary" href="{% url 'mantenimiento:tarea_detail' tarea.pk %}">
+      <i class="fas fa-arrow-left"></i> Volver al Detalle
+    </a>
+  </div>
+</div>
+
+<style>
+.workflow-container {
+  position: relative;
+  padding-left: 40px;
+}
+
+.workflow-step {
+  position: relative;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-left: 2px solid #dee2e6;
+}
+
+.workflow-step:last-child {
+  border-left: none;
+}
+
+.workflow-icon {
+  position: absolute;
+  left: -45px;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.workflow-content {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-left: 20px;
+}
+
+.workflow-header h5 {
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.workflow-text {
+  margin-bottom: 0;
+  font-style: italic;
+}
+</style>
+{% endblock %}

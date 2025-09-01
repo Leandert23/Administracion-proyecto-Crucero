@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Tareas</h2>
+    <a class="btn btn-primary" href="{% url 'mantenimiento:tarea_create' %}">Nueva Tarea</a>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Tipo</th>
+        <th>Prioridad</th>
+        <th>Estado</th>
+        <th>Programada</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tarea in page_obj %}
+      <tr>
+        <td><a href="{% url 'mantenimiento:tarea_detail' tarea.pk %}">{{ tarea.titulo }}</a></td>
+        <td>{{ tarea.get_tipo_display }}</td>
+        <td>{{ tarea.get_prioridad_display }}</td>
+        <td>{{ tarea.get_estado_display }}</td>
+        <td>{{ tarea.fecha_programada|date:'Y-m-d H:i' }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">Editar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center">Sin tareas</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

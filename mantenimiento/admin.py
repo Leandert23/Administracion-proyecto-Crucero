@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from .models import (
     TipoCrucero, Ubicacion, CategoriaProducto, Producto, InventarioProducto,
     TipoEquipo, Equipo, TareaMantenimiento, ProductoUtilizado, 
-    HistorialMantenimiento, ReporteIncidente
+    HistorialMantenimiento, ReporteIncidente, Personal, AsignacionPersonal, CambioEstado
 )
 
 
@@ -207,4 +207,26 @@ class ReporteIncidenteAdmin(admin.ModelAdmin):
 # Personalización del admin site
 admin.site.site_header = "Administración del Sistema de Cruceros"
 admin.site.site_title = "Crucero Admin"
+@admin.register(Personal)
+class PersonalAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'rol', 'nivel', 'activo', 'disponible', 'horas_turno']
+    list_filter = ['rol', 'nivel', 'activo', 'disponible']
+    search_fields = ['nombre']
+
+
+@admin.register(AsignacionPersonal)
+class AsignacionPersonalAdmin(admin.ModelAdmin):
+    list_display = ['personal', 'tarea', 'horas_asignadas', 'estado', 'fecha_asignacion']
+    list_filter = ['estado', 'fecha_asignacion']
+    search_fields = ['personal__nombre', 'tarea__titulo']
+
+
+@admin.register(CambioEstado)
+class CambioEstadoAdmin(admin.ModelAdmin):
+    list_display = ['tarea', 'estado_anterior', 'estado_nuevo', 'fecha_cambio', 'usuario']
+    list_filter = ['estado_anterior', 'estado_nuevo', 'fecha_cambio']
+    search_fields = ['tarea__titulo']
+    readonly_fields = ['fecha_cambio']
+
+
 admin.site.index_title = "Panel de Administración - Módulo de Mantenimiento"

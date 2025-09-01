@@ -39,8 +39,11 @@ urlpatterns = [
     path('tareas/<int:pk>/', views.tarea_detail, name='tarea_detail'),
     path('tareas/<int:pk>/editar/', views.tarea_update, name='tarea_update'),
     path('tareas/<int:pk>/eliminar/', views.tarea_delete, name='tarea_delete'),
-    path('tareas/<int:pk>/iniciar/', views.tarea_iniciar, name='tarea_iniciar'),
-    path('tareas/<int:pk>/completar/', views.tarea_completar, name='tarea_completar'),
+
+    path('tareas/<int:pk>/asignar-personal/', views.tarea_asignar_personal, name='tarea_asignar_personal'),
+    path('tareas/<int:pk>/registrar-producto/', views.tarea_registrar_producto, name='tarea_registrar_producto'),
+    path('tareas/<int:pk>/cambiar-estado/', views.tarea_cambiar_estado, name='tarea_cambiar_estado'),
+    path('tareas/<int:pk>/workflow/', views.tarea_workflow, name='tarea_workflow'),
     
     # Reportes de incidentes
     path('incidentes/', views.incidente_list, name='incidente_list'),
@@ -55,9 +58,5 @@ urlpatterns = [
     path('reportes/equipos-vencidos/', views.reporte_equipos_vencidos, name='reporte_equipos_vencidos'),
     path('reportes/consumo-productos/', views.reporte_consumo_productos, name='reporte_consumo_productos'),
     
-    # API endpoints para AJAX
-    path('api/ubicaciones/', views.api_ubicaciones, name='api_ubicaciones'),
-    path('api/productos/', views.api_productos, name='api_productos'),
-    path('api/equipos/', views.api_equipos, name='api_equipos'),
-    path('api/tareas/', views.api_tareas, name='api_tareas'),
+
 ]

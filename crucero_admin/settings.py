@@ -140,3 +140,5 @@ MANTENIMIENTO_CONFIG = {
     ],
     'UBICACION_FORMATO': 'XABCD',  # X=Cubierta, A=Uso, B=Identificador, C=D=Número
 }
+
+

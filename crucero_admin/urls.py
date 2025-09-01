@@ -20,8 +20,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('mantenimiento.urls')),  # URLs del módulo de mantenimiento
-    path('mantenimiento/', include('mantenimiento.urls')),
+    path('', include('mantenimiento.urls')),
 ]
 
 # Servir archivos media en desarrollo

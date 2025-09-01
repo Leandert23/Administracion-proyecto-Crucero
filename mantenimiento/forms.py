@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import (
     Ubicacion, Producto, InventarioProducto, Equipo, TareaMantenimiento, 
-    ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto
+    ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto, Personal, AsignacionPersonal, ProductoUtilizado
 )
 
 
@@ -82,7 +82,7 @@ class TareaMantenimientoForm(forms.ModelForm):
     """Formulario para tareas de mantenimiento"""
     class Meta:
         model = TareaMantenimiento
-        fields = ['titulo', 'descripcion', 'tipo', 'prioridad', 'equipo', 'ubicacion', 'asignado_a', 'fecha_programada', 'tiempo_estimado_horas', 'observaciones']
+        fields = ['titulo', 'descripcion', 'tipo', 'prioridad', 'equipo', 'ubicacion', 'tipo_crucero', 'asignado_a', 'fecha_programada', 'tiempo_estimado_horas', 'observaciones']
         widgets = {
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -90,6 +90,7 @@ class TareaMantenimientoForm(forms.ModelForm):
             'prioridad': forms.Select(attrs={'class': 'form-control'}),
             'equipo': forms.Select(attrs={'class': 'form-control'}),
             'ubicacion': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_crucero': forms.Select(attrs={'class': 'form-control'}),
             'asignado_a': forms.Select(attrs={'class': 'form-control'}),
             'fecha_programada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'tiempo_estimado_horas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0.5'}),
@@ -98,10 +99,11 @@ class TareaMantenimientoForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filtrar usuarios que pueden ser asignados (staff o superuser)
-        self.fields['asignado_a'].queryset = User.objects.filter(is_staff=True)
+        # Filtrar listas
+        self.fields['asignado_a'].required = False
         self.fields['equipo'].queryset = Equipo.objects.filter(estado__in=['operativo', 'mantenimiento'])
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(activa=True)
+        self.fields['tipo_crucero'].queryset = TipoCrucero.objects.all()
 
 
 class ReporteIncidenteForm(forms.ModelForm):
@@ -123,142 +125,39 @@ class ReporteIncidenteForm(forms.ModelForm):
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(activa=True)
 
 
-# Formularios adicionales para funcionalidades específicas
-class FiltroUbicacionForm(forms.Form):
-    """Formulario de filtros para ubicaciones"""
-    cubierta = forms.ChoiceField(
-        choices=[('', 'Todas las cubiertas')] + [(i, f'Cubierta {i}') for i in range(1, 19)],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    uso = forms.ChoiceField(
-        choices=[('', 'Todos los usos')] + Ubicacion.USOS_UBICACION,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    activa = forms.ChoiceField(
-        choices=[('', 'Todas'), ('true', 'Activas'), ('false', 'Inactivas')],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+class PersonalForm(forms.ModelForm):
+    class Meta:
+        model = Personal
+        fields = ['nombre', 'rol', 'nivel', 'activo', 'disponible', 'horas_turno']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'rol': forms.Select(attrs={'class': 'form-control'}),
+            'nivel': forms.Select(attrs={'class': 'form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'horas_turno': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0.5'}),
+        }
 
 
-class FiltroProductoForm(forms.Form):
-    """Formulario de filtros para productos"""
-    categoria = forms.ModelChoiceField(
-        queryset=CategoriaProducto.objects.all(),
-        empty_label="Todas las categorías",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    activo = forms.ChoiceField(
-        choices=[('', 'Todos'), ('true', 'Activos'), ('false', 'Inactivos')],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+class AsignacionPersonalForm(forms.ModelForm):
+    class Meta:
+        model = AsignacionPersonal
+        fields = ['personal', 'horas_asignadas', 'estado']
+        widgets = {
+            'personal': forms.Select(attrs={'class': 'form-control'}),
+            'horas_asignadas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0.5'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
 
 
-class FiltroInventarioForm(forms.Form):
-    """Formulario de filtros para inventario"""
-    tipo_crucero = forms.ModelChoiceField(
-        queryset=TipoCrucero.objects.all(),
-        empty_label="Todos los tipos de crucero",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    categoria = forms.ModelChoiceField(
-        queryset=CategoriaProducto.objects.all(),
-        empty_label="Todas las categorías",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    estado_stock = forms.ChoiceField(
-        choices=[('', 'Todos'), ('critico', 'Crítico'), ('bajo', 'Bajo'), ('normal', 'Normal')],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
+class ProductoUtilizadoForm(forms.ModelForm):
+    class Meta:
+        model = ProductoUtilizado
+        fields = ['producto', 'cantidad_utilizada']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-control'}),
+            'cantidad_utilizada': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+        }
 
 
-class FiltroEquipoForm(forms.Form):
-    """Formulario de filtros para equipos"""
-    tipo_equipo = forms.ModelChoiceField(
-        queryset=TipoEquipo.objects.all(),
-        empty_label="Todos los tipos de equipo",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    estado = forms.ChoiceField(
-        choices=[('', 'Todos los estados')] + Equipo.ESTADOS,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    cubierta = forms.ChoiceField(
-        choices=[('', 'Todas las cubiertas')] + [(i, f'Cubierta {i}') for i in range(1, 19)],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
 
-
-class FiltroTareaForm(forms.Form):
-    """Formulario de filtros para tareas"""
-    tipo = forms.ChoiceField(
-        choices=[('', 'Todos los tipos')] + TareaMantenimiento.TIPOS_TAREA,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    estado = forms.ChoiceField(
-        choices=[('', 'Todos los estados')] + TareaMantenimiento.ESTADOS,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    prioridad = forms.ChoiceField(
-        choices=[('', 'Todas las prioridades')] + TareaMantenimiento.PRIORIDADES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    asignado = forms.ModelChoiceField(
-        queryset=User.objects.filter(is_staff=True),
-        empty_label="Todos los usuarios",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
-
-class FiltroIncidenteForm(forms.Form):
-    """Formulario de filtros para incidentes"""
-    severidad = forms.ChoiceField(
-        choices=[('', 'Todas las severidades')] + ReporteIncidente.SEVERIDADES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    resuelto = forms.ChoiceField(
-        choices=[('', 'Todos'), ('true', 'Resueltos'), ('false', 'Pendientes')],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
-
-# Formularios para búsqueda
-class BusquedaForm(forms.Form):
-    """Formulario de búsqueda general"""
-    q = forms.CharField(
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Buscar...',
-            'aria-label': 'Buscar'
-        })
-    )
-    tipo = forms.ChoiceField(
-        choices=[
-            ('', 'Todos'),
-            ('ubicacion', 'Ubicaciones'),
-            ('producto', 'Productos'),
-            ('equipo', 'Equipos'),
-            ('tarea', 'Tareas'),
-            ('incidente', 'Incidentes'),
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )

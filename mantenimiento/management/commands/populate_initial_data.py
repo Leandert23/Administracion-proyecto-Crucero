@@ -32,6 +32,8 @@ class Command(BaseCommand):
         self.create_equipos()
         
         # Crear superusuario si no existe
+        self.create_personal()
+        self.create_inventario_inicial()
         self.create_superuser()
         
         self.stdout.write(
@@ -467,6 +469,83 @@ class Command(BaseCommand):
             )
             if created:
                 self.stdout.write(f'  - Creado: {equipo}')
+
+    def create_personal(self):
+        self.stdout.write('Creando personal...')
+        
+        from ...models import Personal
+        
+        personal_data = [
+            {'nombre': 'Carlos Rodríguez', 'rol': 'supervisor', 'nivel': 'senior'},
+            {'nombre': 'María González', 'rol': 'tecnico', 'nivel': 'senior'},
+            {'nombre': 'José Martínez', 'rol': 'tecnico', 'nivel': 'medio'},
+            {'nombre': 'Ana López', 'rol': 'operador', 'nivel': 'medio'},
+            {'nombre': 'Pedro Sánchez', 'rol': 'operador', 'nivel': 'junior'},
+            {'nombre': 'Luisa Torres', 'rol': 'limpieza', 'nivel': 'medio'},
+            {'nombre': 'Roberto Díaz', 'rol': 'tecnico', 'nivel': 'senior'},
+            {'nombre': 'Carmen Ruiz', 'rol': 'supervisor', 'nivel': 'senior'},
+        ]
+        
+        for data in personal_data:
+            personal, created = Personal.objects.get_or_create(
+                nombre=data['nombre'],
+                defaults=data
+            )
+            if created:
+                self.stdout.write(f'  - Creado: {personal}')
+    
+    def create_inventario_inicial(self):
+        self.stdout.write('Creando inventario inicial...')
+        
+        from ...models import InventarioProducto, Producto, TipoCrucero
+        from decimal import Decimal
+        
+        # Datos de stock por tipo de crucero basados en el Excel
+        stock_data = {
+            'pequeño': {
+                'Lejía (Hipoclorito)': {'requerida': 100, 'minimo': 50, 'actual': 120},
+                'Jabón Líquido Manos': {'requerida': 180, 'minimo': 90, 'actual': 200},
+                'Papel Higiénico': {'requerida': 1200, 'minimo': 600, 'actual': 1300},
+                'Filtros Aceite (Motores/Gen.)': {'requerida': 12, 'minimo': 6, 'actual': 15},
+                'Aceite Lubricante': {'requerida': 300, 'minimo': 150, 'actual': 350},
+                'Juegos de Llaves': {'requerida': 4, 'minimo': 2, 'actual': 5},
+            },
+            'mediano': {
+                'Lejía (Hipoclorito)': {'requerida': 220, 'minimo': 110, 'actual': 250},
+                'Jabón Líquido Manos': {'requerida': 360, 'minimo': 180, 'actual': 400},
+                'Papel Higiénico': {'requerida': 2400, 'minimo': 1200, 'actual': 2600},
+                'Filtros Aceite (Motores/Gen.)': {'requerida': 22, 'minimo': 11, 'actual': 25},
+                'Aceite Lubricante': {'requerida': 600, 'minimo': 300, 'actual': 650},
+                'Juegos de Llaves': {'requerida': 6, 'minimo': 3, 'actual': 8},
+            },
+            'grande': {
+                'Lejía (Hipoclorito)': {'requerida': 400, 'minimo': 200, 'actual': 450},
+                'Jabón Líquido Manos': {'requerida': 550, 'minimo': 275, 'actual': 600},
+                'Papel Higiénico': {'requerida': 3800, 'minimo': 1900, 'actual': 4000},
+                'Filtros Aceite (Motores/Gen.)': {'requerida': 35, 'minimo': 18, 'actual': 40},
+                'Aceite Lubricante': {'requerida': 1000, 'minimo': 500, 'actual': 1100},
+                'Juegos de Llaves': {'requerida': 10, 'minimo': 5, 'actual': 12},
+            },
+        }
+        
+        for tipo_crucero in TipoCrucero.objects.all():
+            tipo_data = stock_data.get(tipo_crucero.tipo, {})
+            for producto_nombre, stock in tipo_data.items():
+                try:
+                    producto = Producto.objects.get(nombre=producto_nombre)
+                    inv, created = InventarioProducto.objects.get_or_create(
+                        producto=producto,
+                        tipo_crucero=tipo_crucero,
+                        defaults={
+                            'cantidad_requerida': Decimal(str(stock['requerida'])),
+                            'stock_minimo': Decimal(str(stock['minimo'])),
+                            'stock_actual': Decimal(str(stock['actual'])),
+                        }
+                    )
+                    if created:
+                        self.stdout.write(f'  - Inventario: {producto.nombre} ({tipo_crucero.tipo})')
+                except Producto.DoesNotExist:
+                    continue
 
     def create_superuser(self):
         self.stdout.write('Verificando superusuario...')

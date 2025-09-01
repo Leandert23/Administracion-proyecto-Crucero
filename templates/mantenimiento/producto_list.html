@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Productos</h2>
+    <a class="btn btn-primary" href="{% url 'mantenimiento:producto_create' %}">Crear Producto</a>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Unidad</th>
+        <th>Activo</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in page_obj %}
+      <tr>
+        <td><a href="{% url 'mantenimiento:producto_detail' p.pk %}">{{ p.nombre }}</a></td>
+        <td>{{ p.get_categoria_display }}</td>
+        <td>{{ p.get_unidad_display }}</td>
+        <td>{{ p.activo|yesno:"Sí,No" }}</td>
+        <td><a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:producto_update' p.pk %}">Editar</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center">Sin productos</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

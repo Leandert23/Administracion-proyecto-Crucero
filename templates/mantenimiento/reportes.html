@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Reportes</h2>
+  <ul>
+    <li><a href="{% url 'mantenimiento:reporte_tareas_pendientes' %}">Tareas pendientes</a></li>
+    <li><a href="{% url 'mantenimiento:reporte_equipos_vencidos' %}">Equipos con revisión vencida</a></li>
+    <li><a href="{% url 'mantenimiento:reporte_consumo_productos' %}">Consumo de productos</a></li>
+  </ul>
+</div>
+{% endblock %}

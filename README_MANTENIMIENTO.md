@@ -139,7 +139,9 @@ python manage.py runserver
 - **Admin Django**: http://localhost:8000/admin/
 
 **Nota**: Para crear un superusuario, ejecuta: `python manage.py createsuperuser`
-
+##usuario:felix
+##correo:felixarocha1@gmail.com
+##pasword:rafe2130
 ## Funcionalidades del Dashboard
 
 ### Estadísticas Principales

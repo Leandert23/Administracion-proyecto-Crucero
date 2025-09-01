@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>{{ equipo.codigo }} - {{ equipo.nombre }}</h2>
+  <p><strong>Tipo:</strong> {{ equipo.tipo_equipo.nombre }}</p>
+  <p><strong>Ubicación:</strong> {{ equipo.ubicacion.codigo_ubicacion }}</p>
+  <p><strong>Estado:</strong> {{ equipo.get_estado_display }}</p>
+  <div class="mt-3">
+    <a class="btn btn-secondary" href="{% url 'mantenimiento:equipo_list' %}">Volver</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Incidentes</h2>
+    <a class="btn btn-primary" href="{% url 'mantenimiento:incidente_create' %}">Reportar Incidente</a>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Severidad</th>
+        <th>Ubicación</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inc in page_obj %}
+      <tr>
+        <td><a href="{% url 'mantenimiento:incidente_detail' inc.pk %}">{{ inc.titulo }}</a></td>
+        <td>{{ inc.get_severidad_display }}</td>
+        <td>{{ inc.ubicacion.codigo_ubicacion }}</td>
+        <td>{{ inc.fecha_reporte|date:'Y-m-d H:i' }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center">Sin incidentes</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

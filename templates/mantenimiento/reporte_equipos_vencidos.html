@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Equipos con revisión vencida</h2>
+  <ul>
+    {% for e in equipos_vencidos %}
+      <li>{{ e.codigo }} - {{ e.nombre }} ({{ e.proxima_revision|date:'Y-m-d' }})</li>
+    {% empty %}
+      <li>Sin equipos vencidos</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

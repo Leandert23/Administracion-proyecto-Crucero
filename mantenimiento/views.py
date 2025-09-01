@@ -1,27 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, F
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime, timedelta
-import json
+from django.core.exceptions import ValidationError
+from datetime import timedelta
 
 from .models import (
     TipoCrucero, Ubicacion, CategoriaProducto, Producto, InventarioProducto,
     TipoEquipo, Equipo, TareaMantenimiento, ProductoUtilizado, 
-    HistorialMantenimiento, ReporteIncidente
+    HistorialMantenimiento, ReporteIncidente, Personal, AsignacionPersonal, CambioEstado
 )
 from .forms import (
     UbicacionForm, ProductoForm, InventarioProductoForm, EquipoForm,
-    TareaMantenimientoForm, ReporteIncidenteForm
+    TareaMantenimientoForm, ReporteIncidenteForm, AsignacionPersonalForm, ProductoUtilizadoForm
 )
 
 
-@login_required
+
 def dashboard(request):
     """Dashboard principal del módulo de mantenimiento"""
     # Estadísticas generales
@@ -30,17 +28,17 @@ def dashboard(request):
     equipos_mantenimiento = Equipo.objects.filter(estado='mantenimiento').count()
     equipos_averiados = Equipo.objects.filter(estado='averiado').count()
     
-    # Tareas pendientes
-    tareas_pendientes = TareaMantenimiento.objects.filter(estado='pendiente').count()
+    # Tareas por estado actualizado
+    tareas_pendientes = TareaMantenimiento.objects.filter(estado__in=['creada', 'planificada', 'asignada']).count()
     tareas_en_progreso = TareaMantenimiento.objects.filter(estado='en_progreso').count()
     tareas_vencidas = TareaMantenimiento.objects.filter(
-        estado='pendiente',
+        estado__in=['creada', 'planificada', 'asignada'],
         fecha_programada__lt=timezone.now()
     ).count()
     
     # Productos con stock bajo
     productos_stock_bajo = InventarioProducto.objects.filter(
-        stock_actual__lte=models.F('stock_minimo')
+        stock_actual__lte=F('stock_minimo')
     ).count()
     
     # Incidentes sin resolver
@@ -48,7 +46,7 @@ def dashboard(request):
     
     # Tareas próximas a vencer (próximos 7 días)
     proximas_vencer = TareaMantenimiento.objects.filter(
-        estado='pendiente',
+        estado__in=['creada', 'planificada', 'asignada'],
         fecha_programada__range=[
             timezone.now(),
             timezone.now() + timedelta(days=7)
@@ -81,7 +79,7 @@ def dashboard(request):
 
 
 # Vistas para Ubicaciones
-@login_required
+
 def ubicacion_list(request):
     """Lista de ubicaciones"""
     ubicaciones = Ubicacion.objects.all().order_by('cubierta', 'uso', 'identificador', 'numero')
@@ -111,7 +109,7 @@ def ubicacion_list(request):
     return render(request, 'mantenimiento/ubicacion_list.html', context)
 
 
-@login_required
+
 def ubicacion_create(request):
     """Crear nueva ubicación"""
     if request.method == 'POST':
@@ -126,7 +124,7 @@ def ubicacion_create(request):
     return render(request, 'mantenimiento/ubicacion_form.html', {'form': form, 'action': 'Crear'})
 
 
-@login_required
+
 def ubicacion_detail(request, pk):
     """Detalle de ubicación"""
     ubicacion = get_object_or_404(Ubicacion, pk=pk)
@@ -141,7 +139,7 @@ def ubicacion_detail(request, pk):
     return render(request, 'mantenimiento/ubicacion_detail.html', context)
 
 
-@login_required
+
 def ubicacion_update(request, pk):
     """Editar ubicación"""
     ubicacion = get_object_or_404(Ubicacion, pk=pk)
@@ -161,7 +159,7 @@ def ubicacion_update(request, pk):
     })
 
 
-@login_required
+
 def ubicacion_delete(request, pk):
     """Eliminar ubicación"""
     ubicacion = get_object_or_404(Ubicacion, pk=pk)
@@ -174,7 +172,7 @@ def ubicacion_delete(request, pk):
 
 
 # Vistas para Productos
-@login_required
+
 def producto_list(request):
     """Lista de productos"""
     productos = Producto.objects.all().order_by('categoria', 'nombre')
@@ -200,7 +198,7 @@ def producto_list(request):
     return render(request, 'mantenimiento/producto_list.html', context)
 
 
-@login_required
+
 def producto_create(request):
     """Crear nuevo producto"""
     if request.method == 'POST':
@@ -215,7 +213,7 @@ def producto_create(request):
     return render(request, 'mantenimiento/producto_form.html', {'form': form, 'action': 'Crear'})
 
 
-@login_required
+
 def producto_detail(request, pk):
     """Detalle de producto"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -230,7 +228,7 @@ def producto_detail(request, pk):
     return render(request, 'mantenimiento/producto_detail.html', context)
 
 
-@login_required
+
 def producto_update(request, pk):
     """Editar producto"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -250,7 +248,7 @@ def producto_update(request, pk):
     })
 
 
-@login_required
+
 def producto_delete(request, pk):
     """Eliminar producto"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -263,7 +261,7 @@ def producto_delete(request, pk):
 
 
 # Vistas para Inventario
-@login_required
+
 def inventario_list(request):
     """Lista de inventario"""
     inventarios = InventarioProducto.objects.select_related('producto', 'tipo_crucero').all()
@@ -279,11 +277,11 @@ def inventario_list(request):
         inventarios = inventarios.filter(producto__categoria__categoria=categoria)
     if estado_stock:
         if estado_stock == 'critico':
-            inventarios = inventarios.filter(stock_actual__lte=models.F('stock_minimo'))
+            inventarios = inventarios.filter(stock_actual__lte=F('stock_minimo'))
         elif estado_stock == 'bajo':
             inventarios = inventarios.filter(
-                stock_actual__gt=models.F('stock_minimo'),
-                stock_actual__lte=models.F('stock_minimo') * 1.5
+                stock_actual__gt=F('stock_minimo'),
+                stock_actual__lte=F('stock_minimo') * 1.5
             )
     
     # Paginación
@@ -299,7 +297,7 @@ def inventario_list(request):
     return render(request, 'mantenimiento/inventario_list.html', context)
 
 
-@login_required
+
 def inventario_update(request, pk):
     """Actualizar inventario"""
     inventario = get_object_or_404(InventarioProducto, pk=pk)
@@ -318,11 +316,11 @@ def inventario_update(request, pk):
     })
 
 
-@login_required
+
 def stock_bajo(request):
     """Productos con stock bajo"""
     inventarios = InventarioProducto.objects.filter(
-        stock_actual__lte=models.F('stock_minimo')
+        stock_actual__lte=F('stock_minimo')
     ).select_related('producto', 'tipo_crucero')
     
     context = {
@@ -332,7 +330,7 @@ def stock_bajo(request):
 
 
 # Vistas para Equipos
-@login_required
+
 def equipo_list(request):
     """Lista de equipos"""
     equipos = Equipo.objects.select_related('tipo_equipo', 'ubicacion').all()
@@ -363,7 +361,7 @@ def equipo_list(request):
     return render(request, 'mantenimiento/equipo_list.html', context)
 
 
-@login_required
+
 def equipo_create(request):
     """Crear nuevo equipo"""
     if request.method == 'POST':
@@ -378,7 +376,7 @@ def equipo_create(request):
     return render(request, 'mantenimiento/equipo_form.html', {'form': form, 'action': 'Crear'})
 
 
-@login_required
+
 def equipo_detail(request, pk):
     """Detalle de equipo"""
     equipo = get_object_or_404(Equipo, pk=pk)
@@ -393,7 +391,7 @@ def equipo_detail(request, pk):
     return render(request, 'mantenimiento/equipo_detail.html', context)
 
 
-@login_required
+
 def equipo_update(request, pk):
     """Editar equipo"""
     equipo = get_object_or_404(Equipo, pk=pk)
@@ -413,7 +411,7 @@ def equipo_update(request, pk):
     })
 
 
-@login_required
+
 def equipo_delete(request, pk):
     """Eliminar equipo"""
     equipo = get_object_or_404(Equipo, pk=pk)
@@ -426,7 +424,7 @@ def equipo_delete(request, pk):
 
 
 # Vistas para Tareas de Mantenimiento
-@login_required
+
 def tarea_list(request):
     """Lista de tareas de mantenimiento"""
     tareas = TareaMantenimiento.objects.select_related('equipo', 'ubicacion', 'asignado_a').all()
@@ -460,28 +458,49 @@ def tarea_list(request):
     return render(request, 'mantenimiento/tarea_list.html', context)
 
 
-@login_required
+
 def tarea_create(request):
     """Crear nueva tarea"""
     if request.method == 'POST':
         form = TareaMantenimientoForm(request.POST)
         if form.is_valid():
             tarea = form.save(commit=False)
-            tarea.creado_por = request.user
-            tarea.save()
-            messages.success(request, 'Tarea creada exitosamente.')
-            return redirect('mantenimiento:tarea_list')
+            if not tarea.tipo_crucero:
+                messages.error(request, 'Debe seleccionar el tipo de crucero para la tarea.')
+            else:
+                tarea.save()
+                messages.success(request, 'Tarea creada exitosamente.')
+                return redirect('mantenimiento:tarea_list')
     else:
         form = TareaMantenimientoForm()
     
     return render(request, 'mantenimiento/tarea_form.html', {'form': form, 'action': 'Crear'})
 
 
-@login_required
+
 def tarea_detail(request, pk):
-    """Detalle de tarea"""
+    """Detalle de tarea con gestión completa de estados"""
     tarea = get_object_or_404(TareaMantenimiento, pk=pk)
     productos_utilizados = ProductoUtilizado.objects.filter(tarea=tarea)
+    personal_asignado = tarea.personal_asignado
+    cambios_estado = tarea.cambios_estado.all()[:10]
+    
+    # Calcular estados posibles
+    estados_posibles = []
+    for estado_code, estado_nombre in TareaMantenimiento.ESTADOS:
+        if tarea.puede_cambiar_estado(estado_code):
+            estados_posibles.append((estado_code, estado_nombre))
+    
+    asignacion_form = AsignacionPersonalForm()
+    producto_form = ProductoUtilizadoForm()
+    
+    # Filtrar personal disponible
+    personal_disponible = Personal.objects.filter(activo=True, disponible=True)
+    asignacion_form.fields['personal'].queryset = personal_disponible
+    
+    # Filtrar productos activos
+    productos_activos = Producto.objects.filter(activo=True)
+    producto_form.fields['producto'].queryset = productos_activos
     
     try:
         historial = HistorialMantenimiento.objects.get(tarea=tarea)
@@ -491,12 +510,19 @@ def tarea_detail(request, pk):
     context = {
         'tarea': tarea,
         'productos_utilizados': productos_utilizados,
+        'personal_asignado': personal_asignado,
+        'cambios_estado': cambios_estado,
+        'estados_posibles': estados_posibles,
         'historial': historial,
+        'asignacion_form': asignacion_form,
+        'producto_form': producto_form,
+        'puede_iniciar': tarea.puede_iniciar,
+        'materiales_necesarios': tarea.materiales_necesarios,
     }
     return render(request, 'mantenimiento/tarea_detail.html', context)
 
 
-@login_required
+
 def tarea_update(request, pk):
     """Editar tarea"""
     tarea = get_object_or_404(TareaMantenimiento, pk=pk)
@@ -516,7 +542,7 @@ def tarea_update(request, pk):
     })
 
 
-@login_required
+
 def tarea_delete(request, pk):
     """Eliminar tarea"""
     tarea = get_object_or_404(TareaMantenimiento, pk=pk)
@@ -528,40 +554,12 @@ def tarea_delete(request, pk):
     return render(request, 'mantenimiento/tarea_confirm_delete.html', {'tarea': tarea})
 
 
-@login_required
-@require_POST
-def tarea_iniciar(request, pk):
-    """Iniciar tarea"""
-    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
-    if tarea.estado == 'pendiente':
-        tarea.estado = 'en_progreso'
-        tarea.fecha_inicio = timezone.now()
-        tarea.save()
-        messages.success(request, 'Tarea iniciada exitosamente.')
-    else:
-        messages.error(request, 'Solo se pueden iniciar tareas pendientes.')
-    
-    return redirect('mantenimiento:tarea_detail', pk=pk)
 
 
-@login_required
-@require_POST
-def tarea_completar(request, pk):
-    """Completar tarea"""
-    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
-    if tarea.estado == 'en_progreso':
-        tarea.estado = 'completada'
-        tarea.fecha_completada = timezone.now()
-        tarea.save()
-        messages.success(request, 'Tarea completada exitosamente.')
-    else:
-        messages.error(request, 'Solo se pueden completar tareas en progreso.')
-    
-    return redirect('mantenimiento:tarea_detail', pk=pk)
 
 
 # Vistas para Reportes de Incidentes
-@login_required
+
 def incidente_list(request):
     """Lista de incidentes"""
     incidentes = ReporteIncidente.objects.select_related('ubicacion', 'equipo', 'reportado_por').all()
@@ -587,14 +585,15 @@ def incidente_list(request):
     return render(request, 'mantenimiento/incidente_list.html', context)
 
 
-@login_required
+
 def incidente_create(request):
     """Crear nuevo incidente"""
     if request.method == 'POST':
         form = ReporteIncidenteForm(request.POST)
         if form.is_valid():
             incidente = form.save(commit=False)
-            incidente.reportado_por = request.user
+            if hasattr(request, 'user') and getattr(request, 'user', None) and getattr(request.user, 'is_authenticated', False):
+                incidente.reportado_por = request.user
             incidente.save()
             messages.success(request, 'Incidente reportado exitosamente.')
             return redirect('mantenimiento:incidente_list')
@@ -604,7 +603,7 @@ def incidente_create(request):
     return render(request, 'mantenimiento/incidente_form.html', {'form': form, 'action': 'Crear'})
 
 
-@login_required
+
 def incidente_detail(request, pk):
     """Detalle de incidente"""
     incidente = get_object_or_404(ReporteIncidente, pk=pk)
@@ -615,7 +614,7 @@ def incidente_detail(request, pk):
     return render(request, 'mantenimiento/incidente_detail.html', context)
 
 
-@login_required
+
 def incidente_update(request, pk):
     """Editar incidente"""
     incidente = get_object_or_404(ReporteIncidente, pk=pk)
@@ -635,7 +634,7 @@ def incidente_update(request, pk):
     })
 
 
-@login_required
+
 @require_POST
 def incidente_resolver(request, pk):
     """Resolver incidente"""
@@ -652,13 +651,13 @@ def incidente_resolver(request, pk):
 
 
 # Vistas para Reportes
-@login_required
+
 def reportes(request):
     """Página principal de reportes"""
     return render(request, 'mantenimiento/reportes.html')
 
 
-@login_required
+
 def reporte_tareas_pendientes(request):
     """Reporte de tareas pendientes"""
     tareas_pendientes = TareaMantenimiento.objects.filter(estado='pendiente').order_by('fecha_programada')
@@ -671,7 +670,7 @@ def reporte_tareas_pendientes(request):
     return render(request, 'mantenimiento/reporte_tareas_pendientes.html', context)
 
 
-@login_required
+
 def reporte_equipos_vencidos(request):
     """Reporte de equipos con revisión vencida"""
     equipos_vencidos = Equipo.objects.filter(
@@ -692,7 +691,7 @@ def reporte_equipos_vencidos(request):
     return render(request, 'mantenimiento/reporte_equipos_vencidos.html', context)
 
 
-@login_required
+
 def reporte_consumo_productos(request):
     """Reporte de consumo de productos"""
     # Productos más utilizados en el último mes
@@ -705,7 +704,7 @@ def reporte_consumo_productos(request):
     
     # Productos con stock bajo
     productos_stock_bajo = InventarioProducto.objects.filter(
-        stock_actual__lte=models.F('stock_minimo')
+        stock_actual__lte=F('stock_minimo')
     ).select_related('producto', 'tipo_crucero')
     
     context = {
@@ -716,34 +715,104 @@ def reporte_consumo_productos(request):
     return render(request, 'mantenimiento/reporte_consumo_productos.html', context)
 
 
-# API endpoints para AJAX
-@login_required
-def api_ubicaciones(request):
-    """API para obtener ubicaciones"""
-    ubicaciones = Ubicacion.objects.filter(activa=True)
-    data = [{'id': u.id, 'codigo': u.codigo_ubicacion, 'descripcion': u.descripcion} for u in ubicaciones]
-    return JsonResponse({'ubicaciones': data})
 
 
-@login_required
-def api_productos(request):
-    """API para obtener productos"""
-    productos = Producto.objects.filter(activo=True)
-    data = [{'id': p.id, 'nombre': p.nombre, 'unidad': p.get_unidad_display()} for p in productos]
-    return JsonResponse({'productos': data})
 
 
-@login_required
-def api_equipos(request):
-    """API para obtener equipos"""
-    equipos = Equipo.objects.all()
-    data = [{'id': e.id, 'codigo': e.codigo, 'nombre': e.nombre} for e in equipos]
-    return JsonResponse({'equipos': data})
+@require_POST
+def tarea_asignar_personal(request, pk):
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    form = AsignacionPersonalForm(request.POST)
+    if form.is_valid():
+        asignacion = form.save(commit=False)
+        asignacion.tarea = tarea
+        asignacion.save()
+        messages.success(request, 'Personal asignado a la tarea.')
+    else:
+        messages.error(request, 'Error al asignar personal.')
+    return redirect('mantenimiento:tarea_detail', pk=pk)
 
 
-@login_required
-def api_tareas(request):
-    """API para obtener tareas"""
-    tareas = TareaMantenimiento.objects.filter(estado='pendiente')
-    data = [{'id': t.id, 'titulo': t.titulo, 'fecha_programada': t.fecha_programada.strftime('%Y-%m-%d')} for t in tareas]
-    return JsonResponse({'tareas': data})
+@require_POST
+def tarea_registrar_producto(request, pk):
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    form = ProductoUtilizadoForm(request.POST)
+    if form.is_valid():
+        pu = form.save(commit=False)
+        pu.tarea = tarea
+        try:
+            pu.save()
+            messages.success(request, 'Producto registrado y stock actualizado.')
+        except Exception as e:
+            messages.error(request, f'No se pudo registrar el producto: {e}')
+    else:
+        messages.error(request, 'Datos inválidos del producto.')
+    return redirect('mantenimiento:tarea_detail', pk=pk)
+
+
+@require_POST
+def tarea_cambiar_estado(request, pk):
+    """Cambiar estado de una tarea"""
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    nuevo_estado = request.POST.get('nuevo_estado')
+    observaciones = request.POST.get('observaciones', '')
+    
+    if not nuevo_estado:
+        messages.error(request, 'Debe seleccionar un estado.')
+        return redirect('mantenimiento:tarea_detail', pk=pk)
+    
+    try:
+        # Validaciones específicas por estado
+        if nuevo_estado == 'en_progreso' and not tarea.personal_asignado.exists():
+            messages.error(request, 'No se puede iniciar una tarea sin personal asignado.')
+            return redirect('mantenimiento:tarea_detail', pk=pk)
+        
+        if nuevo_estado == 'completada' and tarea.productos_utilizados.count() == 0:
+            messages.warning(request, 'Se completó la tarea sin registrar productos utilizados.')
+        
+        # Registrar el estado anterior antes del cambio
+        estado_anterior = tarea.estado
+        
+        tarea.cambiar_estado(nuevo_estado, observaciones=observaciones)
+        
+        # Registrar el cambio en el historial
+        CambioEstado.objects.create(
+            tarea=tarea,
+            estado_anterior=estado_anterior,
+            estado_nuevo=nuevo_estado,
+            observaciones=observaciones
+        )
+        
+        messages.success(request, f'Estado cambiado a: {dict(TareaMantenimiento.ESTADOS)[nuevo_estado]}')
+        
+    except ValidationError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, f'Error al cambiar estado: {e}')
+    
+    return redirect('mantenimiento:tarea_detail', pk=pk)
+
+
+def tarea_workflow(request, pk):
+    """Vista del flujo de trabajo de una tarea"""
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    cambios = tarea.cambios_estado.all()
+    
+    # Crear timeline del workflow
+    timeline = []
+    for cambio in cambios:
+        timeline.append({
+            'fecha': cambio.fecha_cambio,
+            'estado': dict(TareaMantenimiento.ESTADOS)[cambio.estado_nuevo],
+            'observaciones': cambio.observaciones,
+            'usuario': cambio.usuario.username if cambio.usuario else 'Sistema',
+        })
+    
+    context = {
+        'tarea': tarea,
+        'timeline': timeline,
+    }
+    return render(request, 'mantenimiento/tarea_workflow.html', context)
+
+
+
