@@ -32,6 +32,38 @@
       <div class="col-md-3">{{ form.tiempo_estimado_horas.label_tag }}{{ form.tiempo_estimado_horas }}</div>
       <div class="col-md-12">{{ form.observaciones.label_tag }}{{ form.observaciones }}</div>
     </div>
+    {% if asignacion_form or producto_form %}
+    <hr>
+    <div class="row g-3">
+      {% if asignacion_form %}
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-users"></i> Personal Asignado (opcional)</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">{{ asignacion_form.personal.label_tag }}{{ asignacion_form.personal }}</div>
+            <div class="mb-3">{{ asignacion_form.horas_asignadas.label_tag }}{{ asignacion_form.horas_asignadas }}</div>
+            <div class="mb-0">{{ asignacion_form.estado.label_tag }}{{ asignacion_form.estado }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if producto_form %}
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-boxes"></i> Producto inicial (opcional)</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">{{ producto_form.producto.label_tag }}{{ producto_form.producto }}</div>
+            <div class="mb-0">{{ producto_form.cantidad_utilizada.label_tag }}{{ producto_form.cantidad_utilizada }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
     <div class="mt-3">
       <button class="btn btn-primary" type="submit">Guardar</button>
       <a class="btn btn-secondary" href="{% url 'mantenimiento:tarea_list' %}">Cancelar</a>
