@@ -1,0 +1,755 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entretenimiento - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'entretenimiento/css/entretenimiento.css' %}?v=1.3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos para aumentar la separación entre botones de filtro y cards */
+        .filter-buttons {
+            margin-bottom: 25px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="{% static 'entretenimiento/images/browser-svgrepo-com.svg' %}" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-content">
+                        <h1 class="page-title">Entretenimiento</h1>
+                        <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Date Display -->
+                <div class="date-container">
+                    <div class="date-display">
+                        <span class="date-text" id="current-date">
+                            {% if dia_seleccionado %}
+                                Día {{ dia_seleccionado }} del Crucero
+                            {% else %}
+                                Todos los Días
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="day-selector">
+                        <select id="day-selector-btn" onchange="selectDay()" style="background: #3b82f6 !important; color: white !important; border: none !important; padding: 12px 18px !important; border-radius: 8px !important; font-size: 14px !important; font-weight: 600 !important; cursor: pointer !important; font-family: inherit !important; min-width: 160px !important; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; transition: all 0.3s ease !important;">
+                            <option value="" style="color: #1e293b !important; background: white !important;">Todos los Días</option>
+                            {% for dia in dias_disponibles %}
+                            <option value="{{ dia }}" {% if dia_seleccionado == dia %}selected{% endif %} style="color: #1e293b !important; background: white !important;">
+                                Día {{ dia }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all" onclick="filterActivities('all')" style="background: #3b82f6; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                        Todas las Actividades
+                    </button>
+                    <button class="filter-btn" data-filter="pago" onclick="filterActivities('pago')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                        Solo Actividades de Pago
+                    </button>
+                    <button class="filter-btn" data-filter="gratuito" onclick="filterActivities('gratuito')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                        Solo Actividades Gratuitas
+                    </button>
+                </div>
+
+                <!-- Content Cards Grid -->
+                <div class="content-grid">
+                    {% for actividad in actividades %}
+                    <div class="content-card" data-type="{{ actividad.tipo }}">
+                        <div class="image-placeholder">
+                            
+                               
+                                    <img src="{% static 'entretenimiento/img/' %}{{ actividad.img_src }}" alt="{{ actividad.titulo }}" class="activity-image">
+                                
+                            
+                                
+                            
+                        </div>
+                        <div class="card-content">
+                            <div class="card-id">ID: {{ actividad.id }}</div>
+                            <h3 class="card-title">{{ actividad.titulo }}</h3>
+                            <p class="card-description">{{ actividad.descripcion }}</p>
+                            {% if actividad.tipo == 'pago' and actividad.coste %}
+                            <p class="card-price">Precio: {{ actividad.coste }}$</p>
+                            {% endif %}
+                            {% if actividad.tipo == 'rutinaria' and actividad.ubicacion %}
+                            <p class="card-location">Ubicación: {{ actividad.ubicacion }}</p>
+                            {% endif %}
+                            <p class="card-schedule">Día {{ actividad.dia_crucero }} - {{ actividad.hora_inicio|time:"H:i" }} a {{ actividad.hora_fin|time:"H:i" }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="content-card">
+                        <div class="card-content">
+                            <h3 class="card-title">No hay actividades disponibles</h3>
+                            <p class="card-description">No se encontraron actividades en la base de datos.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Términos y Condiciones</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-text">
+                    <h3>Términos y Condiciones de Participación en Actividades del Barco</h3>
+
+                    <h4>1. Aceptación del Riesgo:</h4>
+                    <p>Al participar en cualquier actividad ofrecida en este crucero, incluyendo, pero no limitándose a, talleres, eventos deportivos, espectáculos, concursos o excursiones, usted reconoce que existen riesgos inherentes asociados con dichas actividades. Usted acepta y asume voluntariamente todos los riesgos de lesión, daño, pérdida, o perjuicio, ya sean para usted o para su propiedad, que puedan surgir de su participación.</p>
+
+                    <h4>2. Exoneración y Liberación de Responsabilidad:</h4>
+                    <p>Por la presente, usted libera, exonera y exime de toda responsabilidad a la compañía de cruceros, a sus subsidiarias, a sus directores, oficiales, empleados, agentes y contratistas, de cualquier reclamación, demanda, daño, costo o gasto que pueda resultar de su participación en las actividades, incluso si dichos daños o perjuicios son causados, en su totalidad o en parte, por la negligencia de la compañía o sus representantes.</p>
+
+                    <h4>3. Condición Física:</h4>
+                    <p>Usted declara y garantiza que se encuentra en un estado de salud física y mental adecuado para participar en las actividades. Usted asume la total responsabilidad de asegurarse de que su participación no pondrá en riesgo su salud ni la de otros pasajeros.</p>
+
+                    <h4>4. Consentimiento para Uso de Imagen:</h4>
+                    <p>Usted otorga a la compañía de cruceros el permiso irrevocable para usar y reproducir, con fines promocionales o publicitarios, cualquier fotografía, video o grabación de su persona capturada durante las actividades, sin derecho a recibir compensación alguna.</p>
+
+                    <div class="terms-highlight">
+                        <p><strong>Al hacer clic en el botón "Aceptar", usted confirma que ha leído, entendido y aceptado todos los términos y condiciones de este acuerdo.</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Rechazar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="openNextModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Formulario de Registro -->
+    <div id="processing-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Registro de Participación</h2>
+                <button class="modal-close" onclick="closeAllModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="activity-info" class="activity-info-section">
+                    <h3 class="activity-title" id="form-activity-title"></h3>
+                    <p class="activity-details" id="form-activity-details"></p>
+                </div>
+
+                <form id="registration-form" class="registration-form">
+                    <div class="form-group">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" class="form-input" required maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apellido" class="form-label">Apellido *</label>
+                        <input type="text" id="apellido" name="apellido" class="form-input" required maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="n_habitacion" class="form-label">Número de Habitación *</label>
+                        <input type="text" id="n_habitacion" name="n_habitacion" class="form-input" required maxlength="20" placeholder="Ej: 101, 205A">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="n_personas" class="form-label">Número de Personas *</label>
+                        <select id="n_personas" name="n_personas" class="form-input" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="1">1 persona</option>
+                            <option value="2">2 personas</option>
+                            <option value="3">3 personas</option>
+                            <option value="4">4 personas</option>
+                            <option value="5">5 personas</option>
+                            <option value="6">6 personas</option>
+                        </select>
+                    </div>
+
+                    <div id="form-errors" class="form-errors" style="display: none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeAllModals()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitRegistration()" id="submit-btn">
+                    <span id="submit-text">Registrar</span>
+                    <div id="submit-spinner" class="submit-spinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // Función para actualizar la fecha automáticamente
+        function updateDate() {
+            const dateElement = document.getElementById('current-date');
+            const now = new Date();
+            
+            // Array con los nombres de los meses en español
+            const months = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            // Obtener día, mes y año
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            // Formatear la fecha
+            const formattedDate = `Hoy, ${day} de ${month} de ${year}`;
+            
+            // Actualizar el elemento
+            dateElement.textContent = formattedDate;
+        }
+
+        // Función para seleccionar día del crucero
+        function selectDay() {
+            const daySelect = document.getElementById('day-selector-btn');
+            const selectedDay = daySelect.value;
+
+            // Construir la nueva URL con el parámetro del día
+            const currentUrl = window.location.pathname;
+            let newUrl = currentUrl;
+
+            if (selectedDay) {
+                newUrl += '?dia=' + selectedDay;
+            }
+
+            // Redirigir a la nueva URL
+            window.location.href = newUrl;
+        }
+
+        // Función para agregar estilos hover al selector
+        function addSelectorStyles() {
+            const selector = document.getElementById('day-selector-btn');
+
+            selector.addEventListener('mouseenter', function() {
+                this.style.background = '#2563eb !important';
+                this.style.transform = 'translateY(-2px) !important';
+                this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6) !important';
+            });
+
+            selector.addEventListener('mouseleave', function() {
+                this.style.background = '#3b82f6 !important';
+                this.style.transform = 'translateY(0px) !important';
+                this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4) !important';
+            });
+
+            selector.addEventListener('focus', function() {
+                this.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3) !important';
+            });
+        }
+
+        // Función para filtrar actividades
+        function filterActivities(filterType) {
+            // Obtener todas las tarjetas de actividades
+            const cards = document.querySelectorAll('.content-card');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            // Remover clase active y aplicar estilos de botones no seleccionados
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = '#f8fafc';
+                btn.style.color = '#475569';
+                btn.style.border = '1px solid #e2e8f0';
+            });
+
+            // Agregar clase active y aplicar estilos del botón seleccionado
+            const activeButton = document.querySelector(`[data-filter="${filterType}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+                activeButton.style.background = '#3b82f6';
+                activeButton.style.color = 'white';
+                activeButton.style.border = 'none';
+            }
+
+            // Filtrar las tarjetas
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+
+                if (filterType === 'all') {
+                    // Mostrar todas las tarjetas
+                    card.style.display = 'block';
+                } else if (filterType === 'pago' && cardType === 'pago') {
+                    // Mostrar solo actividades de pago
+                    card.style.display = 'block';
+                } else if (filterType === 'gratuito' && cardType === 'rutinaria') {
+                    // Mostrar solo actividades gratuitas (rutinaria)
+                    card.style.display = 'block';
+                } else {
+                    // Ocultar tarjetas que no coinciden con el filtro
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Función para manejar efectos hover en los botones de filtro
+        function addFilterButtonHoverEffects() {
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.background = '#e2e8f0';
+                        this.style.borderColor = '#cbd5e1';
+                        this.style.transform = 'translateY(-1px)';
+                        this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                    } else {
+                        this.style.background = '#2563eb';
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                    }
+                });
+
+                button.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.background = '#f8fafc';
+                        this.style.borderColor = '#e2e8f0';
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = 'none';
+                    } else {
+                        this.style.background = '#3b82f6';
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                    }
+                });
+            });
+        }
+
+        // Función para abrir el modal de confirmación
+        function openModal(activityId, activityTitle) {
+            const modal = document.getElementById('confirmation-modal');
+            const modalTitle = modal.querySelector('.modal-title');
+            const modalText = modal.querySelector('.modal-text');
+
+            // Actualizar el título del modal con el nombre de la actividad
+            modalTitle.textContent = `Confirmar Reserva: ${activityTitle}`;
+
+            // Mostrar el modal
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+        }
+
+        // Función para cerrar el modal de confirmación
+        function closeModal() {
+            const modal = document.getElementById('confirmation-modal');
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto'; // Restaurar scroll del body
+        }
+
+        // Variable global para almacenar la actividad seleccionada
+        let selectedActivity = null;
+
+        // Función para abrir el segundo modal
+        function openNextModal() {
+            // Cerrar el primer modal
+            closeModal();
+
+            // Abrir el segundo modal
+            const nextModal = document.getElementById('processing-modal');
+            nextModal.style.display = 'flex';
+            nextModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Actualizar la información de la actividad en el formulario
+            updateFormWithActivityInfo();
+        }
+
+        // Función para actualizar la información del formulario con los datos de la actividad
+        function updateFormWithActivityInfo() {
+            if (!selectedActivity) return;
+
+            const activityTitle = document.getElementById('form-activity-title');
+            const activityDetails = document.getElementById('form-activity-details');
+
+            activityTitle.textContent = selectedActivity.title;
+            activityDetails.textContent = `Día ${selectedActivity.dia} - ${selectedActivity.hora_inicio} a ${selectedActivity.hora_fin}${selectedActivity.ubicacion ? ' - ' + selectedActivity.ubicacion : ''}${selectedActivity.coste ? ' - ' + selectedActivity.coste + '€' : ''}`;
+        }
+
+        // Función para cerrar todos los modales
+        function closeAllModals() {
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const processingModal = document.getElementById('processing-modal');
+
+            confirmationModal.style.display = 'none';
+            confirmationModal.classList.remove('active');
+
+            processingModal.style.display = 'none';
+            processingModal.classList.remove('active');
+
+            document.body.style.overflow = 'auto';
+        }
+
+        // Función para inicializar los eventos de las cards
+        function initializeCardClicks() {
+            const cards = document.querySelectorAll('.content-card');
+
+            cards.forEach(card => {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function() {
+                    const activityId = this.querySelector('.card-id').textContent.replace('ID: ', '');
+                    const activityTitle = this.querySelector('.card-title').textContent;
+                    const activityDesc = this.querySelector('.card-description').textContent;
+                    const activitySchedule = this.querySelector('.card-schedule').textContent;
+                    const activityCost = this.querySelector('.card-price') ? this.querySelector('.card-price').textContent : null;
+                    const activityLocation = this.querySelector('.card-location') ? this.querySelector('.card-location').textContent : null;
+                    const activityType = this.getAttribute('data-type');
+
+                    // Extraer información de la hora del schedule
+                    const scheduleMatch = activitySchedule.match(/Día (\d+) - (\d{1,2}:\d{2}) a (\d{1,2}:\d{2})/);
+                    const dia = scheduleMatch ? scheduleMatch[1] : '';
+                    const hora_inicio = scheduleMatch ? scheduleMatch[2] : '';
+                    const hora_fin = scheduleMatch ? scheduleMatch[3] : '';
+
+                    // Almacenar la información de la actividad seleccionada
+                    selectedActivity = {
+                        id: activityId,
+                        title: activityTitle,
+                        description: activityDesc,
+                        dia: dia,
+                        hora_inicio: hora_inicio,
+                        hora_fin: hora_fin,
+                        coste: activityCost ? activityCost.replace('Precio: ', '').replace('€', '') : null,
+                        ubicacion: activityLocation ? activityLocation.replace('Ubicación: ', '') : null,
+                        tipo: activityType
+                    };
+
+                    openModal(activityId, activityTitle);
+                });
+            });
+        }
+
+        // Cerrar modales al hacer click fuera del contenido
+        document.addEventListener('click', function(event) {
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const processingModal = document.getElementById('processing-modal');
+
+            if (event.target === confirmationModal) {
+                closeModal();
+            }
+
+            if (event.target === processingModal) {
+                closeAllModals();
+            }
+        });
+
+        // Función para enviar el formulario de registro
+        function submitRegistration() {
+            const form = document.getElementById('registration-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+            const formErrors = document.getElementById('form-errors');
+
+            // Validar formulario
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Mostrar loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Registrando...';
+            submitSpinner.style.display = 'block';
+            formErrors.style.display = 'none';
+
+            // Obtener datos del formulario
+            const formData = new FormData(form);
+            const n_personas_raw = formData.get('n_personas');
+
+            // Validar que n_personas sea un número válido
+            if (!n_personas_raw || isNaN(parseInt(n_personas_raw))) {
+                showFormErrors(['El número de personas debe ser un número válido.']);
+                submitBtn.disabled = false;
+                submitText.textContent = 'Registrar';
+                submitSpinner.style.display = 'none';
+                return;
+            }
+
+            const data = {
+                nombre: formData.get('nombre'),
+                apellido: formData.get('apellido'),
+                n_habitacion: formData.get('n_habitacion'),
+                n_personas: parseInt(n_personas_raw),
+                actividad_id: selectedActivity.id,
+                actividad_tipo: selectedActivity.tipo
+            };
+
+            // Validar que todos los campos requeridos estén presentes
+            if (!data.nombre || !data.apellido || !data.n_habitacion || !data.n_personas) {
+                showFormErrors(['Todos los campos son obligatorios.']);
+                submitBtn.disabled = false;
+                submitText.textContent = 'Registrar';
+                submitSpinner.style.display = 'none';
+                return;
+            }
+
+            // Enviar datos al servidor
+            fetch('/registro/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Si la respuesta no es exitosa, intentar obtener el mensaje de error
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error en la solicitud');
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    // Mostrar mensaje de éxito
+                    showSuccessMessage(result.message);
+                    closeAllModals();
+                    // Limpiar formulario
+                    form.reset();
+                } else {
+                    // Mostrar errores específicos del servidor
+                    showFormErrors([result.message]);
+                }
+            })
+            .catch(error => {
+                console.error('Error en registro:', error);
+
+                // Determinar el tipo de error y mostrar mensaje apropiado
+                let errorMessage = 'Ocurrió un error al procesar la solicitud.';
+
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.name === 'TypeError') {
+                    errorMessage = 'Error de conexión. Verifique su conexión a internet.';
+                } else if (error.name === 'NetworkError') {
+                    errorMessage = 'Error de red. Intente nuevamente.';
+                }
+
+                showFormErrors([errorMessage]);
+            })
+            .finally(() => {
+                // Restaurar estado del botón
+                submitBtn.disabled = false;
+                submitText.textContent = 'Registrar';
+                submitSpinner.style.display = 'none';
+            });
+        }
+
+        // Función para obtener el token CSRF
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Función para mostrar errores en el formulario
+        function showFormErrors(errors) {
+            const formErrors = document.getElementById('form-errors');
+            formErrors.innerHTML = '';
+
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+
+            errors.forEach(error => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = error;
+                formErrors.appendChild(errorDiv);
+            });
+
+            formErrors.style.display = 'block';
+        }
+
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage(message) {
+            // Crear un toast o alert temporal
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 500;
+                animation: slideInRight 0.3s ease-out;
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Cerrar modales con la tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+
+        // Actualizar la fecha cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+            addSelectorStyles();
+            addFilterButtonHoverEffects();
+            initializeCardClicks(); // Inicializar los clicks de las cards
+        });
+    </script>
+</body>
+</html>
