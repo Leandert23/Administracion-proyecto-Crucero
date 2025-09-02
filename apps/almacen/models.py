@@ -193,6 +193,7 @@ class MovimientoAlmacen(models.Model):
     cantidad = models.PositiveIntegerField()
     fecha = models.DateField(default=obtener_fecha_actual)
     modulo = models.CharField(max_length=20, choices=TIPO_MODULO)
+    descripcion = models.CharField(max_length=255, blank=True, null=True, help_text="Descripción o nota del movimiento")
     
     class Meta:
         verbose_name = "Movimiento de Producto"

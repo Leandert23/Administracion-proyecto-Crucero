@@ -1,0 +1,33 @@
+{% load static %}
+{# Componente reutilizable de búsqueda de producto #}
+<div class="form-field" data-field="{{ field_name|default:'producto' }}">
+    {% if hide_label != True %}
+    <label for="{{ input_text_id|default:'buscar_producto' }}">{{ label|default:'Producto' }}</label>
+    {% endif %}
+    <div class="buscador-producto-wrapper js-buscador-producto"
+    data-hidden-id="{{ hidden_input_id|default:'id_producto' }}"
+    data-lista-id="{{ lista_id|default:'lista-resultados-producto' }}"
+    data-url="{{ url_busqueda|default:'inventario/seleccion-producto/' }}"
+    data-min-length="{{ min_length|default:2 }}">
+    <input type="text"
+    id="{{ input_text_id|default:'buscar_producto' }}"
+    class="buscador-producto-input"
+    placeholder="{{ placeholder|default:'Escribe para buscar...' }}"
+    autocomplete="off"
+    aria-autocomplete="list"
+    aria-expanded="false"
+    aria-controls="{{ lista_id|default:'lista-resultados-producto' }}" />
+    <input type="hidden"
+    id="{{ hidden_input_id|default:'id_producto' }}"
+    name="{{ hidden_input_name|default:'producto' }}"
+    {% if required != False %}required{% endif %} />
+    <div id="{{ lista_id|default:'lista-resultados-producto' }}" class="lista-resultados" role="listbox" aria-label="Resultados de productos"></div>
+</div>
+{% if help_text %}
+<small class="help-text">{{ help_text }}</small>
+{% else %}
+<small class="help-text">Escribe al menos {{ min_length|default:2 }} letras y selecciona un producto de la lista.</small>
+{% endif %}
+<div class="error-text" hidden></div>
+</div>
+

@@ -157,8 +157,10 @@
     .form-field { padding: 10px 12px; }
 }
 
-/* 8. Modal Crear Producto (restaurado) -------------------------------- */
-#modalCrearProducto {
+/* 8. Modales Crear (Producto & Lote) ---------------------------------- */
+#modalCrearProducto,
+#modalCrearLote,
+#modalCrearSalida {
     position: fixed;
     inset: 0;
     z-index: 1400;
@@ -168,8 +170,13 @@
     background: rgba(15,23,42,.55);
     backdrop-filter: saturate(140%) blur(2px);
 }
-#modalCrearProducto[aria-hidden="false"] { display: flex; }
-#modalCrearProducto .modal-container {
+#modalCrearProducto[aria-hidden="false"],
+#modalCrearLote[aria-hidden="false"],
+#modalCrearSalida[aria-hidden="false"] { display: flex; }
+
+#modalCrearProducto .modal-container,
+#modalCrearLote .modal-container,
+#modalCrearSalida .modal-container {
     width: 100%;
     max-width: 660px;
     margin: auto;
@@ -179,14 +186,23 @@
     position: relative;
     animation: modalIn .45s cubic-bezier(.4,0,.2,1);
 }
-#modalCrearProducto .modal-header {
+
+#modalCrearProducto .modal-header,
+#modalCrearLote .modal-header,
+#modalCrearSalida .modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 18px 22px 4px;
 }
-#modalCrearProducto .modal-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
-#modalCrearProducto .close-btn {
+
+#modalCrearProducto .modal-header h2,
+#modalCrearLote   .modal-header h2,
+#modalCrearSalida .modal-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
+
+#modalCrearProducto .close-btn,
+#modalCrearLote .close-btn,
+#modalCrearSalida .close-btn {
     background: none;
     border: 0;
     font-size: 1.5rem;
@@ -197,9 +213,64 @@
     border-radius: 10px;
     transition: background .25s, color .25s;
 }
-#modalCrearProducto .close-btn:hover { background: #f1f5f9; color: #334155; }
+
+#modalCrearProducto .close-btn:hover,
+#modalCrearLote .close-btn:hover,
+#modalCrearSalida .close-btn:hover { background: #f1f5f9; color: #334155; }
+
 @keyframes modalIn { from { opacity:0; transform: translateY(22px);} to { opacity:1; transform: translateY(0);} }
+
 @media (max-width:640px){
-    #modalCrearProducto { padding: 32px 12px; }
-    #modalCrearProducto .modal-container { border-radius: 20px; }
+    #modalCrearProducto,
+    #modalCrearLote,
+    #modalCrearSalida { padding: 32px 12px; }
+    #modalCrearProducto .modal-container,
+    #modalCrearLote .modal-container,
+    #modalCrearSalida .modal-container { border-radius: 20px; }
 }
+
+/* 9. Buscador dinámico de productos (entrada de lote) --------------- */
+.buscador-producto-wrapper { position: relative; }
+.form-field .buscador-producto-wrapper { width:100%; }
+.form-field .buscador-producto-wrapper > input[type="text"] {
+    width:100%;
+    display:block;
+    box-sizing:border-box;
+}
+.lista-resultados {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -8px rgba(15,23,42,.18), 0 4px 10px -4px rgba(15,23,42,.12);
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px 0;
+    z-index: 50;
+    display: none;
+}
+.lista-resultados.visible { display: block; animation: fadeInResultados .18s ease; }
+.item-resultado {
+    padding: 8px 14px;
+    font-size: .72rem;
+    line-height: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 6px;
+    margin: 2px 6px;
+    transition: background .18s, box-shadow .18s;
+}
+.item-resultado strong { font-weight: 600; color:#0f172a; }
+.item-resultado small { font-size: .63rem; color:#64748b; }
+.item-resultado:hover, .item-resultado.activo {
+    background: linear-gradient(90deg,#eef6ff,#f1f5f9);
+    box-shadow: 0 0 0 2px #3b82f6 inset;
+}
+.lista-resultados.vacio { padding: 12px 14px; font-size: .65rem; color:#64748b; }
+@keyframes fadeInResultados { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }

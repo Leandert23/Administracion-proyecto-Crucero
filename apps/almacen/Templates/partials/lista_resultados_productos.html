@@ -1,0 +1,11 @@
+{# Lista de resultados para el buscador dinámico de productos (entrada de lote) #}
+{% if productos and productos.exists %}
+  {% for p in productos %}
+    <div class="item-resultado" role="option" data-id="{{ p.id }}" tabindex="-1">
+      <strong>{{ p.nombre }}</strong>
+      <small>{{ p.tipo }}{% if p.subtipo %} · {{ p.subtipo }}{% endif %}</small>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="lista-resultados vacio">Sin resultados</div>
+{% endif %}

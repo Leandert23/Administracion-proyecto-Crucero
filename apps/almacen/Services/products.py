@@ -1,6 +1,5 @@
-from models import Producto, SeccionAlmacen, MovimientoAlmacen, Lote
 from django.db import transaction
-from models import Producto, SeccionAlmacen, MovimientoAlmacen
+from ..models import Producto, SeccionAlmacen, MovimientoAlmacen
 from apps.almacen.models import Producto
 from typing import List, Tuple
 
@@ -83,7 +82,7 @@ def _recalcular_stock_producto(producto):
         producto.cantidad = total_stock
         producto.save(update_fields=["cantidad"])
 
-def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto):
+def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto, descripcion=None):
     cantidad_restante = cantidad_necesaria
     
     for lote in lotes:
@@ -102,7 +101,8 @@ def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto):
             cantidad=cantidad_a_tomar,
             tipo="OUT",
             modulo=modulo,
-            lote=lote
+            lote=lote,
+            descripcion=descripcion or ''
         )
         cantidad_restante -= cantidad_a_tomar
 
@@ -127,7 +127,7 @@ def _obtener_lotes_fefo(producto):
     )
     return lotes_con_fecha + lotes_sin_fecha
 
-def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento):
+def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento, descripcion=None):
     if cantidad <= 0:
         raise ValueError("La cantidad debe ser mayor que 0")
 
@@ -136,11 +136,11 @@ def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento):
         lotes_ordenados = metodo_ordenamiento(producto)
         
         _verificar_stock_suficiente(lotes_ordenados, cantidad)
-        detalle = _procesar_lotes(lotes_ordenados, cantidad, modulo, producto)
-        _recalcular_stock_producto(producto)
+    _procesar_lotes(lotes_ordenados, cantidad, modulo, producto, descripcion=descripcion)
+    _recalcular_stock_producto(producto)
 
-def retirar_producto_fifo(producto_id, cantidad, modulo):
-    _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fifo)
+def retirar_producto_fifo(producto_id, cantidad, modulo, descripcion=None):
+    _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fifo, descripcion=descripcion)
 
-def retirar_producto_fefo(producto_id, cantidad, modulo):
-    _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fefo)
+def retirar_producto_fefo(producto_id, cantidad, modulo, descripcion=None):
+    _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fefo, descripcion=descripcion)
