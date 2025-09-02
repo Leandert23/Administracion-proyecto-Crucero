@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .models import (
     Ubicacion, Producto, InventarioProducto, Equipo, TareaMantenimiento, 
     ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto, Personal, AsignacionPersonal, ProductoUtilizado,
@@ -56,12 +57,57 @@ class InventarioProductoForm(forms.ModelForm):
         model = InventarioProducto
         fields = ['cantidad_requerida', 'stock_minimo', 'stock_actual', 'ubicacion', 'crucero']
         widgets = {
-            'cantidad_requerida': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'stock_minimo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'stock_actual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'cantidad_requerida': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0.01',
+                'required': True,
+                'placeholder': 'Cantidad mínima requerida'
+            }),
+            'stock_minimo': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0',
+                'required': True,
+                'placeholder': 'Stock mínimo de seguridad',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Se generará alerta cuando el stock llegue a este nivel'
+            }),
+            'stock_actual': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0',
+                'required': True,
+                'placeholder': 'Stock disponible actualmente'
+            }),
             'ubicacion': forms.Select(attrs={'class': 'form-control'}),
             'crucero': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        stock_minimo = cleaned_data.get('stock_minimo')
+        cantidad_requerida = cleaned_data.get('cantidad_requerida')
+        stock_actual = cleaned_data.get('stock_actual')
+        
+        if stock_minimo and cantidad_requerida and stock_minimo > cantidad_requerida:
+            raise forms.ValidationError(
+                'El stock mínimo no puede ser mayor que la cantidad requerida.'
+            )
+        
+        if stock_actual is not None and stock_actual < 0:
+            raise forms.ValidationError(
+                'El stock actual no puede ser negativo.'
+            )
+        
+        # Advertencia si el stock está bajo
+        if stock_actual and stock_minimo and stock_actual <= stock_minimo:
+            self.add_error(None, forms.ValidationError(
+                f'⚠️ ALERTA: Stock actual ({stock_actual}) está en nivel crítico o bajo el mínimo ({stock_minimo})',
+                code='warning'
+            ))
+        
+        return cleaned_data
 
 
 class EquipoForm(forms.ModelForm):
@@ -111,6 +157,55 @@ class TareaMantenimientoForm(forms.ModelForm):
         # Requerir tipo de crucero para poder gestionar inventario/productos correctamente
         self.fields['tipo_crucero'].required = True
         # crucero se selecciona manualmente, sin autocompletar
+        
+        # Agregar placeholders y tooltips
+        self.fields['titulo'].widget.attrs.update({
+            'placeholder': 'Título descriptivo de la tarea',
+            'required': True
+        })
+        self.fields['fecha_programada'].widget.attrs.update({
+            'min': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+            'data-bs-toggle': 'tooltip',
+            'title': 'La fecha debe ser futura'
+        })
+        self.fields['tiempo_estimado_horas'].widget.attrs.update({
+            'placeholder': 'Horas estimadas (máx. 24)',
+            'max': '24'
+        })
+    
+    def clean_fecha_programada(self):
+        fecha = self.cleaned_data.get('fecha_programada')
+        if fecha and fecha < timezone.now():
+            raise forms.ValidationError('La fecha programada debe ser futura.')
+        return fecha
+    
+    def clean_tiempo_estimado_horas(self):
+        tiempo = self.cleaned_data.get('tiempo_estimado_horas')
+        if tiempo and tiempo > 24:
+            raise forms.ValidationError('El tiempo estimado no puede exceder 24 horas. Para tareas más largas, divida en subtareas.')
+        return tiempo
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        equipo = cleaned_data.get('equipo')
+        ubicacion = cleaned_data.get('ubicacion')
+        tipo = cleaned_data.get('tipo')
+        prioridad = cleaned_data.get('prioridad')
+        
+        # Validar coherencia equipo-ubicación
+        if equipo and ubicacion and equipo.ubicacion != ubicacion:
+            raise forms.ValidationError(
+                'La ubicación seleccionada no coincide con la ubicación del equipo. '
+                f'El equipo {equipo.codigo} está en {equipo.ubicacion.codigo_ubicacion}.'
+            )
+        
+        # Validar coherencia tipo-prioridad
+        if tipo == 'emergencia' and prioridad not in ['alta', 'critica', 'emergencia']:
+            raise forms.ValidationError(
+                'Las tareas de emergencia deben tener prioridad alta, crítica o emergencia.'
+            )
+        
+        return cleaned_data
 
 
 class ReporteIncidenteForm(forms.ModelForm):
@@ -197,16 +292,61 @@ class MedicionPiscinaForm(forms.ModelForm):
         model = MedicionPiscina
         fields = ['piscina', 'ph', 'cloro_mg_l', 'temperatura_c', 'turbidez_ntu', 'presion_filtro_bar', 'estado_filtro', 'retrolavado_realizado', 'observaciones']
         widgets = {
-            'piscina': forms.Select(attrs={'class': 'form-control'}),
-            'ph': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '14'}),
-            'cloro_mg_l': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '10'}),
-            'temperatura_c': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-            'turbidez_ntu': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'presion_filtro_bar': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'piscina': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'ph': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '14',
+                'required': True,
+                'placeholder': 'Rango normal: 7.2 - 7.8',
+                'data-bs-toggle': 'tooltip',
+                'title': 'pH ideal: 7.2-7.8. Crítico: <6.8 o >8.2'
+            }),
+            'cloro_mg_l': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.01', 
+                'min': '0', 
+                'max': '10',
+                'required': True,
+                'placeholder': 'Rango normal: 1 - 3 mg/L',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Cloro ideal: 1-3 mg/L. Crítico: <0.5 o >5'
+            }),
+            'temperatura_c': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'step': '0.1',
+                'min': '10',
+                'max': '40',
+                'placeholder': 'Temperatura en °C'
+            }),
+            'turbidez_ntu': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'presion_filtro_bar': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'estado_filtro': forms.Select(attrs={'class': 'form-control'}),
             'retrolavado_realizado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+    
+    def clean_ph(self):
+        ph = self.cleaned_data.get('ph')
+        if ph is not None:
+            if ph < 6.8 or ph > 8.2:
+                # Aún permitimos guardar pero con advertencia
+                self.add_error('ph', forms.ValidationError(
+                    'ADVERTENCIA: pH fuera de rango seguro (6.8-8.2). Requiere acción inmediata.',
+                    code='warning'
+                ))
+        return ph
+    
+    def clean_cloro_mg_l(self):
+        cloro = self.cleaned_data.get('cloro_mg_l')
+        if cloro is not None:
+            if cloro < 0.5 or cloro > 5:
+                self.add_error('cloro_mg_l', forms.ValidationError(
+                    'ADVERTENCIA: Cloro fuera de rango seguro (0.5-5 mg/L). Requiere acción inmediata.',
+                    code='warning'
+                ))
+        return cloro
 
 
 # Formularios para nuevas funcionalidades

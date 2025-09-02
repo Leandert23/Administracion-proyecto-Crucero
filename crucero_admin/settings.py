@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-tu_clave_secreta_aqui_cambiar_en_produccion'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
@@ -132,6 +132,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Cache para optimización
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'mantenimiento-cache',
+        'TIMEOUT': 300,  # 5 minutos por defecto
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
+
 # Configuración para mantenimiento
 MANTENIMIENTO_CONFIG = {
     'CRUCERO_TIPOS': [
@@ -140,6 +152,11 @@ MANTENIMIENTO_CONFIG = {
         ('grande', 'Crucero Grande (6000 pasajeros)'),
     ],
     'UBICACION_FORMATO': 'XABCD',  # X=Cubierta, A=Uso, B=Identificador, C=D=Número
+    'CACHE_TIMEOUT': {
+        'DASHBOARD': 120,  # 2 minutos
+        'PISCINAS': 60,    # 1 minuto
+        'REPORTES': 300,   # 5 minutos
+    }
 }
 
 

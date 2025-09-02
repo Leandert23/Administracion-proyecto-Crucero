@@ -90,7 +90,22 @@ def tarea_create(request):
             # Si hay crucero seleccionado en la sesión y no se eligió en el form, úsalo
             if not tarea.crucero_id and request.session.get('crucero_id'):
                 tarea.crucero_id = request.session['crucero_id']
-            tarea.save()
+            
+            # Validaciones adicionales antes de guardar
+            try:
+                tarea.full_clean()  # Ejecutar todas las validaciones del modelo
+                tarea.save()
+            except ValidationError as e:
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        form.add_error(field if field != '__all__' else None, error)
+                return render(request, 'mantenimiento/tarea_form.html', {
+                    'form': form,
+                    'action': 'Crear',
+                    'tipo_tarea': tipo_tarea,
+                    'asignacion_form': asignacion_form,
+                    'producto_form': producto_form,
+                })
 
             # Asignación inicial de personal (requerida)
             asignacion = asignacion_form.save(commit=False)
@@ -249,6 +264,24 @@ def tarea_cambiar_estado(request, pk):
             if not tarea.personal_asignado.exists():
                 messages.error(request, 'No se puede iniciar una tarea sin personal asignado.')
                 return redirect('mantenimiento:tarea_detail', pk=pk)
+            
+            # Verificar disponibilidad real del personal
+            personal_no_disponible = []
+            for asignacion in tarea.asignaciones.filter(estado='asignado'):
+                if not asignacion.personal.disponible:
+                    personal_no_disponible.append(asignacion.personal.nombre)
+                # Verificar si el personal ya está en otra tarea activa
+                otras_tareas = asignacion.personal.asignacionpersonal_set.filter(
+                    estado='en_progreso',
+                    tarea__estado='en_progreso'
+                ).exclude(tarea=tarea)
+                if otras_tareas.exists():
+                    personal_no_disponible.append(f"{asignacion.personal.nombre} (en otra tarea)")
+            
+            if personal_no_disponible:
+                messages.error(request, f'Personal no disponible: {", ".join(personal_no_disponible)}')
+                return redirect('mantenimiento:tarea_detail', pk=pk)
+            
             # Marcar ocupación del personal asignado (exclusividad)
             for asignacion in tarea.asignaciones.all():
                 if asignacion.estado == 'asignado':

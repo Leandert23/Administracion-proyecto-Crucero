@@ -43,7 +43,7 @@
             <div class="stats-card border-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number text-primary">{{ total_equipos }}</div>
+                        <div class="stats-number text-primary" data-stat="total_equipos">{{ total_equipos }}</div>
                         <div class="stats-label">Total Equipos</div>
                     </div>
                     <div class="stats-icon text-primary">
@@ -62,7 +62,7 @@
             <div class="stats-card border-info">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number text-info">{{ tareas_pendientes }}</div>
+                        <div class="stats-number text-info" data-stat="tareas_pendientes">{{ tareas_pendientes }}</div>
                         <div class="stats-label">Tareas Pendientes</div>
                     </div>
                     <div class="stats-icon text-info">
@@ -81,7 +81,7 @@
             <div class="stats-card {% if productos_stock_bajo > 0 %}border-warning{% else %}border-success{% endif %}">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}">{{ productos_stock_bajo }}</div>
+                        <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}" data-stat="productos_stock_bajo">{{ productos_stock_bajo }}</div>
                         <div class="stats-label">Stock Bajo</div>
                     </div>
                     <div class="stats-icon {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}">
@@ -678,16 +678,28 @@
 {{ crucero_labels|json_script:"crucero-labels-data" }}
 {{ preventivo_counts|json_script:"preventivo-counts-data" }}
 {{ correctivo_counts|json_script:"correctivo-counts-data" }}
-{{ equipos_chart_data|json_script:"equipos-chart-data" }}
 {{ tareas_chart_data|json_script:"tareas-chart-data" }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // (El gráfico de equipos fue retirado a solicitud del usuario)
+// Sistema de gráficas optimizado
+class DashboardCharts {
+    constructor() {
+        this.charts = {};
+        this.initCharts();
+        this.setupAutoUpdate();
+    }
     
-    // Gráfico de estado de tareas
-    const tareasCtx = document.getElementById('tareasChart').getContext('2d');
-    const tareasData = JSON.parse(document.getElementById('tareas-chart-data').textContent);
-    const tareasChart = new Chart(tareasCtx, {
+    initCharts() {
+        this.createTaskChart();
+        this.createCruceroChart();
+    }
+    
+    createTaskChart() {
+        const ctx = document.getElementById('tareasChart');
+        if (!ctx) return;
+        
+        const data = JSON.parse(document.getElementById('tareas-chart-data').textContent);
+        
+        this.charts.tareas = new Chart(ctx.getContext('2d'), {
         type: 'bar',
         data: {
             labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
@@ -730,14 +742,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Gráfico por tamaño de crucero y tipo
-    const cruceroCtx = document.getElementById('cruceroChart').getContext('2d');
-    const cruceroLabels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
-    const preventivoCounts = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
-    const correctivoCounts = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
-    (function(){
+    const cruceroCtx = document.getElementById('cruceroChart');
+    if (cruceroCtx) {
+        const cruceroLabels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
+        const preventivoCounts = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
+        const correctivoCounts = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
+        
         const maxVal = Math.max(...preventivoCounts.concat(correctivoCounts), 0);
         const suggested = maxVal <= 3 ? 3 : maxVal + 1;
-        new Chart(cruceroCtx, {
+        
+        window.cruceroChart = new Chart(cruceroCtx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: cruceroLabels,
@@ -777,7 +791,102 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-    })();
+    }
+    
+    createCruceroChart() {
+        const ctx = document.getElementById('cruceroChart');
+        if (!ctx) return;
+        
+        const labels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
+        const preventivo = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
+        const correctivo = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
+        
+        this.charts.crucero = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Preventivo',
+                    data: preventivo,
+                    backgroundColor: '#0dcaf0'
+                }, {
+                    label: 'Correctivo', 
+                    data: correctivo,
+                    backgroundColor: '#dc3545'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+    
+    setupAutoUpdate() {
+        // Actualización automática optimizada
+        setInterval(() => this.updateCharts(), 30000);
+        this.createUpdateButton();
+    }
+    
+    updateCharts() {
+        fetch('/api/dashboard-update/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar gráficas
+                    if (this.charts.tareas && data.data.tareas_chart_data) {
+                        this.charts.tareas.data.datasets[0].data = data.data.tareas_chart_data;
+                        this.charts.tareas.update('none');
+                    }
+                    
+                    if (this.charts.crucero && data.data.preventivo_counts) {
+                        this.charts.crucero.data.datasets[0].data = data.data.preventivo_counts;
+                        this.charts.crucero.data.datasets[1].data = data.data.correctivo_counts;
+                        this.charts.crucero.update('none');
+                    }
+                    
+                    // Actualizar estadísticas
+                    this.updateStats(data.data.stats);
+                }
+            })
+            .catch(console.error);
+    }
+    
+    updateStats(stats) {
+        Object.entries(stats).forEach(([key, value]) => {
+            const element = document.querySelector(`[data-stat="${key}"]`);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
+    
+    createUpdateButton() {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-outline-primary position-fixed';
+        btn.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000;';
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+        btn.onclick = () => {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            this.updateCharts();
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+                btn.disabled = false;
+            }, 1500);
+        };
+        document.body.appendChild(btn);
+    }
+}
+
+// Inicializar sistema de gráficas
+document.addEventListener('DOMContentLoaded', () => {
+    new DashboardCharts();
 });
 </script>
 {% endblock %}

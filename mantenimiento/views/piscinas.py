@@ -1,50 +1,30 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.utils import timezone
-from datetime import timedelta
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
 from mantenimiento.models import Piscina
 from mantenimiento.forms import PiscinaForm, MedicionPiscinaForm
+from mantenimiento.core.services import PiscinaService, ValidationService
 
 
 def piscina_list(request):
-    piscinas = Piscina.objects.select_related('ubicacion', 'tipo_crucero').prefetch_related('mediciones')
-
-    piscinas_con_alertas = []
-    for piscina in piscinas:
-        ultima_medicion = piscina.mediciones.first()
-        alerta_info = {
-            'piscina': piscina,
-            'ultima_medicion': ultima_medicion,
-            'tiene_alerta': False,
-            'tipo_alerta': '',
-            'dias_sin_medicion': None,
-        }
-        if ultima_medicion:
-            if ultima_medicion.necesita_alerta:
-                alerta_info['tiene_alerta'] = True
-                alerta_info['tipo_alerta'] = ultima_medicion.tipo_alerta
-            dias_sin_medicion = (timezone.now().date() - ultima_medicion.fecha_hora.date()).days
-            alerta_info['dias_sin_medicion'] = dias_sin_medicion
-            if dias_sin_medicion > 1:
-                alerta_info['tiene_alerta'] = True
-                if alerta_info['tipo_alerta']:
-                    alerta_info['tipo_alerta'] += ' / '
-                alerta_info['tipo_alerta'] += f'SIN MEDICIÓN ({dias_sin_medicion} días)'
-        else:
-            alerta_info['tiene_alerta'] = True
-            alerta_info['tipo_alerta'] = 'SIN MEDICIONES'
-        piscinas_con_alertas.append(alerta_info)
-
-    total_piscinas = len(piscinas_con_alertas)
-    piscinas_con_alerta = sum(1 for p in piscinas_con_alertas if p['tiene_alerta'])
-
-    return render(request, 'mantenimiento/piscina_list.html', {
-        'piscinas_con_alertas': piscinas_con_alertas,
-        'total_piscinas': total_piscinas,
-        'piscinas_con_alerta': piscinas_con_alerta,
-        'piscinas_normales': total_piscinas - piscinas_con_alerta,
-    })
+    """Lista de piscinas optimizada"""
+    try:
+        piscinas_info = PiscinaService.get_piscinas_with_alerts()
+        
+        total_piscinas = len(piscinas_info)
+        piscinas_con_alerta = sum(1 for p in piscinas_info if p['tiene_alerta'])
+        
+        return render(request, 'mantenimiento/piscina_list.html', {
+            'piscinas_con_alertas': piscinas_info,
+            'total_piscinas': total_piscinas,
+            'piscinas_con_alerta': piscinas_con_alerta,
+            'piscinas_normales': total_piscinas - piscinas_con_alerta,
+        })
+    except Exception as e:
+        messages.error(request, f'Error al cargar piscinas: {str(e)}')
+        return render(request, 'mantenimiento/piscina_list.html', {})
 
 
 def piscina_create(request):
@@ -97,34 +77,40 @@ def medicion_piscina_create(request):
 
 
 def piscina_trends(request, pk):
-    piscina = get_object_or_404(Piscina, pk=pk)
-    fecha_limite = timezone.now() - timedelta(days=14)
-    mediciones = piscina.mediciones.filter(fecha_hora__gte=fecha_limite).order_by('fecha_hora')
+    """Tendencias de piscina optimizada"""
+    try:
+        data = PiscinaService.get_trends_data(pk, days=14)
+        if not data:
+            messages.error(request, 'Piscina no encontrada')
+            return redirect('mantenimiento:piscina_list')
+        
+        return render(request, 'mantenimiento/piscina_trends.html', {
+            **data,
+            'dias_datos': 14,
+        })
+    except Exception as e:
+        messages.error(request, f'Error al cargar tendencias: {str(e)}')
+        return redirect('mantenimiento:piscina_list')
 
-    fechas, ph_values, cloro_values, temperatura_values = [], [], [], []
-    for m in mediciones:
-        fechas.append(m.fecha_hora.strftime('%Y-%m-%d %H:%M'))
-        ph_values.append(float(m.ph) if m.ph else None)
-        cloro_values.append(float(m.cloro_mg_l) if m.cloro_mg_l else None)
-        temperatura_values.append(float(m.temperatura_c) if m.temperatura_c else None)
 
-    ultima_medicion = mediciones.last()
-    recomendaciones = []
-    if ultima_medicion:
-        if ultima_medicion.necesita_alerta:
-            recomendaciones.append(f"🚨 ALERTA: {ultima_medicion.tipo_alerta}")
-        recomendaciones.append(f"💡 {ultima_medicion.recomendacion}")
-
-    return render(request, 'mantenimiento/piscina_trends.html', {
-        'piscina': piscina,
-        'mediciones': mediciones,
-        'fechas': fechas,
-        'ph_values': ph_values,
-        'cloro_values': cloro_values,
-        'temperatura_values': temperatura_values,
-        'ultima_medicion': ultima_medicion,
-        'recomendaciones': recomendaciones,
-        'dias_datos': 14,
-    })
+@require_GET
+def piscina_update_data(request, pk):
+    """Actualización AJAX de datos de piscina"""
+    try:
+        data = PiscinaService.get_trends_data(pk, days=14)
+        if not data:
+            return JsonResponse({'success': False, 'error': 'Piscina no encontrada'})
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'fechas': data['fechas'],
+                'ph_values': data['ph_values'],
+                'cloro_values': data['cloro_values'],
+                'temperatura_values': data['temperatura_values']
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 

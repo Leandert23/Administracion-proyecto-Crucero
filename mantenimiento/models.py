@@ -89,9 +89,27 @@ class Ubicacion(models.Model):
         if not re.match(r'^[A-Z]$', self.identificador.upper()):
             raise ValidationError('El identificador debe ser una letra (A-Z)')
         
-        # Validar que el número sea válido
-        if not re.match(r'^\d{1,2}$', self.numero):
+        # Validar que el número sea válido y no sea 00
+        if not re.match(r'^[0-9]{1,2}$', self.numero):
             raise ValidationError('El número debe ser de 1 o 2 dígitos')
+        
+        numero_int = int(self.numero)
+        if numero_int < 1 or numero_int > 99:
+            raise ValidationError('El número debe estar entre 01 y 99')
+        
+        # Validar cubierta según tipo de crucero
+        if self.crucero and self.crucero.tipo:
+            max_cubiertas = {
+                'pequeño': 12,
+                'mediano': 15,
+                'grande': 18
+            }
+            tipo_crucero = self.crucero.tipo.tipo
+            if tipo_crucero in max_cubiertas and self.cubierta > max_cubiertas[tipo_crucero]:
+                raise ValidationError(
+                    f'El crucero {self.crucero.tipo.get_tipo_display()} solo tiene {max_cubiertas[tipo_crucero]} cubiertas. '
+                    f'Cubierta {self.cubierta} no es válida.'
+                )
     
     def save(self, *args, **kwargs):
         self.identificador = self.identificador.upper()
@@ -100,6 +118,15 @@ class Ubicacion(models.Model):
     
     def __str__(self):
         return f"{self.codigo_ubicacion} - {self.descripcion}"
+    
+    def delete(self, *args, **kwargs):
+        # Verificar si hay equipos en esta ubicación
+        if self.equipo_set.exists():
+            raise ValidationError(f'No se puede eliminar la ubicación {self.codigo_ubicacion} porque tiene equipos asignados.')
+        # Verificar si hay tareas asociadas
+        if self.tareamantenimiento_set.exists():
+            raise ValidationError(f'No se puede eliminar la ubicación {self.codigo_ubicacion} porque tiene tareas asociadas.')
+        super().delete(*args, **kwargs)
     
     class Meta:
         verbose_name = "Ubicación"
@@ -151,6 +178,15 @@ class Producto(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.get_unidad_display()})"
     
+    def delete(self, *args, **kwargs):
+        # Verificar si hay inventario activo
+        if self.inventarioproducto_set.filter(stock_actual__gt=0).exists():
+            raise ValidationError('No se puede eliminar un producto con inventario activo.')
+        # Verificar si está siendo usado en tareas
+        if self.productoutilizado_set.exists():
+            raise ValidationError('No se puede eliminar un producto que ha sido utilizado en tareas.')
+        super().delete(*args, **kwargs)
+    
     class Meta:
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
@@ -161,11 +197,29 @@ class InventarioProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE)
     crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True)
-    cantidad_requerida = models.DecimalField(max_digits=10, decimal_places=2)
-    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    stock_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    cantidad_requerida = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    stock_minimo = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        validators=[MinValueValidator(Decimal('0'))]
+    )
+    stock_actual = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        validators=[MinValueValidator(Decimal('0'))]
+    )
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_ultima_actualizacion = models.DateTimeField(auto_now=True)
+    
+    def clean(self):
+        # Validar que stock_minimo no sea mayor que cantidad_requerida
+        if self.stock_minimo > self.cantidad_requerida:
+            raise ValidationError('El stock mínimo no puede ser mayor que la cantidad requerida.')
+        
+        # Validar que el stock actual no sea negativo (doble verificación)
+        if self.stock_actual < 0:
+            raise ValidationError('El stock actual no puede ser negativo.')
     
     @property
     def estado_stock(self):
@@ -220,6 +274,33 @@ class Equipo(models.Model):
     proxima_revision = models.DateTimeField(null=True, blank=True)
     observaciones = models.TextField(blank=True)
     
+    def clean(self):
+        # Validar formato del código (ejemplo: EQ-TIPO-0001)
+        if self.codigo and not re.match(r'^[A-Z]{2,3}-[A-Z]{2,4}-\d{4}$', self.codigo.upper()):
+            raise ValidationError(
+                'El código del equipo debe seguir el formato: XX-XXXX-0000 '
+                '(ej: EQ-PUMP-0001, AC-HVAC-0023)'
+            )
+        
+        # Validar que fecha_instalacion no sea futura
+        if self.fecha_instalacion and self.fecha_instalacion > timezone.now().date():
+            raise ValidationError('La fecha de instalación no puede ser futura.')
+        
+        # Validar que proxima_revision > ultima_revision
+        if self.ultima_revision and self.proxima_revision:
+            if self.proxima_revision <= self.ultima_revision:
+                raise ValidationError('La próxima revisión debe ser posterior a la última revisión.')
+        
+        # Validar que próxima revisión sea futura
+        if self.proxima_revision and self.proxima_revision < timezone.now():
+            raise ValidationError('La próxima revisión debe ser una fecha futura.')
+    
+    def save(self, *args, **kwargs):
+        # Normalizar código a mayúsculas
+        if self.codigo:
+            self.codigo = self.codigo.upper()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
     
@@ -227,6 +308,17 @@ class Equipo(models.Model):
         if self.proxima_revision:
             return (self.proxima_revision.date() - timezone.now().date()).days
         return None
+    
+    def delete(self, *args, **kwargs):
+        # No permitir eliminar equipos con tareas en progreso
+        tareas_activas = self.tareamantenimiento_set.filter(
+            estado__in=['en_progreso', 'asignada', 'planificada']
+        )
+        if tareas_activas.exists():
+            raise ValidationError(
+                f'No se puede eliminar el equipo {self.codigo} porque tiene {tareas_activas.count()} tareas activas.'
+            )
+        super().delete(*args, **kwargs)
     
     class Meta:
         verbose_name = "Equipo"
@@ -251,10 +343,31 @@ class Personal(models.Model):
     nivel = models.CharField(max_length=20, choices=NIVELES, default='medio')
     activo = models.BooleanField(default=True)
     disponible = models.BooleanField(default=True)
-    horas_turno = models.DecimalField(max_digits=4, decimal_places=1, default=Decimal('8.0'))
+    horas_turno = models.DecimalField(
+        max_digits=4, decimal_places=1, default=Decimal('8.0'),
+        validators=[MinValueValidator(Decimal('0.5')), MaxValueValidator(Decimal('12'))]
+    )
+    
+    def clean(self):
+        # Validar que las horas de turno sean razonables
+        if self.horas_turno > Decimal('12'):
+            raise ValidationError('Las horas de turno no pueden exceder 12 horas por seguridad laboral.')
+        if self.horas_turno < Decimal('0.5'):
+            raise ValidationError('Las horas de turno deben ser al menos 0.5 horas.')
     
     def __str__(self):
         return f"{self.nombre} ({self.get_rol_display()})"
+    
+    def delete(self, *args, **kwargs):
+        # Verificar si tiene tareas asignadas activas
+        tareas_activas = self.asignacionpersonal_set.filter(
+            tarea__estado__in=['asignada', 'en_progreso']
+        )
+        if tareas_activas.exists():
+            raise ValidationError(
+                f'No se puede eliminar a {self.nombre} porque tiene {tareas_activas.count()} tareas activas asignadas.'
+            )
+        super().delete(*args, **kwargs)
 
 
 class TareaMantenimiento(models.Model):
@@ -309,7 +422,10 @@ class TareaMantenimiento(models.Model):
     fecha_inicio = models.DateTimeField(null=True, blank=True)
     fecha_completada = models.DateTimeField(null=True, blank=True)
     
-    tiempo_estimado_horas = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('1.0'))
+    tiempo_estimado_horas = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal('1.0'),
+        validators=[MinValueValidator(Decimal('0.5')), MaxValueValidator(Decimal('24'))]
+    )
     tiempo_real_horas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
     observaciones = models.TextField(blank=True)
@@ -318,11 +434,33 @@ class TareaMantenimiento(models.Model):
         # Ubicación coherente con equipo si se indica
         if self.equipo and self.ubicacion_id and self.equipo.ubicacion_id != self.ubicacion_id:
             raise ValidationError('La ubicación de la tarea debe coincidir con la del equipo seleccionado.')
+        
         # Fechas coherentes
         if self.fecha_programada and self.fecha_programada < timezone.now() and self.estado in ['creada', 'planificada']:
             raise ValidationError('La fecha programada no puede estar en el pasado para tareas nuevas.')
+        
         if self.estado == 'completada' and not self.fecha_completada:
             raise ValidationError('Debe registrar fecha de completado para una tarea completada.')
+        
+        # Validar tiempo estimado
+        if self.tiempo_estimado_horas > Decimal('24'):
+            raise ValidationError('El tiempo estimado no puede exceder 24 horas. Para tareas más largas, divida en subtareas.')
+        
+        # Validar coherencia entre prioridad y tipo
+        if self.tipo == 'emergencia' and self.prioridad not in ['alta', 'critica', 'emergencia']:
+            raise ValidationError('Las tareas de emergencia deben tener prioridad alta, crítica o emergencia.')
+        
+        # Validar que no haya duplicados activos para el mismo equipo
+        if self.equipo and self.pk is None:  # Solo en creación
+            tareas_activas = TareaMantenimiento.objects.filter(
+                equipo=self.equipo,
+                estado__in=['creada', 'planificada', 'asignada', 'en_progreso']
+            )
+            if tareas_activas.exists():
+                raise ValidationError(
+                    f'Ya existe una tarea activa para el equipo {self.equipo.codigo}. '
+                    'Complete o cancele la tarea existente antes de crear una nueva.'
+                )
     
     def puede_cambiar_estado(self, nuevo_estado):
         """Define las transiciones válidas de estado"""
@@ -605,10 +743,33 @@ class MedicionPiscina(models.Model):
     observaciones = models.TextField(blank=True)
     
     def clean(self):
+        # Validaciones básicas de rango
         if self.ph is not None and (self.ph < Decimal('0') or self.ph > Decimal('14')):
             raise ValidationError('El pH debe estar entre 0 y 14.')
         if self.cloro_mg_l is not None and (self.cloro_mg_l < Decimal('0') or self.cloro_mg_l > Decimal('10')):
             raise ValidationError('El cloro debe estar entre 0 y 10 mg/L.')
+        
+        # Validaciones de rangos críticos que requieren acción inmediata
+        if self.ph is not None:
+            if self.ph < Decimal('6.8'):
+                raise ValidationError('⚠️ pH CRÍTICO BAJO (< 6.8): Riesgo de corrosión y molestias. Aplicar elevador de pH INMEDIATAMENTE.')
+            elif self.ph > Decimal('8.2'):
+                raise ValidationError('⚠️ pH CRÍTICO ALTO (> 8.2): Riesgo de incrustaciones y reducción de eficacia del cloro. Aplicar reductor de pH INMEDIATAMENTE.')
+        
+        if self.cloro_mg_l is not None:
+            if self.cloro_mg_l < Decimal('0.5'):
+                raise ValidationError('⚠️ CLORO CRÍTICO BAJO (< 0.5 mg/L): Riesgo sanitario alto. Aplicar hipoclorito de sodio INMEDIATAMENTE.')
+            elif self.cloro_mg_l > Decimal('5'):
+                raise ValidationError('⚠️ CLORO CRÍTICO ALTO (> 5 mg/L): Riesgo de irritación severa. Suspender dosificación y ventilar área INMEDIATAMENTE.')
+        
+        # Validar temperatura realista
+        if self.temperatura_c is not None:
+            if self.temperatura_c < Decimal('10') or self.temperatura_c > Decimal('40'):
+                raise ValidationError('La temperatura debe estar entre 10°C y 40°C.')
+        
+        # No permitir mediciones futuras
+        if hasattr(self, 'fecha_hora') and self.fecha_hora and self.fecha_hora > timezone.now():
+            raise ValidationError('No se pueden registrar mediciones futuras.')
     
     @property
     def en_rango(self):

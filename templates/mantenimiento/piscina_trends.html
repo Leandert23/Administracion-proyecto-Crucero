@@ -209,7 +209,7 @@ const commonOptions = {
 
 // Gráfica de pH
 const phCtx = document.getElementById('phChart').getContext('2d');
-new Chart(phCtx, {
+const phChart = new Chart(phCtx, {
     type: 'line',
     data: {
         labels: fechas,
@@ -254,7 +254,7 @@ new Chart(phCtx, {
 
 // Gráfica de Cloro
 const cloroCtx = document.getElementById('cloroChart').getContext('2d');
-new Chart(cloroCtx, {
+const cloroChart = new Chart(cloroCtx, {
     type: 'line',
     data: {
         labels: fechas,
@@ -300,7 +300,7 @@ new Chart(cloroCtx, {
 // Gráfica de Temperatura (si hay datos)
 if (temperaturaValues.some(val => val !== null)) {
     const tempCtx = document.getElementById('temperaturaChart').getContext('2d');
-    new Chart(tempCtx, {
+    window.temperaturaChart = new Chart(tempCtx, {
         type: 'line',
         data: {
             labels: fechas,
@@ -327,6 +327,79 @@ if (temperaturaValues.some(val => val !== null)) {
         }
     });
 }
+
+// Función para actualizar las gráficas de piscinas
+function actualizarGraficasPiscina() {
+    fetch(window.location.href)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extraer nuevos datos del script
+            const scriptContent = doc.querySelector('script').textContent;
+            const fechasMatch = scriptContent.match(/const fechas = (\[.*?\]);/);
+            const phMatch = scriptContent.match(/const phValues = (\[.*?\]);/);
+            const cloroMatch = scriptContent.match(/const cloroValues = (\[.*?\]);/);
+            const tempMatch = scriptContent.match(/const temperaturaValues = (\[.*?\]);/);
+            
+            if (fechasMatch && phMatch && cloroMatch) {
+                const nuevasFechas = JSON.parse(fechasMatch[1]);
+                const nuevosPhValues = JSON.parse(phMatch[1]);
+                const nuevosCloroValues = JSON.parse(cloroMatch[1]);
+                const nuevosTemperaturaValues = tempMatch ? JSON.parse(tempMatch[1]) : [];
+                
+                // Actualizar gráfica de pH
+                if (window.phChart) {
+                    window.phChart.data.labels = nuevasFechas;
+                    window.phChart.data.datasets[0].data = nuevosPhValues;
+                    window.phChart.data.datasets[1].data = new Array(nuevasFechas.length).fill(7.2);
+                    window.phChart.data.datasets[2].data = new Array(nuevasFechas.length).fill(7.8);
+                    window.phChart.update('none');
+                }
+                
+                // Actualizar gráfica de cloro
+                if (window.cloroChart) {
+                    window.cloroChart.data.labels = nuevasFechas;
+                    window.cloroChart.data.datasets[0].data = nuevosCloroValues;
+                    window.cloroChart.data.datasets[1].data = new Array(nuevasFechas.length).fill(1.0);
+                    window.cloroChart.data.datasets[2].data = new Array(nuevasFechas.length).fill(3.0);
+                    window.cloroChart.update('none');
+                }
+                
+                // Actualizar gráfica de temperatura
+                if (window.temperaturaChart && nuevosTemperaturaValues.some(val => val !== null)) {
+                    window.temperaturaChart.data.labels = nuevasFechas;
+                    window.temperaturaChart.data.datasets[0].data = nuevosTemperaturaValues;
+                    window.temperaturaChart.update('none');
+                }
+            }
+        })
+        .catch(error => console.error('Error actualizando gráficas de piscina:', error));
+}
+
+// Actualizar gráficas cada 60 segundos (las mediciones de piscina son menos frecuentes)
+setInterval(actualizarGraficasPiscina, 60000);
+
+// Botón de actualización manual
+const btnActualizarPiscina = document.createElement('button');
+btnActualizarPiscina.className = 'btn btn-sm btn-outline-info position-fixed';
+btnActualizarPiscina.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000;';
+btnActualizarPiscina.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar Gráficas';
+btnActualizarPiscina.onclick = function() {
+    btnActualizarPiscina.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+    btnActualizarPiscina.disabled = true;
+    actualizarGraficasPiscina();
+    setTimeout(() => {
+        btnActualizarPiscina.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar Gráficas';
+        btnActualizarPiscina.disabled = false;
+    }, 2000);
+};
+document.body.appendChild(btnActualizarPiscina);
+
+// Almacenar referencias globales para las gráficas
+window.phChart = phChart;
+window.cloroChart = cloroChart;
 </script>
 {% endblock %}
 

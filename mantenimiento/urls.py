@@ -1,31 +1,27 @@
 from django.urls import path
-from .views import (
-    dashboard,
-    # ubicaciones
-    ubicacion_list, ubicacion_create, ubicacion_detail, ubicacion_update, ubicacion_delete,
-    # productos
-    producto_list, producto_create, producto_detail, producto_update, producto_delete,
-    # inventario
-    inventario_list, inventario_update, stock_bajo,
-    # equipos
-    equipo_list, equipo_create, equipo_detail, equipo_update, equipo_delete,
-    # tareas
+from .views.dashboard import dashboard, dashboard_update_data
+from .views.equipos import equipo_list, equipo_create, equipo_detail, equipo_update, equipo_delete
+from .views.tareas import (
     tarea_list, tarea_create, tarea_detail, tarea_update, tarea_delete,
-    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_finalizar,
-    tarea_crear_preventiva, tarea_crear_correctiva, tarea_workflow,
-    # incidentes
-    incidente_list, incidente_create, incidente_detail, incidente_update, incidente_resolver,
-    # reportes
-    reportes, reporte_tareas_pendientes, reporte_equipos_vencidos, reporte_consumo_productos,
-    # piscinas
-    piscina_list, piscina_create, piscina_update, piscina_detail, medicion_piscina_create, piscina_trends,
+    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_workflow,
+    tarea_crear_preventiva, tarea_crear_correctiva
 )
+from .views.piscinas import (
+    piscina_list, piscina_create, piscina_detail, piscina_update, 
+    piscina_trends, medicion_piscina_create, piscina_update_data
+)
+from .views.inventario import inventario_list, inventario_update, stock_bajo
+from .views.productos import producto_list, producto_create, producto_detail, producto_update, producto_delete
+from .views.ubicaciones import ubicacion_list, ubicacion_create, ubicacion_detail, ubicacion_update, ubicacion_delete
+from .views.incidentes import incidente_list, incidente_create, incidente_detail, incidente_update, incidente_resolver
+from .views.reportes import reportes, reporte_tareas_pendientes, reporte_equipos_vencidos, reporte_consumo_productos
 
 app_name = 'mantenimiento'
 
 urlpatterns = [
-    # Página principal
+    # Dashboard principal
     path('', dashboard, name='dashboard'),
+    path('api/dashboard-update/', dashboard_update_data, name='dashboard_update_data'),
     
     # Gestión de ubicaciones
     path('ubicaciones/', ubicacion_list, name='ubicacion_list'),
@@ -61,21 +57,19 @@ urlpatterns = [
     path('tareas/<int:pk>/', tarea_detail, name='tarea_detail'),
     path('tareas/<int:pk>/editar/', tarea_update, name='tarea_update'),
     path('tareas/<int:pk>/eliminar/', tarea_delete, name='tarea_delete'),
-
     path('tareas/<int:pk>/asignar-personal/', tarea_asignar_personal, name='tarea_asignar_personal'),
     path('tareas/<int:pk>/registrar-producto/', tarea_registrar_producto, name='tarea_registrar_producto'),
     path('tareas/<int:pk>/cambiar-estado/', tarea_cambiar_estado, name='tarea_cambiar_estado'),
-    path('tareas/<int:pk>/finalizar/', tarea_finalizar, name='tarea_finalizar'),
     path('tareas/<int:pk>/workflow/', tarea_workflow, name='tarea_workflow'),
     
-    # Reportes de incidentes
+    # Incidentes
     path('incidentes/', incidente_list, name='incidente_list'),
     path('incidentes/crear/', incidente_create, name='incidente_create'),
     path('incidentes/<int:pk>/', incidente_detail, name='incidente_detail'),
     path('incidentes/<int:pk>/editar/', incidente_update, name='incidente_update'),
     path('incidentes/<int:pk>/resolver/', incidente_resolver, name='incidente_resolver'),
     
-    # Reportes y estadísticas
+    # Reportes
     path('reportes/', reportes, name='reportes'),
     path('reportes/tareas-pendientes/', reporte_tareas_pendientes, name='reporte_tareas_pendientes'),
     path('reportes/equipos-vencidos/', reporte_equipos_vencidos, name='reporte_equipos_vencidos'),
@@ -88,5 +82,5 @@ urlpatterns = [
     path('piscinas/<int:pk>/editar/', piscina_update, name='piscina_update'),
     path('piscinas/<int:pk>/tendencias/', piscina_trends, name='piscina_trends'),
     path('piscinas/medicion/crear/', medicion_piscina_create, name='medicion_piscina_create'),
-
+    path('api/piscinas/<int:pk>/update/', piscina_update_data, name='piscina_update_data'),
 ]
