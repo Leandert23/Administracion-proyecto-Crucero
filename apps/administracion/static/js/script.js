@@ -1,114 +1,27 @@
-  const ships = [
-    {
-      id: 1,
-      name: "Crucero Atlántico",
-      status: "Navegando",
-      gasPrice: 1200,
-      passengers: 320,
-      employees: 80,
-      location: "Mar Caribe",
-      days: 12,
-      distance: 1800,
-      budget: 50000,
-      costs: {
-        total: 120000,
-        categories: {
-          Combustible: 60000,
-          Mantenimiento: 30000,
-          Provisiones: 30000
-        }
-      },
-      earnings: {
-        total: 200000,
-        real: 180000,
-        categories: {
-          Pasajes: 150000,
-          Tiendas: 20000,
-          Excursiones: 10000
-        }
-      },
-      alerts: [
-        "Nivel de combustible bajo",
-        "Revisión de motor pendiente"
-      ]
-    },
-    {
-      id: 2,
-      name: "Crucero Pacífico",
-      status: "Embarcado",
-      gasPrice: 1150,
-      passengers: 280,
-      employees: 70,
-      location: "Puerto de Valparaíso",
-      days: 0,
-      distance: 0,
-      budget: 40000,
-      costs: {
-        total: 100000,
-        real: 95000,
-        categories: {
-          Combustible: 50000,
-          Mantenimiento: 25000,
-          Provisiones: 25000
-        }
-      },
-      earnings: {
-        total: 170000,
-        real: 160000,
-        categories: {
-          Pasajes: 120000,
-          Tiendas: 30000,
-          Excursiones: 10000
-        }
-      },
-      alerts: [
-        "Inspección sanitaria requerida"
-      ]
-    },
-    {
-      id: 3,
-      name: "Crucero Mediterráneo",
-      status: "Navegando",
-      gasPrice: 1300,
-      passengers: 400,
-      employees: 100,
-      location: "Costa de Italia",
-      days: 7,
-      distance: 1200,
-      budget: 60000,
-      costs: {
-        total: 150000,
-        categories: {
-          Combustible: 80000,
-          Mantenimiento: 40000,
-          Provisiones: 30000
-        }
-      },
-      earnings: {
-        total: 250000,
-        real: 230000,
-        categories: {
-          Pasajes: 180000,
-          Tiendas: 40000,
-          Excursiones: 10000
-        }
-      },
-      alerts: []
-    }
-  ];
-  // Inicializar el selector al cargar la página
+  var ships = [];
+  // Inicializar el selector al cargar la página y obtener datos del backend
   document.addEventListener('DOMContentLoaded', function() {
-    renderShipList();
-    const selector = document.getElementById('shipSelector');
-    selector.addEventListener('change', function() {
-      if (selector.value === 'all') {
+    fetch('/administracion/api/cruceros-dashboard/')
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        ships = data.ships || [];
+        renderShipList();
+        const selector = document.getElementById('shipSelector');
+        selector.addEventListener('change', function() {
+          if (selector.value === 'all') {
+            renderAllShips();
+          } else {
+            showSingleShip(Number(selector.value));
+          }
+        });
         renderAllShips();
-      } else {
-        showSingleShip(Number(selector.value));
-      }
-    });
-    // Mostrar todos los barcos por defecto
-    renderAllShips();
+      })
+      .catch(function(error) {
+        console.error('Error al obtener los datos de los cruceros:', error);
+        ships = [];
+        renderShipList();
+        renderAllShips();
+      });
   });
 
 // Variables globales para los graficos
@@ -120,14 +33,14 @@ let selectedShipId = null;
 function renderAllShips() {
   const dashboard = document.getElementById('dashboard');
   // Calcular totales
-  const active = ships.filter(s => s.status === 'Navegando').length;
-  const inactive = ships.filter(s => s.status !== 'Navegando').length;
-  const maintenance = ships.filter(s => (s.status === 'En mantenimiento') || (s.status === 'mantenimiento')).length;
-  const totalCosts = ships.reduce((acc, s) => acc + s.costs.total, 0);
-  const totalEarnings = ships.reduce((acc, s) => acc + s.earnings.total, 0);
-  const realEarnings = ships.reduce((acc, s) => acc + s.earnings.real, 0);
+  const active = ships.filter(s => s.status === 'activo' || s.status === 'Navegando' || s.status === 'viaje').length;
+  const inactive = ships.filter(s => s.status === 'inactivo' || s.status === 'Embarcado').length;
+  const maintenance = ships.filter(s => s.status === 'mantenimiento' || s.status === 'En mantenimiento').length;
+  const totalCosts = ships.reduce((acc, s) => acc + (s.costs?.total || 0), 0);
+  const totalEarnings = ships.reduce((acc, s) => acc + (s.earnings?.total || 0), 0);
+  const realEarnings = ships.reduce((acc, s) => acc + (s.earnings?.real || 0), 0);
   // Alertas
-  const allAlerts = ships.flatMap(s => s.alerts);
+  const allAlerts = ships.flatMap(s => s.alerts || []);
   let alertsHtml = '';
   if (allAlerts.length > 0) {
     alertsHtml = `<div class='alerts'>${allAlerts.map(a => `<div>${a}</div>`).join('')}</div>`;
@@ -179,12 +92,12 @@ function renderAllShipsCharts() {
       datasets: [
         {
           label: 'Costos totales',
-          data: ships.map(s => s.costs.total),
+          data: ships.map(s => (s.costs?.total || 0)),
           backgroundColor: '#b3dafe',
         },
         {
           label: 'Ganancias totales',
-          data: ships.map(s => s.earnings.total),
+          data: ships.map(s => (s.earnings?.total || 0)),
           backgroundColor: '#aaf2b2',
         }
       ]
@@ -214,10 +127,10 @@ function renderSingleShipCharts(ship) {
   mainChart = new Chart(ctx1, {
     type: 'pie',
     data: {
-      labels: Object.keys(ship.costs.categories),
+      labels: Object.keys(ship.costs?.categories || {}),
       datasets: [{
         label: 'Costos',
-        data: Object.values(ship.costs.categories),
+        data: Object.values(ship.costs?.categories || {}).map(v => v || 0),
         backgroundColor: ['#b3dafe', '#aaf2b2', '#f9c2c2'],
       }]
     },
@@ -239,10 +152,10 @@ function renderSingleShipCharts(ship) {
   secondaryChart = new Chart(ctx2, {
     type: 'pie',
     data: {
-      labels: Object.keys(ship.earnings.categories),
+      labels: Object.keys(ship.earnings?.categories || {}),
       datasets: [{
         label: 'Ganancias',
-        data: Object.values(ship.earnings.categories),
+        data: Object.values(ship.earnings?.categories || {}).map(v => v || 0),
         backgroundColor: ['#b3dafe', '#aaf2b2', '#f9c2c2'],
       }]
     },
@@ -281,45 +194,44 @@ function renderSingleShip(shipId) {
   const dashboard = document.getElementById('dashboard');
   let alertsHtml = '';
   if (ship.alerts && ship.alerts.length > 0) {
-    alertsHtml = `<div class="alerts">${ship.alerts.map(a => `<div>${a}</div>`).join('')}</div>`;
+    alertsHtml = '<div class="alerts">' + ship.alerts.map(function(a) { return '<div>' + a + '</div>'; }).join('') + '</div>';
   }
-  dashboard.innerHTML = `
-    <div class="dashboard-box" style="max-height: 100%;">
-      <div class="content-box">
-        <h1 class="dashboard-title">${ship.name}</h1>
-        ${alertsHtml}
-      </div>
-      <h2>Estado: <strong>${ship.status}</strong> &nbsp;|&nbsp; Precio de la gasolina: <strong>${ship.gasPrice}</strong></h2>
-      <h3>Presupuesto por parada para compras: ${ship.budget}</h3>
-      <hr>
-      <div class="flex-row">
-        <div class="stats-block">
-          <strong>Número de pasajeros actual:</strong> ${ship.passengers}<br>
-          <strong>Número de empleados actual:</strong> ${ship.employees}
-        </div>
-        <div class="stats-block">
-          <strong>Ubicación actual:</strong> ${ship.location}<br>
-          <strong>Días en viaje:</strong> ${ship.days}<br>
-          <strong>Distancia del viaje:</strong> ${ship.distance}
-        </div>
-      </div>
-      <div class="flex-row">
-        <div class="stats-block">
-          <h3><strong>Costos totales</strong></h3><br>
-          <strong>Total:</strong> ${ship.costs.total}<br>
-          Distribución de costos por categorías y su cantidad<br>
-          <canvas id="mainChart"></canvas>
-        </div>
-        <div class="stats-block">
-          <h3><strong>Ganancias totales y reales</strong></h3><br>
-          <strong>Total:</strong> ${ship.earnings.total}<br> 
-          <strong>Real:</strong> ${ship.earnings.real}<br>
-          Distribución de ganancias por categorías y su cantidad<br>
-          <canvas id="secondaryChart"></canvas>
-        </div>
-      </div>
-    </div>
-  `;
+  dashboard.innerHTML =
+    '<div class="dashboard-box" style="max-height: 100%;">' +
+      '<div class="content-box">' +
+        '<h1 class="dashboard-title">' + ship.name + '</h1>' +
+        alertsHtml +
+      '</div>' +
+      '<h2>Estado: <strong>' + ship.status + '</strong> &nbsp;|&nbsp; Precio de la gasolina: <strong>' + (ship.gasPrice || 0) + '</strong></h2>' +
+      '<h3>Presupuesto por parada para compras: ' + (ship.budget || 0) + '</h3>' +
+      '<hr>' +
+      '<div class="flex-row">' +
+        '<div class="stats-block">' +
+          '<strong>Número de pasajeros actual:</strong> ' + ship.passengers + '<br>' +
+          '<strong>Número de empleados actual:</strong> ' + ship.employees +
+        '</div>' +
+        '<div class="stats-block">' +
+          '<strong>Ubicación actual:</strong> ' + ship.location + '<br>' +
+          '<strong>Días en viaje:</strong> ' + ship.days + '<br>' +
+          '<strong>Distancia del viaje:</strong> ' + (ship.distance || 0) +
+        '</div>' +
+      '</div>' +
+      '<div class="flex-row">' +
+        '<div class="stats-block">' +
+          '<h3><strong>Costos totales</strong></h3><br>' +
+          '<strong>Total:</strong> ' + ((ship.costs && ship.costs.total) ? ship.costs.total : 0) + '<br>' +
+          'Distribución de costos por categorías y su cantidad<br>' +
+          '<canvas id="mainChart"></canvas>' +
+        '</div>' +
+        '<div class="stats-block">' +
+          '<h3><strong>Ganancias totales y reales</strong></h3><br>' +
+          '<strong>Total:</strong> ' + ((ship.earnings && ship.earnings.total) ? ship.earnings.total : 0) + '<br>' +
+          '<strong>Real:</strong> ' + ((ship.earnings && ship.earnings.real) ? ship.earnings.real : 0) + '<br>' +
+          'Distribución de ganancias por categorías y su cantidad<br>' +
+          '<canvas id="secondaryChart"></canvas>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
   setTimeout(function() { renderSingleShipCharts(ship); }, 0);
 }
 

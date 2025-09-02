@@ -6,6 +6,7 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard_empresa, name='dashboard'),
+    path('api/cruceros-dashboard/', views.cruceros_dashboard_data, name='cruceros_dashboard_data'),
 ]
 
 if settings.DEBUG:
