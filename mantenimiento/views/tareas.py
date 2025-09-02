@@ -80,7 +80,8 @@ def tarea_create(request):
 
     if request.method == 'POST':
         form = TareaMantenimientoForm(request.POST)
-        if form.is_valid():
+        # Requerimos los tres formularios válidos
+        if form.is_valid() and asignacion_form.is_valid() and producto_form.is_valid():
             tarea = form.save(commit=False)
             if tipo_tarea and not tarea.tipo:
                 tarea.tipo = tipo_tarea
@@ -91,32 +92,29 @@ def tarea_create(request):
                 tarea.crucero_id = request.session['crucero_id']
             tarea.save()
 
-            # Procesar posible asignación inicial de personal
-            if asignacion_form.is_valid():
-                asig_cd = asignacion_form.cleaned_data
-                if asig_cd.get('personal'):
-                    asignacion = asignacion_form.save(commit=False)
-                    asignacion.tarea = tarea
-                    if tarea.asignaciones.filter(personal=asignacion.personal).exists():
-                        messages.warning(request, 'Ese personal ya está asignado a esta tarea.')
-                    else:
-                        asignacion.save()
+            # Asignación inicial de personal (requerida)
+            asignacion = asignacion_form.save(commit=False)
+            asignacion.tarea = tarea
+            if tarea.asignaciones.filter(personal=asignacion.personal).exists():
+                messages.warning(request, 'Ese personal ya está asignado a esta tarea.')
+            else:
+                asignacion.save()
 
-            # Procesar posible registro de producto inicial
-            if producto_form.is_valid():
-                prod_cd = producto_form.cleaned_data
-                if prod_cd.get('producto') and prod_cd.get('cantidad_utilizada'):
-                    pu = producto_form.save(commit=False)
-                    pu.tarea = tarea
-                    try:
-                        if tarea.tipo_crucero is None:
-                            raise ValidationError('Asigna primero el tipo de crucero a la tarea para poder registrar productos.')
-                        pu.save()
-                    except Exception as e:
-                        messages.error(request, f'No se pudo registrar el producto inicial: {e}')
+            # Registro inicial de producto (requerido)
+            pu = producto_form.save(commit=False)
+            pu.tarea = tarea
+            try:
+                if tarea.tipo_crucero is None:
+                    raise ValidationError('Asigna primero el tipo de crucero a la tarea para poder registrar productos.')
+                pu.save()
+            except Exception as e:
+                messages.error(request, f'No se pudo registrar el producto inicial: {e}')
 
             messages.success(request, 'Tarea creada exitosamente.')
             return redirect('mantenimiento:tarea_list')
+        else:
+            # Mantener formularios con errores para mostrarlos en la misma página
+            pass
     else:
         form = TareaMantenimientoForm()
         if tipo_tarea:
