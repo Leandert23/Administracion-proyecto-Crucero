@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from mantenimiento.models import (
     TareaMantenimiento,
@@ -34,6 +35,7 @@ def tarea_list(request):
     prioridad = request.GET.get('prioridad')
     asignado = request.GET.get('asignado')
     tipo_crucero_id = request.GET.get('tipo_crucero')
+    incluir_finalizadas = request.GET.get('incluir_finalizadas') == '1'
 
     if tipo:
         tareas = tareas.filter(tipo=tipo)
@@ -45,6 +47,9 @@ def tarea_list(request):
         tareas = tareas.filter(asignado_a__id=asignado)
     if tipo_crucero_id:
         tareas = tareas.filter(tipo_crucero__id=tipo_crucero_id)
+    # Ocultar tareas completadas/canceladas por defecto
+    if not incluir_finalizadas:
+        tareas = tareas.exclude(estado__in=['completada', 'cancelada'])
 
     paginator = Paginator(tareas, 20)
     page_number = request.GET.get('page')
@@ -57,6 +62,7 @@ def tarea_list(request):
         'prioridades': TareaMantenimiento.PRIORIDADES,
         'usuarios': [],  # se llenará cuando agreguemos filtros por usuario
         'tipos_crucero': TipoCrucero.objects.all(),
+        'incluir_finalizadas': incluir_finalizadas,
     }
     return render(request, 'mantenimiento/tarea_list.html', context)
 
@@ -76,7 +82,7 @@ def tarea_create(request):
                 tarea.crucero_id = request.session['crucero_id']
             tarea.save()
             messages.success(request, 'Tarea creada exitosamente.')
-            return redirect('mantenimiento:tarea_detail', pk=tarea.pk)
+            return redirect('mantenimiento:tarea_list')
     else:
         form = TareaMantenimientoForm()
         if tipo_tarea:
@@ -124,6 +130,7 @@ def tarea_detail(request, pk):
         'producto_form': producto_form,
         'puede_iniciar': tarea.puede_iniciar,
         'materiales_necesarios': tarea.materiales_necesarios,
+        'puede_finalizar': tarea.puede_cambiar_estado('completada'),
     }
     return render(request, 'mantenimiento/tarea_detail.html', context)
 
@@ -191,6 +198,7 @@ def tarea_cambiar_estado(request, pk):
     tarea = get_object_or_404(TareaMantenimiento, pk=pk)
     nuevo_estado = request.POST.get('nuevo_estado')
     observaciones = request.POST.get('observaciones', '')
+    next_url = request.POST.get('next')
 
     if not nuevo_estado:
         messages.error(request, 'Debe seleccionar un estado.')
@@ -233,6 +241,8 @@ def tarea_cambiar_estado(request, pk):
     except Exception as e:
         messages.error(request, f'Error al cambiar estado: {e}')
 
+    if next_url:
+        return redirect(next_url)
     return redirect('mantenimiento:tarea_detail', pk=pk)
 
 
@@ -247,5 +257,47 @@ def tarea_crear_correctiva(request):
 def tarea_workflow(request, pk):
     # Reusar la vista detallada por ahora; la versión avanzada quedará en otro módulo
     return redirect('mantenimiento:tarea_detail', pk=pk)
+
+
+@require_POST
+def tarea_finalizar(request, pk):
+    """Finaliza una tarea forzando transición a 'completada' y libera personal."""
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    next_url = request.POST.get('next') or reverse('mantenimiento:tarea_list')
+
+    if tarea.estado in ['completada', 'cancelada']:
+        messages.info(request, 'La tarea ya está finalizada o cancelada.')
+        return redirect(next_url)
+
+    estado_anterior = tarea.estado
+
+    # Asegurar fechas coherentes
+    if not tarea.fecha_inicio:
+        tarea.fecha_inicio = timezone.now()
+    tarea.estado = 'completada'
+    tarea.fecha_completada = timezone.now()
+    try:
+        tarea.save()
+        if tarea.equipo:
+            tarea.equipo.ultima_revision = timezone.now()
+            tarea.equipo.save()
+
+        CambioEstado.objects.create(
+            tarea=tarea,
+            estado_anterior=estado_anterior,
+            estado_nuevo='completada',
+            observaciones='Finalizada manualmente',
+            usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+        )
+
+        for asignacion in tarea.asignaciones.all():
+            if asignacion.estado in ['asignado', 'en_progreso']:
+                liberar_personal(asignacion)
+
+        messages.success(request, 'Tarea finalizada correctamente.')
+    except Exception as e:
+        messages.error(request, f'No se pudo finalizar la tarea: {e}')
+
+    return redirect(next_url)
 
 

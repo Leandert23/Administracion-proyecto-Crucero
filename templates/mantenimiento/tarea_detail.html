@@ -205,6 +205,13 @@
     <a class="btn btn-warning" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">
       <i class="fas fa-edit"></i> Editar Tarea
     </a>
+    <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
+      <button type="submit" class="btn btn-success">
+        <i class="fas fa-check"></i> Finalizar Tarea
+      </button>
+    </form>
     {% endif %}
   </div>
 </div>

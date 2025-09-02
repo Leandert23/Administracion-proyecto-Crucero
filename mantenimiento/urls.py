@@ -11,7 +11,7 @@ from .views import (
     equipo_list, equipo_create, equipo_detail, equipo_update, equipo_delete,
     # tareas
     tarea_list, tarea_create, tarea_detail, tarea_update, tarea_delete,
-    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado,
+    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_finalizar,
     tarea_crear_preventiva, tarea_crear_correctiva, tarea_workflow,
     # incidentes
     incidente_list, incidente_create, incidente_detail, incidente_update, incidente_resolver,
@@ -65,6 +65,7 @@ urlpatterns = [
     path('tareas/<int:pk>/asignar-personal/', tarea_asignar_personal, name='tarea_asignar_personal'),
     path('tareas/<int:pk>/registrar-producto/', tarea_registrar_producto, name='tarea_registrar_producto'),
     path('tareas/<int:pk>/cambiar-estado/', tarea_cambiar_estado, name='tarea_cambiar_estado'),
+    path('tareas/<int:pk>/finalizar/', tarea_finalizar, name='tarea_finalizar'),
     path('tareas/<int:pk>/workflow/', tarea_workflow, name='tarea_workflow'),
     
     # Reportes de incidentes
