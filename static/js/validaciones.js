@@ -53,12 +53,24 @@ class ValidationSystem {
     setupPiscinaValidations() {
         const phInput = document.querySelector('input[name="ph"]');
         const cloroInput = document.querySelector('input[name="cloro_mg_l"]');
+        const tempInput = document.querySelector('input[name="temperatura_c"]');
+        const turbidezInput = document.querySelector('input[name="turbidez_ntu"]');
+        const presionInput = document.querySelector('input[name="presion_filtro_bar"]');
         
         if (phInput) {
             phInput.addEventListener('blur', () => this.validatePH(phInput));
         }
         if (cloroInput) {
             cloroInput.addEventListener('blur', () => this.validateCloro(cloroInput));
+        }
+        if (tempInput) {
+            tempInput.addEventListener('blur', () => this.validateTemperatura(tempInput));
+        }
+        if (turbidezInput) {
+            turbidezInput.addEventListener('blur', () => this.validateTurbidez(turbidezInput));
+        }
+        if (presionInput) {
+            presionInput.addEventListener('blur', () => this.validatePresion(presionInput));
         }
     }
     
@@ -69,6 +81,51 @@ class ValidationSystem {
         });
     }
     
+    validateTemperatura(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value)) return;
+        const feedback = this.getOrCreateFeedback(input);
+        this.clearValidationClasses(input, feedback);
+        // Rango seguro: 10-40 °C, ideal 26-30 °C para piscinas de crucero
+        if (value < 10 || value > 40) {
+            this.setValidationState(input, feedback, 'invalid', 'Temperatura fuera de rango seguro (10-40 °C)');
+        } else if (value < 26 || value > 30) {
+            this.setValidationState(input, feedback, 'warning', 'Temperatura fuera del rango ideal (26-30 °C)');
+        } else {
+            this.setValidationState(input, feedback, 'valid', 'Temperatura en rango ideal ✓');
+        }
+    }
+    
+    validateTurbidez(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value)) return;
+        const feedback = this.getOrCreateFeedback(input);
+        this.clearValidationClasses(input, feedback);
+        // NTU: ideal <= 1, seguro 0-5
+        if (value < 0 || value > 5) {
+            this.setValidationState(input, feedback, 'invalid', 'Turbidez fuera de rango seguro (0-5 NTU)');
+        } else if (value > 1) {
+            this.setValidationState(input, feedback, 'warning', 'Turbidez fuera del rango ideal (≤ 1 NTU)');
+        } else {
+            this.setValidationState(input, feedback, 'valid', 'Turbidez en rango ideal ✓');
+        }
+    }
+    
+    validatePresion(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value)) return;
+        const feedback = this.getOrCreateFeedback(input);
+        this.clearValidationClasses(input, feedback);
+        // Presión de filtro: ideal 0.8-1.2 bar, seguro 0-2.5
+        if (value < 0 || value > 2.5) {
+            this.setValidationState(input, feedback, 'invalid', 'Presión fuera de rango seguro (0-2.5 bar)');
+        } else if (value < 0.8 || value > 1.2) {
+            this.setValidationState(input, feedback, 'warning', 'Presión fuera del rango ideal (0.8-1.2 bar)');
+        } else {
+            this.setValidationState(input, feedback, 'valid', 'Presión en rango ideal ✓');
+        }
+    }
+
     setupEquipoValidations() {
         const codigoInput = document.querySelector('input[name="codigo"]');
         if (codigoInput) {
@@ -87,12 +144,14 @@ class ValidationSystem {
     }
     
     setupDeleteConfirmations() {
+        // Deshabilitado por defecto. Solo se activa si el elemento tiene
+        // el atributo data-confirm con el mensaje a mostrar.
         document.addEventListener('click', (e) => {
-            if (e.target.matches('.btn-danger, .btn-delete') || 
-                e.target.closest('form')?.querySelector('button[type="submit"]')?.textContent.includes('Eliminar')) {
-                if (!confirm('¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.')) {
-                    e.preventDefault();
-                }
+            const trigger = e.target.closest('[data-confirm]');
+            if (!trigger) return;
+            const message = trigger.getAttribute('data-confirm') || '¿Confirmar acción?';
+            if (!confirm(message)) {
+                e.preventDefault();
             }
         });
     }

@@ -4,7 +4,7 @@ from .views.equipos import equipo_list, equipo_create, equipo_detail, equipo_upd
 from .views.tareas import (
     tarea_list, tarea_create, tarea_detail, tarea_update, tarea_delete,
     tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_workflow,
-    tarea_crear_preventiva, tarea_crear_correctiva
+    tarea_crear_preventiva, tarea_crear_correctiva, tarea_finalizar
 )
 from .views.piscinas import (
     piscina_list, piscina_create, piscina_detail, piscina_update, 
@@ -61,6 +61,7 @@ urlpatterns = [
     path('tareas/<int:pk>/registrar-producto/', tarea_registrar_producto, name='tarea_registrar_producto'),
     path('tareas/<int:pk>/cambiar-estado/', tarea_cambiar_estado, name='tarea_cambiar_estado'),
     path('tareas/<int:pk>/workflow/', tarea_workflow, name='tarea_workflow'),
+    path('tareas/<int:pk>/finalizar/', tarea_finalizar, name='tarea_finalizar'),
     
     # Incidentes
     path('incidentes/', incidente_list, name='incidente_list'),

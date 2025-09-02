@@ -282,9 +282,9 @@ class Equipo(models.Model):
                 '(ej: EQ-PUMP-0001, AC-HVAC-0023)'
             )
         
-        # Validar que fecha_instalacion no sea futura
-        if self.fecha_instalacion and self.fecha_instalacion > timezone.now().date():
-            raise ValidationError('La fecha de instalación no puede ser futura.')
+        # Validar que fecha_instalacion sea futura (planificada)
+        if self.fecha_instalacion and self.fecha_instalacion <= timezone.now().date():
+            raise ValidationError('La fecha de instalación debe ser futura.')
         
         # Validar que proxima_revision > ultima_revision
         if self.ultima_revision and self.proxima_revision:

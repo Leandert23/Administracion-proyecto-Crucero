@@ -26,6 +26,7 @@
         <td>{{ e.get_estado_display }}</td>
         <td>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:equipo_update' e.pk %}">Editar</a>
+          <a class="btn btn-sm btn-danger" href="{% url 'mantenimiento:equipo_delete' e.pk %}">Eliminar</a>
         </td>
       </tr>
       {% empty %}

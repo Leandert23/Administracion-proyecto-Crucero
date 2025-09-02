@@ -126,6 +126,16 @@ class EquipoForm(forms.ModelForm):
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Exigir fecha futura desde el navegador (min = mañana)
+        manana = (timezone.now() + timezone.timedelta(days=1)).strftime('%Y-%m-%d')
+        self.fields['fecha_instalacion'].widget.attrs.update({
+            'min': manana,
+            'data-bs-toggle': 'tooltip',
+            'title': 'La fecha de instalación debe ser futura'
+        })
+
 
 class TareaMantenimientoForm(forms.ModelForm):
     """Formulario para tareas de mantenimiento"""
@@ -318,10 +328,26 @@ class MedicionPiscinaForm(forms.ModelForm):
                 'step': '0.1',
                 'min': '10',
                 'max': '40',
-                'placeholder': 'Temperatura en °C'
+                'placeholder': 'Rango ideal: 26-30 °C',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Temperatura ideal: 26-30 °C. Seguro: 10-40 °C'
             }),
-            'turbidez_ntu': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'presion_filtro_bar': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'turbidez_ntu': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Ideal: ≤ 1 NTU (seguro 0-5)',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Turbidez ideal: ≤ 1 NTU. Rango seguro: 0-5 NTU'
+            }),
+            'presion_filtro_bar': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'placeholder': 'Rango ideal: 0.8-1.2 bar',
+                'data-bs-toggle': 'tooltip',
+                'title': 'Presión ideal: 0.8-1.2 bar. Seguro: 0-2.5 bar'
+            }),
             'estado_filtro': forms.Select(attrs={'class': 'form-control'}),
             'retrolavado_realizado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
