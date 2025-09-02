@@ -36,6 +36,8 @@ urlpatterns = [
     # Tareas de mantenimiento
     path('tareas/', views.tarea_list, name='tarea_list'),
     path('tareas/crear/', views.tarea_create, name='tarea_create'),
+    path('tareas/crear-preventiva/', views.tarea_crear_preventiva, name='tarea_crear_preventiva'),
+    path('tareas/crear-correctiva/', views.tarea_crear_correctiva, name='tarea_crear_correctiva'),
     path('tareas/<int:pk>/', views.tarea_detail, name='tarea_detail'),
     path('tareas/<int:pk>/editar/', views.tarea_update, name='tarea_update'),
     path('tareas/<int:pk>/eliminar/', views.tarea_delete, name='tarea_delete'),
@@ -63,6 +65,7 @@ urlpatterns = [
     path('piscinas/crear/', views.piscina_create, name='piscina_create'),
     path('piscinas/<int:pk>/', views.piscina_detail, name='piscina_detail'),
     path('piscinas/<int:pk>/editar/', views.piscina_update, name='piscina_update'),
+    path('piscinas/<int:pk>/tendencias/', views.piscina_trends, name='piscina_trends'),
     path('piscinas/medicion/crear/', views.medicion_piscina_create, name='medicion_piscina_create'),
 
 ]

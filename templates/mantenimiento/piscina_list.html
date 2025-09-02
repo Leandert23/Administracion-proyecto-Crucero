@@ -2,42 +2,146 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Piscinas</h2>
+    <h2 class="mb-0">
+      <i class="fas fa-swimming-pool"></i> Piscinas
+      {% if piscinas_con_alerta > 0 %}
+        <span class="badge bg-danger">{{ piscinas_con_alerta }} alertas</span>
+      {% endif %}
+    </h2>
     <div>
       <a class="btn btn-outline-success me-2" href="{% url 'mantenimiento:medicion_piscina_create' %}">
-        Registrar Medición
+        <i class="fas fa-tint"></i> Registrar Medición
       </a>
-      <a class="btn btn-primary" href="{% url 'mantenimiento:piscina_create' %}">Nueva Piscina</a>
+      <a class="btn btn-primary" href="{% url 'mantenimiento:piscina_create' %}">
+        <i class="fas fa-plus"></i> Nueva Piscina
+      </a>
     </div>
   </div>
+  
+  <!-- Resumen de alertas -->
+  {% if total_piscinas > 0 %}
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+          <h4>{{ total_piscinas }}</h4>
+          <p class="mb-0">Total Piscinas</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body text-center">
+          <h4>{{ piscinas_normales }}</h4>
+          <p class="mb-0">Normales</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body text-center">
+          <h4>{{ piscinas_con_alerta }}</h4>
+          <p class="mb-0">Con Alertas</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body text-center">
+          <h4>{{ piscinas_con_alerta|add:piscinas_normales }}</h4>
+          <p class="mb-0">En Servicio</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>Estado</th>
           <th>Nombre</th>
           <th>Ubicación</th>
           <th>Volumen (m³)</th>
-          <th>En Servicio</th>
-          <th></th>
+          <th>Última Medición</th>
+          <th>pH / Cloro</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        {% for p in piscinas %}
-        <tr>
-          <td><a href="{% url 'mantenimiento:piscina_detail' p.pk %}">{{ p.nombre }}</a></td>
-          <td>{{ p.ubicacion.codigo_ubicacion }}</td>
-          <td>{{ p.volumen_m3 }}</td>
-          <td>{{ p.en_servicio|yesno:"Sí,No" }}</td>
+        {% for info in piscinas_con_alertas %}
+        <tr {% if info.tiene_alerta %}class="table-warning"{% endif %}>
           <td>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:piscina_update' p.pk %}">Editar</a>
+            {% if info.tiene_alerta %}
+              <span class="badge bg-danger" data-bs-toggle="tooltip" title="{{ info.tipo_alerta }}">
+                <i class="fas fa-exclamation-triangle"></i>
+              </span>
+            {% else %}
+              <span class="badge bg-success">
+                <i class="fas fa-check"></i>
+              </span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'mantenimiento:piscina_detail' info.piscina.pk %}" class="fw-bold">
+              {{ info.piscina.nombre }}
+            </a>
+            {% if info.tiene_alerta %}
+              <br><small class="text-danger">{{ info.tipo_alerta }}</small>
+            {% endif %}
+          </td>
+          <td>{{ info.piscina.ubicacion.codigo_ubicacion }}</td>
+          <td>{{ info.piscina.volumen_m3 }}</td>
+          <td>
+            {% if info.ultima_medicion %}
+              {{ info.ultima_medicion.fecha_hora|date:"d/m/Y H:i" }}
+              {% if info.dias_sin_medicion > 1 %}
+                <br><small class="text-warning">({{ info.dias_sin_medicion }} días atrás)</small>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">Sin mediciones</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if info.ultima_medicion %}
+              <div class="d-flex flex-column">
+                <span class="{% if info.ultima_medicion.ph < 7.2 or info.ultima_medicion.ph > 7.8 %}text-danger{% else %}text-success{% endif %}">
+                  pH: {{ info.ultima_medicion.ph }}
+                </span>
+                <span class="{% if info.ultima_medicion.cloro_mg_l < 1 or info.ultima_medicion.cloro_mg_l > 3 %}text-danger{% else %}text-success{% endif %}">
+                  Cl: {{ info.ultima_medicion.cloro_mg_l }} mg/L
+                </span>
+              </div>
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group-vertical btn-group-sm">
+              <a class="btn btn-outline-info" href="{% url 'mantenimiento:piscina_trends' info.piscina.pk %}">
+                <i class="fas fa-chart-line"></i> Tendencias
+              </a>
+              <a class="btn btn-outline-secondary" href="{% url 'mantenimiento:piscina_update' info.piscina.pk %}">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+            </div>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center">Sin piscinas registradas</td></tr>
+        <tr><td colspan="7" class="text-center">Sin piscinas registradas</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<script>
+// Habilitar tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+</script>
 {% endblock %}
 

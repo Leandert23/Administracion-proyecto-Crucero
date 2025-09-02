@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}Tendencias - {{ piscina.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Encabezado -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-line"></i> Tendencias - {{ piscina.nombre }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-light text-dark">{{ piscina.ubicacion.codigo_ubicacion }}</span>
+                            <span class="badge bg-light text-dark">{{ piscina.volumen_m3 }} m³</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Tipo de Crucero:</strong> {{ piscina.tipo_crucero|default:"N/A" }}</p>
+                            <p><strong>En Servicio:</strong> {{ piscina.en_servicio|yesno:"Sí,No" }}</p>
+                            {% if piscina.observaciones %}
+                                <p><strong>Observaciones:</strong> {{ piscina.observaciones }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-end">
+                                <a href="{% url 'mantenimiento:piscina_detail' piscina.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Detalle
+                                </a>
+                                <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Volver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recomendaciones -->
+            {% if recomendaciones %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Estado Actual y Recomendaciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for recomendacion in recomendaciones %}
+                        <div class="alert {% if '🚨' in recomendacion %}alert-danger{% else %}alert-info{% endif %} mb-2">
+                            {{ recomendacion }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Gráficas -->
+            <div class="row">
+                <!-- Gráfica de pH -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> pH (Últimos {{ dias_datos }} días)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="phChart" width="400" height="200"></canvas>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <span class="badge bg-success">Rango óptimo: 7.2 - 7.8</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfica de Cloro -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> Cloro (mg/L) (Últimos {{ dias_datos }} días)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="cloroChart" width="400" height="200"></canvas>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <span class="badge bg-success">Rango óptimo: 1.0 - 3.0 mg/L</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Temperatura y datos adicionales -->
+            {% if temperatura_values %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-thermometer-half"></i> Temperatura (°C) (Últimos {{ dias_datos }} días)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="temperaturaChart" width="800" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Tabla de datos recientes -->
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table"></i> Mediciones Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>pH</th>
+                                    <th>Cloro (mg/L)</th>
+                                    <th>Temperatura (°C)</th>
+                                    <th>Presión Filtro</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for medicion in mediciones %}
+                                <tr {% if medicion.necesita_alerta %}class="table-warning"{% endif %}>
+                                    <td>{{ medicion.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                    <td class="{% if medicion.ph < 7.2 or medicion.ph > 7.8 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ medicion.ph }}
+                                    </td>
+                                    <td class="{% if medicion.cloro_mg_l < 1 or medicion.cloro_mg_l > 3 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ medicion.cloro_mg_l }}
+                                    </td>
+                                    <td>{{ medicion.temperatura_c|default:"N/A" }}</td>
+                                    <td>{{ medicion.presion_filtro_bar|default:"N/A" }}</td>
+                                    <td>
+                                        {% if medicion.necesita_alerta %}
+                                            <span class="badge bg-danger">{{ medicion.tipo_alerta }}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Normal</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No hay mediciones en los últimos {{ dias_datos }} días</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Datos para las gráficas
+const fechas = {{ fechas|safe }};
+const phValues = {{ ph_values|safe }};
+const cloroValues = {{ cloro_values|safe }};
+const temperaturaValues = {{ temperatura_values|safe }};
+
+// Configuración común
+const commonOptions = {
+    responsive: true,
+    scales: {
+        x: {
+            display: true,
+            title: {
+                display: true,
+                text: 'Fecha/Hora'
+            }
+        }
+    },
+    elements: {
+        line: {
+            tension: 0.1
+        },
+        point: {
+            radius: 4,
+            hoverRadius: 6
+        }
+    }
+};
+
+// Gráfica de pH
+const phCtx = document.getElementById('phChart').getContext('2d');
+new Chart(phCtx, {
+    type: 'line',
+    data: {
+        labels: fechas,
+        datasets: [{
+            label: 'pH',
+            data: phValues,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: false
+        }, {
+            label: 'Mínimo óptimo (7.2)',
+            data: new Array(fechas.length).fill(7.2),
+            borderColor: 'rgba(255, 99, 132, 0.5)',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+        }, {
+            label: 'Máximo óptimo (7.8)',
+            data: new Array(fechas.length).fill(7.8),
+            borderColor: 'rgba(255, 99, 132, 0.5)',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+        }]
+    },
+    options: {
+        ...commonOptions,
+        scales: {
+            ...commonOptions.scales,
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'pH'
+                },
+                min: 6.5,
+                max: 8.5
+            }
+        }
+    }
+});
+
+// Gráfica de Cloro
+const cloroCtx = document.getElementById('cloroChart').getContext('2d');
+new Chart(cloroCtx, {
+    type: 'line',
+    data: {
+        labels: fechas,
+        datasets: [{
+            label: 'Cloro (mg/L)',
+            data: cloroValues,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            fill: false
+        }, {
+            label: 'Mínimo óptimo (1.0)',
+            data: new Array(fechas.length).fill(1.0),
+            borderColor: 'rgba(255, 99, 132, 0.5)',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+        }, {
+            label: 'Máximo óptimo (3.0)',
+            data: new Array(fechas.length).fill(3.0),
+            borderColor: 'rgba(255, 99, 132, 0.5)',
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+        }]
+    },
+    options: {
+        ...commonOptions,
+        scales: {
+            ...commonOptions.scales,
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Cloro (mg/L)'
+                },
+                min: 0,
+                max: 5
+            }
+        }
+    }
+});
+
+// Gráfica de Temperatura (si hay datos)
+if (temperaturaValues.some(val => val !== null)) {
+    const tempCtx = document.getElementById('temperaturaChart').getContext('2d');
+    new Chart(tempCtx, {
+        type: 'line',
+        data: {
+            labels: fechas,
+            datasets: [{
+                label: 'Temperatura (°C)',
+                data: temperaturaValues,
+                borderColor: 'rgb(255, 159, 64)',
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                fill: false
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Temperatura (°C)'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
+

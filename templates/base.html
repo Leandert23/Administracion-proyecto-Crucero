@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,6 +12,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Dashboard CSS -->
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
     
     <style>
         :root {
@@ -326,12 +329,15 @@
                                     {{ request.user.get_full_name|default:request.user.username }}
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-                                        <i class="fas fa-cog me-2"></i>Administración
+                                    <li><a class="dropdown-item" href="{% url 'mantenimiento:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard Principal
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'mantenimiento:reportes' %}">
+                                        <i class="fas fa-chart-bar me-2"></i>Reportes
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'admin:logout' %}">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                    <li><a class="dropdown-item" href="#" onclick="location.reload()">
+                                        <i class="fas fa-sync me-2"></i>Actualizar
                                     </a></li>
                                 </ul>
                             </div>

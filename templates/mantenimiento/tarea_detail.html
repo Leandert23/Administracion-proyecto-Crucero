@@ -113,7 +113,7 @@
               <strong>{{ asignacion.personal.nombre }}</strong><br>
               <small class="text-muted">{{ asignacion.personal.get_rol_display }} - {{ asignacion.horas_asignadas }}h</small>
             </div>
-            <span class="badge badge-{{ asignacion.estado == 'asignado' and 'warning' or 'success' }}">
+            <span class="badge badge-{% if asignacion.estado == 'asignado' %}warning{% else %}success{% endif %}">
               {{ asignacion.get_estado_display }}
             </span>
           </div>

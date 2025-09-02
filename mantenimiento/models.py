@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from decimal import Decimal
+from datetime import timedelta
 import re
 
 
@@ -490,6 +491,7 @@ class ReporteIncidente(models.Model):
     descripcion = models.TextField()
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
     equipo = models.ForeignKey(Equipo, on_delete=models.SET_NULL, null=True, blank=True)
+    tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE, null=True, blank=True, help_text="Tipo de crucero donde ocurrió el incidente")
     severidad = models.CharField(max_length=20, choices=SEVERIDADES)
     
     reportado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -498,6 +500,36 @@ class ReporteIncidente(models.Model):
     tarea_generada = models.ForeignKey(TareaMantenimiento, on_delete=models.SET_NULL, null=True, blank=True)
     resuelto = models.BooleanField(default=False)
     fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    
+    def generar_tarea_correctiva(self, usuario=None):
+        """Genera automáticamente una tarea correctiva basada en el incidente"""
+        if self.tarea_generada:
+            return self.tarea_generada
+        
+        # Determinar prioridad basada en severidad
+        prioridad_map = {
+            'menor': 'baja',
+            'moderada': 'media',
+            'mayor': 'alta',
+            'critica': 'critica',
+        }
+        
+        tarea = TareaMantenimiento.objects.create(
+            titulo=f"Correctivo: {self.titulo}",
+            descripcion=f"Tarea generada automáticamente por incidente:\n\n{self.descripcion}",
+            tipo='correctivo',
+            prioridad=prioridad_map.get(self.severidad, 'media'),
+            ubicacion=self.ubicacion,
+            equipo=self.equipo,
+            tipo_crucero=self.tipo_crucero,
+            fecha_programada=timezone.now() + timedelta(hours=2),  # 2 horas para resolver
+            creado_por=usuario,
+        )
+        
+        self.tarea_generada = tarea
+        self.save(update_fields=['tarea_generada'])
+        
+        return tarea
     
     def __str__(self):
         return f"Incidente: {self.titulo} - {self.get_severidad_display()}"
@@ -561,6 +593,51 @@ class MedicionPiscina(models.Model):
         ok_cl = self.cloro_mg_l is not None and Decimal('1') <= self.cloro_mg_l <= Decimal('3')
         return ok_ph and ok_cl
     
+    @property
+    def necesita_alerta(self):
+        """Determina si la medición necesita alerta"""
+        return not self.en_rango
+    
+    @property
+    def tipo_alerta(self):
+        """Tipo de alerta según el parámetro fuera de rango"""
+        alertas = []
+        if self.ph is not None and not (Decimal('7.2') <= self.ph <= Decimal('7.8')):
+            if self.ph < Decimal('7.2'):
+                alertas.append('pH BAJO')
+            else:
+                alertas.append('pH ALTO')
+        
+        if self.cloro_mg_l is not None and not (Decimal('1') <= self.cloro_mg_l <= Decimal('3')):
+            if self.cloro_mg_l < Decimal('1'):
+                alertas.append('CLORO BAJO')
+            else:
+                alertas.append('CLORO ALTO')
+        
+        return ' / '.join(alertas) if alertas else ''
+    
+    @property
+    def recomendacion(self):
+        """Recomendación de acción basada en mediciones"""
+        recomendaciones = []
+        
+        if self.ph is not None:
+            if self.ph < Decimal('7.2'):
+                recomendaciones.append('Agregar elevador de pH')
+            elif self.ph > Decimal('7.8'):
+                recomendaciones.append('Agregar reductor de pH')
+        
+        if self.cloro_mg_l is not None:
+            if self.cloro_mg_l < Decimal('1'):
+                recomendaciones.append('Agregar hipoclorito de sodio')
+            elif self.cloro_mg_l > Decimal('3'):
+                recomendaciones.append('Suspender dosificación de cloro temporalmente')
+        
+        if self.presion_filtro_bar is not None and self.presion_filtro_bar > Decimal('2.0'):
+            recomendaciones.append('Realizar retrolavado del filtro')
+        
+        return ' • '.join(recomendaciones) if recomendaciones else 'Parámetros normales'
+    
     def __str__(self):
         return f"Medición {self.piscina.nombre} - {self.fecha_hora:%Y-%m-%d %H:%M}"
     
@@ -568,3 +645,135 @@ class MedicionPiscina(models.Model):
         verbose_name = "Medición de Piscina"
         verbose_name_plural = "Mediciones de Piscina"
         ordering = ['-fecha_hora']
+
+
+# Nuevos modelos para funcionalidades avanzadas
+
+class PlantillaTarea(models.Model):
+    """Plantillas de tareas estándar (SOP)"""
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    tipo_equipo = models.ForeignKey(TipoEquipo, on_delete=models.CASCADE, null=True, blank=True)
+    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, null=True, blank=True)
+    tipo_tarea = models.CharField(max_length=20, choices=TareaMantenimiento.TIPOS_TAREA)
+    tiempo_estimado_horas = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('1.0'))
+    prioridad_default = models.CharField(max_length=20, choices=TareaMantenimiento.PRIORIDADES, default='media')
+    instrucciones = models.TextField(help_text="Instrucciones paso a paso")
+    productos_necesarios = models.ManyToManyField(Producto, through='ProductoPlantilla', blank=True)
+    activa = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Plantilla: {self.nombre}"
+    
+    class Meta:
+        verbose_name = "Plantilla de Tarea"
+        verbose_name_plural = "Plantillas de Tareas"
+
+
+class ProductoPlantilla(models.Model):
+    """Productos necesarios para una plantilla de tarea"""
+    plantilla = models.ForeignKey(PlantillaTarea, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad_estimada = models.DecimalField(max_digits=10, decimal_places=2)
+    obligatorio = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.plantilla.nombre} - {self.producto.nombre}"
+
+
+class ChecklistItem(models.Model):
+    """Items de checklist para tareas"""
+    tarea = models.ForeignKey(TareaMantenimiento, on_delete=models.CASCADE, related_name='checklist_items')
+    descripcion = models.CharField(max_length=300)
+    completado = models.BooleanField(default=False)
+    fecha_completado = models.DateTimeField(null=True, blank=True)
+    usuario_completado = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    orden = models.IntegerField(default=1)
+    obligatorio = models.BooleanField(default=True)
+    
+    def save(self, *args, **kwargs):
+        if self.completado and not self.fecha_completado:
+            self.fecha_completado = timezone.now()
+        elif not self.completado:
+            self.fecha_completado = None
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.tarea.titulo} - {self.descripcion}"
+    
+    class Meta:
+        ordering = ['orden', 'id']
+
+
+class AdjuntoTarea(models.Model):
+    """Adjuntos (imágenes, PDFs) para tareas"""
+    TIPOS_ARCHIVO = [
+        ('imagen', 'Imagen'),
+        ('pdf', 'PDF'),
+        ('documento', 'Documento'),
+        ('otro', 'Otro'),
+    ]
+    
+    tarea = models.ForeignKey(TareaMantenimiento, on_delete=models.CASCADE, related_name='adjuntos')
+    archivo = models.FileField(upload_to='adjuntos_tareas/%Y/%m/')
+    nombre = models.CharField(max_length=200)
+    tipo = models.CharField(max_length=20, choices=TIPOS_ARCHIVO)
+    descripcion = models.TextField(blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    subido_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.tarea.titulo} - {self.nombre}"
+    
+    class Meta:
+        ordering = ['-fecha_subida']
+
+
+class MantenimientoRecurrente(models.Model):
+    """Configuración de mantenimientos recurrentes"""
+    FRECUENCIAS = [
+        ('diario', 'Diario'),
+        ('semanal', 'Semanal'),
+        ('quincenal', 'Quincenal'),
+        ('mensual', 'Mensual'),
+        ('bimestral', 'Bimestral'),
+        ('trimestral', 'Trimestral'),
+        ('semestral', 'Semestral'),
+        ('anual', 'Anual'),
+    ]
+    
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    tipo_equipo = models.ForeignKey(TipoEquipo, on_delete=models.CASCADE)
+    tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE)
+    plantilla_tarea = models.ForeignKey(PlantillaTarea, on_delete=models.CASCADE, null=True, blank=True)
+    frecuencia = models.CharField(max_length=20, choices=FRECUENCIAS)
+    dias_adelanto = models.IntegerField(default=0, help_text="Días de anticipación para crear la tarea")
+    activo = models.BooleanField(default=True)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+    ultima_generacion = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.get_frecuencia_display()}"
+    
+    class Meta:
+        verbose_name = "Mantenimiento Recurrente"
+        verbose_name_plural = "Mantenimientos Recurrentes"
+
+
+class FiltroGuardado(models.Model):
+    """Filtros guardados para listas de tareas"""
+    nombre = models.CharField(max_length=100)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    filtros = models.JSONField(default=dict)  # Almacena los parámetros del filtro
+    publico = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.nombre} {'(Público)' if self.publico else '(Privado)'}"
+    
+    class Meta:
+        verbose_name = "Filtro Guardado"
+        verbose_name_plural = "Filtros Guardados"

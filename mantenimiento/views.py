@@ -1,23 +1,26 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Sum, F
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from datetime import timedelta
 
 from .models import (
     TipoCrucero, Ubicacion, CategoriaProducto, Producto, InventarioProducto,
     TipoEquipo, Equipo, TareaMantenimiento, ProductoUtilizado, 
     HistorialMantenimiento, ReporteIncidente, Personal, AsignacionPersonal, CambioEstado,
-    Piscina, MedicionPiscina
+    Piscina, MedicionPiscina, PlantillaTarea, ChecklistItem, AdjuntoTarea, FiltroGuardado
 )
 from .forms import (
     UbicacionForm, ProductoForm, InventarioProductoForm, EquipoForm,
     TareaMantenimientoForm, ReporteIncidenteForm, AsignacionPersonalForm, ProductoUtilizadoForm,
-    PiscinaForm, MedicionPiscinaForm
+    PiscinaForm, MedicionPiscinaForm, TipoTareaForm, TareaRapidaForm, PlantillaTareaForm,
+    ChecklistItemForm, AdjuntoTareaForm, FiltroTareasForm, FiltroGuardadoForm
 )
 
 
@@ -47,6 +50,15 @@ def dashboard(request):
     
     # Incidentes sin resolver
     incidentes_pendientes = ReporteIncidente.objects.filter(resuelto=False).count()
+    
+    # Piscinas con alerta
+    piscinas_con_alerta = 0
+    for piscina in Piscina.objects.all():
+        ultima_medicion = piscina.mediciones.first()
+        if ultima_medicion and ultima_medicion.necesita_alerta:
+            piscinas_con_alerta += 1
+        elif not ultima_medicion:
+            piscinas_con_alerta += 1
     
     # Tareas próximas a vencer (próximos 7 días)
     proximas_vencer = TareaMantenimiento.objects.filter(
@@ -160,6 +172,7 @@ def dashboard(request):
         'tareas_completadas': tareas_completadas,
         'productos_stock_bajo': productos_stock_bajo,
         'incidentes_pendientes': incidentes_pendientes,
+        'piscinas_con_alerta': piscinas_con_alerta,
         'proximas_vencer': proximas_vencer,
         'equipos_revision_proxima': equipos_revision_proxima,
         # datos para gráfico por tamaño de crucero
@@ -171,6 +184,7 @@ def dashboard(request):
         'tareas_chart_data': tareas_chart_data,
         'crucero_segments': crucero_segments,
         'crucero_progress': crucero_progress,
+        'now': timezone.now(),
     }
     
     return render(request, 'mantenimiento/dashboard.html', context)
@@ -555,6 +569,7 @@ def tarea_list(request):
         'tipos': TareaMantenimiento.TIPOS_TAREA,
         'estados': TareaMantenimiento.ESTADOS,
         'prioridades': TareaMantenimiento.PRIORIDADES,
+        'usuarios': User.objects.filter(is_active=True),
         'tipos_crucero': TipoCrucero.objects.all(),
     }
     return render(request, 'mantenimiento/tarea_list.html', context)
@@ -562,21 +577,73 @@ def tarea_list(request):
 
 
 def tarea_create(request):
-    """Crear nueva tarea"""
+    """Crear nueva tarea - requiere selección de tipo de crucero primero"""
+    # Primero verificar si se seleccionó tipo de crucero
+    tipo_crucero_id = request.GET.get('tipo_crucero')
+    tipo_tarea = request.GET.get('tipo', '')
+    
+    if not tipo_crucero_id:
+        # Mostrar formulario de selección de tipo
+        if request.method == 'POST':
+            tipo_form = TipoTareaForm(request.POST)
+            if tipo_form.is_valid():
+                crucero = tipo_form.cleaned_data['tipo_crucero']
+                tipo = tipo_form.cleaned_data.get('tipo_tarea', '')
+                redirect_url = f"{request.path}?tipo_crucero={crucero.id}"
+                if tipo:
+                    redirect_url += f"&tipo={tipo}"
+                return redirect(redirect_url)
+        else:
+            tipo_form = TipoTareaForm()
+        
+        return render(request, 'mantenimiento/seleccionar_tipo_crucero.html', {
+            'form': tipo_form,
+            'titulo': 'Seleccionar Tipo de Crucero'
+        })
+    
+    # Ya se seleccionó tipo de crucero, proceder con formulario de tarea
+    tipo_crucero = get_object_or_404(TipoCrucero, id=tipo_crucero_id)
+    
     if request.method == 'POST':
         form = TareaMantenimientoForm(request.POST)
         if form.is_valid():
             tarea = form.save(commit=False)
-            if not tarea.tipo_crucero:
-                messages.error(request, 'Debe seleccionar el tipo de crucero para la tarea.')
-            else:
-                tarea.save()
-                messages.success(request, 'Tarea creada exitosamente.')
-                return redirect('mantenimiento:tarea_list')
+            tarea.tipo_crucero = tipo_crucero
+            # Preseleccionar tipo si viene de botón rápido
+            if tipo_tarea and not tarea.tipo:
+                tarea.tipo = tipo_tarea
+            tarea.save()
+            
+            # Crear checklist básico si corresponde
+            if tarea.tipo == 'preventivo':
+                ChecklistItem.objects.create(
+                    tarea=tarea,
+                    descripcion="Inspección visual del equipo",
+                    orden=1
+                )
+                ChecklistItem.objects.create(
+                    tarea=tarea,
+                    descripcion="Verificar funcionamiento correcto",
+                    orden=2
+                )
+            
+            messages.success(request, f'Tarea creada exitosamente para {tipo_crucero}.')
+            return redirect('mantenimiento:tarea_detail', pk=tarea.pk)
     else:
-        form = TareaMantenimientoForm()
+        # Preconfigurar formulario con datos del tipo de crucero
+        initial_data = {'tipo_crucero': tipo_crucero}
+        if tipo_tarea:
+            initial_data['tipo'] = tipo_tarea
+        form = TareaMantenimientoForm(initial=initial_data)
+        form.fields['tipo_crucero'].widget.attrs['readonly'] = True
     
-    return render(request, 'mantenimiento/tarea_form.html', {'form': form, 'action': 'Crear'})
+    context = {
+        'form': form,
+        'action': 'Crear',
+        'tipo_crucero': tipo_crucero,
+        'tipo_tarea': tipo_tarea
+    }
+    return render(request, 'mantenimiento/tarea_form.html', context)
 
 
 
@@ -689,7 +756,7 @@ def incidente_list(request):
 
 
 def incidente_create(request):
-    """Crear nuevo incidente"""
+    """Crear nuevo incidente con generación automática de tarea"""
     if request.method == 'POST':
         form = ReporteIncidenteForm(request.POST)
         if form.is_valid():
@@ -697,8 +764,21 @@ def incidente_create(request):
             if hasattr(request, 'user') and getattr(request, 'user', None) and getattr(request.user, 'is_authenticated', False):
                 incidente.reportado_por = request.user
             incidente.save()
-            messages.success(request, 'Incidente reportado exitosamente.')
-            return redirect('mantenimiento:incidente_list')
+            
+            # Generar tarea automáticamente si se solicitó
+            if form.cleaned_data.get('generar_tarea', True):
+                try:
+                    tarea = incidente.generar_tarea_correctiva(
+                        usuario=request.user if request.user.is_authenticated else None
+                    )
+                    messages.success(request, f'Incidente reportado y tarea correctiva #{tarea.id} generada automáticamente.')
+                    return redirect('mantenimiento:tarea_detail', pk=tarea.pk)
+                except Exception as e:
+                    messages.warning(request, f'Incidente creado, pero no se pudo generar la tarea: {str(e)}')
+            else:
+                messages.success(request, 'Incidente reportado exitosamente.')
+            
+            return redirect('mantenimiento:incidente_detail', pk=incidente.pk)
     else:
         form = ReporteIncidenteForm()
     
@@ -925,10 +1005,55 @@ def tarea_workflow(request, pk):
 # ------------------------
 
 def piscina_list(request):
-    piscinas = ( 
-        Piscina.objects.select_related('ubicacion', 'tipo_crucero')
-    )
-    return render(request, 'mantenimiento/piscina_list.html', {'piscinas': piscinas})
+    """Lista de piscinas con alertas automáticas"""
+    piscinas = Piscina.objects.select_related('ubicacion', 'tipo_crucero').prefetch_related('mediciones')
+    
+    # Agregar información de alertas a cada piscina
+    piscinas_con_alertas = []
+    for piscina in piscinas:
+        ultima_medicion = piscina.mediciones.first()  # Ordenadas por -fecha_hora en modelo
+        alerta_info = {
+            'piscina': piscina,
+            'ultima_medicion': ultima_medicion,
+            'tiene_alerta': False,
+            'tipo_alerta': '',
+            'dias_sin_medicion': None
+        }
+        
+        if ultima_medicion:
+            # Verificar si necesita alerta
+            if ultima_medicion.necesita_alerta:
+                alerta_info['tiene_alerta'] = True
+                alerta_info['tipo_alerta'] = ultima_medicion.tipo_alerta
+            
+            # Calcular días sin medición
+            dias_sin_medicion = (timezone.now().date() - ultima_medicion.fecha_hora.date()).days
+            alerta_info['dias_sin_medicion'] = dias_sin_medicion
+            
+            # Alerta si no hay mediciones en más de 1 día
+            if dias_sin_medicion > 1:
+                alerta_info['tiene_alerta'] = True
+                if alerta_info['tipo_alerta']:
+                    alerta_info['tipo_alerta'] += ' / '
+                alerta_info['tipo_alerta'] += f'SIN MEDICIÓN ({dias_sin_medicion} días)'
+        else:
+            # Sin mediciones nunca
+            alerta_info['tiene_alerta'] = True
+            alerta_info['tipo_alerta'] = 'SIN MEDICIONES'
+        
+        piscinas_con_alertas.append(alerta_info)
+    
+    # Estadísticas
+    total_piscinas = len(piscinas_con_alertas)
+    piscinas_con_alerta = sum(1 for p in piscinas_con_alertas if p['tiene_alerta'])
+    
+    context = {
+        'piscinas_con_alertas': piscinas_con_alertas,
+        'total_piscinas': total_piscinas,
+        'piscinas_con_alerta': piscinas_con_alerta,
+        'piscinas_normales': total_piscinas - piscinas_con_alerta,
+    }
+    return render(request, 'mantenimiento/piscina_list.html', context)
 
 
 def piscina_create(request):
@@ -966,11 +1091,163 @@ def medicion_piscina_create(request):
     if request.method == 'POST':
         form = MedicionPiscinaForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Medición registrada exitosamente.')
-            return redirect('mantenimiento:piscina_list')
+            medicion = form.save()
+            
+            # Verificar si necesita alerta y crear tarea automáticamente
+            if medicion.necesita_alerta:
+                try:
+                    # Crear tarea automática para corregir parámetros
+                    tarea = TareaMantenimiento.objects.create(
+                        titulo=f"Corrección parámetros piscina {medicion.piscina.nombre}",
+                        descripcion=f"Alerta automática: {medicion.tipo_alerta}\n\nRecomendación: {medicion.recomendacion}",
+                        tipo='correctivo',
+                        prioridad='alta',
+                        ubicacion=medicion.piscina.ubicacion,
+                        tipo_crucero=medicion.piscina.tipo_crucero,
+                        fecha_programada=timezone.now() + timedelta(hours=1)
+                    )
+                    messages.warning(request, f'Medición registrada. ALERTA: {medicion.tipo_alerta}. Tarea #{tarea.id} creada automáticamente.')
+                    return redirect('mantenimiento:tarea_detail', pk=tarea.pk)
+                except Exception as e:
+                    messages.warning(request, f'Medición registrada con alerta: {medicion.tipo_alerta}. No se pudo crear tarea automática.')
+            else:
+                messages.success(request, 'Medición registrada exitosamente - Parámetros normales.')
+            
+            return redirect('mantenimiento:piscina_detail', pk=medicion.piscina.pk)
     else:
         form = MedicionPiscinaForm()
     return render(request, 'mantenimiento/medicion_piscina_form.html', {'form': form})
+
+
+# =========================
+# NUEVAS VISTAS AVANZADAS
+# =========================
+
+def tarea_crear_preventiva(request):
+    """Crear tarea preventiva rápida"""
+    return redirect(f"{reverse('mantenimiento:tarea_create')}?tipo=preventivo")
+
+
+def tarea_crear_correctiva(request):
+    """Crear tarea correctiva rápida"""
+    return redirect(f"{reverse('mantenimiento:tarea_create')}?tipo=correctivo")
+
+
+def tarea_workflow(request, pk):
+    """Vista de workflow avanzada de tarea con checklist y adjuntos"""
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    
+    # Cargar elementos relacionados
+    checklist_items = tarea.checklist_items.all()
+    adjuntos = tarea.adjuntos.all()
+    productos_utilizados = tarea.productos_utilizados.all()
+    asignaciones = tarea.asignaciones.all()
+    cambios_estado = tarea.cambios_estado.all()
+    
+    # Formularios para agregar elementos
+    checklist_form = ChecklistItemForm()
+    adjunto_form = AdjuntoTareaForm()
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add_checklist':
+            checklist_form = ChecklistItemForm(request.POST)
+            if checklist_form.is_valid():
+                item = checklist_form.save(commit=False)
+                item.tarea = tarea
+                item.save()
+                messages.success(request, 'Item de checklist agregado.')
+                return redirect('mantenimiento:tarea_workflow', pk=pk)
+        
+        elif action == 'toggle_checklist':
+            item_id = request.POST.get('item_id')
+            try:
+                item = ChecklistItem.objects.get(id=item_id, tarea=tarea)
+                item.completado = not item.completado
+                if item.completado:
+                    item.usuario_completado = request.user if request.user.is_authenticated else None
+                else:
+                    item.usuario_completado = None
+                item.save()
+                messages.success(request, f'Item {"completado" if item.completado else "pendiente"}.')
+            except ChecklistItem.DoesNotExist:
+                messages.error(request, 'Item no encontrado.')
+            return redirect('mantenimiento:tarea_workflow', pk=pk)
+        
+        elif action == 'add_adjunto':
+            adjunto_form = AdjuntoTareaForm(request.POST, request.FILES)
+            if adjunto_form.is_valid():
+                adjunto = adjunto_form.save(commit=False)
+                adjunto.tarea = tarea
+                adjunto.subido_por = request.user if request.user.is_authenticated else None
+                adjunto.save()
+                messages.success(request, 'Adjunto agregado exitosamente.')
+                return redirect('mantenimiento:tarea_workflow', pk=pk)
+    
+    # Calcular progreso del checklist
+    total_items = checklist_items.count()
+    items_completados = checklist_items.filter(completado=True).count()
+    progreso_checklist = (items_completados / total_items * 100) if total_items > 0 else 0
+    
+    context = {
+        'tarea': tarea,
+        'checklist_items': checklist_items,
+        'adjuntos': adjuntos,
+        'productos_utilizados': productos_utilizados,
+        'asignaciones': asignaciones,
+        'cambios_estado': cambios_estado,
+        'checklist_form': checklist_form,
+        'adjunto_form': adjunto_form,
+        'progreso_checklist': progreso_checklist,
+        'items_completados': items_completados,
+        'total_items': total_items,
+    }
+    
+    return render(request, 'mantenimiento/tarea_workflow.html', context)
+
+
+def piscina_trends(request, pk):
+    """Gráficas de tendencias de piscina"""
+    piscina = get_object_or_404(Piscina, pk=pk)
+    
+    # Obtener mediciones de las últimas 2 semanas
+    fecha_limite = timezone.now() - timedelta(days=14)
+    mediciones = piscina.mediciones.filter(fecha_hora__gte=fecha_limite).order_by('fecha_hora')
+    
+    # Preparar datos para gráficas
+    fechas = []
+    ph_values = []
+    cloro_values = []
+    temperatura_values = []
+    
+    for medicion in mediciones:
+        fechas.append(medicion.fecha_hora.strftime('%Y-%m-%d %H:%M'))
+        ph_values.append(float(medicion.ph) if medicion.ph else None)
+        cloro_values.append(float(medicion.cloro_mg_l) if medicion.cloro_mg_l else None)
+        temperatura_values.append(float(medicion.temperatura_c) if medicion.temperatura_c else None)
+    
+    # Última medición y recomendaciones
+    ultima_medicion = mediciones.last()
+    recomendaciones = []
+    
+    if ultima_medicion:
+        if ultima_medicion.necesita_alerta:
+            recomendaciones.append(f"🚨 ALERTA: {ultima_medicion.tipo_alerta}")
+        recomendaciones.append(f"💡 {ultima_medicion.recomendacion}")
+    
+    context = {
+        'piscina': piscina,
+        'mediciones': mediciones,
+        'fechas': fechas,
+        'ph_values': ph_values,
+        'cloro_values': cloro_values,
+        'temperatura_values': temperatura_values,
+        'ultima_medicion': ultima_medicion,
+        'recomendaciones': recomendaciones,
+        'dias_datos': 14,
+    }
+    
+    return render(request, 'mantenimiento/piscina_trends.html', context)
 
 

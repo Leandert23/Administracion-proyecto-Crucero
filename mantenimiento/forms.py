@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from .models import (
     Ubicacion, Producto, InventarioProducto, Equipo, TareaMantenimiento, 
     ReporteIncidente, TipoCrucero, TipoEquipo, CategoriaProducto, Personal, AsignacionPersonal, ProductoUtilizado,
-    Piscina, MedicionPiscina
+    Piscina, MedicionPiscina, PlantillaTarea, ChecklistItem, AdjuntoTarea, MantenimientoRecurrente, FiltroGuardado
 )
 
 
@@ -109,14 +109,22 @@ class TareaMantenimientoForm(forms.ModelForm):
 
 class ReporteIncidenteForm(forms.ModelForm):
     """Formulario para reportes de incidentes"""
+    generar_tarea = forms.BooleanField(
+        required=False, 
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text="Generar automáticamente una tarea correctiva"
+    )
+    
     class Meta:
         model = ReporteIncidente
-        fields = ['titulo', 'descripcion', 'ubicacion', 'equipo', 'severidad']
+        fields = ['titulo', 'descripcion', 'ubicacion', 'equipo', 'tipo_crucero', 'severidad']
         widgets = {
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'ubicacion': forms.Select(attrs={'class': 'form-control'}),
             'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_crucero': forms.Select(attrs={'class': 'form-control'}),
             'severidad': forms.Select(attrs={'class': 'form-control'}),
         }
     
@@ -124,6 +132,8 @@ class ReporteIncidenteForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['equipo'].queryset = Equipo.objects.all()
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(activa=True)
+        self.fields['tipo_crucero'].queryset = TipoCrucero.objects.all()
+        self.fields['tipo_crucero'].required = True
 
 
 class PersonalForm(forms.ModelForm):
@@ -191,6 +201,146 @@ class MedicionPiscinaForm(forms.ModelForm):
             'retrolavado_realizado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+# Formularios para nuevas funcionalidades
+
+class TipoTareaForm(forms.Form):
+    """Formulario para seleccionar tipo de crucero antes de crear tarea"""
+    tipo_crucero = forms.ModelChoiceField(
+        queryset=TipoCrucero.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text="Selecciona el tipo de crucero donde se realizará la tarea"
+    )
+    tipo_tarea = forms.ChoiceField(
+        choices=[('', 'Selecciona tipo de tarea')] + TareaMantenimiento.TIPOS_TAREA,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=False
+    )
+
+
+class TareaRapidaForm(forms.ModelForm):
+    """Formulario simplificado para crear tareas rápidas"""
+    class Meta:
+        model = TareaMantenimiento
+        fields = ['titulo', 'descripcion', 'ubicacion', 'equipo', 'prioridad', 'fecha_programada']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'ubicacion': forms.Select(attrs={'class': 'form-control'}),
+            'equipo': forms.Select(attrs={'class': 'form-control'}),
+            'prioridad': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_programada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
+
+class PlantillaTareaForm(forms.ModelForm):
+    """Formulario para plantillas de tareas"""
+    class Meta:
+        model = PlantillaTarea
+        fields = ['nombre', 'descripcion', 'tipo_equipo', 'ubicacion', 'tipo_tarea', 'tiempo_estimado_horas', 'prioridad_default', 'instrucciones', 'activa']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tipo_equipo': forms.Select(attrs={'class': 'form-control'}),
+            'ubicacion': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_tarea': forms.Select(attrs={'class': 'form-control'}),
+            'tiempo_estimado_horas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0.5'}),
+            'prioridad_default': forms.Select(attrs={'class': 'form-control'}),
+            'instrucciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'activa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class ChecklistItemForm(forms.ModelForm):
+    """Formulario para items de checklist"""
+    class Meta:
+        model = ChecklistItem
+        fields = ['descripcion', 'obligatorio', 'orden']
+        widgets = {
+            'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
+            'obligatorio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+        }
+
+
+class AdjuntoTareaForm(forms.ModelForm):
+    """Formulario para adjuntos de tareas"""
+    class Meta:
+        model = AdjuntoTarea
+        fields = ['archivo', 'nombre', 'tipo', 'descripcion']
+        widgets = {
+            'archivo': forms.FileInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+
+class MantenimientoRecurrenteForm(forms.ModelForm):
+    """Formulario para mantenimientos recurrentes"""
+    class Meta:
+        model = MantenimientoRecurrente
+        fields = ['nombre', 'descripcion', 'tipo_equipo', 'tipo_crucero', 'plantilla_tarea', 'frecuencia', 'dias_adelanto', 'fecha_inicio', 'fecha_fin', 'activo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tipo_equipo': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_crucero': forms.Select(attrs={'class': 'form-control'}),
+            'plantilla_tarea': forms.Select(attrs={'class': 'form-control'}),
+            'frecuencia': forms.Select(attrs={'class': 'form-control'}),
+            'dias_adelanto': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class FiltroGuardadoForm(forms.ModelForm):
+    """Formulario para filtros guardados"""
+    class Meta:
+        model = FiltroGuardado
+        fields = ['nombre', 'publico']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'publico': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
+class FiltroTareasForm(forms.Form):
+    """Formulario avanzado para filtrar tareas"""
+    estado = forms.MultipleChoiceField(
+        choices=TareaMantenimiento.ESTADOS,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False
+    )
+    tipo = forms.MultipleChoiceField(
+        choices=TareaMantenimiento.TIPOS_TAREA,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False
+    )
+    prioridad = forms.MultipleChoiceField(
+        choices=TareaMantenimiento.PRIORIDADES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False
+    )
+    tipo_crucero = forms.ModelMultipleChoiceField(
+        queryset=TipoCrucero.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False
+    )
+    fecha_desde = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        required=False
+    )
+    fecha_hasta = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        required=False
+    )
+    buscar_texto = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buscar en título o descripción...'}),
+        required=False
+    )
 
 
 

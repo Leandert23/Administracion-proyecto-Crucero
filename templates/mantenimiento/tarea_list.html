@@ -2,8 +2,20 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Tareas</h2>
-    <a class="btn btn-primary" href="{% url 'mantenimiento:tarea_create' %}">Nueva Tarea</a>
+    <h2 class="mb-0">
+      <i class="fas fa-tasks"></i> Tareas de Mantenimiento
+    </h2>
+    <div class="btn-group">
+      <a class="btn btn-success" href="{% url 'mantenimiento:tarea_crear_preventiva' %}">
+        <i class="fas fa-calendar-check"></i> Preventiva
+      </a>
+      <a class="btn btn-warning" href="{% url 'mantenimiento:tarea_crear_correctiva' %}">
+        <i class="fas fa-wrench"></i> Correctiva
+      </a>
+      <a class="btn btn-primary" href="{% url 'mantenimiento:tarea_create' %}">
+        <i class="fas fa-plus"></i> Nueva Tarea
+      </a>
+    </div>
   </div>
   <form method="get" class="row g-2 mb-3">
     <div class="col-md-3">
