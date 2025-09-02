@@ -1,8 +1,9 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'Css/formulario_producto.css' %}">
 
-<form id="form-crear-producto" class="form-grid" method="post" action="{% url 'crear_producto' %}">
+<form id="form-crear-producto" class="form-grid" method="post" action="{% url 'crear_producto' %}" data-update-url="{% url 'update_producto' %}">
     {% csrf_token %}
+    <input type="hidden" name="producto_id" id="id_producto_edit" value="">
 
     <!-- Nombre -->
     <div class="form-field" data-field="nombre">

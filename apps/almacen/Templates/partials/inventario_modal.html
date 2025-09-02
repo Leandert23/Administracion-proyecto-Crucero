@@ -28,3 +28,30 @@
     
     </nav>
 </div>
+
+<!-- Modal Eliminación Producto -->
+<div id="modalEliminarProducto" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <div class="inventario-overlay" data-close="true"></div>
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog delete-dialog" role="document" tabindex="-1">
+            <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar">&times;</button>
+            <div class="inventario-header">
+                <div class="inventario-header-content">
+                    <h2 class="inventario-title">Eliminar Producto</h2>
+                </div>
+                <button type="button" class="inventario-close" data-close="true" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="inventario-body delete-body">
+                <div class="delete-message">
+                    <p id="delete-text" class="delete-text"></p>
+                </div>
+                <div class="delete-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelDeleteProducto">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-danger" id="btnConfirmDeleteProducto" data-id="">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

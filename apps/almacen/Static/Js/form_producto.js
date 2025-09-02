@@ -38,7 +38,10 @@
             this.limpiarErrores();
 
             const datos = new FormData(this.formulario);
-            fetch(this.formulario.action, {
+            const editingId = this.formulario.dataset.editingId || '';
+            if(editingId){ datos.append('producto_id', editingId); }
+            const url = editingId ? this.formulario.dataset.updateUrl : this.formulario.action;
+            fetch(url, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: datos
@@ -88,6 +91,9 @@
 
             this.formulario.reset();
             this.poblarSubtipos();
+            this.formulario.dataset.editingId='';
+            const hiddenId = document.getElementById('id_producto_edit');
+            if(hiddenId) hiddenId.value='';
 
             const botonCancelar = document.getElementById('btn-cancelar-producto');
             if (botonCancelar) botonCancelar.click();

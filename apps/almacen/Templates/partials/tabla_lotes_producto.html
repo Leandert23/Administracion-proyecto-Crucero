@@ -1,0 +1,32 @@
+{% if producto %}
+<div class="lotes-header">
+    <div class="lotes-producto-nombre">{{ producto.nombre }}</div>
+    <div class="lotes-meta">Total lotes: {{ lotes|length }}</div>
+</div>
+<table class="lotes-table">
+    <thead>
+        <tr>
+            <th>Lote</th>
+            <th>Fecha ingreso</th>
+            <th>Fecha caducidad</th>
+            <th>Cantidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if lotes %}
+            {% for lote in lotes %}
+            <tr>
+                <td>#{{ lote.numero_lote }}</td>
+                <td>{{ lote.fecha_ingreso|date:'d/m/Y' }}</td>
+                <td>{% if lote.fecha_caducidad %}{{ lote.fecha_caducidad|date:'d/m/Y' }}{% else %}-{% endif %}</td>
+                <td>{{ lote.cantidad_productos }} {{ producto.get_medida_display }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="4" class="sin-lotes">Sin lotes</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+{% else %}
+<div class="sin-lotes">Producto no encontrado</div>
+{% endif %}

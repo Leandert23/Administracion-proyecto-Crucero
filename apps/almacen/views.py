@@ -1,8 +1,8 @@
+from django.views.decorators.http import require_POST, require_GET
+from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest
-
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import JsonResponse
 from django.template.loader import render_to_string
 
 from datetime import date
@@ -10,10 +10,8 @@ from datetime import date
 from ..cruceros.models import Crucero, Instalacion
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
 from .models import Producto, SeccionAlmacen, Lote, MovimientoAlmacen
-from .Services.products import retirar_producto_fifo, retirar_producto_fefo  # (podrían dejarse de usar si lógica local)
-from django.views.decorators.http import require_POST
-from django.db import transaction
 
+from .Services.products import retirar_producto_fifo, retirar_producto_fefo
 
 def mostrar_vista_almacen(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
@@ -21,6 +19,7 @@ def mostrar_vista_almacen(request, crucero_id):
     secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones, esta_activa=True).select_related('almacen')
     return render(request, "almacen.html", {"crucero":crucero, 'secciones': secciones})
 
+@require_GET
 def inventario_paginas_producto(request):
     crucero_id = request.GET.get('crucero_id')
     if crucero_id:
@@ -71,6 +70,78 @@ def inventario_paginas_producto(request):
     })
 
 
+@require_GET
+def inventario_movimientos(request):
+    """Devuelve (AJAX) la tabla de movimientos para el historial con filtros y paginación.
+
+    Parámetros GET esperados:
+      - crucero_id: filtra por crucero (deriva sus almacenes y secciones)
+      - busqueda: texto a buscar (producto.nombre, descripcion, modulo)
+      - tipo: IN / OUT (opcional)
+      - rango: today / week (opcional)
+      - page: número de página
+    Respuesta JSON:
+      { success: bool, tabla_html: str }
+    """
+
+    crucero_id = request.GET.get('crucero_id')
+    movimientos = MovimientoAlmacen.objects.select_related('producto', 'producto__seccion', 'lote')
+    if crucero_id:
+        instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
+        secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+        movimientos = movimientos.filter(producto__seccion__in=secciones)
+
+    tipo_val = request.GET.get('tipo')
+    if tipo_val in {'IN', 'OUT', 'NEW'}:
+        movimientos = movimientos.filter(tipo=tipo_val)
+
+    rango = request.GET.get('rango')
+    if rango in {'today', 'week'}:
+        hoy = obtener_fecha_actual()
+        if rango == 'today':
+            movimientos = movimientos.filter(fecha=hoy)
+        elif rango == 'week':
+            desde = hoy - date.resolution * 6  # date.resolution = 1 día
+            movimientos = movimientos.filter(fecha__gte=desde, fecha__lte=hoy)
+
+    busqueda = (request.GET.get('busqueda') or '').strip()
+    if busqueda:
+        movimientos = movimientos.filter(
+            Q(producto__nombre__icontains=busqueda) | # Q lo utilizo para poder hacer un condicional con distintas or
+            Q(descripcion__icontains=busqueda) |
+            Q(modulo__icontains=busqueda)
+        )
+
+    movimientos = movimientos.order_by('-fecha', '-id')  # más recientes primero
+
+    paginator = Paginator(movimientos, 15)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    tabla_html = render_to_string('partials/tabla_movimientos.html', {
+        'page': page_obj
+    })
+    footer_html = render_to_string('partials/botones_paginacion.html', {
+        'page_obj': page_obj
+    })
+
+    return JsonResponse({
+        'success': True,
+        'tabla_html': tabla_html,
+        'footer_html': footer_html,
+        'info_paginacion': {
+            'pagina_actual': page_obj.number,
+            'total_paginas': paginator.num_pages,
+            'total_movimientos': paginator.count,
+            'inicio': page_obj.start_index(),
+            'fin': page_obj.end_index()
+        }
+    })
+
+
 @require_POST
 def crear_producto(request):
     data = request.POST
@@ -99,10 +170,63 @@ def crear_producto(request):
             seccion=seccion
         )
         producto.save()
-        return JsonResponse({'success': True, 'producto': {'id': producto.id, 'nombre': producto.nombre}})
+        print(producto)
+        mov = MovimientoAlmacen(
+            tipo='NEW',
+            producto=producto,
+            lote=None,
+            cantidad=None,
+            modulo='ALMACEN',
+            descripcion='Creación de producto'
+        )
+        print(mov)
+        mov.save()
+        movimiento_id = mov.id
+        return JsonResponse({
+        'success': True,
+        'producto': {'id': producto.id, 'nombre': producto.nombre},
+        'movimiento_new_id': movimiento_id
+    })
     except Exception:
         return JsonResponse({'success': False})
 
+@require_POST
+def update_producto(request):
+    data = request.POST
+    producto_id = data.get('producto_id') or data.get('id')
+    if not producto_id:
+        return JsonResponse({'success': False, 'error': 'id_requerido'}, status=400)
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'no_encontrado'}, status=404)
+    nombre = (data.get('nombre') or '').strip()
+    tipo = data.get('tipo') or ''
+    subtipo = data.get('subtipo') or None
+    try:
+        cantidad_ideal = int(data.get('cantidad_ideal') or 0)
+    except Exception:
+        cantidad_ideal = 0
+    medida = data.get('medida') or ''
+    seccion_id = data.get('seccion')
+    seccion = None
+    if seccion_id:
+        try:
+            seccion = SeccionAlmacen.objects.get(pk=seccion_id)
+        except Exception:
+            seccion = None
+    try:
+        producto.nombre = nombre
+        producto.tipo = tipo
+        producto.subtipo = subtipo or None
+        producto.cantidad_ideal = cantidad_ideal
+        producto.medida = medida
+        if seccion:
+            producto.seccion = seccion
+        producto.save()
+        return JsonResponse({'success': True, 'producto': {'id': producto.id, 'nombre': producto.nombre}})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'error_actualizando', 'detalle': str(e)}, status=400)
 
 @require_POST
 def registrar_lote(request):
@@ -136,7 +260,7 @@ def registrar_lote(request):
             fecha_caducidad=fecha_caducidad_date
         )
         lote.save()
-        modulo_valor = data.get('modulo') or 'COMPRAS'  # Compras envia por defecto
+        modulo_valor = 'ALMACEN'
         try:
             movimiento = MovimientoAlmacen.objects.create(
                 tipo='IN',
@@ -230,4 +354,85 @@ def registrar_salida(request):
             'error': 'error_interno',
             'mensaje': 'Error inesperado al registrar la salida.',
             'detalle': str(ex)
+        }, status=500)
+
+@require_GET
+def detalle_producto(request):
+    producto_id = request.GET.get('id')
+    if not producto_id:
+        return JsonResponse({'success': False, 'error': 'id_requerido'})
+    try:
+        p = Producto.objects.select_related('seccion').get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'no_encontrado'})
+    return JsonResponse({
+        'success': True,
+        'producto': {
+            'id': p.id,
+            'nombre': p.nombre,
+            'tipo': p.tipo,
+            'subtipo': p.subtipo,
+            'cantidad_ideal': p.cantidad_ideal,
+            'medida': p.medida,
+            'seccion': p.seccion_id
+        }
+    })
+
+@require_GET
+def inventario_lotes_producto(request):
+    producto_id = request.GET.get('producto')
+    if not producto_id:
+        return JsonResponse({'success': False, 'error': 'producto_requerido'})
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'producto_no_encontrado'})
+    lotes = producto.lotes.order_by('-fecha_ingreso', '-id')
+    html = render_to_string('partials/tabla_lotes_producto.html', {
+        'producto': producto,
+        'lotes': lotes
+    })
+    return JsonResponse({'success': True, 'html': html, 'total_lotes': lotes.count()})
+
+@require_POST
+def delete_producto(request):
+    """Elimina un producto si no tiene lotes asociados y su stock (cantidad) es 0.
+
+    Reglas:
+      - Si no se envía id => error id_requerido
+      - Si el producto no existe => no_encontrado
+      - Si el producto tiene lotes => tiene_lotes (aunque estén en 0, se fuerza limpieza manual primero)
+      - Si la cantidad > 0 => stock_positivo (no se permite borrar con stock)
+    """
+    producto_id = request.POST.get('producto_id') or request.POST.get('id')
+    if not producto_id:
+        return JsonResponse({'success': False, 'error': 'id_requerido', 'mensaje': 'ID de producto requerido.'}, status=400)
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'no_encontrado', 'mensaje': 'Producto no encontrado.'}, status=404)
+
+    # Validaciones de negocio
+    if producto.lotes.exists():
+        return JsonResponse({
+            'success': False,
+            'error': 'tiene_lotes',
+            'mensaje': 'No se puede eliminar: el producto tiene lotes registrados.'
+        }, status=409)
+    if producto.cantidad and producto.cantidad > 0:
+        return JsonResponse({
+            'success': False,
+            'error': 'stock_positivo',
+            'mensaje': f'No se puede eliminar: stock actual {producto.cantidad} > 0.'
+        }, status=409)
+    try:
+        pid = producto.id
+        producto.delete()
+        return JsonResponse({'success': True, 'producto_id': pid})
+    except Exception as exc:
+        return JsonResponse({
+            'success': False,
+            'error': 'error_eliminando',
+            'mensaje': 'Error inesperado eliminando el producto.',
+            'detalle': str(exc)
         }, status=500)

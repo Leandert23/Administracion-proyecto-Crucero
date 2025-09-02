@@ -572,3 +572,25 @@
     /* =================================================================== */
     /*  FIN DE ESTILOS DEL MODAL                                            */
     /* =================================================================== */
+    /* ==================== MODAL ELIMINACIÓN (EXTENSIÓN) ==================== */
+    /* Ajustes tamaño compacto y centrado del modal de eliminación */
+    #modalEliminarProducto { display:none; align-items:center; justify-content:center; }
+    #modalEliminarProducto .delete-dialog { 
+        max-width: 360px; 
+        width:100%; 
+        height:auto; 
+        border-radius:14px; 
+        box-shadow:0 18px 40px -10px rgba(0,0,0,.35); 
+        overflow:hidden; 
+        animation: fadeInScale .25s ease; 
+    }
+    @keyframes fadeInScale { from { transform:scale(.92); opacity:0; } to { transform:scale(1); opacity:1; } }
+    #modalEliminarProducto .inventario-header { padding:16px 20px; }
+    #modalEliminarProducto .delete-body { padding:24px 28px; background:var(--bg-white); }
+    #modalEliminarProducto .delete-text { font-size:0.95rem; line-height:1.5; color:var(--text-primary); margin:0 0 20px; }
+    #modalEliminarProducto .delete-text strong { color:#dc2626; }
+    #modalEliminarProducto .delete-actions { display:flex; justify-content:flex-end; gap:12px; }
+    #modalEliminarProducto .btn-danger { background:var(--danger); border-color:var(--danger); color:#fff; }
+    #modalEliminarProducto .btn-danger:hover { background:#dc2626; }
+    #modalEliminarProducto[aria-hidden="true"] { display:none; }
+    /* =================================================================== */

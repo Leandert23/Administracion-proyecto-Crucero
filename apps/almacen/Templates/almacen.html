@@ -8,6 +8,8 @@
     <title>Inicio</title>
     <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
     <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
 </head>
 <body>
     <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
@@ -180,6 +182,28 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal Historial de Movimientos -->
+    <div id="modalHistorialMovimientos" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true", style="display: none;">
+        <div class="inventario-overlay" data-close="true"></div>
+        <div class="contenedor-centrar">
+            <div class="inventario-dialog historial-dialog" role="document" tabindex="-1">
+                <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
+                <div class="inventario-header">
+                    <div class="inventario-header-content">
+                        <i class="fas fa-history inventario-icon"></i>
+                        <h2 class="inventario-title">Historial de Movimientos</h2>
+                    </div>
+                    <button type="button" class="inventario-close" aria-label="Cerrar" data-close="true">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="inventario-body">
+                    {% include 'partials/historial_modal.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Crear Producto -->
     <div id="modalCrearProducto" aria-hidden="true" role="dialog" aria-modal="true">
@@ -220,11 +244,34 @@
         </div>
     </div>
 
+    <div id="modalLotesProducto" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+        <div class="inventario-overlay" data-close="true"></div>
+        <div class="contenedor-centrar">
+            <div class="inventario-dialog lotes-dialog" role="document" tabindex="-1">
+                <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar lotes">&times;</button>
+                <div class="inventario-header">
+                    <div class="inventario-header-content">
+                        <h2 class="inventario-title">Lotes</h2>
+                    </div>
+                    <button type="button" class="inventario-close" aria-label="Cerrar" data-close="true">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="inventario-body">
+                    <div id="lotes-contenido"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script src="{% static 'Js/sidebar.js' %}"></script>
     <script src="{% static 'Js/inventario.js' %}"></script>
+    <script src="{% static 'Js/historial.js' %}"></script>
     <script src="{% static 'Js/form_producto.js' %}"></script>
     <script src="{% static 'Js/form_lote.js' %}"></script>
     <script src="{% static 'Js/form_salida.js' %}"></script>
+    <script src="{% static 'Js/lotes.js' %}"></script>
     <script src="{% static 'Js/modals_manager.js' %}"></script>
     <script src="{% static 'Js/init_almacen.js' %}"></script>
     <script src="{% static 'Js/busqueda_producto.js' %}"></script>

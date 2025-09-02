@@ -182,6 +182,9 @@ class MovimientoAlmacen(models.Model):
         ("ENTRETENIMIENTO", "Entretenimiento"),
         ("RECURSOS_HUMANOS", "Recursos Humanos"),
         ("RESERVACIONES", "Reservaciones"),
+        ("ALMACEN", "Almacén"),
+        ("SERVICIO_MEDICO", "Servicio Médico"),
+        ("ADMINISTRACION", "Administración")
     ]
     tipo = models.CharField(max_length=20, choices=TIPO_MOVIMIENTO)
     producto = models.ForeignKey(
@@ -189,8 +192,19 @@ class MovimientoAlmacen(models.Model):
         on_delete=models.CASCADE,
         related_name="movimientos"
     )
-    lote = models.ForeignKey(Lote, on_delete=models.CASCADE, related_name="lotes")
-    cantidad = models.PositiveIntegerField()
+    lote = models.ForeignKey(
+        Lote,
+        on_delete=models.CASCADE,
+        related_name="lotes",
+        null=True,
+        blank=True,
+        help_text="Lote asociado (puede ser nulo para movimientos de creación)"
+    )
+    cantidad = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Cantidad movida (nula para movimientos de creación)"
+    )
     fecha = models.DateField(default=obtener_fecha_actual)
     modulo = models.CharField(max_length=20, choices=TIPO_MODULO)
     descripcion = models.CharField(max_length=255, blank=True, null=True, help_text="Descripción o nota del movimiento")

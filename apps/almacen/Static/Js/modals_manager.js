@@ -43,6 +43,19 @@
                 } catch(e){ console.warn('No se pudo enfocar input salida', e); }
             },
             onAfterInit(){}
+        },
+        historial: {
+            id: 'modalHistorialMovimientos',
+            triggers: [ { type: DISPARADOR_TITULO, value: 'historial de movimientos' } ],
+            display: 'block',
+            closeSelectors: ['.inventario-overlay','[data-close="true"]'],
+            onOpen(){
+                // Aquí se podría iniciar la carga AJAX del historial si aún no se hace.
+                if(window.HistorialManager && typeof HistorialManager.load==='function'){
+                    try { HistorialManager.load(); } catch(e){ console.warn('Error cargando historial', e); }
+                }
+            },
+            onAfterInit(){}
         }
     };
 

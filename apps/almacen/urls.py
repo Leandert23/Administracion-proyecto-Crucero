@@ -6,6 +6,11 @@ urlpatterns = [
     path("inventario/paginas-producto/", views.inventario_paginas_producto, name="inventario_modal_ajax"),
     path("inventario/seleccion-producto/", views.buscar_productos, name="inventario_buscar_procutos"),
     path("crear-producto/", views.crear_producto, name="crear_producto"),
+    path("update-producto/", views.update_producto, name="update_producto"),
     path("registrar-lote/", views.registrar_lote, name="registrar_lote"),
     path("registrar-salida/", views.registrar_salida, name="registrar_salida"),
+    path("inventario/movimientos/", views.inventario_movimientos, name="tabla_movimientos"),
+    path("inventario/producto/", views.detalle_producto, name="detalle_producto"),
+    path("inventario/lotes/", views.inventario_lotes_producto, name="inventario_lotes_producto"),
+    path("delete-producto/", views.delete_producto, name="delete_producto")
 ]
