@@ -69,6 +69,15 @@ def tarea_list(request):
 
 def tarea_create(request):
     tipo_tarea = request.GET.get('tipo')
+    # Preparar formularios auxiliares con prefijos para combinar en un único <form>
+    asignacion_form = AsignacionPersonalForm(request.POST or None, prefix='asig')
+    producto_form = ProductoUtilizadoForm(request.POST or None, prefix='prod')
+    # Filtrar listas auxiliares
+    personal_disponible = Personal.objects.filter(activo=True, disponible=True)
+    asignacion_form.fields['personal'].queryset = personal_disponible
+    productos_activos = Producto.objects.filter(activo=True)
+    producto_form.fields['producto'].queryset = productos_activos
+
     if request.method == 'POST':
         form = TareaMantenimientoForm(request.POST)
         if form.is_valid():
@@ -81,6 +90,31 @@ def tarea_create(request):
             if not tarea.crucero_id and request.session.get('crucero_id'):
                 tarea.crucero_id = request.session['crucero_id']
             tarea.save()
+
+            # Procesar posible asignación inicial de personal
+            if asignacion_form.is_valid():
+                asig_cd = asignacion_form.cleaned_data
+                if asig_cd.get('personal'):
+                    asignacion = asignacion_form.save(commit=False)
+                    asignacion.tarea = tarea
+                    if tarea.asignaciones.filter(personal=asignacion.personal).exists():
+                        messages.warning(request, 'Ese personal ya está asignado a esta tarea.')
+                    else:
+                        asignacion.save()
+
+            # Procesar posible registro de producto inicial
+            if producto_form.is_valid():
+                prod_cd = producto_form.cleaned_data
+                if prod_cd.get('producto') and prod_cd.get('cantidad_utilizada'):
+                    pu = producto_form.save(commit=False)
+                    pu.tarea = tarea
+                    try:
+                        if tarea.tipo_crucero is None:
+                            raise ValidationError('Asigna primero el tipo de crucero a la tarea para poder registrar productos.')
+                        pu.save()
+                    except Exception as e:
+                        messages.error(request, f'No se pudo registrar el producto inicial: {e}')
+
             messages.success(request, 'Tarea creada exitosamente.')
             return redirect('mantenimiento:tarea_list')
     else:
@@ -92,6 +126,8 @@ def tarea_create(request):
         'form': form,
         'action': 'Crear',
         'tipo_tarea': tipo_tarea,
+        'asignacion_form': asignacion_form,
+        'producto_form': producto_form,
     })
 
 
@@ -169,8 +205,12 @@ def tarea_asignar_personal(request, pk):
     if form.is_valid():
         asignacion = form.save(commit=False)
         asignacion.tarea = tarea
-        asignacion.save()
-        messages.success(request, 'Personal asignado a la tarea.')
+        # Evitar duplicados por validación de aplicación
+        if tarea.asignaciones.filter(personal=asignacion.personal).exists():
+            messages.warning(request, 'Ese personal ya está asignado a esta tarea.')
+        else:
+            asignacion.save()
+            messages.success(request, 'Personal asignado a la tarea.')
     else:
         messages.error(request, 'Error al asignar personal.')
     return redirect('mantenimiento:tarea_detail', pk=pk)

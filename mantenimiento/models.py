@@ -434,6 +434,9 @@ class AsignacionPersonal(models.Model):
     
     def __str__(self):
         return f"{self.personal} -> {self.tarea} ({self.estado})"
+    
+    class Meta:
+        unique_together = ['tarea', 'personal']
 
 
 class ProductoUtilizado(models.Model):

@@ -466,21 +466,6 @@
     <!-- Estado de equipos -->
     <div class="row mb-4">
         <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>
-                        Estado de Equipos
-                    </h5>
-                </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="equiposChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6">
             <div class="card">
                 <div class="card-header bg-success text-white">
                     <h5 class="card-title mb-0">
@@ -697,35 +682,7 @@
 {{ tareas_chart_data|json_script:"tareas-chart-data" }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gráfico de estado de equipos
-    const equiposCtx = document.getElementById('equiposChart').getContext('2d');
-    const equiposData = JSON.parse(document.getElementById('equipos-chart-data').textContent);
-    const equiposChart = new Chart(equiposCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Operativos', 'En Mantenimiento', 'Averiados', 'Fuera de Servicio'],
-            datasets: [{
-                data: equiposData,
-                backgroundColor: [
-                    '#198754',
-                    '#0dcaf0',
-                    '#dc3545',
-                    '#6c757d'
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
+    // (El gráfico de equipos fue retirado a solicitud del usuario)
     
     // Gráfico de estado de tareas
     const tareasCtx = document.getElementById('tareasChart').getContext('2d');

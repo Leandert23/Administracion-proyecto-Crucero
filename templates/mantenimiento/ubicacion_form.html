@@ -21,17 +21,3 @@
 </div>
 {% endblock %}
 
-{% extends "base.html" %}
-{% block content %}
-<div class="container py-4">
-  <h2 class="mb-3">{{ action }} Ubicación</h2>
-  <form method="post" class="card p-3">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="mt-3">
-      <button class="btn btn-primary" type="submit">Guardar</button>
-      <a class="btn btn-secondary" href="{% url 'mantenimiento:ubicacion_list' %}">Cancelar</a>
-    </div>
-  </form>
-</div>
-{% endblock %}
