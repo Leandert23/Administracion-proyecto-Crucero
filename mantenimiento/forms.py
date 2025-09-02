@@ -108,6 +108,8 @@ class TareaMantenimientoForm(forms.ModelForm):
         self.fields['equipo'].queryset = Equipo.objects.filter(estado__in=['operativo', 'mantenimiento'])
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(activa=True)
         self.fields['tipo_crucero'].queryset = TipoCrucero.objects.all()
+        # Requerir tipo de crucero para poder gestionar inventario/productos correctamente
+        self.fields['tipo_crucero'].required = True
         # crucero se selecciona manualmente, sin autocompletar
 
 

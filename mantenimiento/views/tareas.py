@@ -184,6 +184,8 @@ def tarea_registrar_producto(request, pk):
         pu = form.save(commit=False)
         pu.tarea = tarea
         try:
+            if tarea.tipo_crucero is None:
+                raise ValidationError('Asigna primero el tipo de crucero a la tarea para poder registrar productos.')
             pu.save()
             messages.success(request, 'Producto registrado y stock actualizado.')
         except Exception as e:

@@ -18,6 +18,7 @@ from .tareas import (
     tarea_crear_preventiva,
     tarea_crear_correctiva,
     tarea_workflow,
+    tarea_finalizar,
 )
 
 # Dashboard
