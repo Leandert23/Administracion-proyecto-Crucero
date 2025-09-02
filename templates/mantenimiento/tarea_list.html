@@ -75,6 +75,7 @@
         <td>{{ tarea.fecha_programada|date:'Y-m-d H:i' }}</td>
         <td>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">Editar</a>
+          <a class="btn btn-sm btn-danger" href="{% url 'mantenimiento:tarea_delete' tarea.pk %}">Eliminar</a>
           {% if tarea.estado != 'completada' and tarea.estado != 'cancelada' %}
           <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
             {% csrf_token %}

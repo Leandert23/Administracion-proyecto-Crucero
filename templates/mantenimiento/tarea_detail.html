@@ -201,6 +201,7 @@
     <a class="btn btn-info" href="{% url 'mantenimiento:tarea_workflow' tarea.pk %}">
       <i class="fas fa-project-diagram"></i> Ver Workflow Completo
     </a>
+    <a class="btn btn-danger" href="{% url 'mantenimiento:tarea_delete' tarea.pk %}">Eliminar</a>
     {% if tarea.estado != 'completada' and tarea.estado != 'cancelada' %}
     <a class="btn btn-warning" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">
       <i class="fas fa-edit"></i> Editar Tarea
