@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 
 from mantenimiento.models import InventarioProducto
+from django.db.models import F
 from mantenimiento.forms import InventarioProductoForm
 
 
@@ -28,7 +29,7 @@ def inventario_update(request, pk):
 
 def stock_bajo(request):
     items = InventarioProducto.objects.select_related('producto', 'tipo_crucero').filter(
-        stock_actual__lte=models.F('stock_minimo')
+        stock_actual__lte=F('stock_minimo')
     )
     return render(request, 'mantenimiento/stock_bajo.html', {'items': items})
 
