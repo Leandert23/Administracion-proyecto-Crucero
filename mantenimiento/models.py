@@ -29,6 +29,20 @@ class TipoCrucero(models.Model):
         verbose_name_plural = "Tipos de Crucero"
 
 
+class Crucero(models.Model):
+    """Instancia de crucero operando (soporta múltiples cruceros simultáneos)."""
+    nombre = models.CharField(max_length=100, unique=True)
+    tipo = models.ForeignKey(TipoCrucero, on_delete=models.PROTECT)
+    tz_offset_minutos = models.IntegerField(default=-300, help_text="Offset minutos respecto a UTC para 'Hora del Barco'")
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.tipo.get_tipo_display()})"
+
+    class Meta:
+        verbose_name = "Crucero"
+        verbose_name_plural = "Cruceros"
+
 class Ubicacion(models.Model):
     """Modelo para las ubicaciones siguiendo el formato XABCD"""
     USOS_UBICACION = [
@@ -62,6 +76,7 @@ class Ubicacion(models.Model):
     )
     
     descripcion = models.CharField(max_length=200, blank=True)
+    crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True, help_text="Crucero al que pertenece esta ubicación")
     activa = models.BooleanField(default=True)
     
     @property
@@ -89,7 +104,7 @@ class Ubicacion(models.Model):
     class Meta:
         verbose_name = "Ubicación"
         verbose_name_plural = "Ubicaciones"
-        unique_together = ['cubierta', 'uso', 'identificador', 'numero']
+        unique_together = ['cubierta', 'uso', 'identificador', 'numero', 'crucero']
 
 
 class CategoriaProducto(models.Model):
@@ -145,6 +160,7 @@ class InventarioProducto(models.Model):
     """Stock de productos por tipo de crucero"""
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE)
+    crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True)
     cantidad_requerida = models.DecimalField(max_digits=10, decimal_places=2)
     stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     stock_actual = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -161,12 +177,13 @@ class InventarioProducto(models.Model):
             return 'normal'
     
     def __str__(self):
-        return f"{self.producto.nombre} - {self.tipo_crucero.tipo} - Stock: {self.stock_actual}"
+        crucero_etq = f" - {self.crucero.nombre}" if self.crucero else ""
+        return f"{self.producto.nombre} - {self.tipo_crucero.tipo}{crucero_etq} - Stock: {self.stock_actual}"
     
     class Meta:
         verbose_name = "Inventario de Producto"
         verbose_name_plural = "Inventario de Productos"
-        unique_together = ['producto', 'tipo_crucero']
+        unique_together = ['producto', 'tipo_crucero', 'crucero']
 
 
 class TipoEquipo(models.Model):
@@ -282,6 +299,7 @@ class TareaMantenimiento(models.Model):
     equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, null=True, blank=True)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
     tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE, null=True, blank=True)
+    crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True)
     
     asignado_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas_creadas')
@@ -431,7 +449,10 @@ class ProductoUtilizado(models.Model):
     def _ajustar_stock(self, diferencia: Decimal):
         # Ajustar stock del inventario del tipo de crucero asociado a la tarea
         try:
-            inv = InventarioProducto.objects.get(producto=self.producto, tipo_crucero=self.tarea.tipo_crucero)
+            filtros = {'producto': self.producto, 'tipo_crucero': self.tarea.tipo_crucero}
+            if getattr(self.tarea, 'crucero_id', None):
+                filtros['crucero'] = self.tarea.crucero
+            inv = InventarioProducto.objects.get(**filtros)
         except InventarioProducto.DoesNotExist:
             raise ValidationError('No existe inventario para este producto y tipo de crucero.')
         nuevo = inv.stock_actual - diferencia

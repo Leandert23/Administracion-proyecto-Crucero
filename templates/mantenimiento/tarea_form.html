@@ -4,7 +4,20 @@
   <h2 class="mb-3">{{ action }} Tarea</h2>
   <form method="post" class="card p-3">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="row g-3">
+      <div class="col-md-6">{{ form.titulo.label_tag }}{{ form.titulo }}</div>
+      <div class="col-md-6">{{ form.prioridad.label_tag }}{{ form.prioridad }}</div>
+      <div class="col-md-12">{{ form.descripcion.label_tag }}{{ form.descripcion }}</div>
+      <div class="col-md-4">{{ form.tipo.label_tag }}{{ form.tipo }}</div>
+      <div class="col-md-4">{{ form.tipo_crucero.label_tag }}{{ form.tipo_crucero }}</div>
+      <div class="col-md-4">{{ form.crucero.label_tag }}{{ form.crucero }}</div>
+      <div class="col-md-6">{{ form.ubicacion.label_tag }}{{ form.ubicacion }}</div>
+      <div class="col-md-6">{{ form.equipo.label_tag }}{{ form.equipo }}</div>
+      <div class="col-md-6">{{ form.fecha_programada.label_tag }}{{ form.fecha_programada }}</div>
+      <div class="col-md-3">{{ form.tiempo_estimado_horas.label_tag }}{{ form.tiempo_estimado_horas }}</div>
+      <div class="col-md-3">{{ form.asignado_a.label_tag }}{{ form.asignado_a }}</div>
+      <div class="col-md-12">{{ form.observaciones.label_tag }}{{ form.observaciones }}</div>
+    </div>
     <div class="mt-3">
       <button class="btn btn-primary" type="submit">Guardar</button>
       <a class="btn btn-secondary" href="{% url 'mantenimiento:tarea_list' %}">Cancelar</a>

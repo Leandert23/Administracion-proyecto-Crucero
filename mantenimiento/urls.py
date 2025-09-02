@@ -1,71 +1,91 @@
 from django.urls import path
-from . import views
+from .views import (
+    dashboard,
+    # ubicaciones
+    ubicacion_list, ubicacion_create, ubicacion_detail, ubicacion_update, ubicacion_delete,
+    # productos
+    producto_list, producto_create, producto_detail, producto_update, producto_delete,
+    # inventario
+    inventario_list, inventario_update, stock_bajo,
+    # equipos
+    equipo_list, equipo_create, equipo_detail, equipo_update, equipo_delete,
+    # tareas
+    tarea_list, tarea_create, tarea_detail, tarea_update, tarea_delete,
+    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado,
+    tarea_crear_preventiva, tarea_crear_correctiva, tarea_workflow,
+    # incidentes
+    incidente_list, incidente_create, incidente_detail, incidente_update, incidente_resolver,
+    # reportes
+    reportes, reporte_tareas_pendientes, reporte_equipos_vencidos, reporte_consumo_productos,
+    # piscinas
+    piscina_list, piscina_create, piscina_update, piscina_detail, medicion_piscina_create, piscina_trends,
+)
 
 app_name = 'mantenimiento'
 
 urlpatterns = [
     # Página principal
-    path('', views.dashboard, name='dashboard'),
+    path('', dashboard, name='dashboard'),
     
     # Gestión de ubicaciones
-    path('ubicaciones/', views.ubicacion_list, name='ubicacion_list'),
-    path('ubicaciones/crear/', views.ubicacion_create, name='ubicacion_create'),
-    path('ubicaciones/<int:pk>/', views.ubicacion_detail, name='ubicacion_detail'),
-    path('ubicaciones/<int:pk>/editar/', views.ubicacion_update, name='ubicacion_update'),
-    path('ubicaciones/<int:pk>/eliminar/', views.ubicacion_delete, name='ubicacion_delete'),
+    path('ubicaciones/', ubicacion_list, name='ubicacion_list'),
+    path('ubicaciones/crear/', ubicacion_create, name='ubicacion_create'),
+    path('ubicaciones/<int:pk>/', ubicacion_detail, name='ubicacion_detail'),
+    path('ubicaciones/<int:pk>/editar/', ubicacion_update, name='ubicacion_update'),
+    path('ubicaciones/<int:pk>/eliminar/', ubicacion_delete, name='ubicacion_delete'),
     
     # Gestión de productos
-    path('productos/', views.producto_list, name='producto_list'),
-    path('productos/crear/', views.producto_create, name='producto_create'),
-    path('productos/<int:pk>/', views.producto_detail, name='producto_detail'),
-    path('productos/<int:pk>/editar/', views.producto_update, name='producto_update'),
-    path('productos/<int:pk>/eliminar/', views.producto_delete, name='producto_delete'),
+    path('productos/', producto_list, name='producto_list'),
+    path('productos/crear/', producto_create, name='producto_create'),
+    path('productos/<int:pk>/', producto_detail, name='producto_detail'),
+    path('productos/<int:pk>/editar/', producto_update, name='producto_update'),
+    path('productos/<int:pk>/eliminar/', producto_delete, name='producto_delete'),
     
     # Inventario
-    path('inventario/', views.inventario_list, name='inventario_list'),
-    path('inventario/actualizar/<int:pk>/', views.inventario_update, name='inventario_update'),
-    path('inventario/stock-bajo/', views.stock_bajo, name='stock_bajo'),
+    path('inventario/', inventario_list, name='inventario_list'),
+    path('inventario/actualizar/<int:pk>/', inventario_update, name='inventario_update'),
+    path('inventario/stock-bajo/', stock_bajo, name='stock_bajo'),
     
     # Equipos
-    path('equipos/', views.equipo_list, name='equipo_list'),
-    path('equipos/crear/', views.equipo_create, name='equipo_create'),
-    path('equipos/<int:pk>/', views.equipo_detail, name='equipo_detail'),
-    path('equipos/<int:pk>/editar/', views.equipo_update, name='equipo_update'),
-    path('equipos/<int:pk>/eliminar/', views.equipo_delete, name='equipo_delete'),
+    path('equipos/', equipo_list, name='equipo_list'),
+    path('equipos/crear/', equipo_create, name='equipo_create'),
+    path('equipos/<int:pk>/', equipo_detail, name='equipo_detail'),
+    path('equipos/<int:pk>/editar/', equipo_update, name='equipo_update'),
+    path('equipos/<int:pk>/eliminar/', equipo_delete, name='equipo_delete'),
     
     # Tareas de mantenimiento
-    path('tareas/', views.tarea_list, name='tarea_list'),
-    path('tareas/crear/', views.tarea_create, name='tarea_create'),
-    path('tareas/crear-preventiva/', views.tarea_crear_preventiva, name='tarea_crear_preventiva'),
-    path('tareas/crear-correctiva/', views.tarea_crear_correctiva, name='tarea_crear_correctiva'),
-    path('tareas/<int:pk>/', views.tarea_detail, name='tarea_detail'),
-    path('tareas/<int:pk>/editar/', views.tarea_update, name='tarea_update'),
-    path('tareas/<int:pk>/eliminar/', views.tarea_delete, name='tarea_delete'),
+    path('tareas/', tarea_list, name='tarea_list'),
+    path('tareas/crear/', tarea_create, name='tarea_create'),
+    path('tareas/crear-preventiva/', tarea_crear_preventiva, name='tarea_crear_preventiva'),
+    path('tareas/crear-correctiva/', tarea_crear_correctiva, name='tarea_crear_correctiva'),
+    path('tareas/<int:pk>/', tarea_detail, name='tarea_detail'),
+    path('tareas/<int:pk>/editar/', tarea_update, name='tarea_update'),
+    path('tareas/<int:pk>/eliminar/', tarea_delete, name='tarea_delete'),
 
-    path('tareas/<int:pk>/asignar-personal/', views.tarea_asignar_personal, name='tarea_asignar_personal'),
-    path('tareas/<int:pk>/registrar-producto/', views.tarea_registrar_producto, name='tarea_registrar_producto'),
-    path('tareas/<int:pk>/cambiar-estado/', views.tarea_cambiar_estado, name='tarea_cambiar_estado'),
-    path('tareas/<int:pk>/workflow/', views.tarea_workflow, name='tarea_workflow'),
+    path('tareas/<int:pk>/asignar-personal/', tarea_asignar_personal, name='tarea_asignar_personal'),
+    path('tareas/<int:pk>/registrar-producto/', tarea_registrar_producto, name='tarea_registrar_producto'),
+    path('tareas/<int:pk>/cambiar-estado/', tarea_cambiar_estado, name='tarea_cambiar_estado'),
+    path('tareas/<int:pk>/workflow/', tarea_workflow, name='tarea_workflow'),
     
     # Reportes de incidentes
-    path('incidentes/', views.incidente_list, name='incidente_list'),
-    path('incidentes/crear/', views.incidente_create, name='incidente_create'),
-    path('incidentes/<int:pk>/', views.incidente_detail, name='incidente_detail'),
-    path('incidentes/<int:pk>/editar/', views.incidente_update, name='incidente_update'),
-    path('incidentes/<int:pk>/resolver/', views.incidente_resolver, name='incidente_resolver'),
+    path('incidentes/', incidente_list, name='incidente_list'),
+    path('incidentes/crear/', incidente_create, name='incidente_create'),
+    path('incidentes/<int:pk>/', incidente_detail, name='incidente_detail'),
+    path('incidentes/<int:pk>/editar/', incidente_update, name='incidente_update'),
+    path('incidentes/<int:pk>/resolver/', incidente_resolver, name='incidente_resolver'),
     
     # Reportes y estadísticas
-    path('reportes/', views.reportes, name='reportes'),
-    path('reportes/tareas-pendientes/', views.reporte_tareas_pendientes, name='reporte_tareas_pendientes'),
-    path('reportes/equipos-vencidos/', views.reporte_equipos_vencidos, name='reporte_equipos_vencidos'),
-    path('reportes/consumo-productos/', views.reporte_consumo_productos, name='reporte_consumo_productos'),
+    path('reportes/', reportes, name='reportes'),
+    path('reportes/tareas-pendientes/', reporte_tareas_pendientes, name='reporte_tareas_pendientes'),
+    path('reportes/equipos-vencidos/', reporte_equipos_vencidos, name='reporte_equipos_vencidos'),
+    path('reportes/consumo-productos/', reporte_consumo_productos, name='reporte_consumo_productos'),
     
     # Piscinas
-    path('piscinas/', views.piscina_list, name='piscina_list'),
-    path('piscinas/crear/', views.piscina_create, name='piscina_create'),
-    path('piscinas/<int:pk>/', views.piscina_detail, name='piscina_detail'),
-    path('piscinas/<int:pk>/editar/', views.piscina_update, name='piscina_update'),
-    path('piscinas/<int:pk>/tendencias/', views.piscina_trends, name='piscina_trends'),
-    path('piscinas/medicion/crear/', views.medicion_piscina_create, name='medicion_piscina_create'),
+    path('piscinas/', piscina_list, name='piscina_list'),
+    path('piscinas/crear/', piscina_create, name='piscina_create'),
+    path('piscinas/<int:pk>/', piscina_detail, name='piscina_detail'),
+    path('piscinas/<int:pk>/editar/', piscina_update, name='piscina_update'),
+    path('piscinas/<int:pk>/tendencias/', piscina_trends, name='piscina_trends'),
+    path('piscinas/medicion/crear/', medicion_piscina_create, name='medicion_piscina_create'),
 
 ]

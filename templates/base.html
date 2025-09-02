@@ -322,7 +322,18 @@
                             Sistema de Mantenimiento
                         </a>
                         
-                        <div class="navbar-nav ms-auto">
+                        <div class="navbar-nav ms-auto d-flex align-items-center gap-3">
+                            <!-- Selector global de crucero -->
+                            <form method="post" action="{% url 'mantenimiento:dashboard' %}" class="d-flex align-items-center">
+                                {% csrf_token %}
+                                <input type="hidden" name="_set_crucero" value="1">
+                                <select name="crucero_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="">Todos los cruceros</option>
+                                    {% for c in cruceros %}
+                                        <option value="{{ c.id }}" {% if crucero_actual and crucero_actual.id == c.id %}selected{% endif %}>{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
                             <div class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-user-circle"></i>

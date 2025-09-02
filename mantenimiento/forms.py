@@ -11,7 +11,7 @@ class UbicacionForm(forms.ModelForm):
     """Formulario para ubicaciones"""
     class Meta:
         model = Ubicacion
-        fields = ['cubierta', 'uso', 'identificador', 'numero', 'descripcion', 'activa']
+        fields = ['cubierta', 'uso', 'identificador', 'numero', 'descripcion', 'activa', 'crucero']
         widgets = {
             'cubierta': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '18'}),
             'uso': forms.Select(attrs={'class': 'form-control'}),
@@ -19,6 +19,7 @@ class UbicacionForm(forms.ModelForm):
             'numero': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '2'}),
             'descripcion': forms.TextInput(attrs={'class': 'form-control'}),
             'activa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'crucero': forms.Select(attrs={'class': 'form-control'}),
         }
     
     def clean_identificador(self):
@@ -53,12 +54,13 @@ class InventarioProductoForm(forms.ModelForm):
     """Formulario para inventario de productos"""
     class Meta:
         model = InventarioProducto
-        fields = ['cantidad_requerida', 'stock_minimo', 'stock_actual', 'ubicacion']
+        fields = ['cantidad_requerida', 'stock_minimo', 'stock_actual', 'ubicacion', 'crucero']
         widgets = {
             'cantidad_requerida': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'stock_minimo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'stock_actual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'ubicacion': forms.Select(attrs={'class': 'form-control'}),
+            'crucero': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
@@ -83,7 +85,7 @@ class TareaMantenimientoForm(forms.ModelForm):
     """Formulario para tareas de mantenimiento"""
     class Meta:
         model = TareaMantenimiento
-        fields = ['titulo', 'descripcion', 'tipo', 'prioridad', 'equipo', 'ubicacion', 'tipo_crucero', 'asignado_a', 'fecha_programada', 'tiempo_estimado_horas', 'observaciones']
+        fields = ['titulo', 'descripcion', 'tipo', 'prioridad', 'equipo', 'ubicacion', 'tipo_crucero', 'crucero', 'asignado_a', 'fecha_programada', 'tiempo_estimado_horas', 'observaciones']
         widgets = {
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -92,6 +94,7 @@ class TareaMantenimientoForm(forms.ModelForm):
             'equipo': forms.Select(attrs={'class': 'form-control'}),
             'ubicacion': forms.Select(attrs={'class': 'form-control'}),
             'tipo_crucero': forms.Select(attrs={'class': 'form-control'}),
+            'crucero': forms.Select(attrs={'class': 'form-control'}),
             'asignado_a': forms.Select(attrs={'class': 'form-control'}),
             'fecha_programada': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'tiempo_estimado_horas': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0.5'}),
@@ -105,6 +108,7 @@ class TareaMantenimientoForm(forms.ModelForm):
         self.fields['equipo'].queryset = Equipo.objects.filter(estado__in=['operativo', 'mantenimiento'])
         self.fields['ubicacion'].queryset = Ubicacion.objects.filter(activa=True)
         self.fields['tipo_crucero'].queryset = TipoCrucero.objects.all()
+        # crucero se selecciona manualmente, sin autocompletar
 
 
 class ReporteIncidenteForm(forms.ModelForm):
