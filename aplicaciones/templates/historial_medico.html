@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Historial medico</title>
+</head>
+<body>
+    {% extends 'layouts/base.html' %}
+    {% block content %}
+    
+
+    <h1>Historial Médico</h1>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Nombre Completo</th>
+                <th>Documento de Identidad</th>
+                <th>Sexo</th>
+                <th>Motivo de Consulta</th>
+                <th>Descripción de Consulta</th>
+                <th>Antecedentes Médicos</th>
+                <th>Alergias</th>
+                <th>Medicamentos Actuales</th>
+                <th>Historial Familiar</th>
+                <th>Correo Electrónico</th>
+                <th>Fecha de Nacimiento</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paciente in pacientes %}
+            <tr>
+                <td>{{ paciente.nombres }} {{ paciente.apellido }} {{ paciente.apellido2 }}</td>
+                <td>{{ paciente.documento_identidad }}</td>
+                <td>{{ paciente.sexo }}</td>
+                <td>{{ paciente.motivo_consulta }}</td>
+                <td>{{ paciente.descripcion_consulta }}</td>
+                <td>{{ paciente.antecedentes_medicos }}</td>
+                <td>{{ paciente.alergias }}</td>
+                <td>{{ paciente.medicamentos_actuales }}</td>
+                <td>{{ paciente.historial_familiar }}</td>
+                <td>{{ paciente.correo_electronico }}</td>
+                <td>{{ paciente.fechade_nacimiento|date:'Y-m-d' }}</td>
+                <td>{{ paciente.telefono }}</td>
+                <td>{{ paciente.direccion }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="13">No hay pacientes registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    {% endblock %}
+</body>
+</html>

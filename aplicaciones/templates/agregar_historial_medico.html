@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Historial Medico</title>
+</head>
+<body>
+    {% extends 'layouts/base.html' %}
+
+    {% block content %}
+    <h1>Agregar Historial Médico</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Guardar</button>
+    </form>
+    {% endblock %}
+    
+    
+</body>
+</html>
