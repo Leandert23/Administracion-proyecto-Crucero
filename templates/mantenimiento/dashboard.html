@@ -287,20 +287,25 @@
                     {% if proximas_vencer %}
                         <div class="list-group list-group-flush">
                             {% for tarea in proximas_vencer %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-2 {% if tarea.dias_vencimiento <= 3 %}border-danger{% endif %}">
                                     <div>
-                                        <h6 class="mb-1">{{ tarea.titulo }}</h6>
-                                        <small class="text-muted">
+                                        <h6 class="mb-1 {% if tarea.dias_vencimiento <= 3 %}text-danger fw-bold{% endif %}">
+                                            {% if tarea.dias_vencimiento <= 3 %}
+                                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                                            {% endif %}
+                                            {{ tarea.titulo }}
+                                        </h6>
+                                        <small class="{% if tarea.dias_vencimiento <= 3 %}text-danger{% else %}text-muted{% endif %}">
                                             <i class="fas fa-map-marker-alt me-1"></i>
                                             {{ tarea.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-warning text-dark">
-                                            {{ tarea.dias_vencimiento }} días
+                                        <span class="badge {% if tarea.dias_vencimiento <= 3 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {% if tarea.dias_vencimiento == 0 %}HOY{% elif tarea.dias_vencimiento == 1 %}1 día{% else %}{{ tarea.dias_vencimiento }} días{% endif %}
                                         </span>
                                         <br>
-                                        <small class="text-muted">
+                                        <small class="{% if tarea.dias_vencimiento <= 3 %}text-danger{% else %}text-muted{% endif %}">
                                             {{ tarea.fecha_programada|date:"d/m/Y" }}
                                         </small>
                                     </div>
@@ -523,6 +528,12 @@
                                 <small>Actualizar Todo</small>
                             </button>
                         </div>
+                        <div class="col-md-2 mb-3">
+                            <button onclick="window.dashboardManager?.checkAndRepairCharts()" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-tools"></i><br>
+                                <small>Reparar Gráficas</small>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -574,8 +585,32 @@ class OptimizedDashboardManager {
     }
     
     initCharts() {
+        console.log('🔄 Inicializando gráficas...');
+        
+        // Verificar que Chart.js esté disponible
+        if (typeof Chart === 'undefined') {
+            console.warn('⚠️ Chart.js no está disponible, esperando...');
+            setTimeout(() => this.initCharts(), 500);
+            return;
+        }
+        
+        // Limpiar gráficos existentes
+        if (this.charts.tareas) {
+            this.charts.tareas.destroy();
+            this.charts.tareas = null;
+        }
+        if (this.charts.crucero) {
+            this.charts.crucero.destroy();
+            this.charts.crucero = null;
+        }
+        
+        // Crear nuevos gráficos
         this.createTaskChart();
         this.createCruceroChart();
+        
+        // Marcar como inicializado
+        this.isInitialized = true;
+        console.log('✅ Gráficas inicializadas correctamente');
     }
     
     createTaskChart() {
@@ -595,12 +630,23 @@ class OptimizedDashboardManager {
             const tareasData = JSON.parse(dataScript.textContent);
             console.log('📊 Datos de tareas:', tareasData);
             
-            // Destruir gráfico existente si existe
-            if (this.charts.tareas) {
-                this.charts.tareas.destroy();
+            // Verificar que el contexto 2D esté disponible
+            const context = ctx.getContext('2d');
+            if (!context) {
+                console.error('❌ No se pudo obtener el contexto 2D del canvas');
+                return;
             }
             
-            this.charts.tareas = new Chart(ctx.getContext('2d'), {
+            // Destruir gráfico existente si existe
+            if (this.charts.tareas) {
+                try {
+                    this.charts.tareas.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico anterior:', e);
+                }
+            }
+            
+            this.charts.tareas = new Chart(context, {
                 type: 'doughnut',
                 data: {
                     labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
@@ -666,12 +712,23 @@ class OptimizedDashboardManager {
             
             console.log('🚢 Datos crucero:', { labels, preventivoCounts, correctivoCounts });
             
-            // Destruir gráfico existente si existe
-            if (this.charts.crucero) {
-                this.charts.crucero.destroy();
+            // Verificar que el contexto 2D esté disponible
+            const context = ctx.getContext('2d');
+            if (!context) {
+                console.error('❌ No se pudo obtener el contexto 2D del canvas');
+                return;
             }
             
-            this.charts.crucero = new Chart(ctx.getContext('2d'), {
+            // Destruir gráfico existente si existe
+            if (this.charts.crucero) {
+                try {
+                    this.charts.crucero.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico anterior:', e);
+                }
+            }
+            
+            this.charts.crucero = new Chart(context, {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -711,7 +768,7 @@ class OptimizedDashboardManager {
                             grid: {
                                 display: false
                             }
-                        }
+                            }
                     },
                     animation: {
                         duration: 1500,
@@ -956,7 +1013,11 @@ class OptimizedDashboardManager {
         
         Object.values(this.charts).forEach(chart => {
             if (chart) {
-                chart.destroy();
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico:', e);
+                }
             }
         });
         
@@ -964,6 +1025,46 @@ class OptimizedDashboardManager {
         if (indicator) {
             indicator.remove();
         }
+    }
+    
+    // Método para verificar y reparar gráficas
+    checkAndRepairCharts() {
+        console.log('🔍 Verificando estado de las gráficas...');
+        
+        const tareasChart = document.getElementById('tareasChart');
+        const cruceroChart = document.getElementById('cruceroChart');
+        
+        if (!tareasChart || !cruceroChart) {
+            console.warn('⚠️ Canvas de gráficas no encontrado');
+            return false;
+        }
+        
+        // Verificar si las gráficas están funcionando
+        if (!this.charts.tareas || !this.charts.crucero) {
+            console.log('🔄 Gráficas no inicializadas, reinicializando...');
+            this.initCharts();
+            return true;
+        }
+        
+        // Verificar si las gráficas tienen datos válidos
+        try {
+            if (this.charts.tareas.data.datasets[0].data.every(val => val === 0)) {
+                console.log('🔄 Gráfico de tareas sin datos, actualizando...');
+                this.updateDashboard();
+            }
+            
+            if (this.charts.crucero.data.datasets[0].data.every(val => val === 0) && 
+                this.charts.crucero.data.datasets[1].data.every(val => val === 0)) {
+                console.log('🔄 Gráfico de cruceros sin datos, actualizando...');
+                this.updateDashboard();
+            }
+        } catch (e) {
+            console.warn('⚠️ Error verificando datos de gráficas:', e);
+            this.initCharts();
+            return true;
+        }
+        
+        return true;
     }
 }
 
@@ -1001,6 +1102,45 @@ document.addEventListener('DOMContentLoaded', () => {
     window.dashboardManager = new OptimizedDashboardManager();
 });
 
+// Detectar cuando la página se vuelve visible (para el botón de retroceso)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && window.dashboardManager) {
+        console.log('🔄 Página visible nuevamente, verificando gráficas...');
+        // Pequeño delay para asegurar que todo esté listo
+        setTimeout(() => {
+            if (window.dashboardManager && !window.dashboardManager.isInitialized) {
+                console.log('🔄 Reinicializando gráficas...');
+                window.dashboardManager.initCharts();
+            }
+        }, 100);
+    }
+});
+
+// Detectar cuando la página se vuelve activa (para el botón de retroceso)
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && window.dashboardManager) {
+        console.log('🔄 Página restaurada desde caché, reinicializando...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.initCharts();
+                window.dashboardManager.updateDashboard();
+            }
+        }, 200);
+    }
+});
+
+// Detectar cuando la página se vuelve activa (focus)
+window.addEventListener('focus', () => {
+    if (window.dashboardManager) {
+        console.log('🔄 Ventana enfocada, verificando estado...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.checkAndRepairCharts();
+            }
+        }, 100);
+    }
+});
+
 // Limpiar al cambiar de página
 window.addEventListener('beforeunload', () => {
     if (window.dashboardManager) {
@@ -1014,5 +1154,17 @@ window.updateDashboard = function() {
         window.dashboardManager.updateDashboard();
     }
 };
+
+// Detectar cambios de tamaño de ventana (puede ayudar con la reinicialización)
+window.addEventListener('resize', () => {
+    if (window.dashboardManager) {
+        console.log('🔄 Ventana redimensionada, verificando gráficas...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.checkAndRepairCharts();
+            }
+        }, 300);
+    }
+});
 </script>
 {% endblock %}
