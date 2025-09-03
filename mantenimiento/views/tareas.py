@@ -334,7 +334,7 @@ def tarea_workflow(request, pk):
 
 @require_POST
 def tarea_finalizar(request, pk):
-    """Finaliza una tarea forzando transición a 'completada' y libera personal."""
+    """Implementa el flujo lógico de estados: Pendiente → En Progreso → Completada"""
     tarea = get_object_or_404(TareaMantenimiento, pk=pk)
     next_url = request.POST.get('next') or reverse('mantenimiento:tarea_list')
 
@@ -343,33 +343,77 @@ def tarea_finalizar(request, pk):
         return redirect(next_url)
 
     estado_anterior = tarea.estado
+    cambios_realizados = []
 
-    # Asegurar fechas coherentes
-    if not tarea.fecha_inicio:
-        tarea.fecha_inicio = timezone.now()
-    tarea.estado = 'completada'
-    tarea.fecha_completada = timezone.now()
     try:
-        tarea.save()
-        if tarea.equipo:
-            tarea.equipo.ultima_revision = timezone.now()
-            tarea.equipo.save()
+        # Flujo lógico de estados
+        if tarea.estado in ['creada', 'planificada', 'asignada']:
+            # Si está pendiente, primero iniciarla (en_progreso)
+            if tarea.estado != 'en_progreso':
+                if not tarea.personal_asignado.exists():
+                    messages.error(request, 'No se puede iniciar la tarea sin personal asignado.')
+                    return redirect('mantenimiento:tarea_detail', pk=pk)
+                
+                if not tarea.materiales_necesarios:
+                    messages.error(request, 'No se puede iniciar la tarea sin materiales necesarios.')
+                    return redirect('mantenimiento:tarea_detail', pk=pk)
+                
+                # Cambiar a en_progreso
+                tarea.estado = 'en_progreso'
+                if not tarea.fecha_inicio:
+                    tarea.fecha_inicio = timezone.now()
+                tarea.save()
+                
+                # Marcar personal como ocupado
+                for asignacion in tarea.asignaciones.filter(estado='asignado'):
+                    ocupar_personal(asignacion)
+                
+                cambios_realizados.append('en_progreso')
+                messages.info(request, 'Tarea iniciada (en progreso).')
+                
+                # Registrar cambio de estado
+                CambioEstado.objects.create(
+                    tarea=tarea,
+                    estado_anterior=estado_anterior,
+                    estado_nuevo='en_progreso',
+                    observaciones='Iniciada automáticamente al finalizar',
+                    usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+                )
+                
+                estado_anterior = 'en_progreso'
 
-        CambioEstado.objects.create(
-            tarea=tarea,
-            estado_anterior=estado_anterior,
-            estado_nuevo='completada',
-            observaciones='Finalizada manualmente',
-            usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
-        )
+        # Ahora completar la tarea
+        if tarea.estado == 'en_progreso':
+            tarea.estado = 'completada'
+            tarea.fecha_completada = timezone.now()
+            tarea.save()
+            
+            if tarea.equipo:
+                tarea.equipo.ultima_revision = timezone.now()
+                tarea.equipo.save()
 
-        for asignacion in tarea.asignaciones.all():
-            if asignacion.estado in ['asignado', 'en_progreso']:
-                liberar_personal(asignacion)
+            # Registrar cambio a completada
+            CambioEstado.objects.create(
+                tarea=tarea,
+                estado_anterior=estado_anterior,
+                estado_nuevo='completada',
+                observaciones='Completada siguiendo flujo lógico',
+                usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+            )
 
-        messages.success(request, 'Tarea finalizada correctamente.')
+            # Liberar personal
+            for asignacion in tarea.asignaciones.all():
+                if asignacion.estado in ['asignado', 'en_progreso']:
+                    liberar_personal(asignacion)
+
+            cambios_realizados.append('completada')
+            messages.success(request, 'Tarea completada siguiendo el flujo lógico de estados.')
+        else:
+            messages.warning(request, f'La tarea está en estado "{tarea.get_estado_display()}" y no puede completarse directamente.')
+
     except Exception as e:
-        messages.error(request, f'No se pudo finalizar la tarea: {e}')
+        messages.error(request, f'Error al procesar la tarea: {e}')
+        return redirect('mantenimiento:tarea_detail', pk=pk)
 
     return redirect(next_url)
 

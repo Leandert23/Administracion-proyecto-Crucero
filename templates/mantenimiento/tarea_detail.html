@@ -89,6 +89,26 @@
             {% endif %}
           </div>
           {% endif %}
+          
+          <!-- Información del Flujo de Estados -->
+          {% if tarea.estado in 'creada,planificada,asignada' %}
+          <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle"></i> Flujo Lógico de Estados</h6>
+            <p class="mb-2">El botón "Iniciar y Completar" seguirá automáticamente este flujo:</p>
+            <div class="d-flex align-items-center mb-2">
+              <span class="badge bg-secondary me-2">Creada</span>
+              <i class="fas fa-arrow-right mx-2"></i>
+              <span class="badge bg-info me-2">Planificada</span>
+              <i class="fas fa-arrow-right mx-2"></i>
+              <span class="badge bg-warning me-2">Asignada</span>
+              <i class="fas fa-arrow-right mx-2"></i>
+              <span class="badge bg-primary me-2">En Progreso</span>
+              <i class="fas fa-arrow-right mx-2"></i>
+              <span class="badge bg-success me-2">Completada</span>
+            </div>
+            <small class="text-muted">Esto asegura que las gráficas del dashboard reflejen correctamente el progreso de las tareas.</small>
+          </div>
+          {% endif %}
 
           {% if tarea.observaciones %}
           <div class="mt-3">
@@ -209,8 +229,9 @@
     <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
-      <button type="submit" class="btn btn-success">
-        <i class="fas fa-check"></i> Finalizar Tarea
+      <button type="submit" class="btn btn-success" 
+              title="Seguir flujo lógico: Pendiente → En Progreso → Completada">
+        <i class="fas fa-play"></i> Iniciar y Completar
       </button>
     </form>
     {% endif %}

@@ -80,8 +80,9 @@
           <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
-            <button type="submit" class="btn btn-sm btn-success">
-              <i class="fas fa-check"></i> Finalizar
+            <button type="submit" class="btn btn-sm btn-success" 
+                    title="Seguir flujo lógico: Pendiente → En Progreso → Completada">
+              <i class="fas fa-play"></i> Iniciar y Completar
             </button>
           </form>
           {% endif %}
