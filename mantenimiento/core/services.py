@@ -9,6 +9,7 @@ from django.db.models import F, Q, Count
 from django.db import models
 from django.core.cache import cache
 from django.conf import settings
+from datetime import timedelta
 
 from .config import SystemConfig
 
@@ -18,58 +19,162 @@ class DashboardService:
     
     @staticmethod
     def get_dashboard_data(crucero_id: Optional[int] = None):
-        """Obtiene todos los datos del dashboard de forma optimizada con cache"""
+        """Obtiene todos los datos del dashboard de forma simple y directa"""
         
-        # Clave de cache única por crucero
-        cache_key = f'dashboard_data_v2_{crucero_id or "all"}'
-        cached_data = cache.get(cache_key)
         from mantenimiento.models import (
             Equipo, TareaMantenimiento, InventarioProducto, 
-            Piscina, TipoCrucero
+            Piscina, TipoCrucero, ReporteIncidente
         )
         
-        # Filtros base (sin limitar por crucero para reflejar todo el sistema)
-        equipment_filters = {}
-        task_filters = {}
-        inventory_filters = {}
+        try:
+            # Datos básicos de equipos
+            total_equipos = Equipo.objects.count()
+            equipos_operativos = Equipo.objects.filter(estado='operativo').count()
+            equipos_mantenimiento = Equipo.objects.filter(estado='mantenimiento').count()
+            equipos_averiados = Equipo.objects.filter(estado='averiado').count()
+            equipos_fuera_servicio = Equipo.objects.filter(estado='fuera_servicio').count()
+        except Exception:
+            total_equipos = equipos_operativos = equipos_mantenimiento = equipos_averiados = equipos_fuera_servicio = 0
         
-        # Si hay cache, mezclar con datos dinámicos (incidentes) para no mostrar vacío
-        if cached_data:
-            dynamic_incidents = DashboardService._get_incidents_data(crucero_id)
-            merged = {**cached_data, **dynamic_incidents, 'last_updated': timezone.now()}
-            return merged
-
-        # Una sola consulta por modelo para eficiencia
-        equipos_data = Equipo.objects.filter(**equipment_filters).values('estado').distinct()
-        tareas_data = TareaMantenimiento.objects.filter(**task_filters).values('estado', 'tipo').distinct()
-        inventario_data = InventarioProducto.objects.filter(**inventory_filters).annotate(
-            es_stock_bajo=F('stock_actual') <= F('stock_minimo')
-        )
+        try:
+            # Datos de tareas
+            tareas_pendientes = TareaMantenimiento.objects.filter(estado__in=['creada', 'planificada', 'asignada']).count()
+            tareas_en_progreso = TareaMantenimiento.objects.filter(estado='en_progreso').count()
+            tareas_completadas = TareaMantenimiento.objects.filter(estado='completada').count()
+            tareas_vencidas = TareaMantenimiento.objects.filter(
+                estado__in=['creada', 'planificada', 'asignada'],
+                fecha_programada__lt=timezone.now()
+            ).count()
+        except Exception:
+            tareas_pendientes = tareas_en_progreso = tareas_completadas = tareas_vencidas = 0
         
-        # Procesar datos
-        equipment_summary = DashboardService._process_equipment_data(equipos_data)
-        task_summary = DashboardService._process_task_data(tareas_data)
-        inventory_summary = DashboardService._process_inventory_data(inventario_data)
-        chart_data = DashboardService._get_chart_data()
+        try:
+            # Datos de inventario
+            productos_stock_bajo = InventarioProducto.objects.filter(
+                stock_actual__lte=F('stock_minimo')
+            ).count()
+        except Exception:
+            productos_stock_bajo = 0
         
-        # Obtener datos adicionales para el dashboard
-        additional_data = DashboardService._get_additional_data()
-        # Datos dinámicos (no cacheables): incidentes
-        dynamic_incidents = DashboardService._get_incidents_data(crucero_id)
+        try:
+            # Datos de incidentes
+            incidentes_pendientes = ReporteIncidente.objects.filter(resuelto=False).count()
+            incidentes_recientes = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .order_by('-fecha_reporte')[:5]
+            )
+            incidentes_pendientes_list = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .filter(resuelto=False)
+                .order_by('-fecha_reporte')[:5]
+            )
+        except Exception:
+            incidentes_pendientes = 0
+            incidentes_recientes = []
+            incidentes_pendientes_list = []
         
-        result = {
-            **equipment_summary,
-            **task_summary,
-            **inventory_summary,
-            **chart_data,
-            **additional_data,
-            **dynamic_incidents,
-            'last_updated': timezone.now()
+        try:
+            # Tareas próximas a vencer (sin límite estricto de días)
+            proximas_vencer = list(
+                TareaMantenimiento.objects.filter(
+                    estado__in=['creada', 'planificada', 'asignada'],
+                    fecha_programada__gte=timezone.now()
+                ).select_related('ubicacion').order_by('fecha_programada')[:5]
+            )
+            for tarea in proximas_vencer:
+                try:
+                    tarea.dias_vencimiento = (tarea.fecha_programada.date() - timezone.now().date()).days
+                except Exception:
+                    tarea.dias_vencimiento = 0
+        except Exception:
+            proximas_vencer = []
+        
+        try:
+            # Equipos con revisión próxima (sin límite estricto de días)
+            equipos_revision_proxima = list(
+                Equipo.objects.filter(
+                    estado='operativo',
+                    proxima_revision__gte=timezone.now()
+                ).select_related('ubicacion').order_by('proxima_revision')[:5]
+            )
+            for eq in equipos_revision_proxima:
+                try:
+                    eq.dias_hasta_revision = (eq.proxima_revision.date() - timezone.now().date()).days
+                except Exception:
+                    eq.dias_hasta_revision = 0
+        except Exception:
+            equipos_revision_proxima = []
+        
+        try:
+            # Datos para gráficas
+            tareas_chart_data = [tareas_pendientes, tareas_en_progreso, tareas_completadas, tareas_vencidas]
+            
+            # Datos por tipo de crucero
+            crucero_labels = []
+            preventivo_counts = []
+            correctivo_counts = []
+            
+            for tipo_key, tipo_display in SystemConfig.TIPOS_CRUCERO:
+                crucero_labels.append(tipo_display)
+                preventivo_count = TareaMantenimiento.objects.filter(
+                    tipo_crucero__tipo=tipo_key, tipo='preventivo'
+                ).count()
+                correctivo_count = TareaMantenimiento.objects.filter(
+                    tipo_crucero__tipo=tipo_key, tipo='correctivo'
+                ).count()
+                preventivo_counts.append(preventivo_count)
+                correctivo_counts.append(correctivo_count)
+        except Exception:
+            tareas_chart_data = [0, 0, 0, 0]
+            crucero_labels = ['Crucero Pequeño', 'Crucero Mediano', 'Crucero Grande']
+            preventivo_counts = [0, 0, 0]
+            correctivo_counts = [0, 0, 0]
+        
+        try:
+            # Piscinas con alerta
+            piscinas_con_alerta = 0
+            from mantenimiento.models import MedicionPiscina
+            limite = timezone.now() - timedelta(days=2)
+            for p in Piscina.objects.all():
+                m = p.mediciones.first()
+                if not m or m.fecha_hora < limite or m.necesita_alerta:
+                    piscinas_con_alerta += 1
+        except Exception:
+            piscinas_con_alerta = 0
+        
+        return {
+            # Estadísticas básicas
+            'total_equipos': total_equipos,
+            'equipos_operativos': equipos_operativos,
+            'equipos_mantenimiento': equipos_mantenimiento,
+            'equipos_averiados': equipos_averiados,
+            'equipos_fuera_servicio': equipos_fuera_servicio,
+            
+            # Tareas
+            'tareas_pendientes': tareas_pendientes,
+            'tareas_en_progreso': tareas_en_progreso,
+            'tareas_completadas': tareas_completadas,
+            'tareas_vencidas': tareas_vencidas,
+            'incidentes_pendientes': incidentes_pendientes,
+            
+            # Inventario
+            'productos_stock_bajo': productos_stock_bajo,
+            'piscinas_con_alerta': piscinas_con_alerta,
+            
+            # Listas para el dashboard
+            'proximas_vencer': proximas_vencer,
+            'equipos_revision_proxima': equipos_revision_proxima,
+            'incidentes_recientes': incidentes_recientes,
+            'incidentes_pendientes_list': incidentes_pendientes_list,
+            
+            # Datos para gráficas
+            'tareas_chart_data': tareas_chart_data,
+            'crucero_labels': crucero_labels,
+            'preventivo_counts': preventivo_counts,
+            'correctivo_counts': correctivo_counts,
+            
+            'now': timezone.now()
         }
-        
-        # Guardar en cache por 10s para frescura
-        cache.set(cache_key, result, 10)
-        return result
     
     @staticmethod
     def _process_equipment_data(equipos_data):
