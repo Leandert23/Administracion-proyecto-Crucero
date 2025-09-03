@@ -28,15 +28,10 @@ class DashboardService:
             Piscina, TipoCrucero
         )
         
-        # Filtros base
+        # Filtros base (sin limitar por crucero para reflejar todo el sistema)
         equipment_filters = {}
         task_filters = {}
         inventory_filters = {}
-        
-        if crucero_id:
-            equipment_filters['ubicacion__crucero_id'] = crucero_id
-            task_filters['crucero_id'] = crucero_id
-            inventory_filters['crucero_id'] = crucero_id
         
         # Si hay cache, mezclar con datos dinámicos (incidentes) para no mostrar vacío
         if cached_data:
@@ -72,8 +67,8 @@ class DashboardService:
             'last_updated': timezone.now()
         }
         
-        # Guardar en cache por 2 minutos
-        cache.set(cache_key, result, 120)
+        # Guardar en cache por 10s para frescura
+        cache.set(cache_key, result, 10)
         return result
     
     @staticmethod
@@ -230,12 +225,56 @@ class DashboardService:
     
     @staticmethod
     def _get_additional_data():
-        """Obtiene datos adicionales para el dashboard"""
+        """Obtiene datos adicionales reales para el dashboard (sin limitar por crucero)."""
+        from datetime import timedelta
         try:
+            from mantenimiento.models import TareaMantenimiento, Equipo, Piscina
+            # Tareas próximas a vencer (7 días)
+            fecha_limite = timezone.now() + timedelta(days=7)
+            proximas_vencer = list(
+                TareaMantenimiento.objects.filter(
+                    estado__in=['creada', 'planificada', 'asignada'],
+                    fecha_programada__gt=timezone.now(),
+                    fecha_programada__lte=fecha_limite
+                ).select_related('ubicacion').order_by('fecha_programada')[:5]
+            )
+            for tarea in proximas_vencer:
+                try:
+                    tarea.dias_vencimiento = (tarea.fecha_programada.date() - timezone.now().date()).days
+                except Exception:
+                    tarea.dias_vencimiento = ''
+
+            # Equipos con revisión próxima (30 días)
+            fecha_limite_equipos = timezone.now() + timedelta(days=30)
+            equipos_revision_proxima = list(
+                Equipo.objects.filter(
+                    estado='operativo',
+                    proxima_revision__gt=timezone.now(),
+                    proxima_revision__lte=fecha_limite_equipos
+                ).select_related('ubicacion').order_by('proxima_revision')[:5]
+            )
+            for eq in equipos_revision_proxima:
+                try:
+                    eq.dias_hasta_revision = (eq.proxima_revision.date() - timezone.now().date()).days
+                except Exception:
+                    eq.dias_hasta_revision = ''
+
+            # Piscinas con alerta (sin medición en 2 días o última fuera de rango)
+            piscinas_con_alerta = 0
+            try:
+                from mantenimiento.models import MedicionPiscina
+                limite = timezone.now() - timedelta(days=2)
+                for p in Piscina.objects.all():
+                    m = p.mediciones.first()
+                    if not m or m.fecha_hora < limite or m.necesita_alerta:
+                        piscinas_con_alerta += 1
+            except Exception:
+                piscinas_con_alerta = 0
+
             return {
-                'proximas_vencer': [],
-                'equipos_revision_proxima': [],
-                'piscinas_con_alerta': 0,
+                'proximas_vencer': proximas_vencer,
+                'equipos_revision_proxima': equipos_revision_proxima,
+                'piscinas_con_alerta': piscinas_con_alerta,
                 'crucero_progress': [
                     {'label': 'Crucero Pequeño', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-info'},
                     {'label': 'Crucero Mediano', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-primary'},
@@ -249,7 +288,6 @@ class DashboardService:
                 'now': timezone.now()
             }
         except Exception:
-            # Fallback con datos vacíos
             return {
                 'proximas_vencer': [],
                 'equipos_revision_proxima': [],
