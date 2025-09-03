@@ -23,9 +23,6 @@ class DashboardService:
         # Clave de cache única por crucero
         cache_key = f'dashboard_data_{crucero_id or "all"}'
         cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
         from mantenimiento.models import (
             Equipo, TareaMantenimiento, InventarioProducto, 
             Piscina, TipoCrucero
@@ -41,6 +38,12 @@ class DashboardService:
             task_filters['crucero_id'] = crucero_id
             inventory_filters['crucero_id'] = crucero_id
         
+        # Si hay cache, mezclar con datos dinámicos (incidentes) para no mostrar vacío
+        if cached_data:
+            dynamic_incidents = DashboardService._get_incidents_data(crucero_id)
+            merged = {**cached_data, **dynamic_incidents, 'last_updated': timezone.now()}
+            return merged
+
         # Una sola consulta por modelo para eficiencia
         equipos_data = Equipo.objects.filter(**equipment_filters).values('estado').distinct()
         tareas_data = TareaMantenimiento.objects.filter(**task_filters).values('estado', 'tipo').distinct()
@@ -56,6 +59,8 @@ class DashboardService:
         
         # Obtener datos adicionales para el dashboard
         additional_data = DashboardService._get_additional_data()
+        # Datos dinámicos (no cacheables): incidentes
+        dynamic_incidents = DashboardService._get_incidents_data(crucero_id)
         
         result = {
             **equipment_summary,
@@ -63,6 +68,7 @@ class DashboardService:
             **inventory_summary,
             **chart_data,
             **additional_data,
+            **dynamic_incidents,
             'last_updated': timezone.now()
         }
         
@@ -226,23 +232,10 @@ class DashboardService:
     def _get_additional_data():
         """Obtiene datos adicionales para el dashboard"""
         try:
-            from mantenimiento.models import ReporteIncidente
-            # Listas de incidentes para mostrar en el dashboard
-            incidentes_recientes = list(
-                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
-                .order_by('-fecha_reporte')[:5]
-            )
-            incidentes_pendientes_list = list(
-                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
-                .filter(resuelto=False)
-                .order_by('-fecha_reporte')[:5]
-            )
             return {
                 'proximas_vencer': [],
                 'equipos_revision_proxima': [],
                 'piscinas_con_alerta': 0,
-                'incidentes_recientes': incidentes_recientes,
-                'incidentes_pendientes_list': incidentes_pendientes_list,
                 'crucero_progress': [
                     {'label': 'Crucero Pequeño', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-info'},
                     {'label': 'Crucero Mediano', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-primary'},
@@ -261,12 +254,33 @@ class DashboardService:
                 'proximas_vencer': [],
                 'equipos_revision_proxima': [],
                 'piscinas_con_alerta': 0,
-                'incidentes_recientes': [],
-                'incidentes_pendientes_list': [],
                 'crucero_progress': [],
                 'crucero_segments': [],
                 'now': timezone.now()
             }
+
+    @staticmethod
+    def _get_incidents_data(crucero_id: Optional[int] = None):
+        """Datos dinámicos de incidentes (no cacheables)."""
+        from mantenimiento.models import ReporteIncidente
+        filters = {}
+        if crucero_id:
+            # Filtrar por crucero en la ubicación
+            filters['ubicacion__crucero_id'] = crucero_id
+        incidentes_recientes = list(
+            ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+            .filter(**filters)
+            .order_by('-fecha_reporte')[:5]
+        )
+        incidentes_pendientes_list = list(
+            ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+            .filter(resuelto=False, **filters)
+            .order_by('-fecha_reporte')[:5]
+        )
+        return {
+            'incidentes_recientes': incidentes_recientes,
+            'incidentes_pendientes_list': incidentes_pendientes_list,
+        }
     
 
 
