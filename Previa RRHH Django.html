@@ -1,15 +1,16 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recursos Humanos - Gestión de Personal Crucero</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href=" {% static 'styles.css' %} " />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div class="container">
-    <button class="btn-return" onclick="location.href='preview.html'">Volver</button>
+    <button class="btn-return" onclick="location.href=' {% static 'preview.html' %} '">Volver</button>
     <h1>Gestión de Personal para Crucero</h1>
 
     <section id="cruise-size-section" class="box-section">
@@ -106,6 +107,6 @@
     </section>
   </div>
 
-  <script src="script.js"></script>
+  <script src=" {% static 'script.js' %} "></script>
 </body>
 </html>
