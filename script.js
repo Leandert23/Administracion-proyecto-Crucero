@@ -87,57 +87,27 @@
     renderHiredTable();
   });
 
-  personnelForm.addEventListener('submit', e => {
+  document.getElementById('personnelForm').addEventListener('submit', function(e) {
     e.preventDefault();
-
-    let nombre = nombreInput.value.trim();
-    let apellido = apellidoInput.value.trim();
-    let edad = edadInput.value.trim();
-    let experiencia = experienciaInput.value.trim();
-    let salario = salarioInput.value.trim();
-    let categoria = categoriaSelect.value;
-    let puesto = puestoSelect.value;
-
-    if (!nombre || !apellido || !edad || !experiencia || !salario || !categoria || !puesto) {
-      alert('Por favor completa todos los campos.');
-      return;
-    }
-    if (!isValidName(nombre)) {
-      alert('Nombre inválido: solo letras y máximo 10 caracteres.');
-      return;
-    }
-    if (!isValidName(apellido)) {
-      alert('Apellido inválido: solo letras y máximo 10 caracteres.');
-      return;
-    }
-
-    edad = Number(edad);
-    if (isNaN(edad) || edad < 18 || edad > 70) {
-      alert('Edad inválida (de 18 a 70 años).');
-      return;
-    }
-
-    experiencia = Number(experiencia);
-    if (isNaN(experiencia) || experiencia < 0 || experiencia > 50) {
-      alert('Experiencia inválida (0 a 50 años).');
-      return;
-    }
-
-    salario = Number(salario);
-    if (isNaN(salario) || salario < 100 || salario > 1200 || salario.toString().length > 8) {
-      alert('Salario inválido (min 100, max 1200, max 8 dígitos).');
-      return;
-    }
-
-    nombre = capitalize(nombre);
-    apellido = capitalize(apellido);
-
-    standbyList.push({ id: crypto.randomUUID(), nombre, apellido, edad, experiencia, salario, categoria, puesto });
-
-    resetForm();
-    renderStandbyTable();
-    updateStandbyNotice();
-  });
+    const data = {
+        nombre: document.getElementById('nombre').value,
+        apellido: document.getElementById('apellido').value,
+        edad: document.getElementById('edad').value,
+        experiencia: document.getElementById('experiencia').value,
+        salario: document.getElementById('salario').value,
+        categoria: document.getElementById('categoria').value,
+        puesto: document.getElementById('puesto').value,
+    };
+    fetch('/api/agregar_personal/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Actualiza la tabla o muestra mensaje de éxito
+    });
+});
 
   function resetForm() {
     personnelForm.reset();
@@ -256,20 +226,20 @@
       tr.appendChild(createTdCentered(p.edad));
       tr.appendChild(createTdCentered(p.experiencia));
 
+      // Salario y Puesto: NO editables por defecto
       const tdSalario = document.createElement('td');
       tdSalario.textContent = p.salario.toFixed(2);
-      tdSalario.contentEditable = !puestosNoEditables.has(p.puesto);
+      tdSalario.contentEditable = false;
       applyEditableStyles(tdSalario);
 
       const tdPuesto = document.createElement('td');
       tdPuesto.textContent = p.puesto;
+      tdPuesto.contentEditable = false;
       if (puestosNoEditables.has(p.puesto)) {
-        tdPuesto.contentEditable = false;
         tdPuesto.style.userSelect = 'none';
         tdPuesto.style.backgroundColor = '#e2e8f0';
         tdPuesto.style.color = '#6b7280';
       } else {
-        tdPuesto.contentEditable = true;
         applyEditableStyles(tdPuesto);
       }
 
@@ -283,50 +253,63 @@
       const editarBtn = document.createElement('button');
       editarBtn.textContent = 'Editar';
       editarBtn.className = 'edit-btn';
-      editarBtn.title = 'Guardar cambios';
+      editarBtn.title = 'Editar campos';
+
+      let editMode = false;
+
       editarBtn.addEventListener('click', () => {
-        if (puestosNoEditables.has(p.puesto)) {
-          const salMod = tdSalario.textContent.trim() !== p.salario.toFixed(2);
-          const puestoMod = tdPuesto.textContent.trim() !== p.puesto;
-          if (salMod || puestoMod) {
+        if (!editMode) {
+          // Al entrar en modo edición
+          if (puestosNoEditables.has(p.puesto)) {
             alert('Este es un personal especialista y no puede ser alterado');
+            return;
+          }
+          tdSalario.contentEditable = true;
+          tdPuesto.contentEditable = true;
+          tdSalario.focus();
+          editarBtn.textContent = 'Guardar';
+          editarBtn.title = 'Guardar cambios';
+          editMode = true;
+        } else {
+          // Guardar cambios
+          const newSalario = parseFloat(tdSalario.textContent);
+          const newPuesto = tdPuesto.textContent.trim();
+
+          // Validaciones
+          const rango = salarioPorPuesto[newPuesto] || [100, 99999999];
+          if (isNaN(newSalario) || newSalario < rango[0] || newSalario > rango[1]) {
+            alert(`Salario inválido para el puesto seleccionado (min ${rango[0]} - max ${rango[1]})`);
             renderHiredTable();
             return;
           }
-          alert('No hay cambios para guardar.');
-          return;
-        }
 
-        const newSalario = parseFloat(tdSalario.textContent);
-        const newPuesto = tdPuesto.textContent.trim();
-
-        if (isNaN(newSalario) || newSalario < 100 || newSalario > 1200) {
-          alert('Salario inválido (min 100 - max 1200)');
-          renderHiredTable();
-          return;
-        }
-
-        let categoriaNueva = null;
-        for (const [cat, puestos] of Object.entries(puestosByCategoria)) {
-          if (puestos.includes(newPuesto)) {
-            categoriaNueva = cat;
-            break;
+          let categoriaNueva = null;
+          for (const [cat, puestos] of Object.entries(puestosByCategoria)) {
+            if (puestos.includes(newPuesto)) {
+              categoriaNueva = cat;
+              break;
+            }
           }
-        }
-        if (!categoriaNueva) {
-          alert('El puesto no coincide con ninguna categoría válida.');
+          if (!categoriaNueva) {
+            alert('El puesto no coincide con ninguna categoría válida.');
+            renderHiredTable();
+            return;
+          }
+
+          p.salario = newSalario;
+          p.puesto = newPuesto;
+          if (p.categoria !== categoriaNueva) {
+            p.categoria = categoriaNueva;
+          }
+
+          tdSalario.contentEditable = false;
+          tdPuesto.contentEditable = false;
+          editarBtn.textContent = 'Editar';
+          editarBtn.title = 'Editar campos';
+          editMode = false;
+          alert('Personal actualizado correctamente.');
           renderHiredTable();
-          return;
         }
-
-        p.salario = newSalario;
-        p.puesto = newPuesto;
-        if (p.categoria !== categoriaNueva) {
-          p.categoria = categoriaNueva;
-        }
-
-        alert('Personal actualizado correctamente.');
-        renderHiredTable();
       });
 
       accionesTd.appendChild(editarBtn);
@@ -364,6 +347,41 @@
   const edadRandom = () => Math.floor(Math.random() * 43) + 18;
   const salarioRandom = () => (Math.random() * 1100 + 100).toFixed(2);
 
+  // Rango de salarios por puesto (AJUSTAR SI ES NECESARIO)
+  const salarioPorPuesto = {
+    'Cocinero': [800, 1500],
+    'Mesero': [600, 1200],
+    'Chef': [2000, 3500],
+    'Barista': [700, 1200],
+    'Repostero': [800, 1400],
+    'Bartender': [900, 1500],
+    'Ingeniero': [2500, 4000],
+    'Conserje': [600, 1000],
+    'Plomero': [1200, 2000],
+    'Mucama': [600, 900],
+    'Animadores': [1000, 2000],
+    "DJ's": [1000, 2500],
+    'Musicos': [1200, 2500],
+    'Bailarines': [1000, 2000],
+    'Guias Turisticos': [1500, 3000],
+    'Enfermero': [1200, 2000],
+    'Medico Auxiliar': [1800, 2500],
+    'Medico en Jefe': [3500, 5000],
+    'Doctor Especialista': [4000, 6000],
+    'Administrador': [1800, 3000],
+    'Cajero': [900, 1400],
+    'Gerente': [3000, 5000],
+  };
+
+  // Genera un salario aleatorio en incrementos de 250 dentro del rango del puesto, para ser realista.
+  function salarioRandomPorPuesto(puesto) {
+    const rango = salarioPorPuesto[puesto] || [100, 1200];
+    const [min, max] = rango;
+    const pasos = Math.floor((max - min) / 250) + 1;
+    const incremento = Math.floor(Math.random() * pasos);
+    return min + incremento * 250;
+  }
+
   function getRandomCategoriaYPuesto() {
     const categorias = Object.keys(puestosByCategoria);
     const cat = categorias[Math.floor(Math.random() * categorias.length)];
@@ -395,7 +413,7 @@
         apellido: apellidosEjemplo[Math.floor(Math.random() * apellidosEjemplo.length)],
         edad: edadRandom(),
         experiencia: experienciaRandom(),
-        salario: parseFloat(salarioRandom()),
+        salario: salarioRandomPorPuesto(puesto), // <--- Aquí el cambio
         categoria: cat,
         puesto,
       };
