@@ -21,7 +21,7 @@ class DashboardService:
         """Obtiene todos los datos del dashboard de forma optimizada con cache"""
         
         # Clave de cache única por crucero
-        cache_key = f'dashboard_data_{crucero_id or "all"}'
+        cache_key = f'dashboard_data_v2_{crucero_id or "all"}'
         cached_data = cache.get(cache_key)
         from mantenimiento.models import (
             Equipo, TareaMantenimiento, InventarioProducto, 
@@ -310,11 +310,24 @@ class DashboardService:
             .filter(**filters)
             .order_by('-fecha_reporte')[:5]
         )
+        # Si no hay resultados y había filtro por crucero, caer a global
+        if not incidentes_recientes and filters:
+            incidentes_recientes = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .order_by('-fecha_reporte')[:5]
+            )
+
         incidentes_pendientes_list = list(
             ReporteIncidente.objects.select_related('ubicacion', 'equipo')
             .filter(resuelto=False, **filters)
             .order_by('-fecha_reporte')[:5]
         )
+        if not incidentes_pendientes_list and filters:
+            incidentes_pendientes_list = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .filter(resuelto=False)
+                .order_by('-fecha_reporte')[:5]
+            )
         return {
             'incidentes_recientes': incidentes_recientes,
             'incidentes_pendientes_list': incidentes_pendientes_list,
