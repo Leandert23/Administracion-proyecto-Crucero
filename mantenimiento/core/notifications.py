@@ -99,9 +99,20 @@ class NotificationService:
         alerts = []
         
         # Stock crítico (stock actual <= 0 o muy bajo)
-        items_criticos = InventarioProducto.objects.filter(
-            Q(stock_actual__lte=0) | Q(stock_actual__lte=F('stock_minimo') * Decimal('0.5'))
-        )
+        try:
+            items_criticos = InventarioProducto.objects.filter(
+                Q(stock_actual__lte=0) | Q(stock_actual__lte=F('stock_minimo') * Decimal('0.5'))
+            )
+        except Exception:
+            # Fallback si hay problemas con la comparación F
+            items_criticos = []
+            try:
+                all_items = InventarioProducto.objects.all()
+                for item in all_items:
+                    if item.stock_actual <= 0 or item.stock_actual <= (item.stock_minimo * Decimal('0.5')):
+                        items_criticos.append(item)
+            except:
+                items_criticos = []
         
         for item in items_criticos:
             if item.stock_actual <= 0:

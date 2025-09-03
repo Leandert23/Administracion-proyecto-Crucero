@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Header principal -->
+    <!-- Header principal con botones de acción -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="jumbotron bg-gradient-primary text-white p-4 rounded shadow-lg">
@@ -18,7 +18,17 @@
                             <i class="fas fa-ship me-3"></i>
                             Sistema de Mantenimiento del Crucero
                         </h1>
-                        <p class="lead mb-0">Panel de control central para la gestión integral del mantenimiento</p>
+                        <p class="lead mb-0">Panel de control central - Última actualización: <span class="last-update-time">{{ now|date:"H:i:s" }}</span></p>
+                        <div class="mt-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="dashboardManager.updateDashboard()">
+                                    <i class="fas fa-sync-alt"></i> Actualizar Ahora
+                                </button>
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="dashboardManager.toggleAutoUpdate()">
+                                    <i class="fas fa-play"></i> <span id="auto-update-status">Auto</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="btn-group-vertical">
@@ -37,13 +47,13 @@
         </div>
     </div>
 
-    <!-- Estadísticas principales -->
+    <!-- Estadísticas principales en tiempo real -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="stats-card border-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number text-primary" data-stat="total_equipos">{{ total_equipos }}</div>
+                        <div class="stats-number text-primary" data-stat="total_equipos">{{ total_equipos|default:0 }}</div>
                         <div class="stats-label">Total Equipos</div>
                     </div>
                     <div class="stats-icon text-primary">
@@ -62,7 +72,7 @@
             <div class="stats-card border-info">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number text-info" data-stat="tareas_pendientes">{{ tareas_pendientes }}</div>
+                        <div class="stats-number text-info" data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</div>
                         <div class="stats-label">Tareas Pendientes</div>
                     </div>
                     <div class="stats-icon text-info">
@@ -81,8 +91,8 @@
             <div class="stats-card {% if productos_stock_bajo > 0 %}border-warning{% else %}border-success{% endif %}">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}" data-stat="productos_stock_bajo">{{ productos_stock_bajo }}</div>
-                        <div class="stats-label">Stock Bajo</div>
+                        <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}" data-stat="productos_stock_bajo">{{ productos_stock_bajo|default:0 }}</div>
+                        <div class="stats-label">Productos Stock Bajo</div>
                     </div>
                     <div class="stats-icon {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
@@ -100,7 +110,7 @@
             <div class="stats-card {% if incidentes_pendientes > 0 %}border-danger{% else %}border-success{% endif %}">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-number {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}">{{ incidentes_pendientes }}</div>
+                        <div class="stats-number {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}" data-stat="incidentes_pendientes">{{ incidentes_pendientes|default:0 }}</div>
                         <div class="stats-label">Incidentes Pendientes</div>
                     </div>
                     <div class="stats-icon {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}">
@@ -115,421 +125,158 @@
             </div>
         </div>
     </div>
-    
-    <!-- Menú de Navegación Principal -->
+
+    <!-- Gráficas en tiempo real -->
     <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="text-center mb-4">
-                <i class="fas fa-compass me-2"></i>
-                Centro de Control Principal
-            </h3>
-        </div>
-    </div>
-
-    <!-- Sección de Gestión -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <h4 class="mb-3">
-                <i class="fas fa-cogs me-2 text-primary"></i>
-                Gestión de Equipos y Ubicaciones
-            </h4>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-map-marker-alt fa-3x text-info"></i>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Estado de Tareas en Tiempo Real
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="tareas-chart-container" style="height: 300px;">
+                        <canvas id="tareasChart"></canvas>
                     </div>
-                    <h5 class="card-title">Ubicaciones</h5>
-                    <p class="card-text">Gestionar ubicaciones del crucero con formato XABCD</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:ubicacion_list' %}" class="btn btn-info mb-1">
-                            <i class="fas fa-list"></i> Ver Ubicaciones
-                        </a>
-                        <a href="{% url 'mantenimiento:ubicacion_create' %}" class="btn btn-outline-info">
-                            <i class="fas fa-plus"></i> Nueva Ubicación
-                        </a>
+                    <div class="mt-3 text-center">
+                        <div class="row">
+                            <div class="col-3">
+                                <small class="text-warning">
+                                    <strong data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</strong><br>Pendientes
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-info">
+                                    <strong data-stat="tareas_en_progreso">{{ tareas_en_progreso|default:0 }}</strong><br>En Progreso
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-success">
+                                    <strong data-stat="tareas_completadas">{{ tareas_completadas|default:0 }}</strong><br>Completadas
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-danger">
+                                    <strong data-stat="tareas_vencidas">{{ tareas_vencidas|default:0 }}</strong><br>Vencidas
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-cogs fa-3x text-primary"></i>
-                    </div>
-                    <h5 class="card-title">Equipos</h5>
-                    <p class="card-text">Control y seguimiento de todos los equipos del crucero</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-primary mb-1">
-                            <i class="fas fa-list"></i> Ver Equipos
-                        </a>
-                        <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-plus"></i> Nuevo Equipo
-                        </a>
-                    </div>
-                    <div class="mt-2">
-                        <small class="text-muted">
-                            <strong>{{ total_equipos }}</strong> equipos registrados
-                        </small>
-                    </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-ship me-2"></i>
+                        Mantenimientos por Tipo de Crucero
+                    </h5>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-boxes fa-3x text-success"></i>
-                    </div>
-                    <h5 class="card-title">Productos</h5>
-                    <p class="card-text">Catálogo de productos y gestión de inventario</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:producto_list' %}" class="btn btn-success mb-1">
-                            <i class="fas fa-list"></i> Ver Productos
-                        </a>
-                        <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-outline-success">
-                            <i class="fas fa-plus"></i> Nuevo Producto
-                        </a>
-                    </div>
-                    {% if productos_stock_bajo > 0 %}
-                    <div class="mt-2">
-                        <span class="badge bg-warning">
-                            <i class="fas fa-exclamation-triangle"></i> {{ productos_stock_bajo }} con stock bajo
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-warehouse fa-3x text-warning"></i>
-                    </div>
-                    <h5 class="card-title">Inventario</h5>
-                    <p class="card-text">Control de stock y almacenes por tipo de crucero</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-warning mb-1">
-                            <i class="fas fa-list"></i> Ver Inventario
-                        </a>
-                        <a href="{% url 'mantenimiento:stock_bajo' %}" class="btn btn-outline-warning">
-                            <i class="fas fa-exclamation-triangle"></i> Stock Bajo
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Tareas y Mantenimiento -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <h4 class="mb-3">
-                <i class="fas fa-tasks me-2 text-success"></i>
-                Tareas y Mantenimiento
-            </h4>
-        </div>
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-clipboard-list fa-3x text-info"></i>
-                    </div>
-                    <h5 class="card-title">Gestión de Tareas</h5>
-                    <p class="card-text">Control completo del flujo de trabajo de mantenimiento</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-info mb-2">
-                            <i class="fas fa-list"></i> Ver Todas las Tareas
-                        </a>
-                        <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success mb-1">
-                            <i class="fas fa-calendar-check"></i> Crear Preventiva
-                        </a>
-                        <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning">
-                            <i class="fas fa-wrench"></i> Crear Correctiva
-                        </a>
+                <div class="card-body">
+                    <div id="crucero-chart-container" style="height: 300px;">
+                        <canvas id="cruceroChart"></canvas>
                     </div>
                     <div class="mt-3">
                         <div class="row text-center">
                             <div class="col-4">
-                                <small class="text-info">
-                                    <strong>{{ tareas_pendientes }}</strong><br>Pendientes
-                                </small>
+                                <span class="badge bg-info">Preventivo</span>
                             </div>
                             <div class="col-4">
-                                <small class="text-primary">
-                                    <strong>{{ tareas_en_progreso }}</strong><br>En Progreso
-                                </small>
+                                <span class="badge bg-danger">Correctivo</span>
                             </div>
                             <div class="col-4">
-                                <small class="text-success">
-                                    <strong>{{ tareas_completadas }}</strong><br>Completadas
-                                </small>
+                                <small class="text-muted">Por tipo de crucero</small>
                             </div>
                         </div>
-                        {% if tareas_vencidas > 0 %}
-                        <div class="mt-2">
-                            <span class="badge bg-danger">
-                                <i class="fas fa-clock"></i> {{ tareas_vencidas }} tareas vencidas
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
-                    </div>
-                    <h5 class="card-title">Incidentes</h5>
-                    <p class="card-text">Reporte y seguimiento de incidentes del crucero</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-danger mb-1">
-                            <i class="fas fa-list"></i> Ver Incidentes
-                        </a>
-                        <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-danger">
-                            <i class="fas fa-plus"></i> Reportar Incidente
-                        </a>
-                    </div>
-                    {% if incidentes_pendientes > 0 %}
-                    <div class="mt-2">
-                        <span class="badge bg-danger">
-                            <i class="fas fa-exclamation-circle"></i> {{ incidentes_pendientes }} pendientes
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-swimming-pool fa-3x text-cyan"></i>
-                    </div>
-                    <h5 class="card-title">Piscinas</h5>
-                    <p class="card-text">Monitoreo y control de calidad del agua</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-info mb-1">
-                            <i class="fas fa-list"></i> Ver Piscinas
-                        </a>
-                        <a href="{% url 'mantenimiento:piscina_create' %}" class="btn btn-outline-info mb-1">
-                            <i class="fas fa-plus"></i> Nueva Piscina
-                        </a>
-                        <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-success">
-                            <i class="fas fa-tint"></i> Registrar Medición
-                        </a>
-                    </div>
-                    {% if piscinas_con_alerta > 0 %}
-                    <div class="mt-2">
-                        <span class="badge bg-warning">
-                            <i class="fas fa-exclamation-triangle"></i> {{ piscinas_con_alerta }} con alertas
-                        </span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Reportes -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <h4 class="mb-3">
-                <i class="fas fa-chart-bar me-2 text-warning"></i>
-                Reportes y Análisis
-            </h4>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-chart-line fa-3x text-primary"></i>
-                    </div>
-                    <h5 class="card-title">Reportes Generales</h5>
-                    <p class="card-text">Acceso a todos los reportes del sistema</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:reportes' %}" class="btn btn-primary mb-1">
-                            <i class="fas fa-chart-bar"></i> Ver Reportes
-                        </a>
-                        <a href="{% url 'mantenimiento:reporte_tareas_pendientes' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-tasks"></i> Tareas Pendientes
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-clock fa-3x text-danger"></i>
-                    </div>
-                    <h5 class="card-title">Equipos Vencidos</h5>
-                    <p class="card-text">Equipos que requieren revisión urgente</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:reporte_equipos_vencidos' %}" class="btn btn-danger mb-1">
-                            <i class="fas fa-exclamation-triangle"></i> Ver Vencidos
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-shopping-cart fa-3x text-success"></i>
-                    </div>
-                    <h5 class="card-title">Consumo Productos</h5>
-                    <p class="card-text">Análisis de consumo de productos por período</p>
-                    <div class="btn-group-vertical w-100">
-                        <a href="{% url 'mantenimiento:reporte_consumo_productos' %}" class="btn btn-success mb-1">
-                            <i class="fas fa-chart-pie"></i> Ver Consumo
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card h-100 shadow-sm border-0 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-tachometer-alt fa-3x text-info"></i>
-                    </div>
-                    <h5 class="card-title">Dashboard Actual</h5>
-                    <p class="card-text">Vista rápida del estado general del sistema</p>
-                    <div class="btn-group-vertical w-100">
-                        <button class="btn btn-info mb-1" onclick="location.reload()">
-                            <i class="fas fa-sync"></i> Actualizar Datos
-                        </button>
-                    </div>
-                    <div class="mt-2">
-                        <small class="text-muted">Última actualización: {{ now|date:"H:i" }}</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Accesos Rápidos Adicionales -->
+    <!-- Sección de navegación rápida -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2 text-warning"></i>
-                        Acciones Rápidas
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-compass me-2"></i>
+                        Navegación Rápida del Sistema
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-plus-circle"></i> Nueva Tarea Personalizada
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-danger w-100">
-                                <i class="fas fa-exclamation-triangle"></i> Reportar Incidente
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-tint"></i> Medir Piscina
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <a href="{% url 'mantenimiento:stock_bajo' %}" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-boxes"></i> Revisar Stock
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Estado de equipos -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        Estado de Tareas
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="tareasChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Mantenimientos por tamaño de crucero y tipo -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-ship me-2"></i>
-                        Mantenimientos por Tamaño de Crucero
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <!-- Reemplazo del chart por barras de progreso -->
-                    <div class="mb-4">
-                        {% for item in crucero_progress %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <strong>{{ item.label }}</strong>
-                                <small>{{ item.total }} (Prev: {{ item.preventivo }} / Corr: {{ item.correctivo }})</small>
-                            </div>
-                            <div class="progress" style="height: 18px; background-color: #1f1f1f; border-radius: 12px;">
-                                <div class="progress-bar {{ item.color }}" role="progressbar" data-progress-pct="{{ item.percent }}" style="width: 0%; border-radius: 12px; transition: width .6s ease;"
-                                     aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <!-- Gestión -->
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-info h-100">
+                                <div class="card-body text-center p-3">
+                                    <i class="fas fa-cogs fa-2x text-info mb-2"></i>
+                                    <h6 class="card-title">Equipos</h6>
+                                    <p class="card-text small">{{ total_equipos|default:0 }} registrados</p>
+                                    <div class="btn-group-vertical w-100">
+                                        <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-info btn-sm mb-1">Ver Lista</a>
+                                        <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-info btn-sm">Agregar Nuevo</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                    <div class="row mt-3">
-                        {% for seg in crucero_segments %}
-                        <div class="col-md-4 mb-3">
-                            <div class="d-grid gap-2">
-                                <a class="btn btn-outline-primary" href="{% url 'mantenimiento:tarea_list' %}?tipo_crucero={{ seg.id }}&tipo=preventivo">
-                                    {{ seg.label }} - Preventivo ({{ seg.preventivo }})
-                                </a>
-                                <a class="btn btn-outline-danger" href="{% url 'mantenimiento:tarea_list' %}?tipo_crucero={{ seg.id }}&tipo=correctivo">
-                                    {{ seg.label }} - Correctivo ({{ seg.correctivo }})
-                                </a>
+
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center p-3">
+                                    <i class="fas fa-tasks fa-2x text-success mb-2"></i>
+                                    <h6 class="card-title">Tareas</h6>
+                                    <p class="card-text small">{{ tareas_pendientes|default:0 }} pendientes</p>
+                                    <div class="btn-group-vertical w-100">
+                                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-success btn-sm mb-1">Ver Lista</a>
+                                        <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-success btn-sm">Crear Nueva</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        {% endfor %}
+
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-warning h-100">
+                                <div class="card-body text-center p-3">
+                                    <i class="fas fa-boxes fa-2x text-warning mb-2"></i>
+                                    <h6 class="card-title">Inventario</h6>
+                                    <p class="card-text small">{{ productos_stock_bajo|default:0 }} stock bajo</p>
+                                    <div class="btn-group-vertical w-100">
+                                        <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-warning btn-sm mb-1">Ver Stock</a>
+                                        <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-outline-warning btn-sm">Agregar Producto</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card border-danger h-100">
+                                <div class="card-body text-center p-3">
+                                    <i class="fas fa-swimming-pool fa-2x text-info mb-2"></i>
+                                    <h6 class="card-title">Piscinas</h6>
+                                    <p class="card-text small">{{ piscinas_con_alerta|default:0 }} con alertas</p>
+                                    <div class="btn-group-vertical w-100">
+                                        <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-info btn-sm mb-1">Ver Piscinas</a>
+                                        <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-outline-info btn-sm">Nueva Medición</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Alertas y próximas actividades -->
-    <div class="row">
+    <!-- Alertas y actividades importantes -->
+    <div class="row mb-4">
         <!-- Tareas próximas a vencer -->
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header bg-warning text-dark">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-clock me-2"></i>
@@ -540,12 +287,12 @@
                     {% if proximas_vencer %}
                         <div class="list-group list-group-flush">
                             {% for tarea in proximas_vencer %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
                                     <div>
                                         <h6 class="mb-1">{{ tarea.titulo }}</h6>
                                         <small class="text-muted">
                                             <i class="fas fa-map-marker-alt me-1"></i>
-                                            {{ tarea.ubicacion.codigo_ubicacion }}
+                                            {{ tarea.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
                                         </small>
                                     </div>
                                     <div class="text-end">
@@ -554,7 +301,7 @@
                                         </span>
                                         <br>
                                         <small class="text-muted">
-                                            {{ tarea.fecha_programada|date:"d/m/Y H:i" }}
+                                            {{ tarea.fecha_programada|date:"d/m/Y" }}
                                         </small>
                                     </div>
                                 </div>
@@ -569,6 +316,9 @@
                         <div class="text-center py-4">
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <p class="text-muted">No hay tareas próximas a vencer</p>
+                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus"></i> Crear Nueva Tarea
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -577,27 +327,27 @@
         
         <!-- Equipos con revisión próxima -->
         <div class="col-lg-6 mb-4">
-            <div class="card">
+            <div class="card h-100">
                 <div class="card-header bg-info text-white">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-tools me-2"></i>
-                        Equipos con Revisión Próxima
+                        Equipos por Revisar
                     </h5>
                 </div>
                 <div class="card-body">
                     {% if equipos_revision_proxima %}
                         <div class="list-group list-group-flush">
                             {% for equipo in equipos_revision_proxima %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
                                     <div>
                                         <h6 class="mb-1">{{ equipo.nombre }}</h6>
                                         <small class="text-muted">
                                             <i class="fas fa-map-marker-alt me-1"></i>
-                                            {{ equipo.ubicacion.codigo_ubicacion }}
+                                            {{ equipo.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-info text-dark">
+                                        <span class="badge bg-info">
                                             {{ equipo.dias_hasta_revision }} días
                                         </span>
                                         <br>
@@ -617,54 +367,63 @@
                         <div class="text-center py-4">
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <p class="text-muted">No hay equipos con revisión próxima</p>
+                            <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus"></i> Registrar Equipo
+                            </a>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Acciones rápidas -->
-    <div class="row">
+
+    <!-- Acciones rápidas finales -->
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-dark text-white">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-bolt me-2"></i>
-                        Acciones Rápidas
+                        Acciones Rápidas Esenciales
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-plus me-2"></i>
-                                Nueva Tarea
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100">
+                                <i class="fas fa-calendar-check"></i><br>
+                                <small>Tarea Preventiva</small>
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-water me-2"></i>
-                                Registrar Medición Piscina
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-wrench"></i><br>
+                                <small>Tarea Correctiva</small>
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Reportar Incidente
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-danger w-100">
+                                <i class="fas fa-exclamation-triangle"></i><br>
+                                <small>Reportar Incidente</small>
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-cog me-2"></i>
-                                Registrar Equipo
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info w-100">
+                                <i class="fas fa-tint"></i><br>
+                                <small>Medir Piscina</small>
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-box me-2"></i>
-                                Agregar Producto
+                        <div class="col-md-2 mb-3">
+                            <a href="{% url 'mantenimiento:reportes' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-chart-bar"></i><br>
+                                <small>Ver Reportes</small>
                             </a>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <button onclick="window.dashboardManager?.updateDashboard()" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-sync-alt"></i><br>
+                                <small>Actualizar Todo</small>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -679,13 +438,41 @@
 {{ preventivo_counts|json_script:"preventivo-counts-data" }}
 {{ correctivo_counts|json_script:"correctivo-counts-data" }}
 {{ tareas_chart_data|json_script:"tareas-chart-data" }}
+
 <script>
-// Sistema de gráficas optimizado
-class DashboardCharts {
+// Dashboard Manager optimizado y completamente funcional
+class OptimizedDashboardManager {
     constructor() {
         this.charts = {};
-        this.initCharts();
-        this.setupAutoUpdate();
+        this.updateInterval = null;
+        this.isInitialized = false;
+        this.init();
+    }
+    
+    init() {
+        console.log('🚀 Inicializando Dashboard Optimizado...');
+        this.waitForChartJS().then(() => {
+            this.initCharts();
+            this.setupAutoUpdate();
+            this.createUpdateIndicator();
+            this.isInitialized = true;
+            console.log('✅ Dashboard completamente inicializado');
+        });
+    }
+    
+    waitForChartJS() {
+        return new Promise((resolve) => {
+            if (typeof Chart !== 'undefined') {
+                resolve();
+            } else {
+                const checkChart = setInterval(() => {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        resolve();
+                    }
+                }, 100);
+            }
+        });
     }
     
     initCharts() {
@@ -695,198 +482,439 @@ class DashboardCharts {
     
     createTaskChart() {
         const ctx = document.getElementById('tareasChart');
-        if (!ctx) return;
-        
-        const data = JSON.parse(document.getElementById('tareas-chart-data').textContent);
-        
-        this.charts.tareas = new Chart(ctx.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
-            datasets: [{
-                label: 'Cantidad',
-                data: tareasData,
-                backgroundColor: [
-                    '#ffc107',
-                    '#0dcaf0',
-                    '#198754',
-                    '#dc3545'
-                ],
-                borderWidth: 1,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
+        if (!ctx) {
+            console.warn('⚠️ No se encontró el elemento tareasChart');
+            return;
         }
-    });
-
-    // Animar las barras de progreso de cruceros
-    document.querySelectorAll('.progress-bar[data-progress-pct]').forEach(function(bar){
-        const pct = parseInt(bar.getAttribute('data-progress-pct') || '0', 10);
-        requestAnimationFrame(function(){ bar.style.width = pct + '%'; });
-    });
-
-    // Gráfico por tamaño de crucero y tipo
-    const cruceroCtx = document.getElementById('cruceroChart');
-    if (cruceroCtx) {
-        const cruceroLabels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
-        const preventivoCounts = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
-        const correctivoCounts = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
         
-        const maxVal = Math.max(...preventivoCounts.concat(correctivoCounts), 0);
-        const suggested = maxVal <= 3 ? 3 : maxVal + 1;
-        
-        window.cruceroChart = new Chart(cruceroCtx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: cruceroLabels,
-                datasets: [
-                    {
-                        label: 'Preventivo',
-                        data: preventivoCounts,
-                        backgroundColor: '#0dcaf0',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Correctivo',
-                        data: correctivoCounts,
-                        backgroundColor: '#dc3545',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                indexAxis: 'y', // barras horizontales
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 600 },
-                interaction: { intersect: false },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        suggestedMax: suggested,
-                        ticks: { stepSize: 1, precision: 0 }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: true, position: 'top' }
-                }
+        try {
+            const dataScript = document.getElementById('tareas-chart-data');
+            if (!dataScript) {
+                console.warn('⚠️ No se encontraron datos para el gráfico de tareas');
+                return;
             }
-        });
+            
+            const tareasData = JSON.parse(dataScript.textContent);
+            console.log('📊 Datos de tareas:', tareasData);
+            
+            // Destruir gráfico existente si existe
+            if (this.charts.tareas) {
+                this.charts.tareas.destroy();
+            }
+            
+            this.charts.tareas = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
+                    datasets: [{
+                        label: 'Tareas',
+                        data: tareasData,
+                        backgroundColor: [
+                            '#ffc107',
+                            '#0dcaf0', 
+                            '#198754',
+                            '#dc3545'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+            
+            console.log('✅ Gráfico de tareas creado exitosamente');
+        } catch (error) {
+            console.error('❌ Error creando gráfico de tareas:', error);
+            this.showChartError('tareasChart', 'Error cargando gráfico de tareas');
+        }
     }
     
     createCruceroChart() {
         const ctx = document.getElementById('cruceroChart');
-        if (!ctx) return;
+        if (!ctx) {
+            console.warn('⚠️ No se encontró el elemento cruceroChart');
+            return;
+        }
         
-        const labels = JSON.parse(document.getElementById('crucero-labels-data').textContent);
-        const preventivo = JSON.parse(document.getElementById('preventivo-counts-data').textContent);
-        const correctivo = JSON.parse(document.getElementById('correctivo-counts-data').textContent);
-        
-        this.charts.crucero = new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Preventivo',
-                    data: preventivo,
-                    backgroundColor: '#0dcaf0'
-                }, {
-                    label: 'Correctivo', 
-                    data: correctivo,
-                    backgroundColor: '#dc3545'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                scales: {
-                    x: { beginAtZero: true },
-                    y: { grid: { display: false } }
-                }
+        try {
+            const labelsScript = document.getElementById('crucero-labels-data');
+            const preventivoScript = document.getElementById('preventivo-counts-data');
+            const correctivoScript = document.getElementById('correctivo-counts-data');
+            
+            if (!labelsScript || !preventivoScript || !correctivoScript) {
+                console.warn('⚠️ No se encontraron todos los datos para el gráfico de cruceros');
+                return;
             }
-        });
+            
+            const labels = JSON.parse(labelsScript.textContent);
+            const preventivoCounts = JSON.parse(preventivoScript.textContent);
+            const correctivoCounts = JSON.parse(correctivoScript.textContent);
+            
+            console.log('🚢 Datos crucero:', { labels, preventivoCounts, correctivoCounts });
+            
+            // Destruir gráfico existente si existe
+            if (this.charts.crucero) {
+                this.charts.crucero.destroy();
+            }
+            
+            this.charts.crucero = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Preventivo',
+                        data: preventivoCounts,
+                        backgroundColor: '#0dcaf0',
+                        borderColor: '#0dcaf0',
+                        borderWidth: 1
+                    }, {
+                        label: 'Correctivo',
+                        data: correctivoCounts,
+                        backgroundColor: '#dc3545',
+                        borderColor: '#dc3545',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+            
+            console.log('✅ Gráfico de cruceros creado exitosamente');
+        } catch (error) {
+            console.error('❌ Error creando gráfico de cruceros:', error);
+            this.showChartError('cruceroChart', 'Error cargando gráfico de cruceros');
+        }
+    }
+    
+    showChartError(chartId, message) {
+        const container = document.getElementById(chartId)?.parentElement;
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                    <p class="text-muted">${message}</p>
+                    <button onclick="window.dashboardManager?.initCharts()" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
     }
     
     setupAutoUpdate() {
-        // Actualización automática optimizada
-        setInterval(() => this.updateCharts(), 30000);
-        this.createUpdateButton();
+        // Actualización automática cada 15 segundos para mejor experiencia
+        this.updateInterval = setInterval(() => {
+            this.updateDashboard();
+        }, 15000);
+        
+        console.log('🔄 Auto-actualización configurada (15s)');
+        
+        // Primera actualización después de 2 segundos para cargar datos iniciales
+        setTimeout(() => {
+            this.updateDashboard();
+        }, 2000);
+        
+        // Actualizar el estado del botón
+        this.updateAutoUpdateButton(true);
     }
     
-    updateCharts() {
+    toggleAutoUpdate() {
+        if (this.updateInterval) {
+            // Detener actualización automática
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+            this.updateAutoUpdateButton(false);
+            console.log('⏸️ Auto-actualización detenida');
+        } else {
+            // Iniciar actualización automática
+            this.setupAutoUpdate();
+            console.log('▶️ Auto-actualización iniciada');
+        }
+    }
+    
+    updateAutoUpdateButton(isActive) {
+        const statusSpan = document.getElementById('auto-update-status');
+        const button = statusSpan?.parentElement;
+        
+        if (statusSpan && button) {
+            if (isActive) {
+                statusSpan.textContent = 'Detener';
+                button.innerHTML = '<i class="fas fa-pause"></i> <span id="auto-update-status">Detener</span>';
+                button.className = 'btn btn-outline-warning btn-sm';
+            } else {
+                statusSpan.textContent = 'Auto';
+                button.innerHTML = '<i class="fas fa-play"></i> <span id="auto-update-status">Auto</span>';
+                button.className = 'btn btn-outline-info btn-sm';
+            }
+        }
+    }
+    
+    updateDashboard() {
+        console.log('🔄 Actualizando dashboard...');
+        this.updateStatusIndicator('updating');
+        
         fetch('/api/dashboard-update/')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('📨 Datos recibidos:', data);
+                
                 if (data.success) {
-                    // Actualizar gráficas
+                    // Actualizar gráficas con animación
                     if (this.charts.tareas && data.data.tareas_chart_data) {
+                        console.log('📊 Actualizando gráfico de tareas con datos:', data.data.tareas_chart_data);
                         this.charts.tareas.data.datasets[0].data = data.data.tareas_chart_data;
-                        this.charts.tareas.update('none');
+                        this.charts.tareas.update('active'); // Con animación
+                        console.log('✅ Gráfico de tareas actualizado');
                     }
                     
-                    if (this.charts.crucero && data.data.preventivo_counts) {
+                    if (this.charts.crucero && data.data.preventivo_counts && data.data.correctivo_counts) {
+                        console.log('🚢 Actualizando gráfico de cruceros');
                         this.charts.crucero.data.datasets[0].data = data.data.preventivo_counts;
                         this.charts.crucero.data.datasets[1].data = data.data.correctivo_counts;
-                        this.charts.crucero.update('none');
+                        this.charts.crucero.update('active'); // Con animación
+                        console.log('✅ Gráfico de cruceros actualizado');
                     }
                     
                     // Actualizar estadísticas
-                    this.updateStats(data.data.stats);
+                    if (data.data.stats) {
+                        this.updateStats(data.data.stats);
+                    }
+                    
+                    // Actualizar timestamp
+                    this.updateTimestamp();
+                    
+                    this.showUpdateSuccess();
+                    
+                    // Actualizar el indicador de estado
+                    this.updateStatusIndicator('success');
+                } else {
+                    console.error('❌ Error en la respuesta:', data.error);
+                    this.showUpdateError();
+                    this.updateStatusIndicator('error');
                 }
             })
-            .catch(console.error);
+            .catch(error => {
+                console.error('❌ Error actualizando dashboard:', error);
+                this.showUpdateError();
+                this.updateStatusIndicator('error');
+            });
     }
     
     updateStats(stats) {
         Object.entries(stats).forEach(([key, value]) => {
-            const element = document.querySelector(`[data-stat="${key}"]`);
-            if (element) {
-                element.textContent = value;
-            }
+            const elements = document.querySelectorAll(`[data-stat="${key}"]`);
+            elements.forEach(element => {
+                if (element) {
+                    const oldValue = parseInt(element.textContent) || 0;
+                    const newValue = parseInt(value) || 0;
+                    
+                    if (oldValue !== newValue) {
+                        // Animación de cambio más visible
+                        element.style.transition = 'all 0.5s ease';
+                        element.style.transform = 'scale(1.2)';
+                        element.style.color = '#28a745';
+                        element.style.fontWeight = 'bold';
+                        
+                        // Efecto de parpadeo
+                        element.style.animation = 'pulse 0.5s ease-in-out';
+                        
+                        setTimeout(() => {
+                            element.textContent = newValue;
+                            element.style.transform = 'scale(1)';
+                            element.style.color = '';
+                            element.style.fontWeight = '';
+                            element.style.animation = '';
+                        }, 250);
+                        
+                        setTimeout(() => {
+                            element.style.transition = '';
+                        }, 500);
+                        
+                        console.log(`📊 ${key}: ${oldValue} → ${newValue}`);
+                    }
+                }
+            });
+        });
+        console.log('📈 Estadísticas actualizadas');
+    }
+    
+    updateTimestamp() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('es-ES');
+        
+        const timeElements = document.querySelectorAll('.last-update-time');
+        timeElements.forEach(el => {
+            el.textContent = timeStr;
         });
     }
     
-    createUpdateButton() {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-sm btn-outline-primary position-fixed';
-        btn.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000;';
-        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-        btn.onclick = () => {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btn.disabled = true;
-            this.updateCharts();
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-                btn.disabled = false;
-            }, 1500);
-        };
-        document.body.appendChild(btn);
+    showUpdateSuccess() {
+        this.showToast('✅ Dashboard actualizado correctamente', 'success');
+    }
+    
+    showUpdateError() {
+        this.showToast('❌ Error actualizando dashboard', 'danger');
+    }
+    
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+    
+    createUpdateIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'dashboard-status';
+        indicator.className = 'position-fixed bg-success text-white px-3 py-1 rounded';
+        indicator.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000; font-size: 0.8rem;';
+        indicator.innerHTML = '<i class="fas fa-check-circle"></i> Dashboard Activo';
+        document.body.appendChild(indicator);
+    }
+    
+    updateStatusIndicator(status) {
+        const indicator = document.getElementById('dashboard-status');
+        if (indicator) {
+            if (status === 'success') {
+                indicator.className = 'position-fixed bg-success text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-check-circle"></i> Dashboard Activo';
+            } else if (status === 'updating') {
+                indicator.className = 'position-fixed bg-info text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Actualizando...';
+            } else if (status === 'error') {
+                indicator.className = 'position-fixed bg-danger text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                setTimeout(() => {
+                    this.updateStatusIndicator('success');
+                }, 3000);
+            }
+        }
+    }
+    
+    destroy() {
+        console.log('🧹 Limpiando recursos del dashboard...');
+        
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        Object.values(this.charts).forEach(chart => {
+            if (chart) {
+                chart.destroy();
+            }
+        });
+        
+        const indicator = document.getElementById('dashboard-status');
+        if (indicator) {
+            indicator.remove();
+        }
     }
 }
 
-// Inicializar sistema de gráficas
+// Añadir estilos para animaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .update-highlight {
+        animation: pulse 0.5s ease-in-out;
+        background-color: rgba(40, 167, 69, 0.1);
+        border-radius: 5px;
+        padding: 2px 5px;
+    }
+    
+    .chart-updating {
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+    
+    .chart-updated {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
+
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    new DashboardCharts();
+    console.log('🎯 DOM listo, inicializando Dashboard Manager...');
+    window.dashboardManager = new OptimizedDashboardManager();
 });
+
+// Limpiar al cambiar de página
+window.addEventListener('beforeunload', () => {
+    if (window.dashboardManager) {
+        window.dashboardManager.destroy();
+    }
+});
+
+// Función global para actualización manual
+window.updateDashboard = function() {
+    if (window.dashboardManager) {
+        window.dashboardManager.updateDashboard();
+    }
+};
 </script>
 {% endblock %}

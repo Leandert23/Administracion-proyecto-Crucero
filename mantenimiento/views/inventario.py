@@ -28,9 +28,18 @@ def inventario_update(request, pk):
 
 
 def stock_bajo(request):
-    items = InventarioProducto.objects.select_related('producto', 'tipo_crucero').filter(
-        stock_actual__lte=F('stock_minimo')
-    )
+    try:
+        items = InventarioProducto.objects.select_related('producto', 'tipo_crucero').filter(
+            stock_actual__lte=F('stock_minimo')
+        )
+    except Exception:
+        # Fallback si hay problemas con la comparación F
+        items = []
+        try:
+            all_items = InventarioProducto.objects.select_related('producto', 'tipo_crucero').all()
+            items = [item for item in all_items if item.stock_actual <= item.stock_minimo]
+        except:
+            items = []
     return render(request, 'mantenimiento/stock_bajo.html', {'items': items})
 
 

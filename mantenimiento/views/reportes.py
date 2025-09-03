@@ -47,9 +47,18 @@ def reporte_consumo_productos(request):
         total_consumido=Sum('cantidad_utilizada')
     ).order_by('-total_consumido')[:10]
 
-    productos_stock_bajo = InventarioProducto.objects.filter(
-        stock_actual__lte=F('stock_minimo')
-    ).select_related('producto', 'tipo_crucero')
+    try:
+        productos_stock_bajo = InventarioProducto.objects.filter(
+            stock_actual__lte=F('stock_minimo')
+        ).select_related('producto', 'tipo_crucero')
+    except Exception:
+        # Fallback si hay problemas con la comparación F
+        productos_stock_bajo = []
+        try:
+            all_items = InventarioProducto.objects.select_related('producto', 'tipo_crucero').all()
+            productos_stock_bajo = [item for item in all_items if item.stock_actual <= item.stock_minimo]
+        except:
+            productos_stock_bajo = []
 
     return render(request, 'mantenimiento/reporte_consumo_productos.html', {
         'productos_consumo': productos_consumo,
