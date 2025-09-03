@@ -26,7 +26,14 @@ def dashboard(request):
 def dashboard_update_data(request):
     """Actualización AJAX simplificada del dashboard"""
     try:
-        from mantenimiento.models import TareaMantenimiento, Equipo, InventarioProducto, ReporteIncidente
+        from django.db.models import F
+        from mantenimiento.models import (
+            TareaMantenimiento,
+            Equipo,
+            InventarioProducto,
+            ReporteIncidente,
+        )
+        from mantenimiento.core.config import SystemConfig
         
         # Obtener datos básicos de forma simple
         try:
@@ -43,7 +50,9 @@ def dashboard_update_data(request):
             tareas_pendientes = tareas_en_progreso = tareas_completadas = tareas_vencidas = 0
             
         try:
-            productos_stock_bajo = 0  # Simplificado por ahora
+            productos_stock_bajo = InventarioProducto.objects.filter(
+                stock_actual__lte=F('stock_minimo')
+            ).count()
         except:
             productos_stock_bajo = 0
             
@@ -55,10 +64,28 @@ def dashboard_update_data(request):
         # Datos para gráficas
         tareas_chart_data = [tareas_pendientes, tareas_en_progreso, tareas_completadas, tareas_vencidas]
         
-        # Datos de crucero simplificados
-        crucero_labels = ['Crucero Pequeño', 'Crucero Mediano', 'Crucero Grande']
-        preventivo_counts = [0, 0, 0]  # Simplificado por ahora
-        correctivo_counts = [0, 0, 0]  # Simplificado por ahora
+        # Datos por tipo de crucero (reales)
+        crucero_labels = []
+        preventivo_counts = []
+        correctivo_counts = []
+        try:
+            for tipo_key, tipo_display in SystemConfig.TIPOS_CRUCERO:
+                crucero_labels.append(tipo_display)
+                preventivo_counts.append(
+                    TareaMantenimiento.objects.filter(
+                        tipo_crucero__tipo=tipo_key, tipo='preventivo'
+                    ).count()
+                )
+                correctivo_counts.append(
+                    TareaMantenimiento.objects.filter(
+                        tipo_crucero__tipo=tipo_key, tipo='correctivo'
+                    ).count()
+                )
+        except Exception:
+            # Fallback en caso de problema
+            crucero_labels = ['Crucero Pequeño', 'Crucero Mediano', 'Crucero Grande']
+            preventivo_counts = [0, 0, 0]
+            correctivo_counts = [0, 0, 0]
         
         return JsonResponse({
             'success': True,

@@ -50,32 +50,6 @@
             </div>
           </div>
 
-          <!-- Cambio de Estado -->
-          {% if estados_posibles %}
-          <div class="alert alert-info">
-            <h5><i class="fas fa-exchange-alt"></i> Cambiar Estado</h5>
-            <form method="post" action="{% url 'mantenimiento:tarea_cambiar_estado' tarea.pk %}" class="row g-3">
-              {% csrf_token %}
-              <div class="col-md-4">
-                <select name="nuevo_estado" class="form-control" required>
-                  <option value="">Seleccionar nuevo estado</option>
-                  {% for estado_code, estado_nombre in estados_posibles %}
-                  <option value="{{ estado_code }}">{{ estado_nombre }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-6">
-                <input type="text" name="observaciones" class="form-control" placeholder="Observaciones (opcional)">
-              </div>
-              <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-arrow-right"></i> Cambiar
-                </button>
-              </div>
-            </form>
-          </div>
-          {% endif %}
-
           <!-- Alertas de Estado -->
           {% if not puede_iniciar and tarea.estado == 'asignada' %}
           <div class="alert alert-warning">
@@ -90,26 +64,6 @@
           </div>
           {% endif %}
           
-          <!-- Información del Flujo de Estados -->
-          {% if tarea.estado in 'creada,planificada,asignada' %}
-          <div class="alert alert-info">
-            <h6><i class="fas fa-info-circle"></i> Flujo Lógico de Estados</h6>
-            <p class="mb-2">El botón "Iniciar y Completar" seguirá automáticamente este flujo:</p>
-            <div class="d-flex align-items-center mb-2">
-              <span class="badge bg-secondary me-2">Creada</span>
-              <i class="fas fa-arrow-right mx-2"></i>
-              <span class="badge bg-info me-2">Planificada</span>
-              <i class="fas fa-arrow-right mx-2"></i>
-              <span class="badge bg-warning me-2">Asignada</span>
-              <i class="fas fa-arrow-right mx-2"></i>
-              <span class="badge bg-primary me-2">En Progreso</span>
-              <i class="fas fa-arrow-right mx-2"></i>
-              <span class="badge bg-success me-2">Completada</span>
-            </div>
-            <small class="text-muted">Esto asegura que las gráficas del dashboard reflejen correctamente el progreso de las tareas.</small>
-          </div>
-          {% endif %}
-
           {% if tarea.observaciones %}
           <div class="mt-3">
             <strong>Observaciones:</strong>
@@ -226,12 +180,12 @@
     <a class="btn btn-warning" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">
       <i class="fas fa-edit"></i> Editar Tarea
     </a>
-    <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
+    <form method="post" action="{% url 'mantenimiento:tarea_siguiente_estado' tarea.pk %}" style="display:inline">
       {% csrf_token %}
-      <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
+      <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_detail' tarea.pk %}">
       <button type="submit" class="btn btn-success" 
-              title="Seguir flujo lógico: Pendiente → En Progreso → Completada">
-        <i class="fas fa-play"></i> Iniciar y Completar
+              title="Avanzar estado: Creada/Planificada/Asignada → En Progreso → Completada">
+        <i class="fas fa-forward"></i> Avanzar estado
       </button>
     </form>
     {% endif %}

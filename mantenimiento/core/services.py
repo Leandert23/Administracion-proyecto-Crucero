@@ -183,35 +183,29 @@ class DashboardService:
             # Fallback para datos de tareas
             tareas_chart_data = [0, 0, 0, 0]
         
-        # Datos por tipo de crucero simplificados
+        # Datos por tipo de crucero (reales con fallback)
         try:
-            from mantenimiento.models import TipoCrucero
-            
             preventivo_counts = []
             correctivo_counts = []
             crucero_labels = []
-            
-            # Obtener datos manualmente para evitar problemas de agregación compleja
+
             for tipo_key, tipo_display in SystemConfig.TIPOS_CRUCERO:
                 try:
                     preventivo_count = TareaMantenimiento.objects.filter(
-                        tipo_crucero__tipo=tipo_key, 
-                        tipo='preventivo'
+                        tipo_crucero__tipo=tipo_key, tipo='preventivo'
                     ).count()
                     correctivo_count = TareaMantenimiento.objects.filter(
-                        tipo_crucero__tipo=tipo_key, 
-                        tipo='correctivo'
+                        tipo_crucero__tipo=tipo_key, tipo='correctivo'
                     ).count()
-                except:
+                except Exception:
                     preventivo_count = 0
                     correctivo_count = 0
-                
+
                 crucero_labels.append(tipo_display)
                 preventivo_counts.append(preventivo_count)
                 correctivo_counts.append(correctivo_count)
-                
+
         except Exception:
-            # Fallback con datos por defecto
             crucero_labels = ['Crucero Pequeño', 'Crucero Mediano', 'Crucero Grande']
             preventivo_counts = [0, 0, 0]
             correctivo_counts = [0, 0, 0]

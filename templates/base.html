@@ -12,6 +12,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jQuery (requerido por Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 CSS/JS para selects buscables -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Custom Dashboard CSS -->
     <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
     
@@ -422,6 +427,35 @@
                 bsAlert.close();
             });
         }, 5000);
+
+        // Inicializar Select2 en selects de formularios clave si están presentes
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.jQuery && jQuery().select2) {
+                const enhance = (selector) => {
+                    document.querySelectorAll(selector).forEach(el => {
+                        if (!el.classList.contains('select2-hidden-accessible')) {
+                            $(el).select2({
+                                width: '100%',
+                                placeholder: 'Buscar...',
+                                allowClear: true,
+                                language: {
+                                    noResults: () => 'Sin resultados',
+                                    searching: () => 'Buscando...'
+                                }
+                            });
+                        }
+                    });
+                };
+
+                // Soporta formularios con prefijos (asig-*, prod-*)
+                enhance('select#id_personal, select[id$="-personal"]');
+                enhance('select#id_producto, select[id$="-producto"]');
+                enhance('select#id_equipo, select[id$="-equipo"]');
+                enhance('select#id_ubicacion, select[id$="-ubicacion"]');
+                enhance('select#id_tipo_crucero, select[id$="-tipo_crucero"]');
+                enhance('select#id_asignado_a, select[id$="-asignado_a"]');
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

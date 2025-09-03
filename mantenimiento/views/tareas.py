@@ -418,3 +418,59 @@ def tarea_finalizar(request, pk):
     return redirect(next_url)
 
 
+# Flujo simplificado: Pendiente -> En Progreso -> Completada
+@require_POST
+def tarea_siguiente_estado(request, pk):
+    """Avanza la tarea al siguiente estado lógico con validaciones mínimas.
+
+    - Si está en creada/planificada/asignada => pasa a en_progreso
+    - Si está en en_progreso => pasa a completada
+    Otros estados muestran mensaje informativo.
+    """
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    next_url = request.POST.get('next') or reverse('mantenimiento:tarea_detail', kwargs={'pk': pk})
+
+    try:
+        if tarea.estado in ['creada', 'planificada', 'asignada']:
+            if not tarea.personal_asignado.exists():
+                messages.error(request, 'No se puede iniciar: asigne personal primero.')
+                return redirect(next_url)
+            if not tarea.materiales_necesarios:
+                messages.error(request, 'No se puede iniciar: faltan materiales requeridos.')
+                return redirect(next_url)
+
+            estado_anterior = tarea.estado
+            tarea.cambiar_estado('en_progreso', observaciones='Inicio rápido (flujo simplificado)')
+            for asignacion in tarea.asignaciones.filter(estado='asignado'):
+                ocupar_personal(asignacion)
+            CambioEstado.objects.create(
+                tarea=tarea,
+                estado_anterior=estado_anterior,
+                estado_nuevo='en_progreso',
+                observaciones='Inicio rápido (flujo simplificado)',
+                usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+            )
+            messages.success(request, 'Tarea iniciada (en progreso).')
+        elif tarea.estado == 'en_progreso':
+            estado_anterior = tarea.estado
+            tarea.cambiar_estado('completada', observaciones='Finalización rápida (flujo simplificado)')
+            for asignacion in tarea.asignaciones.all():
+                if asignacion.estado in ['asignado', 'en_progreso']:
+                    liberar_personal(asignacion)
+            CambioEstado.objects.create(
+                tarea=tarea,
+                estado_anterior=estado_anterior,
+                estado_nuevo='completada',
+                observaciones='Finalización rápida (flujo simplificado)',
+                usuario=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+            )
+            messages.success(request, 'Tarea completada.')
+        else:
+            messages.info(request, f'La tarea está en estado "{tarea.get_estado_display()}" y no tiene siguiente estado automático.')
+    except ValidationError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, f'No se pudo avanzar la tarea: {e}')
+
+    return redirect(next_url)
+

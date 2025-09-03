@@ -77,12 +77,12 @@
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">Editar</a>
           <a class="btn btn-sm btn-danger" href="{% url 'mantenimiento:tarea_delete' tarea.pk %}">Eliminar</a>
           {% if tarea.estado != 'completada' and tarea.estado != 'cancelada' %}
-          <form method="post" action="{% url 'mantenimiento:tarea_finalizar' tarea.pk %}" style="display:inline">
+          <form method="post" action="{% url 'mantenimiento:tarea_siguiente_estado' tarea.pk %}" style="display:inline">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
+            <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}"> 
             <button type="submit" class="btn btn-sm btn-success" 
-                    title="Seguir flujo lógico: Pendiente → En Progreso → Completada">
-              <i class="fas fa-play"></i> Iniciar y Completar
+                    title="Avanzar estado: Creada/Planificada/Asignada → En Progreso → Completada">
+              <i class="fas fa-forward"></i> Avanzar estado
             </button>
           </form>
           {% endif %}

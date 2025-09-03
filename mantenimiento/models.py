@@ -361,7 +361,7 @@ class Personal(models.Model):
     def delete(self, *args, **kwargs):
         # Verificar si tiene tareas asignadas activas
         tareas_activas = self.asignacionpersonal_set.filter(
-            tarea__estado__in=['asignada', 'en_progreso']
+            tarea__estado__in=['asignado', 'en_progreso']
         )
         if tareas_activas.exists():
             raise ValidationError(
@@ -465,8 +465,8 @@ class TareaMantenimiento(models.Model):
     def puede_cambiar_estado(self, nuevo_estado):
         """Define las transiciones válidas de estado"""
         transiciones = {
-            'creada': ['planificada', 'cancelada'],
-            'planificada': ['asignada', 'cancelada'],
+            'creada': ['planificada', 'en_progreso', 'cancelada'],
+            'planificada': ['asignada', 'en_progreso', 'cancelada'],
             'asignada': ['en_progreso', 'esperando_materiales', 'esperando_personal', 'cancelada'],
             'en_progreso': ['pausada', 'esperando_materiales', 'revision', 'completada'],
             'esperando_materiales': ['en_progreso', 'cancelada'],
