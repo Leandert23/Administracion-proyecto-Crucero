@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Estado del Viaje</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="reservas-bg">
+
+<header class="reservas-header">
+  <div>
+    <h1 class="reservas-title">{{ viaje.get_crucero_display }}</h1>
+  </div>
+  <div class="dias-info">
+    <span class="reservas-subtitle">Día {{ viaje.dia_actual }} de {{ viaje.duracion_total }}</span>
+    {% if viaje.dia_actual < viaje.duracion_total %}
+      <a href="{% url 'avanzar_dia' viaje.crucero %}">
+        <button class="btn-advance">Avanzar Día</button>
+      </a>
+    {% else %}
+      <span class="viaje-fin">🚢 El viaje ha finalizado</span>
+    {% endif %}
+  </div>
+</header>
+
+  <div class="reservas-grid">
+    <div class="reserva-card opcion">
+      <h3>Estado del día</h3>
+      <p>Actualmente en el día {{ viaje.dia_actual }}</p>
+      <p>Duración total: {{ viaje.duracion_total }} días</p>
+
+      <a href="{% url 'avanzar_dia' viaje.crucero %}">
+        <button class="btn-primary">Avanzar al día siguiente</button>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
+

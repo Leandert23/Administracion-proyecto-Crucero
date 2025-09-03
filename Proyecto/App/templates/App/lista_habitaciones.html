@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Habitaciones disponibles</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="reservas-bg">
+
+  <header class="reservas-header">
+    <div>
+      <h1 class="reservas-title">Habitaciones Disponibles</h1>
+      <p class="reservas-subtitle">Selecciona una habitación para reservar</p>
+    </div>
+  </header>
+
+  <div class="reservas-grid">
+    {% for h in habitaciones %}
+      <div class="reserva-card opcion">
+        <h3>Habitación {{ h.numero }}</h3>
+        <p>{{ h.tipo_habitacion.nombre }}</p>
+        <p>Cubierta {{ h.cubierta }} – {{ h.lado }}</p>
+        <p>Precio: ${{ h.tipo_habitacion.precio_base }}</p>
+        <a href="{% url 'reservar_habitacion' h.id %}">
+          <button>Reservar</button>
+        </a>
+      </div>
+    {% empty %}
+      <p>No hay habitaciones disponibles en este momento.</p>
+    {% endfor %}
+  </div>
+
+</body>
+</html>

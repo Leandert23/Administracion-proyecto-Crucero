@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Reservas</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="reservas-bg">
+
+  <header class="reservas-header">
+    <div>
+      <h1 class="reservas-title">Mis Reservas</h1>
+      <p class="reservas-subtitle">Crucero: {{ crucero|title }}</p>
+    </div>
+    <div class="user-info">
+      <a href="{% url 'reservas' %}">
+        <button class="btn-primary">⬅ Volver a Reservas</button>
+      </a>
+    </div>
+  </header>
+
+  <div class="reservas-grid">
+    <div class="reservas-top">
+      <h2 style="color:white;">Habitaciones</h2>
+    </div>
+    {% for r in reservas_habitaciones %}
+      <div class="reserva-card opcion">
+        <h3>Habitación {{ r.habitacion.numero }}</h3>
+        <p>{{ r.habitacion.tipo_habitacion }}</p>
+        <p>Piso {{ r.habitacion.piso }} - {{ r.habitacion.lado }}</p>
+        <p>Inicio: {{ r.fecha_inicio }} | Fin: {{ r.fecha_fin }}</p>
+        <a href="{% url 'cancelar_reserva' crucero r.id %}">
+          <button class="btn-danger">Cancelar</button>
+        </a>
+      </div>
+    {% empty %}
+      <p style="color:white;">No tienes reservas de habitaciones.</p>
+    {% endfor %}
+
+      <div class="reservas-top">
+        <h2 style="color:white;">Entretenimiento</h2>
+      </div>
+        {% for r in reservas_entretenimiento %}
+          <div class="reserva-card opcion">
+            <h3>{{ r.entretenimiento.nombre }}</h3>
+            <p>{{ r.entretenimiento.descripcion }}</p>
+            <p>Precio: ${{ r.entretenimiento.precio }}</p>
+            <p>Fecha: Día {{ r.entretenimiento.dia }}</p>
+            <a href="{% url 'cancelar_reserva' crucero r.id %}">
+              <button class="btn-danger">Cancelar</button>
+            </a>
+          </div>
+        {% empty %}
+          <p style="color:white;">No tienes reservas de entretenimiento.</p>
+        {% endfor %}
+  </div>
+
+</body>
+</html>
