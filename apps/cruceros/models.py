@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import timedelta
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 class Crucero(models.Model):
     class EstadoOperativo(models.TextChoices):
@@ -73,6 +74,23 @@ class Crucero(models.Model):
 
     def clean(self):
         errors = {}
+
+        # Unicidad case-insensitive de nombre
+        if self.nombre:
+            qs = Crucero.objects.filter(nombre__iexact=self.nombre.strip())
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                errors['nombre'] = 'Ya existe un crucero con este nombre.'
+
+        # Validar que fecha_botadura sea menor a la fecha del sistema
+        if self.fecha_botadura:
+            try:
+                fs = FechaDelSistema.objects.first()
+                if fs and self.fecha_botadura >= fs.fecha_actual:
+                    errors['fecha_botadura'] = 'Debe ser menor a la fecha actual del sistema.'
+            except Exception:
+                pass
         
         if self.fecha_botadura and self.fecha_adquisicion:
             if self.fecha_botadura > self.fecha_adquisicion:

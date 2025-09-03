@@ -1,5 +1,6 @@
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.core.exceptions import ValidationError
 from apps.almacen.models import Producto, MovimientoAlmacen, SeccionAlmacen
 
 @require_POST
@@ -26,17 +27,21 @@ def crear_producto(request):
             pass
     
     try:
+        if not nombre:
+            return JsonResponse({'success': False, 'error': 'nombre_requerido', 'mensaje': 'El nombre es obligatorio.'}, status=400)
+        if not seccion:
+            return JsonResponse({'success': False, 'error': 'seccion_invalida', 'mensaje': 'Sección no encontrada.'}, status=400)
         producto = Producto(
             nombre=nombre,
             tipo=tipo,
-            subtipo=subtipo,
+            subtipo=subtipo or None,
             cantidad_ideal=cantidad_ideal,
             medida=medida,
             seccion=seccion
         )
         producto.save()
-        
-        movimiento = MovimientoAlmacen(
+
+        movimiento = MovimientoAlmacen.objects.create(
             tipo='NEW',
             producto=producto,
             lote=None,
@@ -44,16 +49,20 @@ def crear_producto(request):
             modulo='ALMACEN',
             descripcion='Creación de producto'
         )
-        movimiento.save()
-        
+
         return JsonResponse({
             'success': True,
             'producto': {'id': producto.id, 'nombre': producto.nombre},
             'movimiento_new_id': movimiento.id
         })
-        
-    except Exception:
-        return JsonResponse({'success': False})
+    except ValidationError as ve:
+        # Estructura de errores de Django: {campo: [mensajes]}
+        detalles = {campo: errs for campo, errs in ve.message_dict.items()}
+        # Flatten para compatibilidad con manejador existente (toma un solo string por campo)
+        errores_flat = {campo: ' '.join(errs) for campo, errs in detalles.items()}
+        return JsonResponse({'success': False, 'error': 'validacion', 'detalles': detalles, 'errores': errores_flat}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'error_interno', 'mensaje': 'No se pudo crear el producto.'}, status=500)
 
 
 @require_POST
@@ -138,25 +147,20 @@ def actualizar_producto(request):
             pass
     
     try:
-        producto.nombre = nombre
-        producto.tipo = tipo
-        producto.subtipo = subtipo
-        producto.cantidad_ideal = cantidad_ideal
-        producto.medida = medida
-        
+        if not nombre:
+            return JsonResponse({'success': False, 'error': 'nombre_requerido', 'mensaje': 'El nombre es obligatorio.'}, status=400)
         if seccion:
             producto.seccion = seccion
-        
+        producto.nombre = nombre
+        producto.tipo = tipo
+        producto.subtipo = subtipo or None
+        producto.cantidad_ideal = cantidad_ideal
+        producto.medida = medida
         producto.save()
-        
-        return JsonResponse({
-            'success': True, 
-            'producto': {'id': producto.id, 'nombre': producto.nombre}
-        })
-        
+        return JsonResponse({'success': True, 'producto': {'id': producto.id, 'nombre': producto.nombre}})
+    except ValidationError as ve:
+        detalles = {campo: errs for campo, errs in ve.message_dict.items()}
+        errores_flat = {campo: ' '.join(errs) for campo, errs in detalles.items()}
+        return JsonResponse({'success': False, 'error': 'validacion', 'detalles': detalles, 'errores': errores_flat}, status=400)
     except Exception as error:
-        return JsonResponse({
-            'success': False, 
-            'error': 'error_actualizando', 
-            'detalle': str(error)
-        }, status=400)
+        return JsonResponse({'success': False, 'error': 'error_actualizando', 'detalle': str(error)}, status=400)

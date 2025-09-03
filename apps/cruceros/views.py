@@ -28,10 +28,18 @@ def _procesar_formulario_crucero(request):
     if form.is_valid():
         form.crear_crucero()
         return redirect('lista_cruceros')
-    return None
+    # Guardar datos en sesión para reconstruir el formulario tras redirect (PRG)
+    request.session['form_crucero_data'] = request.POST.dict()
+    return redirect('lista_cruceros')
 
 def _renderizar_lista_cruceros(request, cruceros, fecha_sistema):
-    form = creacionCruceroForm()
+    session_data = request.session.pop('form_crucero_data', None)
+    if session_data:
+        form = creacionCruceroForm(session_data)
+        # Forzar validación para que se generen los errores que se mostraran en la plantilla
+        form.is_valid()  # no importa si es inválido, solo pobla form.errors
+    else:
+        form = creacionCruceroForm()
     return render(request, 'cruceros/lista_cruceros.html', {
         'cruceros': cruceros,
         'form': form,

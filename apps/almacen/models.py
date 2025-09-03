@@ -109,6 +109,21 @@ class Producto(models.Model):
 
     def save(self, *args, **kwargs):
         self.limpiar()
+        # Validación de unicidad: nombre único (case-insensitive) dentro del mismo crucero
+        if self.seccion_id:
+            try:
+                crucero_id = self.seccion.almacen.crucero_id
+                if crucero_id:
+                    existe = Producto.objects.filter(
+                        seccion__almacen__crucero_id=crucero_id,
+                        nombre__iexact=self.nombre
+                    ).exclude(pk=self.pk).exists()
+                    if existe:
+                        raise ValidationError({
+                            'nombre': 'Ya existe un producto con este nombre en el crucero.'
+                        })
+            except AttributeError:
+                pass
         super().save(*args, **kwargs)
 
     def __str__(self):

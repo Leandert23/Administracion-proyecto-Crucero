@@ -4,12 +4,25 @@ from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator
 from apps.cruceros.models import Crucero, Instalacion
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
+from apps.cruceros.Services.fecha_general import obtener_fecha_actual
+from datetime import timedelta
 
 def mostrar_vista_almacen(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
     instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen')
     secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones, esta_activa=True).select_related('almacen')
-    return render(request, "almacen.html", {"crucero": crucero, 'secciones': secciones})
+    try:
+        fecha_actual = obtener_fecha_actual()
+    except Exception:
+        from datetime import date
+        fecha_actual = date.today()
+    fecha_min_caducidad = fecha_actual + timedelta(days=1)
+    return render(request, "almacen.html", {
+        "crucero": crucero,
+        'secciones': secciones,
+        'fecha_actual_sistema': fecha_actual,
+        'fecha_min_caducidad': fecha_min_caducidad
+    })
 
 @require_GET
 def obtener_ordenes_compra_por_registrar(request):

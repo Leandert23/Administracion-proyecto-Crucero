@@ -1,6 +1,7 @@
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from datetime import date
+from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from apps.almacen.models import Producto, Lote, MovimientoAlmacen, OrdenCompra
 from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
 
@@ -31,6 +32,20 @@ def registrar_lote(request):
             fecha_caducidad = date(partes[0], partes[1], partes[2])
         except (ValueError, IndexError):
             fecha_caducidad = None
+
+    # Validación: si se proporciona fecha de caducidad, debe ser estrictamente mayor a la fecha actual del sistema (no hoy ni pasado)
+    if fecha_caducidad:
+        try:
+            fecha_actual_sistema = obtener_fecha_actual()
+        except Exception:
+            # Fallback silencioso a fecha de servidor si el registro de fecha no existe
+            fecha_actual_sistema = date.today()
+        if fecha_caducidad <= fecha_actual_sistema:
+            return JsonResponse({
+                'success': False,
+                'error': 'fecha_caducidad_invalida',
+                'mensaje': 'La fecha de caducidad debe ser mayor a la fecha actual del sistema.'
+            }, status=400)
     
     orden_id = datos.get('orden_compra_id')
     orden = None

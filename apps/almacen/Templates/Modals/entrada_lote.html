@@ -27,8 +27,8 @@
                 <!-- Fecha Caducidad (opcional) -->
                 <div class="form-field" data-field="fecha_caducidad">
                     <label for="id_fecha_caducidad">Fecha de Caducidad</label>
-                    <input type="date" id="id_fecha_caducidad" name="fecha_caducidad">
-                    <small class="help-text">Opcional. Solo si aplica caducidad.</small>
+                    <input type="date" id="id_fecha_caducidad" name="fecha_caducidad" data-fecha-actual="{{ fecha_actual_sistema|date:'Y-m-d' }}" min="{{ fecha_min_caducidad|date:'Y-m-d' }}">
+                    <small class="help-text">Opcional. Debe ser a partir de {{ fecha_min_caducidad|date:'d/m/Y' }}.</small>
                     <div class="error-text" hidden></div>
                 </div>
                 <!-- Nota sobre número de lote -->

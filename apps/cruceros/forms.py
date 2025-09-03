@@ -36,6 +36,19 @@ class creacionCruceroForm(forms.Form):
     fecha_botadura = forms.DateField(label="Fecha de botadura", widget=forms.DateInput(attrs={'type': 'date'}))
     descripcion = forms.CharField(label="Descripción", required=False, widget=forms.Textarea)
 
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+        if Crucero.objects.filter(nombre__iexact=nombre).exists():
+            raise forms.ValidationError('Ya existe un crucero con este nombre.')
+        return nombre
+
+    def clean_fecha_botadura(self):
+        fecha = self.cleaned_data.get('fecha_botadura')
+        fs = FechaDelSistema.objects.first()
+        if fecha and fs and fecha >= fs.fecha_actual:
+            raise forms.ValidationError('Debe ser menor a la fecha actual del sistema.')
+        return fecha
+
     def crear_crucero(self) -> Crucero:
         if not self.is_valid():
             raise ValueError("Formulario no válido")
@@ -76,11 +89,10 @@ class CruceroEditForm(forms.ModelForm):
     class Meta:
         model = Crucero
         fields = [
-            'nombre', 'fecha_botadura', 'bandera', 'puerto_base', 'estado_operativo',
+            'nombre', 'bandera', 'puerto_base', 'estado_operativo',
             'descripcion', 'ultimo_mantenimiento', 'proximo_mantenimiento'
         ]
         widgets = {
-            'fecha_botadura': forms.DateInput(attrs={'type': 'date'}),
             'ultimo_mantenimiento': forms.DateInput(attrs={'type': 'date'}),
             'proximo_mantenimiento': forms.DateInput(attrs={'type': 'date'}),
             'descripcion': forms.Textarea(attrs={'rows': 3}),

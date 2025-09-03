@@ -31,17 +31,22 @@
     }
 
     function mostrarErrorGeneral(formulario, mensaje) {
-        let errorGeneral = formulario.querySelector('.form-error-general');
-        
-        if (!errorGeneral) {
-            errorGeneral = document.createElement('div');
-            errorGeneral.className = 'form-error-general';
-            errorGeneral.style.color = '#dc2626';
-            errorGeneral.style.margin = '0 24px 8px';
-            formulario.prepend(errorGeneral);
+        // Petición: no mostrar el banner superior con el texto genérico "Error"
+        if (!mensaje || /^error\b/i.test(mensaje.trim()) ) {
+            // Solo registrar en consola para diagnóstico, sin inyectar banner
+            try { console.warn('[FormGeneralError]', mensaje); } catch(e){}
+            return;
         }
-        
-        errorGeneral.textContent = mensaje;
+        // Si en el futuro se quisiera mostrar mensajes no genéricos, descomentar abajo:
+        // let errorGeneral = formulario.querySelector('.form-error-general');
+        // if (!errorGeneral) {
+        //     errorGeneral = document.createElement('div');
+        //     errorGeneral.className = 'form-error-general';
+        //     errorGeneral.style.color = '#dc2626';
+        //     errorGeneral.style.margin = '0 24px 8px';
+        //     formulario.prepend(errorGeneral);
+        // }
+        // errorGeneral.textContent = mensaje;
     }
 
     function aplicarEstilosEnfoque(formulario) {
@@ -82,20 +87,11 @@
         // Refresca el historial de movimientos si el modal está abierto
         function recargarHistorial() {
             try {
-                // Verificar presencia y visibilidad del modal de historial
-                const modalHist = document.getElementById('modalHistorialMovimientos');
-                if (!modalHist) return;
-                const visible = modalHist.style.display !== 'none' && modalHist.getAttribute('aria-hidden') !== 'true';
-                if (!visible) return; // Solo recargar si está abierto
-
                 const gestor = window.GestorHistorial;
                 if (!gestor || typeof gestor.cargarPagina !== 'function') return;
-
                 const paginaActual = gestor.paginaActual || 1;
-                // Pequeño delay para asegurar que el backend haya persistido el movimiento
-                setTimeout(() => {
-                    try { gestor.cargarPagina(paginaActual); } catch(e){}
-                }, 220);
+                // Actualiza siempre (aunque el modal esté cerrado) para que al abrirlo esté fresco
+                setTimeout(() => { try { gestor.cargarPagina(paginaActual); } catch(e){} }, 220);
             } catch (e) {}
         }
 
@@ -210,11 +206,33 @@
                 },
                 
                 validar(contexto) {
-                    if (!obtenerElementoPorId('id_producto') || !obtenerElementoPorId('id_producto').value) {
+                    let valido = true;
+                    const campoProducto = obtenerElementoPorId('id_producto');
+                    if (!campoProducto || !campoProducto.value) {
                         mostrarError(contexto.formulario, 'producto', 'Selecciona un producto de la lista');
-                        return false;
+                        valido = false;
                     }
-                    return true;
+                    const campoFecha = obtenerElementoPorId('id_fecha_caducidad');
+                    if (campoFecha && campoFecha.value) {
+                        const partes = campoFecha.value.split('-');
+                        let fecha = null;
+                        if (partes.length === 3) {
+                            fecha = new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
+                        }
+                        if (fecha) {
+                            // Usar min del input (que corresponde a mañana) como límite inferior
+                            const minAttr = campoFecha.getAttribute('min');
+                            if (minAttr && /^\d{4}-\d{2}-\d{2}$/.test(minAttr)) {
+                                const m = minAttr.split('-');
+                                const fechaMin = new Date(parseInt(m[0],10), parseInt(m[1],10)-1, parseInt(m[2],10));
+                                if (fecha < fechaMin) {
+                                    mostrarError(contexto.formulario, 'fecha_caducidad', 'Debe ser a partir de la fecha mínima permitida');
+                                    valido = false;
+                                }
+                            }
+                        }
+                    }
+                    return valido;
                 },
                 
                 exito(contexto) {
@@ -534,7 +552,8 @@
                     operacion_invalida: 'cantidad_productos',
                     lote_requerido: 'lote',
                     lote_no_encontrado: 'lote',
-                    cantidad_excede: 'cantidad_mermada'
+                    cantidad_excede: 'cantidad_mermada',
+                    fecha_caducidad_invalida: 'fecha_caducidad'
                 };
                 
                 const campo = mapeoErrores[datos.error];
@@ -547,9 +566,13 @@
             
             if (datos.errores) {
                 Object.entries(datos.errores).forEach(([campo, mensaje]) => {
-                    if (campo !== '__all__') {
-                        mostrarError(formulario, campo, mensaje);
+                    if (campo === '__all__') return;
+                    // Normalizar campo nombre (posible backend 'nombre')
+                    if (campo === 'nombre') {
+                        mostrarError(formulario, 'nombre', mensaje || 'Nombre inválido');
+                        return;
                     }
+                    mostrarError(formulario, campo, mensaje);
                 });
             }
         },
