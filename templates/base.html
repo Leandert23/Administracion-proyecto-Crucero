@@ -139,7 +139,7 @@
                     <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Stock</a>
                     <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
                     <a class="subnav-link {% if request.resolver_match.url_name == 'maintenance' %}active{% endif %}" href="{% url 'restaurant:maintenance' %}">Mantenimiento</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'finances' %}active{% endif %}" href="{% url 'restaurant:finances' %}">Finanzas</a>
+                    <!-- Finanzas eliminado -->
                     <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
                     <a class="subnav-link {% if request.resolver_match.url_name == 'records' %}active{% endif %}" href="{% url 'restaurant:records' %}">Registros</a>
                 </nav>

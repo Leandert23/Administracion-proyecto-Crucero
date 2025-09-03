@@ -15,11 +15,10 @@ class Crucero(models.Model):
 
 class Restaurante(models.Model):
     RESTAURANT_TYPES = [
-        ('buffet', 'Buffet Principal'),
-        ('gourmet', 'Restaurante Gourmet'),
-        ('casual', 'Restaurante Casual'),
+        ('buffet', 'Buffet'),
+        ('principal', 'Restaurante Principal'),
+        ('tematico', 'Restaurante Temático'),
         ('roomservice', 'Room Service'),
-        ('bar', 'Bar/Snacks'),
     ]
     
     name = models.CharField(max_length=100, verbose_name="Nombre del Restaurante")
@@ -58,13 +57,15 @@ class MenuItem(models.Model):
 
 class Employee(models.Model):
     POSITIONS = [
-        ('chef', 'Chef'),
-        ('sous-chef', 'Sous Chef'),
-        ('camarero', 'Camarero'),
+        ('executive', 'Chef Ejecutivo'),
+        ('chef-partie', 'Jefe de estación'),
+        ('maitre-d', 'Jefe de comedor'),
         ('bartender', 'Bartender'),
-        ('supervisor', 'Supervisor'),
+        ('pastelero', 'Pastelero'),
         ('cocinero', 'Cocinero'),
-        ('ayudante', 'Ayudante de Cocina'),
+        ('auxiliar', 'Auxiliares de cocina'),
+        ('mesero', 'Mesero'),
+        ('jefe-mesero', 'Jefe de meseros'),
     ]
     
     SHIFTS = [

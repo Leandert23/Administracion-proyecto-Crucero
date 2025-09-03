@@ -86,7 +86,7 @@
                                         <div class="stat">
                                             <i class="fas fa-dollar-sign"></i>
                                             <span>
-                                                ${% for record in records %}
+                                                {% for record in records %}
                                                     {% if not record.is_included %}
                                                         {% if forloop.first %}{{ record.total_price|floatformat:2 }}{% else %}{{ record.total_price|add:forloop.parentloop.counter0|floatformat:2 }}{% endif %}
                                                     {% endif %}
@@ -137,34 +137,3 @@
 @media (max-width:768px){ .records-grid{grid-template-columns:1fr} .summary-stats{flex-direction:column;text-align:center} .record-info{flex-direction:column;gap:10px;text-align:center} .record-details{flex-direction:column;gap:5px;text-align:center} }
 </style>
 {% endblock %}
-create_file('crucero_restaurant/templates/restaurant/records.html', records_template)
-
-# Create requirements.txt
-requirements_txt = '''Django>=4.2.0,<5.0.0
-Pillow>=9.0.0
-python-decouple>=3.6
-'''
-
-create_file('crucero_restaurant/requirements.txt', requirements_txt)
-
-# Create README.md
-readme_md = '''# Sistema de Gestión de Restaurante - Crucero
-
-Sistema completo de gestión para restaurantes de cruceros desarrollado con Django.
-
-## Características
-
-- **Dashboard**: Vista general con estadísticas importantes
-- **Stock/Inventario**: Gestión completa del inventario con alertas de stock bajo
-- **Empleados**: Administración de personal con turnos y cargos
-- **Mantenimiento**: Sistema de reportes y seguimiento de problemas
-- **Finanzas**: Seguimiento de ingresos por items no incluidos
-- **Consumo**: Registro de consumos diarios por crucero
-- **Registros**: Historial completo de consumos y estadísticas
-
-## Instalación
-
-1. Crear entorno virtual:
-```bash
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\\Scripts\\activate

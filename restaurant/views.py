@@ -64,27 +64,6 @@ def maintenance_view(request):
     }
     return render(request, 'restaurant/maintenance.html', context)
 
-def finances_view(request):
-    """Vista para finanzas del restaurante"""
-    selected_cruise = request.GET.get('cruise', '')
-    
-    # Obtener registros de consumo no incluidos (que generan ingresos)
-    consumption_records = ConsumptionRecord.objects.filter(is_included=False)
-    if selected_cruise:
-        consumption_records = consumption_records.filter(menu_item__restaurant__crucero_id=selected_cruise)
-    
-    total_revenue = consumption_records.aggregate(Sum('total_price'))['total_price__sum'] or 0
-    
-    cruceros = Crucero.objects.all()
-    
-    context = {
-        'consumption_records': consumption_records,
-        'total_revenue': total_revenue,
-        'cruceros': cruceros,
-        'selected_cruise': selected_cruise,
-    }
-    return render(request, 'restaurant/finances.html', context)
-
 def consumption_view(request):
     """Vista para registro de consumo"""
     cruceros = Crucero.objects.all()
