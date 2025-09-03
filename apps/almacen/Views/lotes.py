@@ -1,7 +1,7 @@
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from datetime import date
-from apps.almacen.models import Producto, Lote, MovimientoAlmacen
+from apps.almacen.models import Producto, Lote, MovimientoAlmacen, OrdenCompra
 from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
 
 @require_POST
@@ -32,6 +32,14 @@ def registrar_lote(request):
         except (ValueError, IndexError):
             fecha_caducidad = None
     
+    orden_id = datos.get('orden_compra_id')
+    orden = None
+    if orden_id:
+        try:
+            orden = OrdenCompra.objects.get(pk=orden_id, producto=producto)
+        except OrdenCompra.DoesNotExist:
+            orden = None
+
     try:
         lote = Lote(
             producto=producto,
@@ -47,13 +55,27 @@ def registrar_lote(request):
             cantidad=cantidad,
             modulo='ALMACEN'
         )
-        
+
+        comparacion = None
+        if orden and orden.estado == 'POR_REGISTRAR':
+            # Comparar cantidades
+            if cantidad < orden.cantidad_productos:
+                print("Se debe devolucion")
+                comparacion = 'PARCIAL'
+            else:
+                comparacion = 'COMPLETA'
+            # Actualizar estado a aprobada/registrada (no existe estado final, reutilizamos APROBADA)
+            orden.estado = 'APROBADA'
+            orden.save(update_fields=['estado'])
+
         return JsonResponse({
-            'success': True, 
-            'lote_id': lote.id, 
-            'movimiento_id': movimiento.id
+            'success': True,
+            'lote_id': lote.id,
+            'movimiento_id': movimiento.id,
+            'orden_id': orden.id if orden else None,
+            'comparacion': comparacion
         })
-        
+
     except Exception as e:
         try:
             lote.delete()

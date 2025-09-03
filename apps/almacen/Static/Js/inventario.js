@@ -247,7 +247,7 @@
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
                     if (!id) return;
-                    if (window.GestorLotes) {
+                    if (window.AlmacenLotes) {
                         window.GestorLotes.abrir(id);
                     }
                 });

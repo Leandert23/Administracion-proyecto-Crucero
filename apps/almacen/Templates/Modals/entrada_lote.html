@@ -7,6 +7,7 @@
         <div class="modal-body">
             <form id="form-crear-lote" class="form-grid" method="post" action="#">
                 {% csrf_token %}
+                <input type="hidden" name="orden_compra_id" id="id_orden_compra_id" />
                 <!-- Producto (componente reutilizable) -->
                 {% include 'partials/input_busqueda_producto.html' with input_text_id='buscar_producto_lote' hidden_input_id='id_producto' lista_id='lista-resultados-producto' hidden_input_name='producto' field_name='producto' label='Producto' placeholder='Escribe para buscar...' help_text='Escribe al menos 2 letras y selecciona un producto de la lista.' %}
                 <!-- Cantidad de Productos -->

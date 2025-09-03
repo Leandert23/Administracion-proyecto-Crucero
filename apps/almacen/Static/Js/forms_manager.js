@@ -223,6 +223,7 @@
                     cerrarModalClave('lote');
                     recargarInventario();
                     recargarHistorial();
+                    if(window.cargarPaginaOrdenes) { try { window.cargarPaginaOrdenes(1); } catch(e){} }
                 },
                 
                 reiniciar(contexto) {

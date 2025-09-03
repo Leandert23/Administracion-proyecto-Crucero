@@ -14,7 +14,7 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
 <table class="historial-table">
     <thead>
         <tr>
-            <th class="col-fecha"><span>Fecha</span><i class="fas fa-sort"></i></th>
+            <th class="col-fecha"><span>Fecha</span></th>
             <th class="col-tipo"><span>Tipo</span></th>
             <th class="col-cantidad"><span>Cantidad</span></th>
             <th class="col-producto"><span>Producto / Clasificación</span></th>
@@ -30,15 +30,15 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
                     <td>{{ mov.fecha|date:'d/m/Y' }}</td>
                     <td>
                         {% if mov.tipo == 'IN' %}
-                            <span class="movimiento-badge entrada"><i class="fas fa-arrow-down"></i> Entrada</span>
+                            <span class="movimiento-badge entrada">Entrada</span>
                         {% elif mov.tipo == 'OUT' %}
-                            <span class="movimiento-badge salida"><i class="fas fa-arrow-up"></i> Salida</span>
+                            <span class="movimiento-badge salida">Salida</span>
                         {% elif mov.tipo == 'NEW' %}
-                            <span class="movimiento-badge creado"><i class="fas fa-plus-circle"></i> Creado</span>
+                            <span class="movimiento-badge creado">Creado</span>
                         {% elif mov.tipo == 'MERMA' %}
-                            <span class="movimiento-badge merma"><i class="fas fa-exclamation-circle"></i> Merma</span>
+                            <span class="movimiento-badge merma">Merma</span>
                         {% else %}
-                            <span class="movimiento-badge otro"><i class="fas fa-circle"></i> {{ mov.get_tipo_display|default:mov.tipo }}</span>
+                            <span class="movimiento-badge otro">{{ mov.get_tipo_display|default:mov.tipo }}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -50,7 +50,7 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
                     </td>
                     <td>
                         <div class="product">
-                            <div class="product-img-placeholder"><i class="fas fa-box"></i></div>
+                            <div class="product-img-placeholder"></div>
                             <div class="product-info">
                                 <div class="product-name">{{ mov.producto.nombre }}</div>
                                 <div class="product-sku">
@@ -85,7 +85,7 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
         {% else %}
             <tr class="sin-movimientos">
                 <td colspan="7" style="text-align:center; padding:28px; font-size:.85rem; color:#64748b;">
-                    <i class="fas fa-info-circle"></i> No hay movimientos registrados todavía.
+                    No hay movimientos registrados todavía.
                 </td>
             </tr>
         {% endif %}
@@ -94,15 +94,15 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
 {% if page %}
     <div class="table-footer historial-pagination" data-total="{{ page.paginator.count }}">
         <div class="summary">
-            <i class="fas fa-info-circle"></i>
+            <!-- icon removed -->
             Página {{ page.number }} de {{ page.paginator.num_pages }} · {{ page.paginator.count }} movimientos
         </div>
         {% if page.paginator.num_pages > 1 %}
             <nav class="pagination" aria-label="Paginación historial">
                 {% if page.has_previous %}
-                    <button class="pagination-btn" data-page="{{ page.previous_page_number }}" aria-label="Página anterior"><i class="fas fa-chevron-left"></i></button>
+                    <button class="pagination-btn" data-page="{{ page.previous_page_number }}" aria-label="Página anterior">«</button>
                 {% else %}
-                    <button class="pagination-btn" disabled aria-disabled="true"><i class="fas fa-chevron-left"></i></button>
+                    <button class="pagination-btn" disabled aria-disabled="true">«</button>
                 {% endif %}
                 {% for num in page.paginator.page_range %}
                     {% if num == page.number %}
@@ -114,9 +114,9 @@ Personalización: Para agregar filtros adicionales, añadir data-attributes al <
                     {% endif %}
                 {% endfor %}
                 {% if page.has_next %}
-                    <button class="pagination-btn" data-page="{{ page.next_page_number }}" aria-label="Página siguiente"><i class="fas fa-chevron-right"></i></button>
+                    <button class="pagination-btn" data-page="{{ page.next_page_number }}" aria-label="Página siguiente">»</button>
                 {% else %}
-                    <button class="pagination-btn" disabled aria-disabled="true"><i class="fas fa-chevron-right"></i></button>
+                    <button class="pagination-btn" disabled aria-disabled="true">»</button>
                 {% endif %}
             </nav>
         {% endif %}

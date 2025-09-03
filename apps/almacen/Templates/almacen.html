@@ -124,27 +124,6 @@
                             <p class="quick-card__text">Maneja el inventario general</p>
                         </div>
                     </div>
-                    <div class="quick-card" id="historial-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Historial de Movimientos</h3>
-                            <p class="quick-card__text">Ver historial de entradas y salidas</p>
-                        </div>
-                    </div>
-                    <div class="quick-card" id="ordenes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Ordenes de Compra</h3>
-                            <p class="quick-card__text">Ver ordenes de compra en camino y completadas</p>
-                        </div>
-                    </div>
-                    <div class="quick-card" id="reportes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Reportes de Mermas</h3>
-                            <p class="quick-card__text">Reportar algún daño a productos</p>
-                        </div>
-                    </div>
                     <div class="quick-card" id="entrada-card">
                         <div class="quick-card__icon" aria-hidden="true">H</div>
                         <div class="quick-card__body">
@@ -159,7 +138,25 @@
                             <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
                         </div>
                     </div>
+                    <div class="quick-card" id="historial-card">
+                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Historial de Movimientos</h3>
+                            <p class="quick-card__text">Ver historial de entradas y salidas</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="reportes-card">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Reportes de Mermas</h3>
+                            <p class="quick-card__text">Reportar algún daño a productos</p>
+                        </div>
+                    </div>
                 </div> <!-- quick-cards -->
+                <div id="contenedor-ordenes-compra" class="inventory-container no-shadow" style="margin-top:10px;">
+                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">Lotes Pendientes por Registrar</h3>
+                    <div class="table-container" id="tabla-ordenes-compra-wrapper"></div>
+                </div>
             </div> <!-- dashboard-content -->
         </main>
     </div> <!-- dashboard-container -->

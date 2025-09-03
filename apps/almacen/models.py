@@ -166,7 +166,8 @@ class MovimientoAlmacen(models.Model):
         ("RESERVACIONES", "Reservaciones"),
         ("ALMACEN", "Almacén"),
         ("SERVICIO_MEDICO", "Servicio Médico"),
-        ("ADMINISTRACION", "Administración")
+        ("ADMINISTRACION", "Administración"),
+        ("FUERA_BARCO", "Fuera del Barco")
     ]
     
     tipo = models.CharField(max_length=20, choices=TIPOS_MOVIMIENTO)
@@ -180,3 +181,27 @@ class MovimientoAlmacen(models.Model):
     class Meta:
         verbose_name = "Movimiento de Producto"
         verbose_name_plural = "Movimientos de Producto"
+
+#Ejemplo del modelo de compras. Esto se tiene que eliminar en la integración
+class OrdenCompra(models.Model):
+    ESTADOS_ORDEN = [
+        ("PENDIENTE", "Pendiente"),
+        ("APROBADA", "Aprobada"),
+        ("POR_REGISTRAR", "Por registrar"),
+    ]
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="ordenes_compra")
+    cantidad_productos = models.PositiveIntegerField()
+    precio_lote = models.PositiveIntegerField(help_text="Precio total esperado del lote")
+    estado = models.CharField(max_length=15, choices=ESTADOS_ORDEN, default="PENDIENTE")
+    fecha_creacion = models.DateField(default=obtener_fecha_actual)
+
+    class Meta:
+        verbose_name = "Orden de Compra"
+        verbose_name_plural = "Órdenes de Compra"
+        ordering = ["-fecha_creacion", "-id"]
+
+    def __str__(self):
+        return f"OC#{self.id or ''} - {self.producto.nombre} x {self.cantidad_productos} ({self.get_estado_display()})"
+        
+    

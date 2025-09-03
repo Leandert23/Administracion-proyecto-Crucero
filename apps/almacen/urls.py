@@ -19,4 +19,6 @@ urlpatterns = [
     path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
     
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma")
+    ,path("ordenes-compra/por-registrar/", general.obtener_ordenes_compra_por_registrar, name="ordenes_compra_por_registrar")
+    ,path("ordenes-compra/detalle/<int:orden_id>/", general.detalle_orden_compra, name="orden_compra_detalle")
 ]
