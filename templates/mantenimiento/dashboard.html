@@ -377,6 +377,104 @@
         </div>
     </div>
 
+    <!-- Incidentes: pendientes y recientes -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Incidentes Pendientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if incidentes_pendientes_list %}
+                        <div class="list-group list-group-flush">
+                            {% for inc in incidentes_pendientes_list %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ inc.titulo }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ inc.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                            {% if inc.equipo %} · <i class="fas fa-cogs me-1"></i>{{ inc.equipo.codigo }}{% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-danger">{{ inc.get_severidad_display }}</span>
+                                        <br>
+                                        <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-danger btn-sm">
+                                Ver todos los incidentes
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay incidentes pendientes</p>
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-plus"></i> Reportar Incidente
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Incidentes Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if incidentes_recientes %}
+                        <div class="list-group list-group-flush">
+                            {% for inc in incidentes_recientes %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ inc.titulo }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ inc.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                            {% if inc.equipo %} · <i class="fas fa-cogs me-1"></i>{{ inc.equipo.codigo }}{% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if inc.resuelto %}
+                                            <span class="badge bg-success">Resuelto</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        {% endif %}
+                                        <br>
+                                        <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-secondary btn-sm">
+                                Ver historial de incidentes
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox text-muted fa-3x mb-3"></i>
+                            <p class="text-muted">Sin incidentes recientes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Acciones rápidas finales -->
     <div class="row mb-4">
         <div class="col-12">

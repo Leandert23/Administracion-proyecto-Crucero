@@ -107,11 +107,9 @@ class DashboardService:
             except:
                 vencidas = 0
             
-            # Contar incidentes pendientes
+            # Contar incidentes pendientes (no resueltos)
             try:
-                incidentes_pendientes = ReporteIncidente.objects.filter(
-                    estado__in=['reportado', 'en_investigacion', 'en_proceso']
-                ).count()
+                incidentes_pendientes = ReporteIncidente.objects.filter(resuelto=False).count()
             except:
                 incidentes_pendientes = 0
             
@@ -228,11 +226,23 @@ class DashboardService:
     def _get_additional_data():
         """Obtiene datos adicionales para el dashboard"""
         try:
-            # Datos simplificados para evitar errores de comparación
+            from mantenimiento.models import ReporteIncidente
+            # Listas de incidentes para mostrar en el dashboard
+            incidentes_recientes = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .order_by('-fecha_reporte')[:5]
+            )
+            incidentes_pendientes_list = list(
+                ReporteIncidente.objects.select_related('ubicacion', 'equipo')
+                .filter(resuelto=False)
+                .order_by('-fecha_reporte')[:5]
+            )
             return {
                 'proximas_vencer': [],
                 'equipos_revision_proxima': [],
                 'piscinas_con_alerta': 0,
+                'incidentes_recientes': incidentes_recientes,
+                'incidentes_pendientes_list': incidentes_pendientes_list,
                 'crucero_progress': [
                     {'label': 'Crucero Pequeño', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-info'},
                     {'label': 'Crucero Mediano', 'total': 0, 'preventivo': 0, 'correctivo': 0, 'percent': 0, 'color': 'bg-primary'},
@@ -251,6 +261,8 @@ class DashboardService:
                 'proximas_vencer': [],
                 'equipos_revision_proxima': [],
                 'piscinas_con_alerta': 0,
+                'incidentes_recientes': [],
+                'incidentes_pendientes_list': [],
                 'crucero_progress': [],
                 'crucero_segments': [],
                 'now': timezone.now()

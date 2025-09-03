@@ -48,7 +48,7 @@ def dashboard_update_data(request):
             productos_stock_bajo = 0
             
         try:
-            incidentes_pendientes = ReporteIncidente.objects.filter(estado__in=['reportado', 'en_investigacion', 'en_proceso']).count()
+            incidentes_pendientes = ReporteIncidente.objects.filter(resuelto=False).count()
         except:
             incidentes_pendientes = 0
         
