@@ -10,33 +10,36 @@ body {
   background: #f8fafc;
   color: #0f172a;
   min-height: 100vh;
-  padding: 20px;
+  padding: 0;
 }
 
+/* Contenedor principal similar al dashboard */
 .container {
   max-width: 1100px;
-  margin: 0 auto;
+  margin: 40px auto 0 auto;
   background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgb(0 0 0 / 0.1);
-  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgb(30 41 59 / 0.10);
+  padding: 36px 48px;
   position: relative;
 }
 
-/* Boton volver */
+/* Botón volver estilo dashboard */
 .btn-return {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 32px;
   background: #2563eb;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
+  border-radius: 8px;
+  padding: 10px 20px;
   font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
   z-index: 10;
+  box-shadow: 0 2px 8px rgb(59 130 246 / 0.10);
 }
 .btn-return:hover {
   background: #1e40af;
@@ -44,40 +47,45 @@ body {
 
 h1 {
   font-weight: 700;
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
   color: #1e293b;
+  letter-spacing: -1px;
 }
 
 h2 {
   font-weight: 600;
   color: #334155;
-  margin-bottom: 1rem;
-  margin-top: 2rem;
+  margin-bottom: 1.2rem;
+  margin-top: 2.2rem;
   border-bottom: 2px solid #3b82f6;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
+  font-size: 1.3rem;
+  letter-spacing: -0.5px;
 }
 
 h3 {
   font-weight: 600;
   color: #334155;
   margin-bottom: 1rem;
+  font-size: 1.1rem;
 }
 
 /* Secciones en recuadro claros */
 .box-section {
   background: #e0e7ff;
   border: 1.5px solid #3b82f6;
-  border-radius: 8px;
-  padding: 20px 25px;
-  margin-bottom: 2rem;
+  border-radius: 10px;
+  padding: 24px 28px;
+  margin-bottom: 2.2rem;
+  box-shadow: 0 2px 8px rgb(59 130 246 / 0.08);
 }
 
 /* Formulario simple */
 .form-simple {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
+  gap: 1.5rem;
   align-items: center;
 }
 
@@ -93,29 +101,29 @@ h3 {
 }
 
 .form-row {
-  margin-bottom: 1rem;
-  max-width: 320px;
+  margin-bottom: 1.2rem;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
 }
 
 .form-row label {
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: #334155;
 }
 
 input[type='text'],
 input[type='number'],
 select {
-  padding: 10px 12px;
-  border: 1.5px solid #0f172a;
+  padding: 12px 14px;
+  border: 1.5px solid #cbd5e1;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #f1f5f9;
   color: #1e293b;
   font-weight: 600;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s, background 0.3s;
 }
 
 input[type='text']:focus,
@@ -123,21 +131,23 @@ input[type='number']:focus,
 select:focus {
   outline: none;
   border-color: #2563eb;
-  background: #eff6ff;
+  background: #e0e7ff;
 }
 
-/* Botones uniformes */
+/* Botones uniformes estilo dashboard */
 .btn {
   background-color: #3b82f6;
   color: white;
   border: none;
-  padding: 12px 28px;
+  padding: 13px 32px;
   border-radius: 8px;
   font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
   align-self: flex-start;
+  box-shadow: 0 2px 8px rgb(59 130 246 / 0.10);
 }
 
 .btn:hover {
@@ -145,30 +155,30 @@ select:focus {
 }
 
 .top-controls {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 /* Area filtro */
 .filter-block {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-top: 1.7rem;
+  margin-bottom: 1.7rem;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-weight: 600;
   color: #334155;
 }
 
-/* Tablas con fondo blanco y borde azul */
+/* Tablas con fondo blanco y borde azul, estilo dashboard */
 .table-box {
   width: 100%;
   border-collapse: collapse;
   background: #ffffff;
   border: 1.5px solid #3b82f6;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 3px 8px rgb(59 130 246 / 0.2);
-  margin-bottom: 20px;
+  box-shadow: 0 3px 12px rgb(59 130 246 / 0.10);
+  margin-bottom: 24px;
 }
 
 thead {
@@ -176,11 +186,12 @@ thead {
 }
 
 thead th {
-  padding: 12px 15px;
+  padding: 14px 18px;
   font-weight: 700;
   color: white;
   text-align: left;
   border-right: 1px solid #3b82f6;
+  font-size: 1rem;
 }
 
 thead th:last-child {
@@ -188,9 +199,10 @@ thead th:last-child {
 }
 
 tbody td {
-  padding: 10px 15px;
+  padding: 12px 18px;
   border-bottom: 1px solid #dbeafe;
   color: #1e293b;
+  font-size: 1rem;
 }
 
 tbody tr:last-child td {
@@ -199,13 +211,14 @@ tbody tr:last-child td {
 
 .editable-salario,
 .editable-puesto {
-  background-color: #eff6ff;
+  background-color: #e0e7ff;
   color: #1e293b;
   border: 1px dashed transparent;
   border-radius: 6px;
   cursor: text;
-  padding: 3px 6px;
+  padding: 4px 8px;
   min-width: 60px;
+  font-size: 1rem;
 }
 
 .editable-salario:focus,
@@ -219,15 +232,16 @@ tbody tr:last-child td {
 button.edit-btn,
 button.delete-btn,
 button.hire-btn {
-  padding: 7px 14px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 7px;
   font-weight: 700;
   border: none;
   cursor: pointer;
-  transition: background-color 0.25s ease;
-  font-size: 0.9rem;
+  transition: background-color 0.25s;
+  font-size: 1rem;
   user-select: none;
-  margin-left: 6px;
+  margin-left: 8px;
+  box-shadow: 0 1px 4px rgb(59 130 246 / 0.10);
 }
 
 button.edit-btn {
@@ -262,22 +276,113 @@ button.hire-btn:hover {
   color: #1e293b;
   font-size: 1.1rem;
   text-align: right;
-  margin-top: 0.8rem;
+  margin-top: 1rem;
 }
 
 .empty-row {
   font-style: italic;
   color: #64748b;
   text-align: center;
-  padding: 1rem 0;
+  padding: 1.2rem 0;
 }
 
-/* Responsivo */
+/* Responsive estilo dashboard */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 98vw;
+    padding: 24px 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 16px 4vw;
+  }
+  .box-section {
+    padding: 12px 4vw;
+  }
+  .btn-return {
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+  .table-box {
+    font-size: 0.97rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 8px 2vw;
+    margin-top: 10px;
+  }
   .form-simple {
     flex-direction: column;
+    gap: 0.8rem;
+    align-items: stretch;
   }
   .form-row {
     max-width: 100%;
+  }
+  .btn {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 1rem;
+  }
+  .table-box,
+  .table-box th,
+  .table-box td {
+    font-size: 0.95rem;
+    padding: 8px 6px;
+  }
+  h1 {
+    font-size: 1.4rem;
+  }
+  h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 2vw 1vw;
+  }
+  .box-section {
+    padding: 8px 2vw;
+  }
+  .btn {
+    font-size: 0.95rem;
+  }
+  .btn-return {
+    font-size: 0.9rem;
+    padding: 7px 10px;
+  }
+  h1 {
+    font-size: 1.1rem;
+  }
+  h2 {
+    font-size: 1rem;
+  }
+  .table-box th,
+  .table-box td {
+    font-size: 0.9rem;
+    padding: 6px 2px;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding: 1vw 0.5vw;
+  }
+  h1 {
+    font-size: 1rem;
+  }
+  h2 {
+    font-size: 0.95rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px 0;
   }
 }
