@@ -160,7 +160,8 @@
 /* 8. Modales Crear (Producto & Lote) ---------------------------------- */
 #modalCrearProducto,
 #modalCrearLote,
-#modalCrearSalida {
+#modalCrearSalida,
+#modalCrearMerma {
     position: fixed;
     inset: 0;
     z-index: 1400;
@@ -172,11 +173,13 @@
 }
 #modalCrearProducto[aria-hidden="false"],
 #modalCrearLote[aria-hidden="false"],
-#modalCrearSalida[aria-hidden="false"] { display: flex; }
+#modalCrearSalida[aria-hidden="false"],
+#modalCrearMerma[aria-hidden="false"] { display: flex; }
 
 #modalCrearProducto .modal-container,
 #modalCrearLote .modal-container,
-#modalCrearSalida .modal-container {
+#modalCrearSalida .modal-container,
+#modalCrearMerma .modal-container {
     width: 100%;
     max-width: 660px;
     margin: auto;
@@ -189,7 +192,8 @@
 
 #modalCrearProducto .modal-header,
 #modalCrearLote .modal-header,
-#modalCrearSalida .modal-header {
+#modalCrearSalida .modal-header,
+#modalCrearMerma .modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -198,11 +202,13 @@
 
 #modalCrearProducto .modal-header h2,
 #modalCrearLote   .modal-header h2,
-#modalCrearSalida .modal-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
+#modalCrearSalida .modal-header h2,
+#modalCrearMerma .modal-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
 
 #modalCrearProducto .close-btn,
 #modalCrearLote .close-btn,
-#modalCrearSalida .close-btn {
+#modalCrearSalida .close-btn,
+#modalCrearMerma .close-btn {
     background: none;
     border: 0;
     font-size: 1.5rem;
@@ -216,17 +222,20 @@
 
 #modalCrearProducto .close-btn:hover,
 #modalCrearLote .close-btn:hover,
-#modalCrearSalida .close-btn:hover { background: #f1f5f9; color: #334155; }
+#modalCrearSalida .close-btn:hover,
+#modalCrearMerma .close-btn:hover { background: #f1f5f9; color: #334155; }
 
 @keyframes modalIn { from { opacity:0; transform: translateY(22px);} to { opacity:1; transform: translateY(0);} }
 
 @media (max-width:640px){
     #modalCrearProducto,
     #modalCrearLote,
-    #modalCrearSalida { padding: 32px 12px; }
+    #modalCrearSalida,
+    #modalCrearMerma { padding: 32px 12px; }
     #modalCrearProducto .modal-container,
     #modalCrearLote .modal-container,
-    #modalCrearSalida .modal-container { border-radius: 20px; }
+    #modalCrearSalida .modal-container,
+    #modalCrearMerma .modal-container { border-radius: 20px; }
 }
 
 /* 9. Buscador dinámico de productos (entrada de lote) --------------- */

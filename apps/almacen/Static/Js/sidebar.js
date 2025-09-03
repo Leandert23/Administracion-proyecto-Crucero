@@ -23,14 +23,11 @@
         }
     };
 
-    // Inicializar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', ()=> GestorBarraLateral.init());
 
-    // Funciones globales que el HTML ya usa
     window.toggleSidebar = () => GestorBarraLateral.toggleSidebar();
     window.toggleMobileSidebar = () => GestorBarraLateral.toggleMobileSidebar();
     window.closeMobileSidebar = () => GestorBarraLateral.closeMobileSidebar();
 
-    // Exponer objeto por si se necesita directamente
     window.GestorBarraLateral = GestorBarraLateral;
 })();

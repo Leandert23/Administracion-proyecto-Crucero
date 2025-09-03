@@ -1,6 +1,6 @@
 (function(){
     function iniciarAplicacion(){
-        if(window.GestorModales && typeof GestorModales.init === 'function') GestorModales.init();
+        if(window.GestorModales && typeof GestorModales.inicializar === 'function') GestorModales.inicializar();
         if(window.ProductFormManager && typeof ProductFormManager.init === 'function') ProductFormManager.init();
         if(window.InventarioManager){
             if(typeof InventarioManager.initializeLiveSearch === 'function') InventarioManager.initializeLiveSearch();

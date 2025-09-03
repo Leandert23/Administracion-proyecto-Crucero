@@ -1,3 +1,18 @@
+{% comment %}
+Componente: botones_paginacion.html
+Uso: Renderiza el resumen y los controles de paginación del inventario.
+Requisitos de contexto:
+    - page_obj: instancia de Page (Paginator) con métodos start_index, end_index, paginator, has_previous, has_next.
+Dependencias JS:
+    - Función global cargarPagina(numero) que realice la petición AJAX y vuelva a renderizar la tabla + este partial.
+Integración típica:
+    {% include 'Partials/botones_paginacion.html' %}
+Notas:
+    - Limita visualmente el rango de páginas mostrado alrededor de la página actual (±2).
+    - Deshabilita botones cuando no hay anterior/siguiente.
+Personalización:
+    - Si cambias el nombre de la función cargarPagina ajusta los onclick.
+{% endcomment %}
 <div class="summary" id="inventario-summary">
     {% if page_obj %}
         Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} productos

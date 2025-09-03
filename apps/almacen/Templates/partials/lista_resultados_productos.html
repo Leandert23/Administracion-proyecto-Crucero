@@ -1,3 +1,16 @@
+{% comment %}
+Componente: lista_resultados_productos.html
+Descripción: Renderiza la lista de coincidencias para el autocompletar de productos.
+Contexto requerido:
+  - productos: QuerySet de Producto filtrado por la búsqueda.
+Funcionamiento:
+  - Cada producto genera un div.item-resultado con data-id para ser capturado por JS.
+  - Si no hay resultados, muestra un mensaje "Sin resultados".
+Uso típico (respuesta AJAX):
+  return render(request, 'Partials/lista_resultados_productos.html', {'productos': productos})
+Integración front-end:
+  - Reemplazar innerHTML del contenedor de resultados con el HTML retornado.
+{% endcomment %}
 {# Lista de resultados para el buscador dinámico de productos (entrada de lote) #}
 {% if productos and productos.exists %}
   {% for p in productos %}

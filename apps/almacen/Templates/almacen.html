@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
     <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
+    <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
     <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
 </head>
 <body>
@@ -165,115 +166,22 @@
 
     <!-- MODALES OCULTAS -->
     
-    <!-- Modal Inventario -->
-    <div id="modalInventario" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
-        <div class="inventario-overlay" data-close="true"></div>
-        <div class="contenedor-centrar">
-            <div class="inventario-dialog" role="document" tabindex="-1">
-                <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
-                <div class="inventario-header">
-                    <div class="inventario-header-content">
-                        <h2 class="inventario-title">Gestión de Inventario</h2>
-                    </div>
-                </div>
-                <div class="inventario-body">
-                    {% include 'partials/inventario_modal.html' %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal Historial de Movimientos -->
-    <div id="modalHistorialMovimientos" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true", style="display: none;">
-        <div class="inventario-overlay" data-close="true"></div>
-        <div class="contenedor-centrar">
-            <div class="inventario-dialog historial-dialog" role="document" tabindex="-1">
-                <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
-                <div class="inventario-header">
-                    <div class="inventario-header-content">
-                        <i class="fas fa-history inventario-icon"></i>
-                        <h2 class="inventario-title">Historial de Movimientos</h2>
-                    </div>
-                    <button type="button" class="inventario-close" aria-label="Cerrar" data-close="true">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="inventario-body">
-                    {% include 'partials/historial_modal.html' %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Crear Producto -->
-    <div id="modalCrearProducto" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2>Nuevo Producto</h2>
-                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                {% include 'partials/formulario_producto.html' %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Entrada de Lote -->
-    <div id="modalCrearLote" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index: 5000">
-        <div class="modal-container"> 
-            <div class="modal-header">
-                <h2>Nueva Entrada de Lote</h2>
-                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                {% include 'partials/formulario_lote.html'%}
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Salida de Producto -->
-    <div id="modalCrearSalida" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index: 5000">
-        <div class="modal-container"> 
-            <div class="modal-header">
-                <h2>Nueva Salida de Producto</h2>
-                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                {% include 'partials/formulario_salida.html' %}
-            </div>
-        </div>
-    </div>
-
-    <div id="modalLotesProducto" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
-        <div class="inventario-overlay" data-close="true"></div>
-        <div class="contenedor-centrar">
-            <div class="inventario-dialog lotes-dialog" role="document" tabindex="-1">
-                <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar lotes">&times;</button>
-                <div class="inventario-header">
-                    <div class="inventario-header-content">
-                        <h2 class="inventario-title">Lotes</h2>
-                    </div>
-                    <button type="button" class="inventario-close" aria-label="Cerrar" data-close="true">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="inventario-body">
-                    <div id="lotes-contenido"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'Modals/inventario.html' %}
+    {% include 'Modals/historial.html' %}
+    {% include 'Modals/creacion_producto.html' %}
+    {% include 'Modals/entrada_lote.html' %}
+    {% include 'Modals/salida_producto.html' %}
+    {% include 'Modals/registro_merma.html' %}
+    {% include 'Modals/lotes_de_producto.html' %}
 
 
     <script src="{% static 'Js/sidebar.js' %}"></script>
     <script src="{% static 'Js/inventario.js' %}"></script>
     <script src="{% static 'Js/historial.js' %}"></script>
-    <script src="{% static 'Js/form_producto.js' %}"></script>
-    <script src="{% static 'Js/form_lote.js' %}"></script>
-    <script src="{% static 'Js/form_salida.js' %}"></script>
+    <script src="{% static 'Js/forms_manager.js' %}"></script>
     <script src="{% static 'Js/lotes.js' %}"></script>
     <script src="{% static 'Js/modals_manager.js' %}"></script>
-    <script src="{% static 'Js/init_almacen.js' %}"></script>
     <script src="{% static 'Js/busqueda_producto.js' %}"></script>
+    <script src="{% static 'Js/init_almacen.js' %}"></script>
 </body>
 </html>

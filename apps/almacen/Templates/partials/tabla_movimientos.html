@@ -1,3 +1,16 @@
+{% comment %}
+Componente: tabla_movimientos.html
+Descripción: Tabla de historial de movimientos (entradas, salidas, creaciones, mermas, otros).
+Contexto requerido:
+    - page: Page con object_list de movimientos (cada movimiento: fecha, tipo, cantidad, producto, lote, modulo, descripcion).
+    - Cada movimiento.producto: nombre, get_medida_display, tipo, subtipo, seccion.nombre.
+    - Cada movimiento.lote: numero_lote opcional.
+Uso en AJAX: Se retorna junto con paginación para el modal de historial (modalHistorialMovimientos).
+Badges tipo: IN, OUT, NEW, MERMA u otro (usa get_tipo_display si existe).
+Data attributes en botón Ver: usados para poblar el modal detalle (#modalDetalleMovimiento) mediante JS (historial.js).
+Accesibilidad: aria-current en página activa, aria-label en botones de paginación.
+Personalización: Para agregar filtros adicionales, añadir data-attributes al <tr>.
+{% endcomment %}
 <table class="historial-table">
     <thead>
         <tr>
@@ -22,6 +35,8 @@
                             <span class="movimiento-badge salida"><i class="fas fa-arrow-up"></i> Salida</span>
                         {% elif mov.tipo == 'NEW' %}
                             <span class="movimiento-badge creado"><i class="fas fa-plus-circle"></i> Creado</span>
+                        {% elif mov.tipo == 'MERMA' %}
+                            <span class="movimiento-badge merma"><i class="fas fa-exclamation-circle"></i> Merma</span>
                         {% else %}
                             <span class="movimiento-badge otro"><i class="fas fa-circle"></i> {{ mov.get_tipo_display|default:mov.tipo }}</span>
                         {% endif %}

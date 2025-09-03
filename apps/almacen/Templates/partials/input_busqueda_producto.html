@@ -1,3 +1,25 @@
+{% comment %}
+Componente: input_busqueda_producto.html
+Descripción: Campo reutilizable para autocompletar productos vía AJAX.
+Parámetros opcionales (pasar con 'with' en el include):
+    - field_name (default 'producto'): nombre lógico para data-field.
+    - input_text_id (default 'buscar_producto'): id del input visible.
+    - hidden_input_id (default 'id_producto'): id del input hidden.
+    - hidden_input_name (default 'producto'): name del hidden enviado al servidor.
+    - lista_id (default 'lista-resultados-producto'): id del contenedor de resultados.
+    - url_busqueda (default 'inventario/seleccion-producto/'): endpoint GET que retorna HTML (lista_resultados_productos.html).
+    - min_length (default 2): mínimo de caracteres antes de buscar.
+    - label (default 'Producto'): etiqueta visible.
+    - placeholder (default 'Escribe para buscar...').
+    - help_text (default dinámico): texto de ayuda bajo el campo.
+    - hide_label (False): si True oculta label.
+    - required (True): si False no agrega required al hidden.
+Eventos / JS esperado:
+    - Un script debe: escuchar input, hacer fetch a data-url con query ?q= y renderizar la respuesta dentro de lista-id.
+    - Al seleccionar un .item-resultado, setear data-id en hidden y limpiar lista.
+Ejemplo de uso:
+    {% include 'Partials/input_busqueda_producto.html' with input_text_id='buscar_producto_lote' hidden_input_id='id_producto' lista_id='lista-resultados-producto' %}
+{% endcomment %}
 {% load static %}
 {# Componente reutilizable de búsqueda de producto #}
 <div class="form-field" data-field="{{ field_name|default:'producto' }}">

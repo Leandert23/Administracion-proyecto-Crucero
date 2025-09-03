@@ -1,3 +1,20 @@
+{% comment %}
+Componente: tabla_de_productos.html
+Descripción: Tabla principal del inventario con productos paginados.
+Contexto requerido:
+    - page_obj: Page (Paginator) con atributo object_list (iterable de productos).
+Cada producto debe exponer:
+    - id, nombre, tipo, subtipo, cantidad, medida (o get_medida_display), seccion (relación con nombre), estado (string: BAJO/MEDIO/ALTO).
+Comportamiento JS esperado:
+    - Botones .action-view / .action-edit / .action-delete utilizan data-id para acciones (ver detalle, abrir modal edición, confirmar eliminación).
+    - Filtrado por tipo/subtipo puede apoyarse en data-tipo y data-subtipo del <tr>.
+Uso típico dentro de una respuesta AJAX:
+    {% include 'Partials/tabla_de_productos.html' %}
+Personalización:
+    - Añadir columnas duplicando th y ajustando celdas en el loop.
+Accesibilidad:
+    - Considera agregar scope="col" a los th si se requieren ayudas técnicas adicionales.
+{% endcomment %}
 <table>
     <thead>
         <tr>

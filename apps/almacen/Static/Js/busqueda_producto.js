@@ -83,7 +83,10 @@
             const elementoTexto = elemento.querySelector('strong');
             const texto = elementoTexto ? elementoTexto.textContent.trim() : elemento.textContent.trim();
             
-            if (campoOcultoId) campoOcultoId.value = id;
+            if (campoOcultoId) {
+                campoOcultoId.value = id;
+                try { campoOcultoId.dispatchEvent(new Event('change', { bubbles: true })); } catch(e) { /* fallback */ }
+            }
             if (entrada) entrada.value = texto;
             
             limpiarResultados();

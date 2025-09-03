@@ -5,8 +5,9 @@ from django.core.exceptions import ValidationError
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
 from ..cruceros.models import Instalacion
 
+
 class SeccionAlmacen(models.Model):
-    TIPO_SECCION = [
+    TIPOS_SECCION = [
         ("REFRIGERACION", "Cámara de Refrigeración"),
         ("CONGELACION", "Cámara de Congelación"),
         ("SECO", "Almacén Seco"),
@@ -23,22 +24,10 @@ class SeccionAlmacen(models.Model):
         limit_choices_to={"tipo": "almacen"}
     )
     nombre = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=20, choices=TIPO_SECCION)
-    capacidad = models.PositiveIntegerField(help_text="Capacidad en m²")
-    temperatura = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Temperatura en °C (si aplica)",
-    )
-    humedad = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Humedad relativa % (si aplica)",
-    )
+    tipo = models.CharField(max_length=20, choices=TIPOS_SECCION)
+    capacidad = models.PositiveIntegerField()
+    temperatura = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    humedad = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     esta_activa = models.BooleanField(default=True)
 
     class Meta:
@@ -51,12 +40,12 @@ class SeccionAlmacen(models.Model):
 
 
 class Producto(models.Model):
-    TIPO_PRODUCTO_CHOICES = [
+    TIPOS_PRODUCTO = [
         ("COMIDA", "Comida"),
         ("BIENES", "Bienes"),
     ]
 
-    SUBTIPO_PRODUCTO_CHOICES = [
+    SUBTIPOS_PRODUCTO = [
         ("CADUCABLE", "Caducable"),
         ("NO_CADUCABLE", "No caducable"),
         ("REFRIGERADO", "Refrigerado"),
@@ -69,59 +58,49 @@ class Producto(models.Model):
         ("ACTIVOS", "Bienes activos"),
     ]
 
-    MEDIDA_CHOICES = [
+    UNIDADES_MEDIDA = [
         ("L", "Litros"),
         ("M", "Metros"),
         ("K", "Kilogramos"),
         ("U", "Unidades"),
     ]
 
-    SUBTIPOS_VALIDOS_POR_TIPO = {
+    SUBTIPOS_POR_TIPO = {
         "COMIDA": {"CADUCABLE", "NO_CADUCABLE", "REFRIGERADO", "NO_REFRIGERADO", "BEBIDA", "LICOR"},
         "BIENES": {"REPUESTOS", "LIMPIEZA", "MEDICOS", "ACTIVOS"},
     }
 
     nombre = models.CharField(max_length=100, db_index=True)
-    tipo = models.CharField(max_length=10, choices=TIPO_PRODUCTO_CHOICES)
-    subtipo = models.CharField(
-        max_length=15,
-        choices=SUBTIPO_PRODUCTO_CHOICES,
-        blank=True,
-        null=True,
-        help_text="Subclasificación (opcional)"
-    )
+    tipo = models.CharField(max_length=10, choices=TIPOS_PRODUCTO)
+    subtipo = models.CharField(max_length=15, choices=SUBTIPOS_PRODUCTO, blank=True, null=True)
     seccion = models.ForeignKey('SeccionAlmacen', on_delete=models.CASCADE, related_name='productos')
-    cantidad_ideal = models.PositiveIntegerField(null=False)
-    medida = models.CharField(max_length=1, choices=MEDIDA_CHOICES)
+    cantidad_ideal = models.PositiveIntegerField()
+    medida = models.CharField(max_length=1, choices=UNIDADES_MEDIDA)
     
     @property
     def cantidad(self):
-        # aggregate hace una sola operación de suma en el lado de la base de datos,
-        # de esa manera evitamos sumar con bucles de python (más lento)
         total = self.lotes.aggregate(total=Sum('cantidad_productos'))['total'] or 0
         return total
 
     @property
     def estado(self):
-        cantidad = self.cantidad
-        if cantidad is None:
-            raise Exception(f"Error: La cantidad del producto {self.nombre} es inválida")
-        if cantidad <= 0:
+        cantidad_actual = self.cantidad
+        
+        if cantidad_actual <= 0:
             return 'NO HAY STOCK'
-        if cantidad <= self.cantidad_ideal * 0.30:
+        if cantidad_actual <= self.cantidad_ideal * 0.30:
             return 'BAJO'
-        if cantidad <= self.cantidad_ideal * 0.60:
+        if cantidad_actual <= self.cantidad_ideal * 0.60:
             return 'MEDIO'
-        else: 
-            return 'ALTO'
+        return 'ALTO'
 
-    
-    def clean(self):
+    def limpiar(self):
         if self.subtipo:
-            subtipo_up = self.subtipo.upper()
-            tipo_up = (self.tipo or "").upper()
-            if tipo_up in self.SUBTIPOS_VALIDOS_POR_TIPO:
-                if subtipo_up not in self.SUBTIPOS_VALIDOS_POR_TIPO[tipo_up]:
+            subtipo_mayusculas = self.subtipo.upper()
+            tipo_mayusculas = self.tipo.upper()
+            
+            if tipo_mayusculas in self.SUBTIPOS_POR_TIPO:
+                if subtipo_mayusculas not in self.SUBTIPOS_POR_TIPO[tipo_mayusculas]:
                     raise ValidationError({
                         "subtipo": f"El subtipo '{self.subtipo}' no es válido para el tipo '{self.tipo}'."
                     })
@@ -129,7 +108,7 @@ class Producto(models.Model):
                 raise ValidationError({"tipo": "Tipo de producto desconocido."})
 
     def save(self, *args, **kwargs):
-        self.full_clean(exclude=None)
+        self.limpiar()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -139,8 +118,9 @@ class Producto(models.Model):
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
         indexes = [
-            models.Index(fields=["tipo", "subtipo"], name="idx_producto_tipo_subtipo"),
+            models.Index(fields=["tipo", "subtipo"], name="indice_producto_tipo_subtipo"),
         ]
+
 
 class Lote(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="lotes")
@@ -153,26 +133,28 @@ class Lote(models.Model):
     class Meta:
         verbose_name = "Lote de Producto"
         verbose_name_plural = "Lotes de Producto"
-        unique_together = [["producto", "numero_lote"]] 
+        unique_together = [["producto", "numero_lote"]]
 
     def __str__(self):
         return f"{self.producto.nombre} - {self.cantidad_productos}"
 
     def save(self, *args, **kwargs):
-        """Asignar automáticamente numero_lote incremental por producto si no se provee."""
-        if not getattr(self, 'numero_lote', None):
-            max_val = Lote.objects.filter(producto=self.producto).aggregate(Max('numero_lote'))
-            current_max = max_val.get('numero_lote__max') or 0
-            self.numero_lote = current_max + 1
+        if not self.numero_lote:
+            maximo = Lote.objects.filter(producto=self.producto).aggregate(Max('numero_lote'))
+            maximo_actual = maximo.get('numero_lote__max') or 0
+            self.numero_lote = maximo_actual + 1
 
         super().save(*args, **kwargs)
 
+
 class MovimientoAlmacen(models.Model):
-    TIPO_MOVIMIENTO = [
+    TIPOS_MOVIMIENTO = [
         ("IN", "Ingreso"),
         ("OUT", "Egreso"),
         ("NEW", "Creado"),
+        ("MERMA", "Merma"),
     ]
+    
     TIPO_MODULO = [
         ("RESTAURANTE", "Restaurante"),
         ("VENTAS", "Ventas"),
@@ -186,28 +168,14 @@ class MovimientoAlmacen(models.Model):
         ("SERVICIO_MEDICO", "Servicio Médico"),
         ("ADMINISTRACION", "Administración")
     ]
-    tipo = models.CharField(max_length=20, choices=TIPO_MOVIMIENTO)
-    producto = models.ForeignKey(
-        Producto,
-        on_delete=models.CASCADE,
-        related_name="movimientos"
-    )
-    lote = models.ForeignKey(
-        Lote,
-        on_delete=models.CASCADE,
-        related_name="lotes",
-        null=True,
-        blank=True,
-        help_text="Lote asociado (puede ser nulo para movimientos de creación)"
-    )
-    cantidad = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Cantidad movida (nula para movimientos de creación)"
-    )
+    
+    tipo = models.CharField(max_length=20, choices=TIPOS_MOVIMIENTO)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="movimientos")
+    lote = models.ForeignKey(Lote, on_delete=models.CASCADE, related_name="lotes", null=True, blank=True)
+    cantidad = models.PositiveIntegerField(null=True, blank=True)
     fecha = models.DateField(default=obtener_fecha_actual)
     modulo = models.CharField(max_length=20, choices=TIPO_MODULO)
-    descripcion = models.CharField(max_length=255, blank=True, null=True, help_text="Descripción o nota del movimiento")
+    descripcion = models.CharField(max_length=255, blank=True, null=True)
     
     class Meta:
         verbose_name = "Movimiento de Producto"

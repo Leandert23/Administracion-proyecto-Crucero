@@ -1,133 +1,181 @@
-// Gestor genérico de modales (versión en español)
-(function(){
-    const DISPARADOR_TITULO = 'quick-card-title';
-    const registro = {
+(function() {
+    const TIPO_DISPARADOR_TITULO = 'quick-card-title';
+    
+    const configuracionesModales = {
         inventario: {
             id: 'modalInventario',
-            triggers: [ { type: DISPARADOR_TITULO, value: 'inventario' } ],
+            disparadores: [{ tipo: TIPO_DISPARADOR_TITULO, valor: 'inventario' }],
             display: 'block',
-            closeSelectors: ['.inventario-overlay','[data-close="true"]'],
-            onOpen(){ if(window.InventarioManager && typeof InventarioManager.loadInventoryPage==='function') InventarioManager.loadInventoryPage(1); },
-            onAfterInit(){}
+            selectoresCierre: ['.inventario-overlay', '[data-close="true"]'],
+            alAbrir: function() {
+                if (window.InventarioManager && typeof InventarioManager.loadInventoryPage === 'function') {
+                    InventarioManager.loadInventoryPage(1);
+                }
+            }
         },
         producto: {
             id: 'modalCrearProducto',
-            triggers: ['#btnAgregarProducto','#btnAgregarProductoHeader'],
+            disparadores: ['#btnAgregarProducto', '#btnAgregarProductoHeader'],
             display: 'flex',
-            closeSelectors: ['[data-close="true"]','#btn-cancelar-producto'],
-            onOpen(){},
-            onAfterInit(){}
+            selectoresCierre: ['[data-close="true"]', '#btn-cancelar-producto'],
+            alAbrir: function() {}
         },
         lote: {
             id: 'modalCrearLote',
-            triggers: [ { type: DISPARADOR_TITULO, value: 'entrada de lote' } ],
+            disparadores: [{ tipo: TIPO_DISPARADOR_TITULO, valor: 'entrada de lote' }],
             display: 'flex',
-            closeSelectors: ['[data-close="true"]','#btn-cancelar-lote'],
-            onOpen(){
-                if(window.LotFormManager){
-                    const fn = LotFormManager.init || LotFormManager.initialize;
-                    if(typeof fn === 'function') fn.call(LotFormManager);
+            selectoresCierre: ['[data-close="true"]', '#btn-cancelar-lote'],
+            alAbrir: function() {
+                if (window.LotFormManager) {
+                    const funcionInicializacion = LotFormManager.init || LotFormManager.initialize;
+                    if (typeof funcionInicializacion === 'function') {
+                        funcionInicializacion.call(LotFormManager);
+                    }
                 }
-            },
-            onAfterInit(){}
+            }
         },
         salida: {
             id: 'modalCrearSalida',
-            triggers: [ { type: DISPARADOR_TITULO, value: 'salida de producto' } ],
+            disparadores: [{ tipo: TIPO_DISPARADOR_TITULO, valor: 'salida de producto' }],
             display: 'flex',
-            closeSelectors: ['[data-close="true"]','#btn-cancelar-salida'],
-            onOpen(){
-                try {
-                    const inp = document.getElementById('buscar_producto_salida');
-                    if (inp) setTimeout(()=> inp.focus(), 60);
-                } catch(e){ console.warn('No se pudo enfocar input salida', e); }
-            },
-            onAfterInit(){}
+            selectoresCierre: ['[data-close="true"]', '#btn-cancelar-salida'],
+            alAbrir: function() {
+                const inputBusqueda = document.getElementById('buscar_producto_salida');
+                if (inputBusqueda) {
+                    setTimeout(() => inputBusqueda.focus(), 60);
+                }
+            }
+        },
+        merma: {
+            id: 'modalCrearMerma',
+            disparadores: ['#reportes-card', { tipo: TIPO_DISPARADOR_TITULO, valor: 'reportes de mermas' }],
+            display: 'flex',
+            selectoresCierre: ['[data-close="true"]', '#btn-cancelar-merma'],
+            alAbrir: function() {
+                const inputBusqueda = document.getElementById('buscar_producto_merma');
+                if (inputBusqueda) {
+                    setTimeout(() => inputBusqueda.focus(), 60);
+                }
+            }
         },
         historial: {
             id: 'modalHistorialMovimientos',
-            triggers: [ { type: DISPARADOR_TITULO, value: 'historial de movimientos' } ],
+            disparadores: [{ tipo: TIPO_DISPARADOR_TITULO, valor: 'historial de movimientos' }],
             display: 'block',
-            closeSelectors: ['.inventario-overlay','[data-close="true"]'],
-            onOpen(){
-                // Aquí se podría iniciar la carga AJAX del historial si aún no se hace.
-                if(window.HistorialManager && typeof HistorialManager.load==='function'){
-                    try { HistorialManager.load(); } catch(e){ console.warn('Error cargando historial', e); }
+            selectoresCierre: ['.inventario-overlay', '[data-close="true"]'],
+            alAbrir: function() {
+                if (window.HistorialManager && typeof HistorialManager.load === 'function') {
+                    HistorialManager.load();
                 }
-            },
-            onAfterInit(){}
+            }
         }
     };
 
-        const GestorModales = {
-        configs: registro,
-        initialized:false,
-        init(){
-            if(this.initialized) return; this.initialized=true;
-            Object.entries(this.configs).forEach(([clave,cfg])=> this._preparar(clave,cfg));
-            this._escGlobal();
-            this._aliasLegado();
+    const GestorModales = {
+        configuraciones: configuracionesModales,
+        inicializado: false,
+        
+        inicializar: function() {
+            if (this.inicializado) return;
+            this.inicializado = true;
+            
+            Object.entries(this.configuraciones).forEach(([clave, configuracion]) => {
+                this.prepararModal(clave, configuracion);
+            });
+            
+            this.configurarCierreConTeclaEscape();
         },
-        _preparar(clave,cfg){
-            cfg.element = document.getElementById(cfg.id);
-            if(!cfg.element) return;
-            (cfg.triggers||[]).forEach(tr=> this._vincularDisparador(clave,cfg,tr));
-            cfg.element.addEventListener('click', e=>{ if(this._debeCerrar(cfg,e.target)) this.close(clave); });
+        
+        prepararModal: function(clave, configuracion) {
+            configuracion.elemento = document.getElementById(configuracion.id);
+            if (!configuracion.elemento) return;
+            
+            configuracion.disparadores.forEach(disparador => {
+                this.vincularDisparador(clave, configuracion, disparador);
+            });
+            
+            configuracion.elemento.addEventListener('click', evento => {
+                if (this.debeCerrarModal(configuracion, evento.target)) {
+                    this.cerrar(clave);
+                }
+            });
         },
-        _vincularDisparador(clave,cfg,tr){
-            if(typeof tr === 'string'){
-                document.querySelectorAll(tr).forEach(el=>{
-                    if(!el.dataset._modalBind){
-                        el.dataset._modalBind='1';
-                        el.addEventListener('click', e=>{ e.preventDefault(); this.open(clave); });
+        
+        vincularDisparador: function(clave, configuracion, disparador) {
+            if (typeof disparador === 'string') {
+                document.querySelectorAll(disparador).forEach(elemento => {
+                    if (!elemento.dataset.modalVinculado) {
+                        elemento.dataset.modalVinculado = 'true';
+                        elemento.addEventListener('click', evento => {
+                            evento.preventDefault();
+                            this.abrir(clave);
+                        });
                     }
                 });
-            } else if(tr.type === DISPARADOR_TITULO){
-                document.querySelectorAll('.quick-card').forEach(card=>{
-                    const t = card.querySelector('.quick-card__title');
-                    if(t && t.textContent.trim().toLowerCase() === tr.value){
-                        if(!card.dataset._modalBind){
-                            card.dataset._modalBind='1';
-                            card.addEventListener('click', e=>{ e.preventDefault(); this.open(clave); });
+            } else if (disparador.tipo === TIPO_DISPARADOR_TITULO) {
+                document.querySelectorAll('.quick-card').forEach(tarjeta => {
+                    const titulo = tarjeta.querySelector('.quick-card__title');
+                    if (titulo && titulo.textContent.trim().toLowerCase() === disparador.valor) {
+                        if (!tarjeta.dataset.modalVinculado) {
+                            tarjeta.dataset.modalVinculado = 'true';
+                            tarjeta.addEventListener('click', evento => {
+                                evento.preventDefault();
+                                this.abrir(clave);
+                            });
                         }
                     }
                 });
             }
         },
-        _debeCerrar(cfg,target){
-            if(!target) return false;
-            if(target.dataset && target.dataset.close==='true') return true;
-            if(target.classList && target.classList.contains('inventario-overlay')) return true;
-            if(cfg.closeSelectors) return cfg.closeSelectors.some(sel=> target.matches && target.matches(sel));
-            if(target===cfg.element) return true;
-            return false;
+        
+        debeCerrarModal: function(configuracion, elementoObjetivo) {
+            if (!elementoObjetivo) return false;
+            
+            if (elementoObjetivo.dataset && elementoObjetivo.dataset.close === 'true') return true;
+            if (elementoObjetivo.classList && elementoObjetivo.classList.contains('inventario-overlay')) return true;
+            
+            return configuracion.selectoresCierre.some(selector => {
+                return elementoObjetivo.matches && elementoObjetivo.matches(selector);
+            });
         },
-        open(clave){
-            const cfg = this.configs[clave]; if(!cfg||!cfg.element) return;
-            cfg.element.style.display = cfg.display || 'flex';
-            cfg.element.setAttribute('aria-hidden','false');
-            document.body.style.overflow='hidden';
-            try{ cfg.onOpen && cfg.onOpen(); }catch(e){ console.warn('error en onOpen modal', clave, e); }
+        
+        abrir: function(clave) {
+            const configuracion = this.configuraciones[clave];
+            if (!configuracion || !configuracion.elemento) return;
+            configuracion.elemento.style.display = configuracion.display;
+            configuracion.elemento.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            if (configuracion.alAbrir) {
+                configuracion.alAbrir();
+            }
         },
-        close(clave){
-            const cfg = this.configs[clave]; if(!cfg||!cfg.element) return;
-            cfg.element.style.display='none';
-            cfg.element.setAttribute('aria-hidden','true');
-            document.body.style.overflow='';
+        
+        cerrar: function(clave) {
+            const configuracion = this.configuraciones[clave];
+            if (!configuracion || !configuracion.elemento) return;
+            
+            configuracion.elemento.style.display = 'none';
+            configuracion.elemento.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
         },
-        _escGlobal(){
-            document.addEventListener('keydown', e=>{
-                if(e.key==='Escape'){
-                    Object.entries(this.configs).forEach(([k,cfg])=>{ if(cfg.element && cfg.element.getAttribute('aria-hidden')==='false') this.close(k); });
+        
+        configurarCierreConTeclaEscape: function() {
+            document.addEventListener('keydown', evento => {
+                if (evento.key === 'Escape') {
+                    Object.entries(this.configuraciones).forEach(([clave, configuracion]) => {
+                        if (configuracion.elemento && configuracion.elemento.getAttribute('aria-hidden') === 'false') {
+                            this.cerrar(clave);
+                        }
+                    });
                 }
             });
         },
-        _aliasLegado(){ /* Eliminado: ya no se crean objetos legacy */ },
-        isOpen(clave){
-            const cfg=this.configs[clave];
-            return !!(cfg && cfg.element && cfg.element.getAttribute('aria-hidden')==='false');
+        
+        estaAbierto: function(clave) {
+            const configuracion = this.configuraciones[clave];
+            return !!(configuracion && configuracion.elemento && configuracion.elemento.getAttribute('aria-hidden') === 'false');
         }
     };
 
-        window.GestorModales = GestorModales;
+    window.GestorModales = GestorModales;
 })();

@@ -1,16 +1,22 @@
 from django.urls import path
-from . import views
+from .Views import general, inventario, lotes, mermas, productos
 
 urlpatterns = [
-    path("<int:crucero_id>", views.mostrar_vista_almacen, name="vista_almacen"),
-    path("inventario/paginas-producto/", views.inventario_paginas_producto, name="inventario_modal_ajax"),
-    path("inventario/seleccion-producto/", views.buscar_productos, name="inventario_buscar_procutos"),
-    path("crear-producto/", views.crear_producto, name="crear_producto"),
-    path("update-producto/", views.update_producto, name="update_producto"),
-    path("registrar-lote/", views.registrar_lote, name="registrar_lote"),
-    path("registrar-salida/", views.registrar_salida, name="registrar_salida"),
-    path("inventario/movimientos/", views.inventario_movimientos, name="tabla_movimientos"),
-    path("inventario/producto/", views.detalle_producto, name="detalle_producto"),
-    path("inventario/lotes/", views.inventario_lotes_producto, name="inventario_lotes_producto"),
-    path("delete-producto/", views.delete_producto, name="delete_producto")
+    path("<int:crucero_id>", general.mostrar_vista_almacen, name="vista_almacen"),
+    
+    path("crear-producto/", productos.crear_producto, name="crear_producto"),
+    path("delete-producto/", productos.eliminar_producto, name="eliminar_producto"),
+    path("update-producto/", productos.actualizar_producto, name="actualizar_producto"),
+    
+    path("registrar-lote/", lotes.registrar_lote, name="registrar_lote"),
+    path("registrar-salida/", lotes.registrar_salida, name="registrar_salida"),
+    
+    path("inventario/paginas-producto/", inventario.obtener_pagina_inventario_productos, name="inventario_pagina_inventario_productos"),
+    path("inventario/seleccion-producto/", inventario.buscar_productos, name="inventario_buscar_procutos"),    
+    path("inventario/movimientos/", inventario.obtener_movimientos_inventario, name="inventario_tabla_movimientos"),
+    path("inventario/producto/", inventario.obtener_detalle_producto, name="inventario_detalle_producto"),
+    path("inventario/lotes/", inventario.obtener_lotes_producto, name="inventario_lotes_producto"),
+    path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
+    
+    path("registrar-merma/", mermas.registrar_merma, name="registrar_merma")
 ]

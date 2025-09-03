@@ -247,9 +247,8 @@
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
                     if (!id) return;
-                    if (window.AlmacenLotes) {
-                        window.AlmacenLotes.load(id);
-                        window.AlmacenLotes.open();
+                    if (window.GestorLotes) {
+                        window.GestorLotes.abrir(id);
                     }
                 });
             });
@@ -270,7 +269,7 @@
             });
         },
 
-        editarProducto(id) {
+    editarProducto(id) {
             fetch(`inventario/producto/?id=${id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
                 .then(r => r.json())
                 .then(data => {
@@ -279,12 +278,18 @@
                     if(!f) return;
                     f.querySelector('#id_nombre').value = data.producto.nombre || '';
                     f.querySelector('#id_tipo').value = data.producto.tipo || '';
-                    if(window.ProductFormManager) ProductFormManager.poblarSubtipos();
+            // Disparar cambio para que el gestor del formulario regenere subtipos
+            try { f.querySelector('#id_tipo').dispatchEvent(new Event('change')); } catch(e) {}
                     if(data.producto.subtipo) f.querySelector('#id_subtipo').value = data.producto.subtipo;
                     f.querySelector('#id_cantidad_ideal').value = data.producto.cantidad_ideal || 0;
                     f.querySelector('#id_medida').value = data.producto.medida || '';
                     if(data.producto.seccion) f.querySelector('#id_seccion').value = data.producto.seccion;
-                    f.dataset.editingId = data.producto.id;
+            // Marcar ambos atributos para compatibilidad
+            f.dataset.editandoId = data.producto.id;
+            f.dataset.editingId = data.producto.id;
+            // Rellenar campo oculto si existe
+            const hiddenId = f.querySelector('input[name="producto_id"], #id_producto_edit');
+            if (hiddenId) hiddenId.value = data.producto.id;
                     const modal = document.getElementById('modalCrearProducto');
                     if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
                 })

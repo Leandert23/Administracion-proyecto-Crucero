@@ -71,34 +71,6 @@ class Crucero(models.Model):
         null=True
     )
 
-    seguro_vigente = models.BooleanField(default=False, null=True, help_text="Indica si el seguro está vigente")
-    fecha_vencimiento_seguro = models.DateField(blank=True, null=True)
-    certificado_sanitario = models.FileField(
-        upload_to="certificados/", 
-        blank=True, 
-        null=True,
-        help_text="Certificado sanitario vigente"
-    )
-    certificado_seguridad = models.FileField(
-    upload_to="certificados/seguridad/", 
-    blank=True, 
-    null=True,
-    help_text="Certificado de seguridad del crucero"
-)
-
-    foto_barco = models.ImageField(
-        upload_to="fotos_barco/", 
-        blank=True, 
-        null=True,
-        help_text="Foto principal del crucero"
-    )
-    plano_barco = models.ImageField(
-        upload_to="planos_barco/", 
-        blank=True, 
-        null=True,
-        help_text="Plano de distribución del crucero"
-    )
-
     def clean(self):
         errors = {}
         
@@ -189,12 +161,6 @@ class Habitacion(models.Model):
         return f"{self.crucero.nombre} - {self.tipo_habitacion} - cubierta {self.cubierta} - {self.lado} - {self.numero}"
 
     def _generar_codigo(self):
-        """Genera un código en formato UUAIII (6 dígitos numéricos):
-
-        - UU: cubierta (00-99)
-        - A : lado (0=babor, 1=estribor)
-        - III: consecutivo (001-999) reiniciado por (crucero, cubierta, lado)
-        """
         lado_dig = '0' if self.lado == 'babor' else '1'
         prefijo = f"{int(self.cubierta):02d}{lado_dig}"
         existentes = Habitacion.objects.filter(

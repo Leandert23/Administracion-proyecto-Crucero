@@ -342,7 +342,7 @@ body {
 /* === Quick Cards (Compras, Solicitudes, Proveedores, Historial) === */
 .quick-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(3, 1fr); /* Forzar exactamente 3 columnas en pantallas >=640px */
     gap: 20px;
     margin-bottom: 36px;
 }
