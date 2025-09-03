@@ -186,13 +186,8 @@
           <!-- Date Display -->
           <div class="date-container">
             <div class="date-display">
-              <span class="date-text" id="current-date"
-                >Hoy, 12 de Agosto de 2025</span
-              >
+                <span class="date-text" id="current-date">Hoy, 12 de Agosto de 2025</span>
             </div>
-            <button class="select-day-btn" onclick="selectDay()">
-              Seleccionar Día
-            </button>
           </div>
 
           <!-- Secciones del mini menú -->
@@ -349,6 +344,13 @@
                 <h3 class="promo-list-title">Promociones Especiales por Día</h3>
                 <ul id="lista-promociones" class="promo-list"></ul>
               </div>
+                <div id="modal-pedir-promocion" class="modal" style="display: none;">
+                  <div class="modal-content">
+                    <span class="close-modal" id="close-modal-pedir-promocion">&times;</span>
+                    <div id="modal-pedir-promocion-content">
+                      <!-- Se llena por JS -->
+                    </div>
+                  </div>
             </div>
           </section>
           <section id="analisis" class="menu-section" style="display: none">
@@ -483,6 +485,9 @@
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+                </div>
               </div>
             </div>
             <!-- Modal para eliminar producto -->

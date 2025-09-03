@@ -8,7 +8,6 @@
     'Miércoles de Dulce': 'assets/bagel.svg',
     'Viernes de Tarde': 'assets/bubble-tea.svg',
 };**/
-// Nueva estructura con grupos y días
 const promocionesGrupos = [
     {
         grupo: 'Bares',
@@ -70,6 +69,77 @@ const promocionesGrupos = [
     }
 ];
 
+// Modal para pedir promoción
+function mostrarModalPedirPromocion(promo) {
+    // Si modal no existe aún en el DOM, lo creamos
+    let modal = document.getElementById('modal-pedir-promocion');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-pedir-promocion';
+        modal.className = 'modal';
+        modal.style.display = 'none';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal" id="close-modal-pedir-promocion">&times;</span>
+                <div id="modal-pedir-promocion-content"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    const content = modal.querySelector('#modal-pedir-promocion-content');
+    const imgSrc = window.promoImages && window.promoImages[promo.nombre] ? window.promoImages[promo.nombre] : '';
+    content.innerHTML = `
+        <div style="display:flex; align-items:center; gap:22px;">
+            ${imgSrc ? `<img src="${imgSrc}" alt="${promo.nombre}" style="width:50px;height:50px;">` : ""}
+            <div>
+                <h2 style="margin-bottom:6px;">${promo.nombre}</h2>
+                <div style="color:#64748b; font-size:1.01rem; margin-bottom:8px;">${promo.desc}</div>
+                <div style="color:#16a34a; font-weight:500;">${promo.happyHour}</div>
+                <div style="color:#2563eb; margin-top:6px;">Promoción de <b>${promo.dia}</b></div>
+            </div>
+        </div>
+        <form id="form-pedir-promocion" style="margin-top:24px;">
+            <div class="form-group">
+                <label for="nombre-cliente-promo">Nombre del Cliente:</label>
+                <input type="text" id="nombre-cliente-promo" name="nombre-cliente-promo" required placeholder="Ingrese su nombre" />
+            </div>
+            <div class="form-group">
+                <label for="cantidad-promo">Cantidad:</label>
+                <input type="number" id="cantidad-promo" name="cantidad-promo" min="1" required value="1" />
+            </div>
+            <div style="text-align:center; margin-top:18px;">
+                <button type="submit" class="btn completar">Confirmar Pedido</button>
+            </div>
+        </form>
+        <div id="promo-confirmacion-msg" style="margin-top:18px;color:#22c55e;text-align:center;display:none;"></div>
+    `;
+    modal.style.display = 'flex';
+
+    // Cerrar modal
+    modal.querySelector('#close-modal-pedir-promocion').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+
+    // Manejar envío
+    content.querySelector('#form-pedir-promocion').onsubmit = function(e) {
+        e.preventDefault();
+        // Simular guardar el pedido (sólo frontend)
+        const nombre = content.querySelector('#nombre-cliente-promo').value;
+        const cantidad = content.querySelector('#cantidad-promo').value;
+        content.querySelector('#promo-confirmacion-msg').innerHTML = `¡Pedido realizado!<br>Cliente: <b>${nombre}</b><br>Cantidad: <b>${cantidad}</b><br>Promoción: <b>${promo.nombre}</b>`;
+        content.querySelector('#promo-confirmacion-msg').style.display = 'block';
+        content.querySelector('#form-pedir-promocion').style.display = 'none';
+    };
+}
+
+// AGREGADO: función para pedir la promoción del día
+function pedirPromocion(promo) {
+    mostrarModalPedirPromocion(promo);
+}
+
 function renderPromocionDiaActual() {
     // Buscar la primera promoción del día actual en cualquier grupo
     const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -90,7 +160,7 @@ function renderPromocionDiaActual() {
     if (!cont) return;
     if (promoActual) {
         // Imagen por nombre de la promoción
-        const imgSrc = promoImages[promoActual.nombre] ? promoImages[promoActual.nombre] : '';
+        const imgSrc = window.promoImages && window.promoImages[promoActual.nombre] ? window.promoImages[promoActual.nombre] : '';
         cont.innerHTML = `
             <img src="${imgSrc}" alt="${promoActual.nombre}" class="promo-dia-img">
             <div class="promo-dia-info">
@@ -99,9 +169,21 @@ function renderPromocionDiaActual() {
                 <div class="promo-desc">${promoActual.desc}</div>
                 <div class="promo-happy-hour">Hora Feliz (Happy Hour): ${promoActual.happyHour}</div>
                 <div class="promo-dia-subtitulo" style="font-size:0.98em; color:#2563eb; text-align:left; margin-top:8px;">${promoActual.dia}</div>
+                <button class="btn completar" id="btn-pedir-promocion-dia" style="margin-top:14px;">
+                    Pedir promoción
+                </button>
             </div>
         `;
-        
+        // AGREGADO: evento al botón "Pedir promoción"
+        setTimeout(() => {
+            const btn = document.getElementById('btn-pedir-promocion-dia');
+            if (btn) {
+                btn.onclick = function() {
+                    pedirPromocion(promoActual);
+                };
+            }
+        }, 10);
+
     } else {
         cont.innerHTML = `<div style="color:#64748b;">No hay promoción especial para hoy.</div>`;
     }
@@ -131,8 +213,15 @@ function renderPromocionesLista() {
 
         // Promociones del grupo
         grupo.promociones.forEach(promo => {
-            const imgSrc = promoImages[promo.nombre] ? promoImages[promo.nombre] : '';
-              
+            const imgSrc = window.promoImages && window.promoImages[promo.nombre] ? window.promoImages[promo.nombre] : '';
+            const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const hoy = new Date();
+            const diaActual = dias[hoy.getDay()];
+            // AGREGADO: solo el botón para la promo del día correspondiente
+            let pedirBtn = '';
+            if (promo.dia === diaActual) {
+                pedirBtn = `<button class="btn completar btn-pedir-promocion-lista" data-nombre="${promo.nombre}" style="margin-top:10px;">Pedir promoción</button>`;
+            }
             lista.innerHTML += `
                 <li>
                     <img src="${imgSrc}" alt="${promo.nombre}" class="promo-list-img">
@@ -141,6 +230,7 @@ function renderPromocionesLista() {
                         <div class="promo-desc">${promo.desc}</div>
                         <div class="promo-happy-hour">Hora Feliz (Happy Hour): ${promo.happyHour}</div>
                         <div class="promo-grupo" style="font-size:0.96em; color:#2563eb; margin-top:6px;">${promo.dia}</div>
+                        ${pedirBtn}
                     </div>
                 </li>
             `;
@@ -149,6 +239,37 @@ function renderPromocionesLista() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Permite que promoImages esté en window para uso en modales
+    if (typeof promoImages !== "undefined") window.promoImages = promoImages;
     renderPromocionDiaActual();
     renderPromocionesLista();
+
+    document.getElementById('lista-promociones')?.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-pedir-promocion-lista')) {
+            const nombre = e.target.getAttribute('data-nombre');
+            // Buscar promo por nombre
+            let promo = null;
+            for (const grupo of promocionesGrupos) {
+                promo = grupo.promociones.find(p => p.nombre === nombre);
+                if (promo) break;
+            }
+            if (promo) pedirPromocion(promo);
+        }
+    });
+
+    // AGREGADO: evento para el botón del día actual (en el mismo menú)
+    document.getElementById('promocion-dia-actual')?.addEventListener('click', function(e) {
+        if (e.target.id === 'btn-pedir-promocion-dia') {
+            // Busca la promo del día actual
+            const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            const hoy = new Date();
+            const diaActual = dias[hoy.getDay()];
+            let promoActual = null;
+            for (const grupo of promocionesGrupos) {
+                promoActual = grupo.promociones.find(p => p.dia === diaActual);
+                if (promoActual) break;
+            }
+            if (promoActual) pedirPromocion(promoActual);
+        }
+    });
 });
