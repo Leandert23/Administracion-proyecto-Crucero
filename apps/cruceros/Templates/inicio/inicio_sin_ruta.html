@@ -134,6 +134,9 @@
                 <div class="modal__field">
                     <label for="id_fecha_inicio" class="modal__label">Fecha de inicio</label>
                     {{ form_asignar.fecha_inicio }}
+                    {% if form_asignar.fecha_inicio.errors %}
+                    <div class="modal__error" style="color:#dc2626;font-size:.75rem;margin-top:2px;">{{ form_asignar.fecha_inicio.errors.0 }}</div>
+                    {% endif %}
                 </div>
                 <div class="modal__actions">
                     <button type="submit" class="modal__btn modal__btn--primary">Crear viaje</button>
@@ -143,6 +146,8 @@
         </div>
         <div class="modal__backdrop" id="backdropAsignar"></div>
     </div>
+    <!-- Flag para autoabrir modal si hubo errores de validación -->
+    <div id="flagAbrirModalAsignar" data-abrir="{% if abrir_modal_asignar %}1{% else %}0{% endif %}" hidden></div>
 
     <script>
         // Funciones básicas para el sidebar
@@ -184,6 +189,8 @@
             cancelar&&cancelar.addEventListener('click',cerrarModal);
             backdrop&&backdrop.addEventListener('click',cerrarModal);
             document.addEventListener('keydown',e=>{if(e.key==='Escape' && modal.classList.contains('modal--visible')) cerrarModal();});
+            const flag = document.getElementById('flagAbrirModalAsignar');
+            if (flag && flag.dataset.abrir === '1') abrirModal();
         })();
     </script>
 </body>

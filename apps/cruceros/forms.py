@@ -83,6 +83,22 @@ class AsignarRutaForm(forms.ModelForm):
         fs = FechaDelSistema.objects.first()
         if fs:
             self.fields["fecha_inicio"].initial = fs.fecha_actual
+            # Añadir atributo min (5 días después) sólo informativo; validación real en clean
+            try:
+                from datetime import timedelta
+                self.fields['fecha_inicio'].widget.attrs['min'] = (fs.fecha_actual + timedelta(days=5)).isoformat()
+            except Exception:
+                pass
+
+    def clean_fecha_inicio(self):
+        fecha = self.cleaned_data.get('fecha_inicio')
+        fs = FechaDelSistema.objects.first()
+        if fecha and fs:
+            from datetime import timedelta
+            limite = fs.fecha_actual + timedelta(days=5)
+            if fecha < limite:
+                raise forms.ValidationError('Debe ser al menos dentro de 5 días (>= %s).' % limite.strftime('%d/%m/%Y'))
+        return fecha
 
 
 class CruceroEditForm(forms.ModelForm):

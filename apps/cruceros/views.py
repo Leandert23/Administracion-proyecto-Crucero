@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Crucero, FechaDelSistema, Habitacion, TipoHabitacion
 from .forms import creacionCruceroForm, AsignarRutaForm, CruceroEditForm
 from .Services.creacion_rutas_por_plantilla import cargar_rutas_desde_json
+from .Services.creacion_productos_predeterminados import crear_productos_predeterminados
 from .Services.vista_helpers import (
     obtener_fecha_sistema,
     avanzar_dia,
@@ -77,8 +78,15 @@ def _procesar_asignacion_ruta(request, crucero):
         viaje.crucero = crucero
         viaje.estado = 'planificacion'
         viaje.save()
+    # Crear productos predeterminados según plantilla del tipo de crucero
+        crear_productos_predeterminados(crucero)
         return redirect('gestion_crucero', crucero_id=crucero.id)
-    return None
+    # Volver a renderizar con errores
+    return render(request, "inicio/inicio_sin_ruta.html", {
+        'crucero': crucero,
+        'form_asignar': form,
+        'abrir_modal_asignar': True,
+    })
 
 def _mostrar_formulario_asignacion(request, crucero):
     form = AsignarRutaForm()
