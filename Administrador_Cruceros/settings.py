@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-u8(f83(iy9hllaw+58ug()t9#(uov)24cgu%6!vo(d-lr#e4)7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "apps.cruceros",
-    "apps.almacen"
+    "apps.almacen",
+    "apps.entretenimiento"
 ]
 
 MIDDLEWARE = [
@@ -56,7 +57,12 @@ ROOT_URLCONF = 'Administrador_Cruceros.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'apps' / 'cruceros' / 'templates',
+            BASE_DIR / 'apps' / 'almacen' / 'templates',
+            BASE_DIR / 'apps' / 'entretenimiento' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -116,7 +122,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-STATIC_URL = 'Static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'apps' / 'Static',
+    BASE_DIR / 'apps' / 'cruceros' / 'Static',
+    BASE_DIR / 'apps' / 'almacen' / 'Static',
+    BASE_DIR / 'apps' / 'entretenimiento' / 'static',
+]
 
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entretenimiento - Dashboard</title>
+    <link rel="stylesheet" href="../css/entretenimiento.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="preview.html" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="entretenimiento.html" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-content">
+                        <h1 class="page-title">Entretenimiento</h1>
+                        <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Date Display -->
+                <div class="date-container">
+                    <div class="date-display">
+                        <span class="date-text" id="current-date">Hoy, 12 de Agosto de 2025</span>
+                    </div>
+                    <button class="select-day-btn" onclick="selectDay()">
+                        Seleccionar Día
+                    </button>
+                </div>
+
+                <!-- Content Cards Grid -->
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 2</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // Función para actualizar la fecha automáticamente
+        function updateDate() {
+            const dateElement = document.getElementById('current-date');
+            const now = new Date();
+            
+            // Array con los nombres de los meses en español
+            const months = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            // Obtener día, mes y año
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            // Formatear la fecha
+            const formattedDate = `Hoy, ${day} de ${month} de ${year}`;
+            
+            // Actualizar el elemento
+            dateElement.textContent = formattedDate;
+        }
+
+        // Función para seleccionar día
+        function selectDay() {
+            // Crear un input de tipo date
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.style.position = 'absolute';
+            dateInput.style.opacity = '0';
+            dateInput.style.pointerEvents = 'none';
+            
+            // Agregar al DOM
+            document.body.appendChild(dateInput);
+            
+            // Simular clic en el input
+            dateInput.click();
+            
+            // Escuchar cambios en la fecha seleccionada
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                
+                // Array con los nombres de los meses en español
+                const months = [
+                    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                
+                // Formatear la fecha seleccionada
+                const day = selectedDate.getDate();
+                const month = months[selectedDate.getMonth()];
+                const year = selectedDate.getFullYear();
+                
+                // Actualizar el elemento de fecha
+                const dateElement = document.getElementById('current-date');
+                dateElement.textContent = `${day} de ${month} de ${year}`;
+                
+                // Remover el input temporal
+                document.body.removeChild(dateInput);
+            });
+            
+            // Si el usuario cancela, remover el input
+            dateInput.addEventListener('cancel', function() {
+                document.body.removeChild(dateInput);
+            });
+        }
+
+        // Actualizar la fecha cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+            
+        });
+    </script>
+</body>
+</html>
