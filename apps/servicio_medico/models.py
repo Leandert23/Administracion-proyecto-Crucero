@@ -137,4 +137,33 @@ class Solicitudmedicamento(models.Model):
         if self.fecha_aprobacion and self.estado not in ['A', 'F']:
             raise ValidationError('La fecha de aprobación solo puede asignarse si el estado es Atendido o Finalizado.')
 
+class Producto(models.Model):
+    TIPOS_PRODUCTO = [
+        ("COMIDA", "Comida"),
+        ("BIENES", "Bienes"),
+    ]
 
+    SUBTIPOS_PRODUCTO = [
+        ("CADUCABLE", "Caducable"),
+        ("NO_CADUCABLE", "No caducable"),
+        ("REFRIGERADO", "Refrigerado"),
+        ("NO_REFRIGERADO", "No refrigerado"),
+        ("BEBIDA", "Bebida"),
+        ("LICOR", "Licor"),
+        ("REPUESTOS", "Repuestos"),
+        ("LIMPIEZA", "Materiales de limpieza"),
+        ("MEDICOS", "Materiales médicos"),
+        ("ACTIVOS", "Bienes activos"),
+    ]
+
+    UNIDADES_MEDIDA = [
+        ("L", "Litros"),
+        ("M", "Metros"),
+        ("K", "Kilogramos"),
+        ("U", "Unidades"),
+    ]
+
+    SUBTIPOS_POR_TIPO = {
+        "COMIDA": {"CADUCABLE", "NO_CADUCABLE", "REFRIGERADO", "NO_REFRIGERADO", "BEBIDA", "LICOR"},
+        "BIENES": {"REPUESTOS", "LIMPIEZA", "MEDICOS", "ACTIVOS"},
+    }

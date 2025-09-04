@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from .models import Medico, Paciente, Inventario, Solicitudmedicamento, cuarto
 from .forms import MedicoForm, PacienteForm, InventarioForm, SolicitudMedicamentoForm
 from django.shortcuts import render, redirect
+from almacen.Services.products import save_product, remove_product
 
 
 
@@ -129,3 +130,15 @@ def agregar_inventario(request):
     else:
         form = InventarioForm()
     return render(request, 'agregar_inventario.html', {'form': form})
+
+def editar_inventario(request, inventario_id):
+    inventario = get_object_or_404(Inventario, id=inventario_id)
+    if request.method == 'POST':
+        form = InventarioForm(request.POST, instance=inventario)
+        if form.is_valid():
+            form.save()
+            return redirect('panel_inventario')
+    else:
+        form = InventarioForm(instance=inventario)
+    return render(request, 'editar_inventario.html', {'form': form, 'inventario': inventario})
+

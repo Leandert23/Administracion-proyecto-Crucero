@@ -17,6 +17,7 @@ urlpatterns = [
     path('servicio-medico/historial-medico/editar/<int:paciente_id>/', editar_paciente, name='editar_paciente'),
     path('servicio-medico/historial-medico/eliminar/<int:paciente_id>/', eliminar_paciente, name='eliminar_paciente'),
     path('servicio-medico/inventario/agregar/', agregar_inventario, name='agregar_inventario'),
+    path('servicio-medico/inventario/editar/', agregar_inventario, name='editar_inventario'),
 
 
 
