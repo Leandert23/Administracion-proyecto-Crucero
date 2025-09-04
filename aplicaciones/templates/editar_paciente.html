@@ -1,0 +1,10 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+<h2>Editar Historial Médico</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    <a href="{% url 'historial_medico' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

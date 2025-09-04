@@ -11,6 +11,8 @@
     
 
     <h1>Historial Médico</h1>
+    <a href="{% url 'agregar_historial' %}" class="btn btn-success" style="margin-bottom: 16px;">Crear nuevo historial médico</a>
+    <a href="{% url 'panel_personal_medico' %}" class="btn btn-secondary" style="margin-bottom: 16px; margin-left: 8px;">Volver a Servicio Médico</a>
     <table border="1" cellpadding="8" cellspacing="0">
         <thead>
             <tr>
@@ -27,6 +29,7 @@
                 <th>Fecha de Nacimiento</th>
                 <th>Teléfono</th>
                 <th>Dirección</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -45,6 +48,13 @@
                 <td>{{ paciente.fechade_nacimiento|date:'Y-m-d' }}</td>
                 <td>{{ paciente.telefono }}</td>
                 <td>{{ paciente.direccion }}</td>
+                <td>
+                    <a href="{% url 'editar_paciente' paciente.id %}" class="btn btn-warning">Editar</a>
+                    <form action="{% url 'eliminar_paciente' paciente.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este historial médico?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
             </tr>
             {% empty %}
             <tr><td colspan="13">No hay pacientes registrados.</td></tr>

@@ -73,4 +73,8 @@ class InsumoForm(forms.ModelForm):
             'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
+class ModificarCuartoForm(forms.Form):
+    numero_cuarto = forms.IntegerField(label='Número de Cuarto', widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    nuevo_estado = forms.ChoiceField(label='Nuevo Estado', choices=[('disponible', 'Disponible'), ('ocupado', 'Ocupado'), ('mantenimiento', 'Mantenimiento')], widget=forms.Select(attrs={'class': 'form-control'}))
+    
 

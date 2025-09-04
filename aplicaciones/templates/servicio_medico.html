@@ -25,35 +25,47 @@
     <button class="btn btn-primary" onclick="location.href='{% url 'historial_medico' %}'">Ver Historial Médico</button>
   </div>
   <div class ="container">
-    <h2> Camillas Disponibles</h2>
+    <h2> Cuartos disponibles </h2>
     <table class="table">
       <thead>
         <tr>
-          <th>Número</th>
-          <th>Tipo</th>
+          <th>Número de Cuarto</th>
           <th>Estado</th>
+          <th>Paciente</th>
         </tr>
       </thead>
       <tbody>
-        {% for cuarto in cuartos_disponibles %}
+        {% for cuarto in cuartos %}
         <tr>
           <td>{{ cuarto.numero }}</td>
-          <td>{{ cuarto.tipo }}</td>
+          <td>{{ cuarto.get_estado_display }}</td>
           <td>
-            {% if cuarto.estado == 'D' %}
-              Disponible
+            {% if cuarto.estado == 'O' and cuarto.paciente %}
+              {{ cuarto.paciente.nombres }} {{ cuarto.paciente.primer_apellido }}
             {% else %}
-              Ocupado
+              -
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr>
-          <td colspan="3">No hay camillas disponibles.</td>
-        </tr>
+        <tr><td colspan="3">No hay cuartos disponibles.</td></tr>
         {% endfor %}
       </tbody>
     </table>
+    <button class="btn btn-primary" onclick="location.href='{% url 'modificar_cuarto' %}'">Modificar Cuartos</button>
   </div>
-  
+  <div class = "container">
+    <h2> Inventario </h2>
+    <button class="btn btn-primary" onclick="location.href='{% url 'panel_inventario' %}'">Ver Inventario</button>
+  </div>
+  <div class = "container">
+    
+  </div>
+  <div>
+    <h2> Avisos de solicitud de Medicamento</h2>
+
+  </div>
+  <div class = "container">
+    <h2> Comunicación con Mantenimiento </h2>
+    <button class="btn btn-primary" onclick="location.href='{% url 'comunicacion_mantenimiento' %}'">Contactar Mantenimiento</button>
 {% endblock %}

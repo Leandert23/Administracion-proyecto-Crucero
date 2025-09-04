@@ -97,16 +97,22 @@ class Medico(models.Model):
         return f"{self.nombres} {self.apellido} - {self.especialidad}"
 
 class cuarto(models.Model):
-    numero = models.CharField(max_length=10, unique=True)
-    tipo = models.CharField(max_length=50)  # Ejemplo: Consulta, Hospitalización
+    NUMEROS_CUARTO = [
+        ('1', 'Cuarto 1'),
+        ('2', 'Cuarto 2'),
+        ('3', 'Cuarto 3'),
+    ]
+    numero = models.CharField(max_length=1, unique=True, choices=NUMEROS_CUARTO, editable=False)
     ESTADO_CHOICES = [
-            ('D', 'Disponible'),
-            ('O', 'Ocupado'),
-        ]
+        ('D', 'Disponible'),
+        ('O', 'Ocupado'),
+    ]
     estado = models.CharField(max_length=1, choices=ESTADO_CHOICES, default='D')
+    paciente = models.ForeignKey('Paciente', null=True, blank=True, on_delete=models.SET_NULL)
+    
 
     def __str__(self):
-            return f"Cuarto {self.numero} - {self.tipo} - {'Disponible' if self.estado == 'D' else 'Ocupado'}"
+        return f"Cuarto {self.numero} - {'Disponible' if self.estado == 'D' else 'Ocupado'}"
     
 ESTADOS = [
     ('E', 'En espera'),
