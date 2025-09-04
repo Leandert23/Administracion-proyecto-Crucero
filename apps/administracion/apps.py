@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 class AdministracionConfig(AppConfig):
-    name = 'administracion'
+    name = 'apps.administracion'
 
     def ready(self):
-        import administracion.signals
+        import apps.administracion.signals
