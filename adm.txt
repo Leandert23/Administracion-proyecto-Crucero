@@ -1,1 +1,2 @@
-Hola
+NO ESTA SUBIDO EL CSS DE LAS PAGINAS
+falta incluirlo y terminar de definir pagina para editar las tablas

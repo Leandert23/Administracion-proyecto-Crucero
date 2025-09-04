@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Medico, Paciente, Inventario, Solicitudmedicamento
+from .models import Medico, Paciente, Inventario, Solicitudmedicamento, cuarto
 from .forms import MedicoForm, PacienteForm, InventarioForm, SolicitudMedicamentoForm
 from django.shortcuts import render, redirect
 
@@ -21,6 +21,20 @@ def panel_personal_medico(request):
         'inventario': inventario,
     }
     return render(request, 'personal_medico_v2.html', context)
+
+def panel_servicio_medico(request):
+    # Datos de ejemplo, reemplazar por consultas reales
+    medico = Medico.objects.first()
+    solicitudes = Solicitudmedicamento.objects.all()[:5]
+    pacientes = Paciente.objects.all()[:5]
+    inventario = Inventario.objects.all()[:5]
+    context = {
+        'medico': medico or {'nombres': 'Nombre', 'apellido': 'Apellido'},
+        'solicitudes': solicitudes,
+        'pacientes': pacientes,
+        'inventario': inventario,
+    }
+    return render(request, 'servicio_medico.html', context)
 
 def panel_inicio(request):
     return render(request, 'index.html')
@@ -48,7 +62,11 @@ def historial_medico(request):
     return render(request, 'historial_medico.html', {'pacientes': pacientes})
 
 def prueba(request):
-    return render(request, 'basee.html')
+    return render(request, 'layouts/basetest.html')
 
-    
+def tu_vista_servicio_medico(request):
+    cuartos_disponibles = cuarto.objects.filter(estado='D')
+    return render(request, 'servicio_medico.html', {'cuartos_disponibles': cuartos_disponibles})
+
+
 

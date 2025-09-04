@@ -1,0 +1,59 @@
+
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Control - Servicio Médico{% endblock %}
+
+{% block content %}
+ <!-- Contenido específico para el panel de personal médico -->
+    <main class="main-content">
+        <header class="main-header">
+            <h1>Panel de Personal Médico</h1>
+        </header>
+  </main>
+  <div class="#">
+    <h2>Bienvenido al Panel de Personal Médico</h2>
+    <p>Aquí puedes gestionar las solicitudes de medicamentos, ver el historial médico de los pasajeros y más.</p>
+  </div>
+  <div class = "container">
+      <h2> Crear Historial Medico</h2>
+      <button class="btn btn-primary" onclick="location.href='{% url 'agregar_historial' %}'">Agregar Historial Médico</button>
+
+  </div>
+  <div class="container">
+    <h2> Ver Historiales Medicos</h2>
+    <button class="btn btn-primary" onclick="location.href='{% url 'historial_medico' %}'">Ver Historial Médico</button>
+  </div>
+  <div class ="container">
+    <h2> Camillas Disponibles</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cuarto in cuartos_disponibles %}
+        <tr>
+          <td>{{ cuarto.numero }}</td>
+          <td>{{ cuarto.tipo }}</td>
+          <td>
+            {% if cuarto.estado == 'D' %}
+              Disponible
+            {% else %}
+              Ocupado
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">No hay camillas disponibles.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+{% endblock %}
