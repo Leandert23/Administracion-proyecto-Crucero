@@ -24,11 +24,24 @@ def mostrar_vista_almacen(request, crucero_id):
         'fecha_min_caducidad': fecha_min_caducidad
     })
 
+
+
+
+
+#[(nombreProducto, cantidad)]
 @require_GET
 def obtener_ordenes_compra_por_registrar(request):
-    qs = OrdenCompra.objects.filter(estado="POR_REGISTRAR").select_related('producto__seccion')
+    
+    ()
+    ordenes_compra = OrdenCompra.objects.filter(estado="POR_REGISTRAR").select_related('producto__seccion')
+    
+    
+    
+    
+    
+    
     page_number = request.GET.get('page', 1)
-    paginator = Paginator(qs, 10)
+    paginator = Paginator(ordenes_compra, 10)
     page_obj = paginator.get_page(page_number)
 
     tabla_html = render(request, 'Partials/tabla_ordenes_compra.html', {
@@ -40,7 +53,17 @@ def obtener_ordenes_compra_por_registrar(request):
         'js_function': 'cargarPaginaOrdenes',
         'summary_id': 'ordenes-summary'
     }).content.decode('utf-8')
-    return JsonResponse({'success': True, 'tabla_html': tabla_html, 'paginacion_html': paginacion_html, 'total': qs.count()})
+    return JsonResponse({'success': True, 'tabla_html': tabla_html, 'paginacion_html': paginacion_html, 'total': ordenes_compra.count()})
+
+
+
+
+
+
+
+
+
+
 
 @require_GET
 def detalle_orden_compra(request, orden_id):

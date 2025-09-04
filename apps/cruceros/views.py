@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Crucero, FechaDelSistema, Habitacion, TipoHabitacion
+from .models import Crucero, FechaDelSistema
 from .forms import creacionCruceroForm, AsignarRutaForm, CruceroEditForm
+from ..entretenimiento.utils import cargar_actividades_entretenimiento
 from .Services.creacion_rutas_por_plantilla import cargar_rutas_desde_json
 from .Services.creacion_productos_predeterminados import crear_productos_predeterminados
 from .Services.vista_helpers import (
@@ -79,6 +80,7 @@ def _procesar_asignacion_ruta(request, crucero):
         viaje.estado = 'planificacion'
         viaje.save()
     # Crear productos predeterminados según plantilla del tipo de crucero
+        cargar_actividades_entretenimiento(viaje)
         crear_productos_predeterminados(crucero)
         return redirect('gestion_crucero', crucero_id=crucero.id)
     # Volver a renderizar con errores

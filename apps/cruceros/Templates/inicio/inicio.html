@@ -21,14 +21,19 @@
             
             <nav class="sidebar-nav">
                 <ul class="nav-list">
-                    <li class="nav-item active">
-                        <a href="#" class="nav-link">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Gestión Crucero</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id%}" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -49,11 +54,6 @@
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/entretenimiento/" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
                     <li class="nav-item">

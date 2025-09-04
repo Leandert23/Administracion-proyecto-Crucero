@@ -1,12 +1,6 @@
 from django.db import transaction
-from django.apps import apps
+from ..models import Producto, MovimientoAlmacen
 from typing import List, Tuple
-
-def _Producto():
-    return apps.get_model('almacen', 'Producto')
-
-def _MovimientoAlmacen():
-    return apps.get_model('almacen', 'MovimientoAlmacen')
 
 # Conjunto de módulos válidos según MovimientoAlmacen.TIPO_MODULO
 _MODULOS_VALIDOS = {
@@ -24,7 +18,6 @@ def _normalizar_modulo(modulo: str | None) -> str:
 
 def productosPocasUnidades(cantidadesIniciales: dict, porcentajeMinimo: float = 0.2) -> List[Tuple[str, int]]:
     productosPocos = []
-    Producto = _Producto()
     for producto in Producto.objects.all():
         inicial = cantidadesIniciales.get(producto.nombre, producto.cantidad)
         if inicial > 0 and producto.cantidad <= inicial * porcentajeMinimo:
@@ -35,7 +28,6 @@ def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto, descripcion=Non
     modulo_norm = _normalizar_modulo(modulo)
     cantidad_restante = cantidad_necesaria
 
-    MovimientoAlmacen = _MovimientoAlmacen()
     for lote in lotes:
         if cantidad_restante <= 0:
             break
@@ -92,7 +84,6 @@ def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento, descrip
         raise ValueError("La cantidad debe ser mayor que 0")
 
     with transaction.atomic():
-        Producto = _Producto()
         producto = Producto.objects.select_for_update().get(pk=producto_id)
         lotes_ordenados = metodo_ordenamiento(producto)
         _verificar_stock_suficiente(lotes_ordenados, cantidad)
