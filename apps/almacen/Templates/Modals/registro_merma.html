@@ -1,0 +1,43 @@
+    <div id="modalCrearMerma" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index:5000;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Nueva Merma</h2>
+                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="inventario-body">
+                <form id="form-crear-merma" novalidate>
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        {% include 'partials/input_busqueda_producto.html' with field_name='producto' input_text_id='buscar_producto_merma' hidden_input_id='id_producto_merma' hidden_input_name='producto' lista_id='lista-resultados-producto-merma' placeholder='Buscar producto para merma...' %}
+
+                        <div class="form-field" data-field="lote">
+                            <label for="id_lote_merma">Lote</label>
+                            <select id="id_lote_merma" name="lote" disabled required>
+                                <option value="" selected>Selecciona primero un producto...</option>
+                            </select>
+                            <small class="help-text">Solo se listan lotes con stock &gt; 0.</small>
+                            <div class="error-text" hidden></div>
+                        </div>
+
+                        <div class="form-field" data-field="cantidad_mermada">
+                            <label for="id_cantidad_mermada">Cantidad dañada</label>
+                            <input type="number" id="id_cantidad_mermada" name="cantidad_mermada" min="1" step="1" placeholder="Ej: 5" required />
+                            <small class="help-text">Debe ser mayor a 0 y no exceder el stock del lote.</small>
+                            <div class="error-text" hidden></div>
+                        </div>
+
+                        <div class="form-field" data-field="descripcion">
+                            <label for="id_descripcion_merma">Descripción</label>
+                            <textarea id="id_descripcion_merma" name="descripcion" placeholder="Ej: Productos dañados por mal almacenamiento" rows="3"></textarea>
+                            <small class="help-text">Opcional: motivo o notas de la merma.</small>
+                            <div class="error-text" hidden></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding:0 24px 22px; display:flex; justify-content:flex-end; gap:10px;">
+                        <button type="button" id="btn-cancelar-merma" class="btn btn-secondary" data-close="false" style="min-width:110px;">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="min-width:140px;">Registrar Merma</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>

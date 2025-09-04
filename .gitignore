@@ -1,0 +1,31 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+env/
+.venv/
+venv/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database migrations (opcional, si quieres versionarlas)
+# !/mi_app/migrations/
+# !/mi_app/migrations/**/

@@ -1,0 +1,54 @@
+    <div id="modalCrearSalida" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index:5000;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Nueva Salida de Producto</h2>
+                <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="inventario-body">
+                <form id="form-crear-salida" class="form-grid" method="post" action="#">
+                    {% csrf_token %}
+                    {# Producto (componente reutilizable) #}
+                    {% include 'partials/input_busqueda_producto.html' with input_text_id='buscar_producto_salida' hidden_input_id='id_producto_salida' lista_id='lista-resultados-producto-salida' hidden_input_name='producto' field_name='producto' label='Producto' placeholder='Escribe para buscar...' help_text='Escribe al menos 2 letras y selecciona un producto de la lista.' %}
+
+                    <div class="form-field" data-field="cantidad_productos">
+                        <label for="id_cantidad_productos_salida">Cantidad</label>
+                        <input type="number" id="id_cantidad_productos_salida" name="cantidad_productos" min="1" step="1" placeholder="Ej: 500" required>
+                        <small class="help-text">Cantidad de unidades a entregar.</small>
+                        <div class="error-text" hidden></div>
+                    </div>
+
+                    <div class="form-field" data-field="modulo_entrega">
+                        <label for="id_modulo_entrega">Destino</label>
+                        <select id="id_modulo_entrega" name="modulo_entrega" required>
+                            <option value="" selected disabled>-- Selecciona un destino --</option>
+                            <option value="RESTAURANTE">Restaurante</option>
+                            <option value="VENTAS">Ventas</option>
+                            <option value="COMPRAS">Compras</option>
+                            <option value="BARES_SNACKS">Bares Snacks</option>
+                            <option value="MANTENIMIENTO">Mantenimiento</option>
+                            <option value="ENTRETENIMIENTO">Entretenimiento</option>
+                            <option value="RECURSOS_HUMANOS">Recursos Humanos</option>
+                            <option value="RESERVACIONES">Reservaciones</option>
+                            <option value="SERVICIO_MEDICO">Servicio Médico</option>
+                            <option value="ADMINISTRACION">Administración</option>
+                            <option value="FUERA_BARCO">Fuera del Barco</option>
+                        </select>
+                        <small class="help-text">Selecciona el destino de la salida.</small>
+                        <div class="error-text" hidden></div>
+                    </div>
+
+                    <div class="form-field" data-field="descripcion">
+                        <label for="id_descripcion_salida">Descripción (opcional)</label>
+                        <textarea id="id_descripcion_salida" name="descripcion" rows="2" placeholder="Motivo, responsable u observación"></textarea>
+                        <small class="help-text">Puedes anotar un motivo o referencia de la salida.</small>
+                        <div class="error-text" hidden></div>
+                    </div>
+
+                    <div class="modal-footer" style="grid-column:1 / -1; display:flex; justify-content:flex-end; gap:8px;">
+                        <button type="button" class="btn btn-danger" id="btn-cancelar-salida">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Salida</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
