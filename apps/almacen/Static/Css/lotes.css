@@ -1,0 +1,87 @@
+/*==============================
+	VARS
+==============================*/
+#modalLotesProducto {
+	--border-color: #e2e8f0;
+	--bg-white: #ffffff;
+	--bg-primary: #f8fafc;
+	--text-primary: #1e293b;
+	--text-secondary: #64748b;
+	--accent: #6366f1;
+}
+
+/*==============================
+	DIALOG
+==============================*/
+#modalLotesProducto .inventario-dialog {
+	max-width: 800px;
+	overflow-x: hidden;
+}
+#modalLotesProducto .inventario-header {
+	padding: 16px 20px;
+	border-bottom: 1px solid var(--border-color);
+	background: linear-gradient(135deg, #f8fafc, #eef3f7);
+}
+#modalLotesProducto .inventario-title { font-size: 1.25rem; }
+#modalLotesProducto .inventario-body {
+	background: var(--bg-primary);
+	overflow-x: hidden;
+}
+
+/*==============================
+	HEADER LOTES
+==============================*/
+.lotes-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+	font-size: .9rem;
+}
+.lotes-producto-nombre { font-weight: 600; color: var(--text-primary); }
+.lotes-meta { color: var(--text-secondary); font-size: .75rem; }
+
+/*==============================
+	TABLE
+==============================*/
+.lotes-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: var(--bg-white);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	overflow: hidden;
+}
+.lotes-table th {
+	text-align: left;
+	padding: 12px 14px;
+	font-size: .7rem;
+	font-weight: 600;
+	color: var(--text-primary);
+	background: #f1f5f9;
+	border-bottom: 1px solid var(--border-color);
+}
+.lotes-table td {
+	padding: 10px 14px;
+	font-size: .75rem;
+	border-bottom: 1px solid var(--border-color);
+	color: var(--text-primary);
+}
+.lotes-table tbody tr:last-child td { border-bottom: none; }
+.lotes-table tbody tr:hover { background: #f9fafb; }
+
+/*==============================
+	STATES
+==============================*/
+.sin-lotes {
+	padding: 28px;
+	text-align: center;
+	color: var(--text-secondary);
+	font-size: .75rem;
+}
+.lotes-loading, .lotes-error {
+	padding: 40px 20px;
+	text-align: center;
+	font-size: .8rem;
+	color: var(--text-secondary);
+}

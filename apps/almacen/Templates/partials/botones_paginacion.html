@@ -1,0 +1,53 @@
+{% comment %}
+Componente: botones_paginacion.html
+Uso: Renderiza el resumen y los controles de paginación del inventario.
+Requisitos de contexto:
+    - page_obj: instancia de Page (Paginator) con métodos start_index, end_index, paginator, has_previous, has_next.
+Dependencias JS:
+    - Función global cargarPagina(numero) que realice la petición AJAX y vuelva a renderizar la tabla + este partial.
+Integración típica:
+    {% include 'Partials/botones_paginacion.html' %}
+Notas:
+    - Limita visualmente el rango de páginas mostrado alrededor de la página actual (±2).
+    - Deshabilita botones cuando no hay anterior/siguiente.
+Personalización:
+    - Si cambias el nombre de la función cargarPagina ajusta los onclick.
+{% endcomment %}
+
+{% with page_label=page_label|default:'productos' js_function=js_function|default:'cargarPagina' summary_id=summary_id|default:'inventario-summary' %}
+<div class="summary" id="{{ summary_id }}">
+    {% if page_obj %}
+        Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} {{ page_label }}
+    {% else %}
+        Sin resultados
+    {% endif %}
+</div>
+<ul class="pagination" style="list-style:none; display:flex; gap:6px; padding:0; margin:0;">
+    {# Botones anterior / primera #}
+    {% if page_obj and page_obj.has_previous %}
+    <li><button class="pagination-btn" type="button" onclick="{{ js_function }}(1)" title="Primera página">&laquo;</button></li>
+    <li><button class="pagination-btn" type="button" onclick="{{ js_function }}('{{ page_obj.previous_page_number }}')" title="Página anterior">&lsaquo;</button></li>
+    {% else %}
+        <li><button class="pagination-btn" type="button" disabled>&laquo;</button></li>
+        <li><button class="pagination-btn" type="button" disabled>&lsaquo;</button></li>
+    {% endif %}
+    {# Rango centrado alrededor de la página actual #}
+    {% if page_obj %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <li><button class="pagination-btn active" type="button" disabled>{{ num }}</button></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li><button class="pagination-btn" type="button" onclick="{{ js_function }}('{{ num }}')">{{ num }}</button></li>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {# Botones siguiente / última #}
+    {% if page_obj and page_obj.has_next %}
+    <li><button class="pagination-btn" type="button" onclick="{{ js_function }}('{{ page_obj.next_page_number }}')" title="Página siguiente">&rsaquo;</button></li>
+    <li><button class="pagination-btn" type="button" onclick="{{ js_function }}('{{ page_obj.paginator.num_pages }}')" title="Última página">&raquo;</button></li>
+    {% else %}
+        <li><button class="pagination-btn" type="button" disabled>&rsaquo;</button></li>
+        <li><button class="pagination-btn" type="button" disabled>&raquo;</button></li>
+    {% endif %}
+</ul>
+{% endwith %}

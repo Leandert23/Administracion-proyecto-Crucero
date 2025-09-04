@@ -1,0 +1,108 @@
+<div id="modalHistorialMovimientos" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display: none;">
+    <div class="inventario-overlay" data-close="true"></div>
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog historial-dialog" role="document" tabindex="-1">
+            <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
+            <div class="inventario-header">
+                <div class="inventario-header-content">
+                    <i class="fas fa-history inventario-icon"></i>
+                    <h2 class="inventario-title">Historial de Movimientos</h2>
+                </div>
+                <button type="button" class="inventario-close" aria-label="Cerrar" data-close="true">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="inventario-body">
+                <div class="inventory-container no-shadow">
+                    <!-- Filtros y Búsqueda -->
+                    <div class="actions-container">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Buscar por producto, destino o descripcion..." id="historial-buscar" />
+                        </div>
+                    </div>
+                    <!-- Filtros Rápidos -->
+                    <div class="filters-container">
+                        <div class="filters" id="historial-filtros">
+                            <button class="filter-btn active" type="button" data-filter="all">
+                                <i class="fas fa-layer-group"></i> Todos
+                            </button>
+                            <button class="filter-btn" type="button" data-filter="entrada">
+                                <i class="fas fa-arrow-down"></i> Entradas
+                            </button>
+                            <button class="filter-btn" type="button" data-filter="salida">
+                                <i class="fas fa-arrow-up"></i> Salidas
+                            </button>
+                            <button class="filter-btn" type="button" data-filter="today">
+                                <i class="fas fa-calendar-day"></i> Hoy
+                            </button>
+                            <button class="filter-btn" type="button" data-filter="week">
+                                <i class="fas fa-calendar-week"></i> Esta Semana
+                            </button>
+                        </div>
+                        <div class="filter-info">
+                            <span id="historial-filter-text">Mostrando todos los movimientos</span>
+                        </div>
+                    </div>
+                    <!-- Tabla de Historial -->
+                    <div class="table-container"></div>
+                    <!-- Pie de tabla -->
+                    <div class="table-footer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Cierre correcto del modal principal de historial -->
+</div>
+<!-- Modal de Detalle de Movimiento -->
+<div id="modalDetalleMovimiento" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <div class="inventario-overlay" data-detalle-cerrar="true"></div>
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog movimiento-dialog" role="document" tabindex="-1">
+            <button type="button" class="inventario-exit-top" data-detalle-cerrar="true" aria-label="Cerrar">&times;</button>
+            <div class="inventario-header movimiento-header">
+                <div class="inventario-header-content">
+                    <h2 class="inventario-title" id="mov-detalle-titulo">Detalle de Movimiento</h2>
+                </div>
+                <button type="button" class="inventario-close" data-detalle-cerrar="true" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="inventario-body movimiento-body">
+                <div class="mov-detalle-grid">
+                    <div class="mov-item">
+                        <span class="mov-label">Tipo</span>
+                        <span class="mov-value" id="mov-detalle-tipo">-</span>
+                    </div>
+                    <div class="mov-item">
+                        <span class="mov-label">Producto</span>
+                        <span class="mov-value" id="mov-detalle-producto">-</span>
+                    </div>
+                    <div class="mov-item">
+                        <span class="mov-label">Lote</span>
+                        <span class="mov-value" id="mov-detalle-lote">-</span>
+                    </div>
+                    <div class="mov-item">
+                        <span class="mov-label">Cantidad</span>
+                        <span class="mov-value" id="mov-detalle-cantidad">-</span>
+                    </div>
+                    <div class="mov-item">
+                        <span class="mov-label">Fecha</span>
+                        <span class="mov-value" id="mov-detalle-fecha">-</span>
+                    </div>
+                    <div class="mov-item">
+                        <span class="mov-label">Módulo</span>
+                        <span class="mov-value" id="mov-detalle-modulo">-</span>
+                    </div>
+                </div>
+                <div class="mov-detalle-descripcion">
+                    <span class="mov-label">Descripción</span>
+                    <p id="mov-detalle-descripcion" class="mov-descripcion-texto">-</p>
+                </div>
+                <div class="mov-detalle-actions">
+                    <button type="button" class="btn btn-secondary" data-detalle-cerrar="true">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
