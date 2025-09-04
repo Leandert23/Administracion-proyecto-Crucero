@@ -6,22 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aplicaciones', '0001_initial'),
+        ('servicio_medico', '0001_initial'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='insumo',
-            name='cantidad',
-        ),
-        migrations.AddField(
-            model_name='inventario',
-            name='bajo_stock',
-            field=models.CharField(choices=[('S', 'Suficiente'), ('B', 'Bajo stock'), ('C', 'Crítico')], default='S', max_length=1),
-        ),
-        migrations.AddField(
-            model_name='inventario',
-            name='bajo_stockcantidad',
-            field=models.IntegerField(default=10),
-        ),
+# Placeholder to indicate removal of operations
     ]

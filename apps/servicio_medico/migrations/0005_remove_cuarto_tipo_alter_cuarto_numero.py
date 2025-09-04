@@ -6,14 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aplicaciones', '0004_auto_add_cuartos'),
+        ('servicio_medico', '0002_remove_insumo_cantidad_inventario_bajo_stock_and_more'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='cuarto',
-            name='tipo',
-        ),
         migrations.AlterField(
             model_name='cuarto',
             name='numero',

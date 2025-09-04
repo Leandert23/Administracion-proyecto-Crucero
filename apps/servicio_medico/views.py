@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from .models import Medico, Paciente, Inventario, Solicitudmedicamento, cuarto
 from .forms import MedicoForm, PacienteForm, InventarioForm, SolicitudMedicamentoForm
 from django.shortcuts import render, redirect
-from almacen.Services.products import save_product, remove_product
+
+from apps.almacen.Services.products import save_product, remove_product
 
 
 
@@ -43,7 +44,7 @@ def panel_personal_medico(request):
     }
     return render(request, 'personal_medico_v2.html', context)
 
-def panel_servicio_medico(request):
+def panel_servicio_medico(request,):
     # Datos de ejemplo, reemplazar por consultas reales
     medico = Medico.objects.first()
     solicitudes = Solicitudmedicamento.objects.all()[:5]
