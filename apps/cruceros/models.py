@@ -147,7 +147,6 @@ class TipoHabitacion(models.Model):
     capacidad = models.PositiveIntegerField()
     precio_base = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField(blank=True, null=True)
-    imagen = models.ImageField(upload_to="tipos_habitacion/", blank=True, null=True)
 
     def __str__(self):
         return self.nombre
