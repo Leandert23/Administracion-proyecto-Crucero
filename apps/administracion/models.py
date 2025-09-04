@@ -1,7 +1,5 @@
 from django.db import models
-
-class Crucero(models.Model):
-    nombre = models.CharField(max_length=255)
+from apps.cruceros.models import Crucero
 
 class Administracion(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='finanzas')
@@ -22,8 +20,8 @@ class Administracion(models.Model):
         return 0 
 
     def calcular_presupuesto_estimado(self):
-        # Ejemplo de cálculo: [(Precio de los boletos + Estimado de los no incluidos) - Total*10%] * Capacidad del barco al 60%
-        return self.costos_totales + self.precio_combustible * self.num_pasajeros_actual
+        # Ecuación: [(Precio de los boletos + Estimado de los no incluidos) - Total*10%] * Capacidad del barco al 60%
+        return 0
 
     def actualizar_num_empleados_actual(self):
         # Se conecta con recursos humanos para mostrar las los empleados
@@ -53,7 +51,6 @@ class Compra(models.Model):
     descripcion = models.CharField(max_length=255)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateField()
-    administracion = models.ForeignKey(Administracion, on_delete=models.CASCADE, related_name='compras')
 '''''''''''
 '''''''''''
 Esto nos lo da otro modulo y no está conectado directamente a nosotros
@@ -61,5 +58,4 @@ class RecursoHumano(models.Model):
     nombre = models.CharField(max_length=255)
     puesto = models.CharField(max_length=100)
     salario = models.DecimalField(max_digits=10, decimal_places=2)
-    administracion = models.ForeignKey(Administracion, on_delete=models.CASCADE, related_name='recursos_humanos')
 '''''''''''

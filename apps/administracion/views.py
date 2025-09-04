@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from apps.cruceros.models import Crucero
-from .models import Administracion, Alerta, Compra
+from .models import Administracion, Alerta
 
 def cruceros_dashboard_data(request):
     cruceros = Crucero.objects.all()
