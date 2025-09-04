@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Venta{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-plus me-2"></i>Nueva Venta
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+
+<form method="post" id="venta-form">
+    {% csrf_token %}
+    
+    <div class="row">
+        <!-- Formulario principal de la venta -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Información de la Venta
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.cliente.id_for_label }}" class="form-label">
+                                <strong>Cliente *</strong>
+                            </label>
+                            {{ form.cliente }}
+                            {% if form.cliente.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.cliente.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tipo_venta.id_for_label }}" class="form-label">
+                                <strong>Tipo de Venta *</strong>
+                            </label>
+                            {{ form.tipo_venta }}
+                            {% if form.tipo_venta.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.tipo_venta.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                <strong>Estado *</strong>
+                            </label>
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.estado.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.monto_total.id_for_label }}" class="form-label">
+                                <strong>Monto Total</strong>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="monto-total-display" 
+                                       value="0.00" readonly>
+                            </div>
+                            <small class="text-muted">Se calcula automáticamente</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                            <strong>Descripción *</strong>
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.descripcion.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notas.id_for_label }}" class="form-label">
+                            <strong>Notas</strong>
+                        </label>
+                        {{ form.notas }}
+                        {% if form.notas.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.notas.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel de ayuda y validación -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Ayuda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Instrucciones:</h6>
+                        <ol class="mb-0">
+                            <li>Selecciona el cliente</li>
+                            <li>Elige el tipo de venta</li>
+                            <li>Agrega los detalles de la venta</li>
+                            <li>El monto se calcula automáticamente</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Importante:</h6>
+                        <ul class="mb-0">
+                            <li>Los campos marcados con * son obligatorios</li>
+                            <li>Debes agregar al menos un detalle de venta</li>
+                            <li>El monto total debe ser mayor a $0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detalles de la venta -->
+    <div class="card shadow mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>Detalles de la Venta
+            </h6>
+            <button type="button" class="btn btn-success btn-sm" id="add-detail">
+                <i class="fas fa-plus me-1"></i>Agregar Detalle
+            </button>
+        </div>
+        <div class="card-body">
+            {{ formset.management_form }}
+            <div id="detalles-container">
+                {% for form in formset %}
+                <div class="detalle-row border rounded p-3 mb-3" data-form-index="{{ forloop.counter0 }}">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.concepto.id_for_label }}" class="form-label">
+                                <strong>Concepto *</strong>
+                            </label>
+                            {{ form.concepto }}
+                            {% if form.concepto.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.concepto.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-2 mb-3">
+                            <label for="{{ form.cantidad.id_for_label }}" class="form-label">
+                                <strong>Cantidad *</strong>
+                            </label>
+                            {{ form.cantidad }}
+                            {% if form.cantidad.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.cantidad.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <label for="{{ form.precio_unitario.id_for_label }}" class="form-label">
+                                <strong>Precio Unitario *</strong>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio_unitario }}
+                            </div>
+                            {% if form.precio_unitario.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.precio_unitario.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">
+                                <strong>Subtotal</strong>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control subtotal-display" 
+                                       value="0.00" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-1 mb-3 d-flex align-items-end">
+                            {% if not forloop.first %}
+                            <button type="button" class="btn btn-danger btn-sm remove-detail" 
+                                    title="Eliminar detalle">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Campos ocultos del formset -->
+                    {{ form.id }}
+                    {{ form.DELETE }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Total general -->
+            <div class="row justify-content-end">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="mb-0">
+                                Total: <span class="text-success" id="total-general">$0.00</span>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="row">
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-save me-1"></i>Guardar Venta
+            </button>
+            <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </a>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const detallesContainer = document.getElementById('detalles-container');
+    const addDetailBtn = document.getElementById('add-detail');
+    const totalGeneral = document.getElementById('total-general');
+    const montoTotalDisplay = document.getElementById('monto-total-display');
+    
+    // Función para calcular subtotales
+    function calcularSubtotal(row) {
+        const cantidad = parseFloat(row.querySelector('[name*="cantidad"]').value) || 0;
+        const precio = parseFloat(row.querySelector('[name*="precio_unitario"]').value) || 0;
+        const subtotal = cantidad * precio;
+        row.querySelector('.subtotal-display').value = subtotal.toFixed(2);
+        return subtotal;
+    }
+    
+    // Función para calcular total general
+    function calcularTotalGeneral() {
+        let total = 0;
+        document.querySelectorAll('.detalle-row').forEach(row => {
+            if (!row.querySelector('[name*="DELETE"]').checked) {
+                total += calcularSubtotal(row);
+            }
+        });
+        totalGeneral.textContent = '$' + total.toFixed(2);
+        montoTotalDisplay.value = total.toFixed(2);
+        return total;
+    }
+    
+    // Event listeners para cambios en cantidad y precio
+    detallesContainer.addEventListener('input', function(e) {
+        if (e.target.name.includes('cantidad') || e.target.name.includes('precio_unitario')) {
+            const row = e.target.closest('.detalle-row');
+            calcularSubtotal(row);
+            calcularTotalGeneral();
+        }
+    });
+    
+    // Agregar nuevo detalle
+    addDetailBtn.addEventListener('click', function() {
+        const formCount = parseInt(document.getElementById('id_detalles-TOTAL_FORMS').value);
+        const newRow = document.querySelector('.detalle-row').cloneNode(true);
+        
+        // Actualizar índices
+        newRow.dataset.formIndex = formCount;
+        newRow.querySelectorAll('input, select').forEach(input => {
+            input.name = input.name.replace(/\d+/, formCount);
+            input.id = input.id.replace(/\d+/, formCount);
+            input.value = '';
+        });
+        
+        // Limpiar valores
+        newRow.querySelector('.subtotal-display').value = '0.00';
+        
+        // Agregar botón de eliminar
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-danger btn-sm remove-detail';
+        removeBtn.title = 'Eliminar detalle';
+        removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        removeBtn.addEventListener('click', function() {
+            eliminarDetalle(newRow);
+        });
+        
+        newRow.querySelector('.col-md-1').appendChild(removeBtn);
+        
+        // Agregar al contenedor
+        detallesContainer.appendChild(newRow);
+        document.getElementById('id_detalles-TOTAL_FORMS').value = formCount + 1;
+        
+        // Recalcular totales
+        calcularTotalGeneral();
+    });
+    
+    // Eliminar detalle
+    function eliminarDetalle(row) {
+        row.querySelector('[name*="DELETE"]').checked = true;
+        row.style.display = 'none';
+        calcularTotalGeneral();
+    }
+    
+    // Event listeners para botones de eliminar existentes
+    document.querySelectorAll('.remove-detail').forEach(btn => {
+        btn.addEventListener('click', function() {
+            eliminarDetalle(this.closest('.detalle-row'));
+        });
+    });
+    
+    // Calcular totales iniciales
+    calcularTotalGeneral();
+});
+</script>
+{% endblock %}

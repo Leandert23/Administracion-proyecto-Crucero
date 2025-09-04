@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Ventas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard de Ventas
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nueva Venta
+        </a>
+    </div>
+</div>
+
+<!-- Tarjetas de estadísticas -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Ventas Hoy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ total_hoy|floatformat:2 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Cantidad Hoy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ cantidad_hoy }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Ventas Semana
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ total_semana|floatformat:2 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Total Apps
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            5
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-ship fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de ventas por tipo -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Ventas por Tipo</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Venta</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                                <th>Porcentaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo in ventas_por_tipo %}
+                            <tr>
+                                <td>
+                                    {% if tipo.tipo_venta == 'reserva' %}
+                                        <i class="fas fa-bed me-2 text-primary"></i>Reserva de Cabina
+                                    {% elif tipo.tipo_venta == 'restaurante' %}
+                                        <i class="fas fa-utensils me-2 text-success"></i>Restaurante
+                                    {% elif tipo.tipo_venta == 'bar_snack' %}
+                                        <i class="fas fa-glass-martini me-2 text-warning"></i>Bar/Snack
+                                    {% elif tipo.tipo_venta == 'entretenimiento' %}
+                                        <i class="fas fa-theater-masks me-2 text-info"></i>Entretenimiento
+                                    {% else %}
+                                        <i class="fas fa-ellipsis-h me-2 text-secondary"></i>{{ tipo.tipo_venta|title }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ tipo.cantidad }}</td>
+                                <td>${{ tipo.total|floatformat:2 }}</td>
+                                <td>
+                                    {% widthratio tipo.total total_semana 100 %}%
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    No hay ventas registradas aún
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Nueva Venta
+                    </a>
+                    <a href="{% url 'ventas:nuevo_cliente' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
+                    </a>
+                    <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-info btn-lg">
+                        <i class="fas fa-list me-2"></i>Ver Todas las Ventas
+                    </a>
+                    <a href="{% url 'ventas:lista_clientes' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-users me-2"></i>Gestionar Clientes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Últimas ventas -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Últimas Ventas</h6>
+                <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-sm btn-primary">
+                    Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ultimas_ventas %}
+                            <tr>
+                                <td>#{{ venta.id }}</td>
+                                <td>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ venta.get_tipo_venta_display }}
+                                    </span>
+                                </td>
+                                <td>${{ venta.monto_total|floatformat:2 }}</td>
+                                <td>
+                                    {% if venta.estado == 'confirmada' %}
+                                        <span class="badge bg-success">{{ venta.get_estado_display }}</span>
+                                    {% elif venta.estado == 'pendiente' %}
+                                        <span class="badge bg-warning">{{ venta.get_estado_display }}</span>
+                                    {% elif venta.estado == 'cancelada' %}
+                                        <span class="badge bg-danger">{{ venta.get_estado_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ venta.get_estado_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'ventas:detalle_venta' venta.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'ventas:editar_venta' venta.id %}" 
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    No hay ventas registradas aún
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

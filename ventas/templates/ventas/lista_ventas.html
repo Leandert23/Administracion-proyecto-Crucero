@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Ventas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-shopping-cart me-2"></i>Lista de Ventas
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nueva Venta
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="tipo_venta" class="form-label">Tipo de Venta</label>
+                <select name="tipo_venta" id="tipo_venta" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for value, label in tipos_venta %}
+                        <option value="{{ value }}" {% if value == request.GET.tipo_venta %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="estado" class="form-label">Estado</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    {% for value, label in estados %}
+                        <option value="{{ value }}" {% if value == request.GET.estado %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" 
+                       class="form-control" value="{{ request.GET.fecha_inicio }}">
+            </div>
+            <div class="col-md-2">
+                <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" 
+                       class="form-control" value="{{ request.GET.fecha_fin }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de ventas -->
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Ventas Registradas ({{ ventas.count }})
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Vendedor</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">#{{ venta.id }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</strong>
+                            <br>
+                            <small class="text-muted">{{ venta.cliente.email }}</small>
+                        </td>
+                        <td>
+                            {% if venta.tipo_venta == 'reserva' %}
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-bed me-1"></i>Reserva
+                                </span>
+                            {% elif venta.tipo_venta == 'restaurante' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-utensils me-1"></i>Restaurante
+                                </span>
+                            {% elif venta.tipo_venta == 'bar_snack' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-glass-martini me-1"></i>Bar/Snack
+                                </span>
+                            {% elif venta.tipo_venta == 'entretenimiento' %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-theater-masks me-1"></i>Entretenimiento
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-ellipsis-h me-1"></i>{{ venta.get_tipo_venta_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                  title="{{ venta.descripcion }}">
+                                {{ venta.descripcion|truncatechars:50 }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-success">${{ venta.monto_total|floatformat:2 }}</span>
+                        </td>
+                        <td>
+                            {% if venta.estado == 'confirmada' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>{{ venta.get_estado_display }}
+                                </span>
+                            {% elif venta.estado == 'pendiente' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock me-1"></i>{{ venta.get_estado_display }}
+                                </span>
+                            {% elif venta.estado == 'cancelada' %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times me-1"></i>{{ venta.get_estado_display }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-info-circle me-1"></i>{{ venta.get_estado_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if venta.vendedor %}
+                                <span class="badge bg-dark">{{ venta.vendedor.username }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                {{ venta.fecha_venta|date:"d/m/Y" }}<br>
+                                <span class="text-muted">{{ venta.fecha_venta|date:"H:i" }}</span>
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'ventas:detalle_venta' venta.id %}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'ventas:editar_venta' venta.id %}" 
+                                   class="btn btn-sm btn-outline-warning" 
+                                   title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <h5>No hay ventas registradas</h5>
+                                <p>Comienza creando tu primera venta</p>
+                                <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Crear Primera Venta
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
