@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     "apps.cruceros",
     "apps.almacen",
     "apps.entretenimiento",
-    "apps.mantenimiento"
+    "apps.mantenimiento",
+    "apps.reservaciones"
+    
 ]
 
 MIDDLEWARE = [
@@ -132,6 +134,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'almacen' / 'Static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
     BASE_DIR / 'apps' / 'mantenimiento' / 'static',
+    BASE_DIR / 'apps' / 'reservaciones' / 'static'
 ]
 
 # Media files (user-uploaded content)

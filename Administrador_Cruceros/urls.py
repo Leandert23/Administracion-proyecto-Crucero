@@ -26,7 +26,8 @@ urlpatterns = [
     path('', include('apps.cruceros.urls')),
     path('almacen/', include('apps.almacen.urls')),
     path('entretenimiento/', include('apps.entretenimiento.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),
+    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),  
+    path('reservaciones/', include('apps.reservaciones.urls'))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
