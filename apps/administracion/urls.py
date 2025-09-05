@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    path('', views.dashboard_empresa, name='dashboard'),
+    path('<int:crucero_id>', views.dashboard_empresa, name='dashboard'),
     path('api/cruceros-dashboard/', views.cruceros_dashboard_data, name='cruceros_dashboard_data'),
     path('gestion-roles/', views.gestion_roles, name='gestion_roles'),
     # Agregar URLs para manejar solicitudes de compra

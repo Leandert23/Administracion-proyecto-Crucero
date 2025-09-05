@@ -14,21 +14,41 @@ PREFIJOS_TIPO: Dict[str, str] = {
 }
 
 def generar_codigo_identificacion(tipo_crucero: str) -> str:
+    """
+    Genera un código de identificación único para un crucero.
+    Maneja condiciones de carrera y códigos duplicados.
+    """
     prefijo = PREFIJOS_TIPO.get(tipo_crucero, 'CR')
-    existentes = (
-        Crucero.objects
-        .filter(codigo_identificacion__startswith=f"{prefijo}-")
-        .values_list('codigo_identificacion', flat=True)
-    )
-    max_num = 0
-    for cod in existentes:
-        try:
-            sufijo = cod.split('-', 1)[1]
-            if sufijo.isdigit():
-                max_num = max(max_num, int(sufijo))
-        except (IndexError, ValueError):
-            continue
-    return f"{prefijo}-{(max_num + 1):03d}"
+    max_intentos = 100  # Límite de intentos para evitar bucles infinitos
+    
+    for intento in range(max_intentos):
+        # Obtener el siguiente número disponible
+        existentes = (
+            Crucero.objects
+            .filter(codigo_identificacion__startswith=f"{prefijo}-")
+            .values_list('codigo_identificacion', flat=True)
+        )
+        
+        max_num = 0
+        for cod in existentes:
+            try:
+                sufijo = cod.split('-', 1)[1]
+                if sufijo.isdigit():
+                    max_num = max(max_num, int(sufijo))
+            except (IndexError, ValueError):
+                continue
+        
+        codigo_candidato = f"{prefijo}-{(max_num + 1):03d}"
+        
+        # Verificar si el código ya existe (manejo de condición de carrera)
+        if not Crucero.objects.filter(codigo_identificacion=codigo_candidato).exists():
+            return codigo_candidato
+        
+        # Si existe, incrementar y probar de nuevo
+        max_num += 1
+    
+    # Si llegamos aquí, algo está muy mal
+    raise ValueError(f"No se pudo generar un código único después de {max_intentos} intentos")
 
 class creacionCruceroForm(forms.Form):
     nombre = forms.CharField(max_length=100, label="Nombre")
@@ -39,18 +59,32 @@ class creacionCruceroForm(forms.Form):
     def crear_crucero(self) -> Crucero:
         if not self.is_valid():
             raise ValueError("Formulario no válido")
+        
         tipo = self.cleaned_data['tipo_crucero']
-        codigo = generar_codigo_identificacion(tipo)
+        nombre = self.cleaned_data['nombre']
+        
+        # Verificar si ya existe un crucero con el mismo nombre
+        if Crucero.objects.filter(nombre=nombre).exists():
+            raise ValueError(f"Ya existe un crucero con el nombre '{nombre}'. Por favor, elige un nombre diferente.")
+        
+        try:
+            codigo = generar_codigo_identificacion(tipo)
+        except ValueError as e:
+            raise ValueError(f"Error al generar código de identificación: {str(e)}")
+        
         try:
             crucero = crear_crucero_desde_plantilla(
                 tipo_crucero=tipo,
                 codigo_identificacion=codigo,
-                nombre=self.cleaned_data['nombre'],
+                nombre=nombre,
                 fecha_botadura=self.cleaned_data['fecha_botadura'],
                 descripcion=self.cleaned_data.get('descripcion'),
             )
         except PlantillaNoEncontrada as e:
-            raise ValueError(str(e))
+            raise ValueError(f"Error de plantilla: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Error inesperado al crear el crucero: {str(e)}")
+        
         return crucero
 
 class AsignarRutaForm(forms.ModelForm):

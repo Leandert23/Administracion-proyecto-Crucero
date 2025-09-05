@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from .models import Crucero, FechaDelSistema, Habitacion, TipoHabitacion
 from .forms import creacionCruceroForm, AsignarRutaForm, CruceroEditForm
 from .Services.creacion_rutas_por_plantilla import cargar_rutas_desde_json
@@ -8,6 +10,19 @@ from .Services.vista_helpers import (
     construir_contexto_preview,
 )
 
+def pagina_inicio(request):
+    """Página de inicio que redirige a usuarios autenticados o muestra opciones de login"""
+    if request.user.is_authenticated:
+        # Si el usuario está autenticado, redirigir al dashboard
+        crucero = Crucero.objects.first()
+        if crucero:
+            return redirect('dashboard', crucero_id=crucero.id)
+        return redirect('dashboard', crucero_id=1)
+    
+    # Si no está autenticado, mostrar página de bienvenida
+    return render(request, 'inicio/bienvenida.html')
+
+@login_required
 def lista_cruceros(request):
     fecha_sistema = obtener_fecha_sistema()
     cruceros = Crucero.objects.all()
@@ -38,6 +53,7 @@ def _renderizar_lista_cruceros(request, cruceros, fecha_sistema):
         'fecha_sistema': fecha_sistema.fecha_actual,
     })
 
+@login_required
 def mostrar_inicio(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
     

@@ -180,109 +180,100 @@
 {% endblock %}
 
 {% block content %}
-  {% if user.is_authenticated and es_administrador %}
-    <div class="container" style="display: flex; height: 100vh; min-height: 100vh;">
-      <aside class="sidebar">
-        <div class="logo">
-          <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-icon">
-          <span class="logo-text">CruiseAdmin</span>
-        </div>
-        
-        <div class="ship-status-images" style="margin-bottom: 20px; text-align: center;">
-          <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=100&h=60&fit=crop" alt="Crucero Activo" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
-          <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=100&h=60&fit=crop" alt="Crucero en Mantenimiento" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
-        </div>
-        
-        <label for="shipSelector" style="font-weight:bold; margin-bottom:10px;">Seleccionar barco:</label>
-        <select id="shipSelector" class="sidebar-select" style="width: 90%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1.1em; margin-bottom: 20px; background: white; cursor: pointer;">
-          <option value="all">Todos los barcos</option>
-        </select>
-        
-        <div class="nav-tabs">
-          <button id="dashboardTab" class="tab-button active" onclick="showTab('dashboard')">Dashboard</button>
-          <button id="purchaseTab" class="tab-button" onclick="showTab('purchase')">Solicitudes</button>
-          <button id="budgetTab" class="tab-button" onclick="showTab('budget')">Presupuesto</button>
-        </div>
-      </aside>
+  <div class="container" style="display: flex; height: 100vh; min-height: 100vh;">
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo-icon">
+        <span class="logo-text">CruiseAdmin</span>
+      </div>
       
-      <main class="main-content">
-        <div class="row">
+      <div class="ship-status-images" style="margin-bottom: 20px; text-align: center;">
+        <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=100&h=60&fit=crop" alt="Crucero Activo" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
+        <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=100&h=60&fit=crop" alt="Crucero en Mantenimiento" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
+      </div>
+      
+      <label for="shipSelector" style="font-weight:bold; margin-bottom:10px;">Seleccionar barco:</label>
+      <select id="shipSelector" class="sidebar-select" style="width: 90%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1.1em; margin-bottom: 20px; background: white; cursor: pointer;">
+        <option value="all">Todos los barcos</option>
+      </select>
+      
+      <div class="nav-tabs">
+        <button id="dashboardTab" class="tab-button active" onclick="showTab('dashboard')">Dashboard</button>
+        <button id="purchaseTab" class="tab-button" onclick="showTab('purchase')">Solicitudes</button>
+        <button id="budgetTab" class="tab-button" onclick="showTab('budget')">Presupuesto</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Información Financiera</h5>
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="card bg-primary text-white">
+                    <div class="card-body">
+                      <h6>Presupuesto Estimado</h6>
+                      <h4>${{ presupuesto|floatformat:2 }}</h4>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card bg-success text-white">
+                    <div class="card-body">
+                      <h6>Ganancias Totales</h6>
+                      <h4>$0.00</h4>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card bg-warning text-white">
+                    <div class="card-body">
+                      <h6>Costos Totales</h6>
+                      <h4>$0.00</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="dashboard" class="page active">
+        <!-- Contenido del dashboard se cargará dinámicamente -->
+      </div>
+      
+      <div id="purchaseRequests" class="page">
+        <!-- Contenido de solicitudes de compra se cargará dinámicamente -->
+      </div>
+      
+      <div id="budgetCalculation" class="page">
+        <!-- Contenido de cálculo de presupuesto se cargará dinámicamente -->
+      </div>
+      
+      {% if alertas %}
+        <div class="row mt-4">
           <div class="col-12">
             <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">Alertas</h5>
+              </div>
               <div class="card-body">
-                <h5 class="card-title">Información Financiera</h5>
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="card bg-primary text-white">
-                      <div class="card-body">
-                        <h6>Presupuesto Estimado</h6>
-                        <h4>${{ presupuesto|floatformat:2 }}</h4>
-                      </div>
-                    </div>
+                {% for alerta in alertas %}
+                  <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> {{ alerta.mensaje }}
+                    <small class="text-muted"> - {{ alerta.fecha|date:"d/m/Y H:i" }}</small>
                   </div>
-                  <div class="col-md-4">
-                    <div class="card bg-success text-white">
-                      <div class="card-body">
-                        <h6>Ganancias Totales</h6>
-                        <h4>$0.00</h4>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="card bg-warning text-white">
-                      <div class="card-body">
-                        <h6>Costos Totales</h6>
-                        <h4>$0.00</h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {% endfor %}
               </div>
             </div>
           </div>
         </div>
-        
-        <div id="dashboard" class="page active">
-          <!-- Contenido del dashboard se cargará dinámicamente -->
-        </div>
-        
-        <div id="purchaseRequests" class="page">
-          <!-- Contenido de solicitudes de compra se cargará dinámicamente -->
-        </div>
-        
-        <div id="budgetCalculation" class="page">
-          <!-- Contenido de cálculo de presupuesto se cargará dinámicamente -->
-        </div>
-        
-        {% if alertas %}
-          <div class="row mt-4">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h5 class="card-title mb-0">Alertas</h5>
-                </div>
-                <div class="card-body">
-                  {% for alerta in alertas %}
-                    <div class="alert alert-warning" role="alert">
-                      <i class="fas fa-exclamation-triangle"></i> {{ alerta.mensaje }}
-                      <small class="text-muted"> - {{ alerta.fecha|date:"d/m/Y H:i" }}</small>
-                    </div>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endif %}
-      </main>
-    </div>
-    
-  {% else %}
-    <div class="permission-denied">
-      <h4><i class="fas fa-user-shield"></i> Acceso Restringido</h4>
-      <p>Esta sección está disponible únicamente para usuarios con rol de administrador.</p>
-      <p>Si crees que deberías tener acceso, contacta al administrador del sistema.</p>
-    </div>
-  {% endif %}
+      {% endif %}
+    </main>
+  </div>
 {% endblock %}
 
 {% block extra_js %}

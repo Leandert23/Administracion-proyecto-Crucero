@@ -1,7 +1,21 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Administracion, Alerta
-#from apps.compras.models import Compras
+'''''''''
+from apps.compras.compras.signals import compra_defectosa
+from apps.compras.compras.signals import solicitud_compra_administracion_signal
+
+@receiver(solicitud_compra_administracion_signal)
+def manejar_solicitud_compra_administracion(sender, id, monto, mensaje, **kwargs):
+    print(f"Solicitud recibida: id={id}, monto={monto}, mensaje={mensaje}")
+    # Aquí puedes agregar la lógica que necesites para procesar la solicitud
+    Administracion(id=id).costos_totales += monto
+
+@receiver(compra_defectosa)
+def manejar_compra_defectuosa(sender, presupuesto_lote, mensaje, **kwargs):
+    # Aquí va la lógica que deseas ejecutar cuando se emite el signal
+    print(f"Compra defectuosa detectada. Presupuesto: {presupuesto_lote}, Mensaje: {mensaje}")
+'''''''''
 
 '''''''''
 @receiver(post_save, sender=Compras)
@@ -12,17 +26,6 @@ def actualizar_costos_totales(sender, **kwargs):
     Alerta.objects.create(
         mensaje=f'Nueva compra registrada: {kwargs.get('description')}',
         administracion=admin)
-'''''''''
-
-'''''''''
-Recibe la señal el modulo compras
-ese es el receiver de la señal de alerta de que les pasaron el presupuesto
-
-@monto_mensaje_signal.connect
-def monto_mensaje_receiver(sender, **kwargs):
-    monto = kwargs.get('monto')
-    mensaje = kwargs.get('mensaje')
-    print(f"Signal recibido: Monto={monto}, Mensaje={mensaje}")
 '''''''''
 
 '''''''''
