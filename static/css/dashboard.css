@@ -145,6 +145,8 @@ body {
     transition: all 0.3s ease, color 0.4s ease;
     border-radius: 0 8px 8px 0;
     margin-right: 12px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .nav-link:hover {
@@ -176,6 +178,7 @@ body {
 .nav-text {
     font-weight: 500;
     font-size: 14px;
+    color: white;
     transition: color 0.4s ease;
 }
 
@@ -782,6 +785,37 @@ body {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+/* Botón de módulo flotante */
+.module-button {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    border-radius: 50px !important;
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-family: 'Inter', 'Segoe UI', sans-serif !important;
+    border: none !important;
+    color: white !important;
+}
+
+.module-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
+}
+
+.module-button-text {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
 /* Mejoras para móviles */
 @media (max-width: 768px) {
     .mobile-menu-toggle {
@@ -846,6 +880,22 @@ body {
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
+
+    /* Botón de módulo en móviles */
+    .module-button {
+        top: 10px !important;
+        right: 10px !important;
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+    }
+
+    .module-button-text {
+        display: none !important;
+    }
+
+    .module-button i {
+        font-size: 16px !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -856,6 +906,342 @@ body {
     .btn {
         padding: 10px 16px;
         font-size: 13px;
+    }
+
+    /* Botón de módulo en pantallas muy pequeñas */
+    .module-button {
+        top: 5px !important;
+        right: 5px !important;
+        padding: 8px 12px !important;
+        font-size: 11px !important;
+    }
+
+    .module-button i {
+        font-size: 14px !important;
+    }
+}
+
+/* Responsive mejorado para todas las páginas */
+@media (max-width: 1200px) {
+    .dashboard-content {
+        padding: 24px;
+    }
+    
+    .stats-section {
+        margin-bottom: 24px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 992px) {
+    .main-header {
+        padding: 20px 24px;
+    }
+    
+    .dashboard-content {
+        padding: 20px;
+    }
+    
+    .stats-card {
+        padding: 1.25rem;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+    }
+    
+    .card-header {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .page-subtitle {
+        font-size: 14px;
+    }
+    
+    .dashboard-content {
+        padding: 16px;
+    }
+    
+    .stats-section {
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .stats-card {
+        padding: 1rem;
+        margin-bottom: 16px;
+    }
+    
+    .stats-number {
+        font-size: 1.75rem;
+    }
+    
+    .stats-label {
+        font-size: 0.8rem;
+    }
+    
+    .card {
+        margin-bottom: 16px;
+    }
+    
+    .card-header {
+        padding: 12px 16px;
+    }
+    
+    .card-body {
+        padding: 16px;
+    }
+    
+    .btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .table td, .table th {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+    
+    .form-control, .form-select {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .modal-dialog {
+        margin: 10px;
+    }
+    
+    .modal-content {
+        border-radius: 8px;
+    }
+    
+    .modal-header, .modal-footer {
+        padding: 16px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-header {
+        padding: 12px 16px;
+    }
+    
+    .page-title {
+        font-size: 20px;
+    }
+    
+    .page-subtitle {
+        font-size: 13px;
+    }
+    
+    .dashboard-content {
+        padding: 12px;
+    }
+    
+    .stats-card {
+        padding: 0.75rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+    }
+    
+    .stats-label {
+        font-size: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 10px 12px;
+    }
+    
+    .card-body {
+        padding: 12px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .table td, .table th {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+    
+    .form-control, .form-select {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .modal-dialog {
+        margin: 5px;
+    }
+    
+    .modal-header, .modal-footer {
+        padding: 12px;
+    }
+    
+    .modal-body {
+        padding: 12px;
+    }
+    
+    .breadcrumb {
+        font-size: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .alert {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Mejoras específicas para formularios en móviles */
+@media (max-width: 768px) {
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    
+    .form-text {
+        font-size: 11px;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control {
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+    }
+    
+    .input-group .btn {
+        border-radius: 8px !important;
+    }
+}
+
+/* Mejoras para tablas en móviles */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: none;
+        box-shadow: none;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+    
+    .table thead th {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+    
+    .table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .table tbody tr:hover {
+        transform: none;
+        background: #f8fafc;
+    }
+}
+
+/* Mejoras para botones en móviles */
+@media (max-width: 768px) {
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .btn-group-vertical .btn {
+        border-radius: 8px !important;
+        margin-bottom: 8px;
+    }
+}
+
+/* Mejoras para paginación en móviles */
+@media (max-width: 768px) {
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .pagination .page-link {
+        padding: 8px 12px;
+        font-size: 12px;
+        margin: 2px;
+    }
+}
+
+/* Mejoras para badges en móviles */
+@media (max-width: 768px) {
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Mejoras para tooltips en móviles */
+@media (max-width: 768px) {
+    .tooltip {
+        font-size: 0.75rem;
+    }
+    
+    .tooltip-inner {
+        padding: 0.4rem 0.6rem;
     }
 }
 

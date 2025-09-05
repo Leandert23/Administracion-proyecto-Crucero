@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Solicitud{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Solicitud #{{ solicitud.id }}
+                    </h3>
+                    <div class="card-tools">
+                        <span class="badge bg-info">{{ solicitud.get_modulo_solicitante_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>{{ solicitud.titulo }}</h5>
+                            <p class="text-muted">{{ solicitud.descripcion }}</p>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-info-circle"></i> Información General</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Tipo:</strong></td>
+                                            <td>
+                                                <span class="badge {% if solicitud.tipo == 'preventivo' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {{ solicitud.get_tipo_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Prioridad:</strong></td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if solicitud.prioridad == 'emergencia' %}bg-danger
+                                                    {% elif solicitud.prioridad == 'critica' %}bg-danger
+                                                    {% elif solicitud.prioridad == 'alta' %}bg-warning
+                                                    {% elif solicitud.prioridad == 'media' %}bg-info
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ solicitud.get_prioridad_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Estado:</strong></td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if solicitud.estado == 'pendiente' %}bg-warning
+                                                    {% elif solicitud.estado == 'en_revision' %}bg-info
+                                                    {% elif solicitud.estado == 'aprobada' %}bg-success
+                                                    {% elif solicitud.estado == 'en_progreso' %}bg-primary
+                                                    {% elif solicitud.estado == 'completada' %}bg-success
+                                                    {% elif solicitud.estado == 'rechazada' %}bg-danger
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ solicitud.get_estado_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Ubicación:</strong></td>
+                                            <td>{{ solicitud.ubicacion_solicitud }}</td>
+                                        </tr>
+                                        {% if solicitud.equipo_afectado %}
+                                        <tr>
+                                            <td><strong>Equipo Afectado:</strong></td>
+                                            <td>{{ solicitud.equipo_afectado }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-calendar"></i> Fechas</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Solicitado:</strong></td>
+                                            <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% if solicitud.fecha_programada %}
+                                        <tr>
+                                            <td><strong>Programado:</strong></td>
+                                            <td>{{ solicitud.fecha_programada|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if solicitud.fecha_inicio %}
+                                        <tr>
+                                            <td><strong>Iniciado:</strong></td>
+                                            <td>{{ solicitud.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if solicitud.fecha_completado %}
+                                        <tr>
+                                            <td><strong>Completado:</strong></td>
+                                            <td>{{ solicitud.fecha_completado|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            {% if solicitud.materiales_necesarios %}
+                            <div class="mt-4">
+                                <h6><i class="fas fa-tools"></i> Materiales Necesarios</h6>
+                                <p>{{ solicitud.materiales_necesarios }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if solicitud.observaciones %}
+                            <div class="mt-4">
+                                <h6><i class="fas fa-comment"></i> Observaciones</h6>
+                                <p>{{ solicitud.observaciones }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-users"></i> Personal</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Solicitado por:</strong></td>
+                                            <td>{{ solicitud.solicitado_por.get_full_name|default:solicitud.solicitado_por.username }}</td>
+                                        </tr>
+                                        {% if solicitud.asignado_a %}
+                                        <tr>
+                                            <td><strong>Asignado a:</strong></td>
+                                            <td>{{ solicitud.asignado_a.get_full_name|default:solicitud.asignado_a.username }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if solicitud.revisado_por %}
+                                        <tr>
+                                            <td><strong>Revisado por:</strong></td>
+                                            <td>{{ solicitud.revisado_por.get_full_name|default:solicitud.revisado_por.username }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            {% if solicitud.tarea_mantenimiento %}
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-tasks"></i> Tarea Relacionada</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>ID:</strong> #{{ solicitud.tarea_mantenimiento.id }}</p>
+                                    <p><strong>Estado:</strong> {{ solicitud.tarea_mantenimiento.get_estado_display }}</p>
+                                    <a href="{% url 'mantenimiento:tarea_detail' solicitud.tarea_mantenimiento.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Ver Tarea
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'mantenimiento:mis_solicitudes' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a Mis Solicitudes
+                        </a>
+                        {% if solicitud.solicitado_por == user %}
+                        <a href="{% url 'mantenimiento:solicitar_mantenimiento' %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Nueva Solicitud
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

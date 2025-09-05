@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solicitud Enviada{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-check-circle"></i>
+                        Solicitud Enviada Exitosamente
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-info-circle"></i> Detalles de la Solicitud</h5>
+                        <hr>
+                        <p><strong>ID de Solicitud:</strong> #{{ solicitud.id }}</p>
+                        <p><strong>Título:</strong> {{ solicitud.titulo }}</p>
+                        <p><strong>Tipo:</strong> {{ solicitud.get_tipo_display }}</p>
+                        <p><strong>Prioridad:</strong> {{ solicitud.get_prioridad_display }}</p>
+                        <p><strong>Estado:</strong> {{ solicitud.get_estado_display }}</p>
+                        <p><strong>Fecha de Solicitud:</strong> {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Módulo Solicitante:</strong> {{ solicitud.get_modulo_solicitante_display }}</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-clock"></i> Próximos Pasos</h6>
+                        <ul class="mb-0">
+                            <li>Tu solicitud será revisada por el personal de mantenimiento</li>
+                            <li>Recibirás notificaciones sobre el estado de tu solicitud</li>
+                            <li>Puedes ver el progreso en "Mis Solicitudes"</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'mantenimiento:mis_solicitudes' %}" class="btn btn-primary">
+                            <i class="fas fa-list"></i> Ver Mis Solicitudes
+                        </a>
+                        <a href="{% url 'mantenimiento:dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Volver al Dashboard
+                        </a>
+                        <a href="{% url 'mantenimiento:solicitar_mantenimiento' %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Nueva Solicitud
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -370,6 +370,88 @@ class Personal(models.Model):
         super().delete(*args, **kwargs)
 
 
+class SolicitudMantenimiento(models.Model):
+    """Solicitudes de mantenimiento desde otros módulos"""
+    MODULOS_SOLICITANTES = [
+        ('mantenimiento', 'Mantenimiento'),
+        ('servicios_medicos', 'Servicios Médicos'),
+        ('almacen', 'Almacén'),
+        ('recursos_humanos', 'Recursos Humanos'),
+        ('ventas', 'Ventas'),
+        ('reservas', 'Reservas'),
+        ('restaurante', 'Restaurante'),
+        ('bares', 'Bares'),
+        ('entretenimiento', 'Entretenimiento'),
+        ('compras', 'Compras'),
+    ]
+    
+    TIPOS_SOLICITUD = [
+        ('preventivo', 'Mantenimiento Preventivo'),
+        ('correctivo', 'Mantenimiento Correctivo'),
+    ]
+    
+    ESTADOS_SOLICITUD = [
+        ('pendiente', 'Pendiente'),
+        ('en_revision', 'En Revisión'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+        ('en_progreso', 'En Progreso'),
+        ('completada', 'Completada'),
+        ('cancelada', 'Cancelada'),
+    ]
+    
+    PRIORIDADES = [
+        ('baja', 'Baja'),
+        ('media', 'Media'),
+        ('alta', 'Alta'),
+        ('critica', 'Crítica'),
+        ('emergencia', 'Emergencia Crítica'),
+    ]
+    
+    # Información de la solicitud
+    titulo = models.CharField(max_length=200, help_text="Título descriptivo de la solicitud")
+    descripcion = models.TextField(help_text="Descripción detallada del problema o necesidad")
+    tipo = models.CharField(max_length=20, choices=TIPOS_SOLICITUD)
+    prioridad = models.CharField(max_length=20, choices=PRIORIDADES, default='media')
+    estado = models.CharField(max_length=20, choices=ESTADOS_SOLICITUD, default='pendiente')
+    
+    # Información del módulo solicitante
+    modulo_solicitante = models.CharField(max_length=30, choices=MODULOS_SOLICITANTES)
+    ubicacion_solicitud = models.CharField(max_length=100, help_text="Ubicación específica donde se necesita el mantenimiento")
+    equipo_afectado = models.CharField(max_length=200, blank=True, help_text="Equipo o área específica que necesita mantenimiento")
+    
+    # Información del crucero
+    crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True)
+    tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # Usuarios
+    solicitado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes_realizadas')
+    asignado_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes_asignadas')
+    revisado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes_revisadas')
+    
+    # Fechas
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_programada = models.DateTimeField(null=True, blank=True, help_text="Fecha programada para realizar el mantenimiento")
+    fecha_inicio = models.DateTimeField(null=True, blank=True)
+    fecha_completado = models.DateTimeField(null=True, blank=True)
+    
+    # Información adicional
+    observaciones = models.TextField(blank=True, help_text="Observaciones adicionales del personal de mantenimiento")
+    materiales_necesarios = models.TextField(blank=True, help_text="Materiales o herramientas necesarias")
+    tiempo_estimado = models.IntegerField(null=True, blank=True, help_text="Tiempo estimado en minutos")
+    
+    # Relación con tarea de mantenimiento (si se convierte)
+    tarea_mantenimiento = models.ForeignKey('TareaMantenimiento', on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitud_origen')
+    
+    def __str__(self):
+        return f"{self.get_modulo_solicitante_display()} - {self.titulo} ({self.get_estado_display()})"
+    
+    class Meta:
+        verbose_name = "Solicitud de Mantenimiento"
+        verbose_name_plural = "Solicitudes de Mantenimiento"
+        ordering = ['-fecha_solicitud']
+
+
 class TareaMantenimiento(models.Model):
     """Tareas de mantenimiento"""
     TIPOS_TAREA = [

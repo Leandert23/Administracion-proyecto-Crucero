@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Solicitudes{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Gestionar Solicitudes de Mantenimiento
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Estadísticas -->
+                    <div class="row mb-4">
+                        <div class="col-md-2">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.total }}</h4>
+                                    <small>Total</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.pendientes }}</h4>
+                                    <small>Pendientes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.en_revision }}</h4>
+                                    <small>En Revisión</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.completadas }}</h4>
+                                    <small>Completadas</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-secondary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.en_progreso }}</h4>
+                                    <small>En Progreso</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ stats.aprobadas }}</h4>
+                                    <small>Aprobadas</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-2">
+                                    <select name="estado" class="form-select">
+                                        <option value="">Todos los Estados</option>
+                                        <option value="pendiente" {% if estado_filter == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="en_revision" {% if estado_filter == 'en_revision' %}selected{% endif %}>En Revisión</option>
+                                        <option value="aprobada" {% if estado_filter == 'aprobada' %}selected{% endif %}>Aprobada</option>
+                                        <option value="en_progreso" {% if estado_filter == 'en_progreso' %}selected{% endif %}>En Progreso</option>
+                                        <option value="completada" {% if estado_filter == 'completada' %}selected{% endif %}>Completada</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="tipo" class="form-select">
+                                        <option value="">Todos los Tipos</option>
+                                        <option value="preventivo" {% if tipo_filter == 'preventivo' %}selected{% endif %}>Preventivo</option>
+                                        <option value="correctivo" {% if tipo_filter == 'correctivo' %}selected{% endif %}>Correctivo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="modulo" class="form-select">
+                                        <option value="">Todos los Módulos</option>
+                                        <option value="servicios_medicos" {% if modulo_filter == 'servicios_medicos' %}selected{% endif %}>Servicios Médicos</option>
+                                        <option value="almacen" {% if modulo_filter == 'almacen' %}selected{% endif %}>Almacén</option>
+                                        <option value="restaurante" {% if modulo_filter == 'restaurante' %}selected{% endif %}>Restaurante</option>
+                                        <option value="bares" {% if modulo_filter == 'bares' %}selected{% endif %}>Bares</option>
+                                        <option value="entretenimiento" {% if modulo_filter == 'entretenimiento' %}selected{% endif %}>Entretenimiento</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="search" class="form-control" placeholder="Buscar por título, descripción..." value="{{ search }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Filtrar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Solicitudes -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Título</th>
+                                    <th>Módulo</th>
+                                    <th>Tipo</th>
+                                    <th>Prioridad</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in page_obj %}
+                                <tr>
+                                    <td>#{{ solicitud.id }}</td>
+                                    <td>{{ solicitud.titulo|truncatechars:50 }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ solicitud.get_modulo_solicitante_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if solicitud.tipo == 'preventivo' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ solicitud.get_tipo_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if solicitud.prioridad == 'emergencia' %}bg-danger
+                                            {% elif solicitud.prioridad == 'critica' %}bg-danger
+                                            {% elif solicitud.prioridad == 'alta' %}bg-warning
+                                            {% elif solicitud.prioridad == 'media' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ solicitud.get_prioridad_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if solicitud.estado == 'pendiente' %}bg-warning
+                                            {% elif solicitud.estado == 'en_revision' %}bg-info
+                                            {% elif solicitud.estado == 'aprobada' %}bg-success
+                                            {% elif solicitud.estado == 'en_progreso' %}bg-primary
+                                            {% elif solicitud.estado == 'completada' %}bg-success
+                                            {% elif solicitud.estado == 'rechazada' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ solicitud.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'mantenimiento:solicitud_detail' solicitud.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'mantenimiento:editar_solicitud' solicitud.id %}" class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if solicitud.estado == 'aprobada' %}
+                                            <a href="{% url 'mantenimiento:convertir_solicitud' solicitud.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-tasks"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">
+                                        <i class="fas fa-inbox"></i> No hay solicitudes que coincidan con los filtros
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if modulo_filter %}&modulo={{ modulo_filter }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Primera</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if modulo_filter %}&modulo={{ modulo_filter }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Anterior</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if modulo_filter %}&modulo={{ modulo_filter }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Siguiente</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}{% if modulo_filter %}&modulo={{ modulo_filter }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Última</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

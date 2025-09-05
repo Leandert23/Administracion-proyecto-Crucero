@@ -540,12 +540,7 @@
                                 <small>Actualizar Todo</small>
                             </button>
                         </div>
-                        <div class="col-6">
-                            <button onclick="repairCharts()" class="btn btn-outline-warning w-100 mb-2">
-                                <i class="fas fa-tools me-1"></i>
-                                <small>Reparar Gráficas</small>
-                            </button>
-                        </div>
+                        <!-- Botón de reparar gráficas removido por petición del usuario -->
                         <div class="col-6">
                             <button onclick="window.dashboardManager?.toggleAutoUpdate()" class="btn btn-outline-secondary w-100 mb-2">
                                 <i class="fas fa-play me-1"></i>
@@ -904,19 +899,22 @@ class OptimizedDashboardManager {
                     // Actualizar timestamp
                     this.updateTimestamp();
                     
-                    this.showUpdateSuccess();
+                    // Notificaciones removidas por petición del usuario
+                    // this.showUpdateSuccess();
                     
                     // Actualizar el indicador de estado
                     this.updateStatusIndicator('success');
                 } else {
-                    console.error('❌ Error en la respuesta:', data.error);
-                    this.showUpdateError();
+                    // Notificaciones removidas por petición del usuario
+                    // console.error('❌ Error en la respuesta:', data.error);
+                    // this.showUpdateError();
                     this.updateStatusIndicator('error');
                 }
             })
             .catch(error => {
-                console.error('❌ Error actualizando dashboard:', error);
-                this.showUpdateError();
+                // Notificaciones removidas por petición del usuario
+                // console.error('❌ Error actualizando dashboard:', error);
+                // this.showUpdateError();
                 this.updateStatusIndicator('error');
             });
     }
@@ -969,13 +967,14 @@ class OptimizedDashboardManager {
         });
     }
     
-    showUpdateSuccess() {
-        this.showToast('✅ Dashboard actualizado correctamente', 'success');
-    }
+    // Funciones de notificación removidas por petición del usuario
+    // showUpdateSuccess() {
+    //     this.showToast('✅ Dashboard actualizado correctamente', 'success');
+    // }
     
-    showUpdateError() {
-        this.showToast('❌ Error actualizando dashboard', 'danger');
-    }
+    // showUpdateError() {
+    //     this.showToast('❌ Error actualizando dashboard', 'danger');
+    // }
     
     showToast(message, type = 'info') {
         const toast = document.createElement('div');
@@ -1045,45 +1044,7 @@ class OptimizedDashboardManager {
         }
     }
     
-    // Método para verificar y reparar gráficas
-    checkAndRepairCharts() {
-        console.log('🔍 Verificando estado de las gráficas...');
-        
-        const tareasChart = document.getElementById('tareasChart');
-        const cruceroChart = document.getElementById('cruceroChart');
-        
-        if (!tareasChart || !cruceroChart) {
-            console.warn('⚠️ Canvas de gráficas no encontrado');
-            return false;
-        }
-        
-        // Verificar si las gráficas están funcionando
-        if (!this.charts.tareas || !this.charts.crucero) {
-            console.log('🔄 Gráficas no inicializadas, reinicializando...');
-            this.initCharts();
-            return true;
-        }
-        
-        // Verificar si las gráficas tienen datos válidos
-        try {
-            if (this.charts.tareas.data.datasets[0].data.every(val => val === 0)) {
-                console.log('🔄 Gráfico de tareas sin datos, actualizando...');
-                this.updateDashboard();
-            }
-            
-            if (this.charts.crucero.data.datasets[0].data.every(val => val === 0) && 
-                this.charts.crucero.data.datasets[1].data.every(val => val === 0)) {
-                console.log('🔄 Gráfico de cruceros sin datos, actualizando...');
-                this.updateDashboard();
-            }
-        } catch (e) {
-            console.warn('⚠️ Error verificando datos de gráficas:', e);
-            this.initCharts();
-            return true;
-        }
-        
-        return true;
-    }
+    // Función de reparar gráficas removida por petición del usuario
 }
 
 // Añadir estilos para animaciones
@@ -1151,11 +1112,7 @@ window.addEventListener('pageshow', (event) => {
 window.addEventListener('focus', () => {
     if (window.dashboardManager) {
         console.log('🔄 Ventana enfocada, verificando estado...');
-        setTimeout(() => {
-            if (window.dashboardManager) {
-                window.dashboardManager.checkAndRepairCharts();
-            }
-        }, 100);
+        // Función de reparar gráficas removida
     }
 });
 
@@ -1173,33 +1130,13 @@ window.updateDashboard = function() {
     }
 };
 
-// Función global para reparar gráficas
-window.repairCharts = function() {
-    if (window.dashboardManager) {
-        window.dashboardManager.checkAndRepairCharts();
-    } else {
-        // Si no existe el dashboard manager, intentar inicializarlo
-        console.log('🔄 Inicializando dashboard manager...');
-        if (typeof OptimizedDashboardManager !== 'undefined') {
-            window.dashboardManager = new OptimizedDashboardManager();
-            setTimeout(() => {
-                if (window.dashboardManager) {
-                    window.dashboardManager.checkAndRepairCharts();
-                }
-            }, 1000);
-        }
-    }
-};
+// Función de reparar gráficas removida por petición del usuario
 
 // Detectar cambios de tamaño de ventana (puede ayudar con la reinicialización)
 window.addEventListener('resize', () => {
     if (window.dashboardManager) {
         console.log('🔄 Ventana redimensionada, verificando gráficas...');
-        setTimeout(() => {
-            if (window.dashboardManager) {
-                window.dashboardManager.checkAndRepairCharts();
-            }
-        }, 300);
+        // Función de reparar gráficas removida
     }
 });
 </script>

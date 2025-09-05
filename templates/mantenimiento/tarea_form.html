@@ -3,6 +3,11 @@
 {% block page_title %}{{ action }} Tarea{% endblock %}
 {% block page_subtitle %}Complete la información de la tarea de mantenimiento{% endblock %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="stats-section">
     <div class="row">
@@ -36,25 +41,55 @@
                         <!-- Información básica -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-8">
-                                <label for="{{ form.titulo.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-tag me-1 text-primary"></i>{{ form.titulo.label }}
+                                <label for="id_titulo" class="form-label fw-semibold">
+                                    <i class="fas fa-tag me-1 text-primary"></i>Título *
                                 </label>
-                                {{ form.titulo }}
+                                <input type="text" class="form-control" id="id_titulo" name="titulo" 
+                                       value="{{ form.titulo.value|default:'' }}" required
+                                       placeholder="Ej: Mantenimiento del sistema de aire acondicionado">
+                                {% if form.titulo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.titulo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.prioridad.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-exclamation-circle me-1 text-warning"></i>{{ form.prioridad.label }}
+                                <label for="id_prioridad" class="form-label fw-semibold">
+                                    <i class="fas fa-exclamation-circle me-1 text-warning"></i>Prioridad
                                 </label>
-                                {{ form.prioridad }}
+                                <select class="form-select" id="id_prioridad" name="prioridad">
+                                    <option value="baja" {% if form.prioridad.value == 'baja' %}selected{% endif %}>Baja</option>
+                                    <option value="media" {% if form.prioridad.value == 'media' or not form.prioridad.value %}selected{% endif %}>Media</option>
+                                    <option value="alta" {% if form.prioridad.value == 'alta' %}selected{% endif %}>Alta</option>
+                                    <option value="critica" {% if form.prioridad.value == 'critica' %}selected{% endif %}>Crítica</option>
+                                    <option value="emergencia" {% if form.prioridad.value == 'emergencia' %}selected{% endif %}>Emergencia</option>
+                                </select>
+                                {% if form.prioridad.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.prioridad.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-align-left me-1 text-info"></i>{{ form.descripcion.label }}
+                                <label for="id_descripcion" class="form-label fw-semibold">
+                                    <i class="fas fa-align-left me-1 text-info"></i>Descripción *
                                 </label>
-                                {{ form.descripcion }}
+                                <textarea class="form-control" id="id_descripcion" name="descripcion" rows="4" required
+                                          placeholder="Describe detalladamente la tarea de mantenimiento a realizar...">{{ form.descripcion.value|default:'' }}</textarea>
+                                {% if form.descripcion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.descripcion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -64,22 +99,62 @@
                         </h5>
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
-                                <label for="{{ form.tipo.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-wrench me-1 text-success"></i>{{ form.tipo.label }}
+                                <label for="id_tipo" class="form-label fw-semibold">
+                                    <i class="fas fa-wrench me-1 text-success"></i>Tipo *
                                 </label>
-                                {{ form.tipo }}
+                                <select class="form-select" id="id_tipo" name="tipo" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="preventivo" {% if form.tipo.value == 'preventivo' %}selected{% endif %}>Preventivo</option>
+                                    <option value="correctivo" {% if form.tipo.value == 'correctivo' %}selected{% endif %}>Correctivo</option>
+                                    <option value="emergencia" {% if form.tipo.value == 'emergencia' %}selected{% endif %}>Emergencia</option>
+                                </select>
+                                {% if form.tipo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.tipo_crucero.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-ship me-1 text-info"></i>{{ form.tipo_crucero.label }}
+                                <label for="id_tipo_crucero" class="form-label fw-semibold">
+                                    <i class="fas fa-ship me-1 text-info"></i>Tipo de Crucero
                                 </label>
-                                {{ form.tipo_crucero }}
+                                <select class="form-select" id="id_tipo_crucero" name="tipo_crucero">
+                                    <option value="">Seleccionar tipo de crucero...</option>
+                                    {% for choice in form.tipo_crucero.field.queryset %}
+                                        <option value="{{ choice.id }}" {% if form.tipo_crucero.value == choice.id %}selected{% endif %}>
+                                            {{ choice.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.tipo_crucero.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo_crucero.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <label for="{{ form.crucero.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-building me-1 text-secondary"></i>{{ form.crucero.label }}
+                                <label for="id_crucero" class="form-label fw-semibold">
+                                    <i class="fas fa-building me-1 text-secondary"></i>Crucero
                                 </label>
-                                {{ form.crucero }}
+                                <select class="form-select" id="id_crucero" name="crucero">
+                                    <option value="">Seleccionar crucero...</option>
+                                    {% for choice in form.crucero.field.queryset %}
+                                        <option value="{{ choice.id }}" {% if form.crucero.value == choice.id %}selected{% endif %}>
+                                            {{ choice.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.crucero.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.crucero.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -89,16 +164,44 @@
                         </h5>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label for="{{ form.ubicacion.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ form.ubicacion.label }}
+                                <label for="id_ubicacion" class="form-label fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>Ubicación *
                                 </label>
-                                {{ form.ubicacion }}
+                                <select class="form-select" id="id_ubicacion" name="ubicacion" required>
+                                    <option value="">Seleccionar ubicación...</option>
+                                    {% for choice in form.ubicacion.field.queryset %}
+                                        <option value="{{ choice.id }}" {% if form.ubicacion.value == choice.id %}selected{% endif %}>
+                                            {{ choice.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.ubicacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.ubicacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.equipo.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-cogs me-1 text-warning"></i>{{ form.equipo.label }}
+                                <label for="id_equipo" class="form-label fw-semibold">
+                                    <i class="fas fa-cogs me-1 text-warning"></i>Equipo
                                 </label>
-                                {{ form.equipo }}
+                                <select class="form-select" id="id_equipo" name="equipo">
+                                    <option value="">Seleccionar equipo...</option>
+                                    {% for choice in form.equipo.field.queryset %}
+                                        <option value="{{ choice.id }}" {% if form.equipo.value == choice.id %}selected{% endif %}>
+                                            {{ choice.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.equipo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.equipo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -108,25 +211,50 @@
                         </h5>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label for="{{ form.fecha_programada.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-calendar me-1 text-success"></i>{{ form.fecha_programada.label }}
+                                <label for="id_fecha_programada" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar me-1 text-success"></i>Fecha Programada *
                                 </label>
-                                {{ form.fecha_programada }}
+                                <input type="datetime-local" class="form-control" id="id_fecha_programada" name="fecha_programada" 
+                                       value="{{ form.fecha_programada.value|default:'' }}" required>
+                                {% if form.fecha_programada.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_programada.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.tiempo_estimado_horas.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-clock me-1 text-info"></i>{{ form.tiempo_estimado_horas.label }}
+                                <label for="id_tiempo_estimado_horas" class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-1 text-info"></i>Tiempo Estimado (horas)
                                 </label>
-                                {{ form.tiempo_estimado_horas }}
+                                <input type="number" class="form-control" id="id_tiempo_estimado_horas" name="tiempo_estimado_horas" 
+                                       value="{{ form.tiempo_estimado_horas.value|default:'' }}" min="0" step="0.5"
+                                       placeholder="Ej: 2.5">
+                                {% if form.tiempo_estimado_horas.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tiempo_estimado_horas.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-sticky-note me-1 text-secondary"></i>{{ form.observaciones.label }}
+                                <label for="id_observaciones" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-1 text-secondary"></i>Observaciones
                                 </label>
-                                {{ form.observaciones }}
+                                <textarea class="form-control" id="id_observaciones" name="observaciones" rows="3"
+                                          placeholder="Observaciones adicionales sobre la tarea...">{{ form.observaciones.value|default:'' }}</textarea>
+                                {% if form.observaciones.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.observaciones.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -143,22 +271,35 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="mb-3">
-                                            <label for="{{ asignacion_form.personal.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-user me-1"></i>{{ asignacion_form.personal.label }}
+                                            <label for="id_personal" class="form-label fw-semibold">
+                                                <i class="fas fa-user me-1"></i>Personal
                                             </label>
-                                            {{ asignacion_form.personal }}
+                                            <select class="form-select" id="id_personal" name="personal">
+                                                <option value="">Seleccionar personal...</option>
+                                                {% for choice in asignacion_form.personal.field.queryset %}
+                                                    <option value="{{ choice.id }}" {% if asignacion_form.personal.value == choice.id %}selected{% endif %}>
+                                                        {{ choice.nombre }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="{{ asignacion_form.horas_asignadas.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-clock me-1"></i>{{ asignacion_form.horas_asignadas.label }}
+                                            <label for="id_horas_asignadas" class="form-label fw-semibold">
+                                                <i class="fas fa-clock me-1"></i>Horas Asignadas
                                             </label>
-                                            {{ asignacion_form.horas_asignadas }}
+                                            <input type="number" class="form-control" id="id_horas_asignadas" name="horas_asignadas" 
+                                                   value="{{ asignacion_form.horas_asignadas.value|default:'' }}" min="0" step="0.5"
+                                                   placeholder="Ej: 4">
                                         </div>
                                         <div class="mb-0">
-                                            <label for="{{ asignacion_form.estado.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-info-circle me-1"></i>{{ asignacion_form.estado.label }}
+                                            <label for="id_estado" class="form-label fw-semibold">
+                                                <i class="fas fa-info-circle me-1"></i>Estado
                                             </label>
-                                            {{ asignacion_form.estado }}
+                                            <select class="form-select" id="id_estado" name="estado">
+                                                <option value="asignado" {% if asignacion_form.estado.value == 'asignado' %}selected{% endif %}>Asignado</option>
+                                                <option value="en_progreso" {% if asignacion_form.estado.value == 'en_progreso' %}selected{% endif %}>En Progreso</option>
+                                                <option value="completado" {% if asignacion_form.estado.value == 'completado' %}selected{% endif %}>Completado</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -175,16 +316,25 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="mb-3">
-                                            <label for="{{ producto_form.producto.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-box me-1"></i>{{ producto_form.producto.label }}
+                                            <label for="id_producto" class="form-label fw-semibold">
+                                                <i class="fas fa-box me-1"></i>Producto
                                             </label>
-                                            {{ producto_form.producto }}
+                                            <select class="form-select" id="id_producto" name="producto">
+                                                <option value="">Seleccionar producto...</option>
+                                                {% for choice in producto_form.producto.field.queryset %}
+                                                    <option value="{{ choice.id }}" {% if producto_form.producto.value == choice.id %}selected{% endif %}>
+                                                        {{ choice.nombre }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                         <div class="mb-0">
-                                            <label for="{{ producto_form.cantidad_utilizada.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-hashtag me-1"></i>{{ producto_form.cantidad_utilizada.label }}
+                                            <label for="id_cantidad_utilizada" class="form-label fw-semibold">
+                                                <i class="fas fa-hashtag me-1"></i>Cantidad Utilizada
                                             </label>
-                                            {{ producto_form.cantidad_utilizada }}
+                                            <input type="number" class="form-control" id="id_cantidad_utilizada" name="cantidad_utilizada" 
+                                                   value="{{ producto_form.cantidad_utilizada.value|default:'' }}" min="0" step="0.1"
+                                                   placeholder="Ej: 2.5">
                                         </div>
                                     </div>
                                 </div>

@@ -15,6 +15,10 @@ from .views.productos import producto_list, producto_create, producto_detail, pr
 from .views.ubicaciones import ubicacion_list, ubicacion_create, ubicacion_detail, ubicacion_update, ubicacion_delete
 from .views.incidentes import incidente_list, incidente_create, incidente_detail, incidente_update, incidente_resolver
 from .views.reportes import reportes, reporte_tareas_pendientes, reporte_equipos_vencidos, reporte_consumo_productos
+from .views.solicitudes import (
+    solicitar_mantenimiento, solicitud_enviada, mis_solicitudes, solicitud_detail,
+    gestionar_solicitudes, editar_solicitud, convertir_solicitud, cambiar_estado_solicitud
+)
 
 app_name = 'mantenimiento'
 
@@ -85,4 +89,18 @@ urlpatterns = [
     path('piscinas/<int:pk>/tendencias/', piscina_trends, name='piscina_trends'),
     path('piscinas/medicion/crear/', medicion_piscina_create, name='medicion_piscina_create'),
     path('api/piscinas/<int:pk>/update/', piscina_update_data, name='piscina_update_data'),
+    
+    # Solicitudes de Mantenimiento
+    path('solicitar-mantenimiento/', solicitar_mantenimiento, name='solicitar_mantenimiento'),
+    path('solicitar-mantenimiento/preventivo/', solicitar_mantenimiento, {'tipo': 'preventivo'}, name='solicitar_mantenimiento_preventivo'),
+    path('solicitar-mantenimiento/correctivo/', solicitar_mantenimiento, {'tipo': 'correctivo'}, name='solicitar_mantenimiento_correctivo'),
+    path('solicitud-enviada/<int:solicitud_id>/', solicitud_enviada, name='solicitud_enviada'),
+    path('mis-solicitudes/', mis_solicitudes, name='mis_solicitudes'),
+    path('solicitud/<int:solicitud_id>/', solicitud_detail, name='solicitud_detail'),
+    
+    # Gestión de Solicitudes (Módulo Mantenimiento)
+    path('gestionar-solicitudes/', gestionar_solicitudes, name='gestionar_solicitudes'),
+    path('editar-solicitud/<int:solicitud_id>/', editar_solicitud, name='editar_solicitud'),
+    path('convertir-solicitud/<int:solicitud_id>/', convertir_solicitud, name='convertir_solicitud'),
+    path('api/cambiar-estado-solicitud/<int:solicitud_id>/', cambiar_estado_solicitud, name='cambiar_estado_solicitud'),
 ]
