@@ -1,0 +1,124 @@
+{% comment %}
+Componente: tabla_movimientos.html
+Descripción: Tabla de historial de movimientos (entradas, salidas, creaciones, mermas, otros).
+Contexto requerido:
+    - page: Page con object_list de movimientos (cada movimiento: fecha, tipo, cantidad, producto, lote, modulo, descripcion).
+    - Cada movimiento.producto: nombre, get_medida_display, tipo, subtipo, seccion.nombre.
+    - Cada movimiento.lote: numero_lote opcional.
+Uso en AJAX: Se retorna junto con paginación para el modal de historial (modalHistorialMovimientos).
+Badges tipo: IN, OUT, NEW, MERMA u otro (usa get_tipo_display si existe).
+Data attributes en botón Ver: usados para poblar el modal detalle (#modalDetalleMovimiento) mediante JS (historial.js).
+Accesibilidad: aria-current en página activa, aria-label en botones de paginación.
+Personalización: Para agregar filtros adicionales, añadir data-attributes al <tr>.
+{% endcomment %}
+<table class="historial-table">
+    <thead>
+        <tr>
+            <th class="col-fecha"><span>Fecha</span></th>
+            <th class="col-tipo"><span>Tipo</span></th>
+            <th class="col-cantidad"><span>Cantidad</span></th>
+            <th class="col-producto"><span>Producto / Clasificación</span></th>
+            <th class="col-destino"><span>Destino</span></th>
+            <th class="col-ubicacion"><span>Sección del Almacén</span></th>
+            <th class="col-acciones"><span>Acciones</span></th>
+        </tr>
+    </thead>
+    <tbody id="historial-tbody">
+        {% if page and page.object_list %}
+            {% for mov in page.object_list %}
+                <tr data-tipo="{{ mov.tipo|lower }}" data-fecha="{{ mov.fecha|date:'Y-m-d' }}">
+                    <td>{{ mov.fecha|date:'d/m/Y' }}</td>
+                    <td>
+                        {% if mov.tipo == 'IN' %}
+                            <span class="movimiento-badge entrada">Entrada</span>
+                        {% elif mov.tipo == 'OUT' %}
+                            <span class="movimiento-badge salida">Salida</span>
+                        {% elif mov.tipo == 'NEW' %}
+                            <span class="movimiento-badge creado">Creado</span>
+                        {% elif mov.tipo == 'MERMA' %}
+                            <span class="movimiento-badge merma">Merma</span>
+                        {% else %}
+                            <span class="movimiento-badge otro">{{ mov.get_tipo_display|default:mov.tipo }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if mov.tipo == 'NEW' or mov.cantidad == None %}
+                            <span class="mov-cantidad sin-cantidad" title="Movimiento de creación, sin cantidad">N/A</span>
+                        {% else %}
+                            <span class="mov-cantidad">{{ mov.cantidad }} {{ mov.producto.get_medida_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="product">
+                            <div class="product-img-placeholder"></div>
+                            <div class="product-info">
+                                <div class="product-name">{{ mov.producto.nombre }}</div>
+                                <div class="product-sku">
+                                    {{ mov.producto.get_tipo_display|default:mov.producto.tipo }}
+                                    {% if mov.producto.subtipo %} · {{ mov.producto.get_subtipo_display|default:mov.producto.subtipo }}{% endif %}
+                                    {% if mov.lote.numero_lote %} · Lote {{ mov.lote.numero_lote }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {{ mov.get_modulo_display|default:mov.modulo|default:'-' }}
+                    </td>
+                    <td>{{ mov.producto.seccion.nombre|default:'-' }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn action-view" title="Ver detalles" data-mov-id="{{ mov.id }}"
+                                data-tipo="{{ mov.tipo }}"
+                                data-producto="{{ mov.producto.nombre }}"
+                                data-lote="{% if mov.lote and mov.lote.numero_lote %}{{ mov.lote.numero_lote }}{% elif mov.lote_id %}{{ mov.lote_id }}{% else %}-{% endif %}"
+                                data-cantidad="{% if mov.tipo == 'NEW' or mov.cantidad == None %}N/A{% else %}{{ mov.cantidad }}{% endif %}"
+                                data-unidad="{{ mov.producto.get_medida_display }}"
+                                data-fecha="{{ mov.fecha|date:'d/m/Y' }}"
+                                data-modulo="{{ mov.get_modulo_display|default:mov.modulo|default:'-' }}"
+                                data-descripcion="{{ mov.descripcion|default:''|escape }}">
+                                Ver
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr class="sin-movimientos">
+                <td colspan="7" style="text-align:center; padding:28px; font-size:.85rem; color:#64748b;">
+                    No hay movimientos registrados todavía.
+                </td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% if page %}
+    <div class="table-footer historial-pagination" data-total="{{ page.paginator.count }}">
+        <div class="summary">
+            <!-- icon removed -->
+            Página {{ page.number }} de {{ page.paginator.num_pages }} · {{ page.paginator.count }} movimientos
+        </div>
+        {% if page.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Paginación historial">
+                {% if page.has_previous %}
+                    <button class="pagination-btn" data-page="{{ page.previous_page_number }}" aria-label="Página anterior">«</button>
+                {% else %}
+                    <button class="pagination-btn" disabled aria-disabled="true">«</button>
+                {% endif %}
+                {% for num in page.paginator.page_range %}
+                    {% if num == page.number %}
+                        <button class="pagination-btn active" aria-current="page">{{ num }}</button>
+                    {% elif num <= page.number|add:2 and num >= page.number|add:-2 %}
+                        <button class="pagination-btn" data-page="{{ num }}">{{ num }}</button>
+                    {% elif num == 1 or num == page.paginator.num_pages %}
+                        <button class="pagination-btn" data-page="{{ num }}">{{ num }}</button>
+                    {% endif %}
+                {% endfor %}
+                {% if page.has_next %}
+                    <button class="pagination-btn" data-page="{{ page.next_page_number }}" aria-label="Página siguiente">»</button>
+                {% else %}
+                    <button class="pagination-btn" disabled aria-disabled="true">»</button>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </div>
+{% endif %}

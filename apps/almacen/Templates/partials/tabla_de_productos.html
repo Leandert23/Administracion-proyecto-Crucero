@@ -1,0 +1,81 @@
+{% comment %}
+Componente: tabla_de_productos.html
+Descripción: Tabla principal del inventario con productos paginados.
+Contexto requerido:
+    - page_obj: Page (Paginator) con atributo object_list (iterable de productos).
+Cada producto debe exponer:
+    - id, nombre, tipo, subtipo, cantidad, medida (o get_medida_display), seccion (relación con nombre), estado (string: BAJO/MEDIO/ALTO).
+Comportamiento JS esperado:
+    - Botones .action-view / .action-edit / .action-delete utilizan data-id para acciones (ver detalle, abrir modal edición, confirmar eliminación).
+    - Filtrado por tipo/subtipo puede apoyarse en data-tipo y data-subtipo del <tr>.
+Uso típico dentro de una respuesta AJAX:
+    {% include 'Partials/tabla_de_productos.html' %}
+Personalización:
+    - Añadir columnas duplicando th y ajustando celdas en el loop.
+Accesibilidad:
+    - Considera agregar scope="col" a los th si se requieren ayudas técnicas adicionales.
+{% endcomment %}
+<table>
+    <thead>
+        <tr>
+            <th class="col-producto"><span>Producto</span></th>
+            <th class="col-cantidad">
+                <span>Cantidad</span>
+            </th>
+            <th class="col-unidad">
+                <span>Unidad</span>
+            </th>
+            <th class="col-ubicacion"><span>Ubicación</span></th>
+            <th class="col-estado">
+                <span>Estado</span>
+            </th>
+            <th class="col-acciones">
+                <span>Acciones</span>
+            </th>
+        </tr>
+    </thead>
+    <tbody id="inventario-tbody">
+        {% if page_obj.object_list %}
+        {% for producto in page_obj.object_list %}
+        <tr data-id="{{ producto.id }}" data-tipo="{{ producto.tipo }}" data-subtipo="{{ producto.subtipo }}">
+            <td>
+                <div class="product">
+                    <div class="product-img-placeholder"></div>
+                    <div class="product-info">
+                        <div class="product-name">{{ producto.nombre }}</div>
+                        <div class="product-sku">{{ producto.tipo }}{% if producto.subtipo %} · {{ producto.subtipo }}{% endif %}</div>
+                    </div>
+                </div>
+            </td>
+            <td>{{ producto.cantidad }}</td>
+            <td>{% if producto.get_medida_display %}{{ producto.get_medida_display }}{% else %}{{ producto.medida }}{% endif %}</td>
+            <td>{% if producto.seccion %}{{ producto.seccion.nombre }}{% else %}-{% endif %}</td>
+            <td>
+                {% with estado=producto.estado %}
+                {% if estado == 'BAJO' %}
+                <span class="stock-badge stock-low">Bajo</span>
+                {% elif estado == 'MEDIO' %}
+                <span class="stock-badge stock-medium">Medio</span>
+                {% elif estado == 'ALTO' %}
+                <span class="stock-badge stock-high">Alto</span>
+                {% else %}
+                <span class="stock-badge">N/D</span>
+                {% endif %}
+                {% endwith %}
+            </td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn action-view" data-id="{{ producto.id }}" data-ver-lotes="{{ producto.id }}" title="Ver lotes">Ver</button>
+                    <button class="action-btn action-edit" data-id="{{ producto.id }}" title="Editar">Edit</button>
+                    <button class="action-btn action-delete" data-id="{{ producto.id }}" title="Eliminar">Del</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align:center; padding:30px; color:#64748b;">Sin productos</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
