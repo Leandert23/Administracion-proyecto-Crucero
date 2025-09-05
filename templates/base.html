@@ -20,341 +20,107 @@
     <!-- Custom Dashboard CSS -->
     <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
     
-    <style>
-        :root {
-            --primary-color: #0d6efd;
-            --secondary-color: #6c757d;
-            --success-color: #198754;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #0dcaf0;
-        }
-        
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.75rem 1rem;
-            border-radius: 0.375rem;
-            margin: 0.25rem 0;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .sidebar .nav-link i {
-            width: 20px;
-            margin-right: 10px;
-        }
-        
-        .main-content {
-            background-color: #f8f9fa;
-            min-height: 100vh;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        }
-        
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-        
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .table thead th {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            font-weight: 600;
-        }
-        
-        .status-badge {
-            padding: 0.375rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        
-        .status-pendiente { background-color: var(--warning-color); color: #000; }
-        .status-en-progreso { background-color: var(--info-color); color: #000; }
-        .status-completada { background-color: var(--success-color); color: white; }
-        .status-cancelada { background-color: var(--danger-color); color: white; }
-        
-        .priority-baja { background-color: var(--success-color); color: white; }
-        .priority-media { background-color: var(--warning-color); color: #000; }
-        .priority-alta { background-color: var(--danger-color); color: white; }
-        .priority-critica { background-color: #6f42c1; color: white; }
-        
-        .stock-critico { background-color: var(--danger-color); color: white; }
-        .stock-bajo { background-color: var(--warning-color); color: #000; }
-        .stock-normal { background-color: var(--success-color); color: white; }
-        
-        .equipo-operativo { background-color: var(--success-color); color: white; }
-        .equipo-mantenimiento { background-color: var(--info-color); color: #000; }
-        .equipo-averiado { background-color: var(--danger-color); color: white; }
-        .equipo-fuera-servicio { background-color: var(--secondary-color); color: white; }
-        
-        .stats-card {
-            background: linear-gradient(135deg, #4e73df 0%, #1cc88a 100%);
-            color: #ffffff;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .stats-card .stats-icon {
-            font-size: 2.5rem;
-            opacity: 1;
-            color: #ffffff;
-        }
-        
-        .stats-card .stats-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 0.5rem 0;
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-        
-        .stats-card .stats-label {
-            font-size: 0.9rem;
-            opacity: 1;
-            color: #f8f9fa;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-        
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        
-        .breadcrumb {
-            background-color: transparent;
-            padding: 0;
-            margin-bottom: 1rem;
-        }
-        
-        .breadcrumb-item + .breadcrumb-item::before {
-            content: ">";
-        }
-        
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
-        
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        }
-        
-        .pagination .page-link {
-            border-radius: 8px;
-            margin: 0 2px;
-        }
-        
-        .modal-content {
-            border-radius: 15px;
-            border: none;
-        }
-        
-        .modal-header {
-            border-bottom: 1px solid #dee2e6;
-            border-radius: 15px 15px 0 0;
-        }
-        
-        .modal-footer {
-            border-top: 1px solid #dee2e6;
-            border-radius: 0 0 15px 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -100%;
-                z-index: 1000;
-                transition: left 0.3s ease;
-            }
-            
-            .sidebar.show {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
+    <!-- Los estilos personalizados ahora están en dashboard.css -->
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h4 class="text-white">
-                            <i class="fas fa-ship me-2"></i>
-                            Mantenimiento
-                        </h4>
-                        <p class="text-white-50 small">Sistema de Cruceros</p>
-                    </div>
-                    
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
-                               href="{% url 'mantenimiento:dashboard' %}">
-                                <i class="fas fa-tachometer-alt"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'ubicacion' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:ubicacion_list' %}">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Ubicaciones
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'producto' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:producto_list' %}">
-                                <i class="fas fa-box"></i>
-                                Productos
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'inventario' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:inventario_list' %}">
-                                <i class="fas fa-warehouse"></i>
-                                Inventario
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'equipo' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:equipo_list' %}">
-                                <i class="fas fa-cogs"></i>
-                                Equipos
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'tarea' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:tarea_list' %}">
-                                <i class="fas fa-tasks"></i>
-                                Tareas
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'incidente' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:incidente_list' %}">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Incidentes
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}" 
-                               href="{% url 'mantenimiento:reportes' %}">
-                                <i class="fas fa-chart-bar"></i>
-                                Reportes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if 'piscina' in request.resolver_match.url_name %}active{% endif %}"
-                               href="{% url 'mantenimiento:piscina_list' %}">
-                                <i class="fas fa-water"></i>
-                                Piscinas
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <hr class="text-white-50">
-                    
-                    <div class="text-center">
-                        <small class="text-white-50">
-                            <i class="fas fa-cogs me-1"></i>
-                            Sistema de Mantenimiento
-                        </small>
-                    </div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="https://via.placeholder.com/32x32/ffffff/1e293b?text=🚢" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Mantenimiento</span>
                 </div>
-            </nav>
-            
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <!-- Top navbar -->
-                <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-                    <div class="container-fluid">
-                        <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        
-                        <a class="navbar-brand" href="{% url 'mantenimiento:dashboard' %}">
-                            <i class="fas fa-ship text-primary me-2"></i>
-                            Sistema de Mantenimiento
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
                         </a>
-                        
-                        <div class="navbar-nav ms-auto d-flex align-items-center gap-3">
-                            <div class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user-circle"></i>
-                                    {{ request.user.get_full_name|default:request.user.username }}
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'mantenimiento:dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard Principal
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'mantenimiento:reportes' %}">
-                                        <i class="fas fa-chart-bar me-2"></i>Reportes
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#" onclick="location.reload()">
-                                        <i class="fas fa-sync me-2"></i>Actualizar
-                                    </a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-                
+                    </li>
+
+                    <li class="nav-item {% if 'ubicacion' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:ubicacion_list' %}" class="nav-link">
+                            <span class="nav-text">Ubicaciones</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'producto' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:producto_list' %}" class="nav-link">
+                            <span class="nav-text">Productos</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'inventario' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:inventario_list' %}" class="nav-link">
+                            <span class="nav-text">Inventario</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'equipo' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:equipo_list' %}" class="nav-link">
+                            <span class="nav-text">Equipos</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'tarea' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:tarea_list' %}" class="nav-link">
+                            <span class="nav-text">Tareas</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'incidente' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:incidente_list' %}" class="nav-link">
+                            <span class="nav-text">Incidentes</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:reportes' %}" class="nav-link">
+                            <span class="nav-text">Reportes</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if 'piscina' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:piscina_list' %}" class="nav-link">
+                            <span class="nav-text">Piscinas</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <small class="text-white-50">
+                    <i class="fas fa-cogs me-1"></i>
+                    Sistema de Mantenimiento
+                </small>
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">{% block page_title %}Sistema de Mantenimiento{% endblock %}</h1>
+                    <p class="page-subtitle">{% block page_subtitle %}Panel de control del sistema{% endblock %}</p>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
                 <!-- Breadcrumb -->
                 {% block breadcrumb %}
                 <nav aria-label="breadcrumb">
@@ -364,7 +130,7 @@
                     </ol>
                 </nav>
                 {% endblock %}
-                
+
                 <!-- Messages -->
                 {% if messages %}
                     {% for message in messages %}
@@ -383,11 +149,11 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-                
+
                 <!-- Page content -->
                 {% block content %}{% endblock %}
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
     
     <!-- Bootstrap JS -->
@@ -398,38 +164,44 @@
     
     <!-- Custom JavaScript -->
     <script>
-        // Toggle sidebar on mobile
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.querySelector('[data-bs-toggle="collapse"]');
-            const sidebar = document.getElementById('sidebar');
-            
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                });
-            }
-            
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth <= 768) {
-                    if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
-                        sidebar.classList.remove('show');
-                    }
-                }
-            });
-        });
-        
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
+        // Funciones del sidebar moderno
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
 
-        // Inicializar Select2 en selects de formularios clave si están presentes
-        document.addEventListener('DOMContentLoaded', function () {
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // Inicializar funcionalidades al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Inicializar Select2 en selects de formularios clave si están presentes
             if (window.jQuery && jQuery().select2) {
                 const enhance = (selector) => {
                     document.querySelectorAll(selector).forEach(el => {
