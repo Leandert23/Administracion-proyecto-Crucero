@@ -8,19 +8,18 @@
             <div class="header-left">
                 <h1 class="page-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    Agregar al Inventario
+                    Comunicación con Mantenimiento
                 </h1>
-                <p class="page-description">Registra nuevos insumos médicos, medicamentos y equipos en el inventario del servicio médico</p>
+                <p class="page-description">Envía solicitudes y reportes al equipo de mantenimiento del crucero</p>
             </div>
             <div class="header-actions">
-                <button class="modern-btn secondary" onclick="location.href='{% url 'panel_inventario' %}'">
+                <button class="modern-btn secondary" onclick="location.href='{% url 'panel_personal_medico' %}'">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 12H5M12 19l-7-7 7-7"></path>
                     </svg>
-                    <span>Volver al Inventario</span>
+                    <span>Volver al Panel</span>
                 </button>
             </div>
         </div>
@@ -29,59 +28,159 @@
     <div class="content-section">
         <div class="form-section">
             <div class="form-container">
-                <form method="post" class="inventory-form" id="inventoryForm">
+                <form method="post" class="maintenance-form" id="maintenanceForm">
                     {% csrf_token %}
                     
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                 </svg>
                             </div>
                             <div class="form-card-title">
-                                <h3>Información del Insumo</h3>
-                                <p>Selecciona el insumo y especifica la cantidad a agregar</p>
+                                <h3>Información de la Solicitud</h3>
+                                <p>Proporciona los detalles de tu solicitud de mantenimiento</p>
                             </div>
                         </div>
                         
                         <div class="form-card-content">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="{{ form.insumo.id_for_label }}" class="form-label">
+                                    <label for="tipo_solicitud" class="form-label">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
                                         </svg>
-                                        <span>Insumo</span>
+                                        <span>Tipo de Solicitud</span>
                                         <span class="required">*</span>
                                     </label>
-                                    {{ form.insumo }}
-                                    {% if form.insumo.errors %}
-                                        <div class="error-message">
-                                            {% for error in form.insumo.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                    <select id="tipo_solicitud" name="tipo_solicitud" class="form-select" required>
+                                        <option value="">Selecciona el tipo de solicitud</option>
+                                        <option value="reparacion">Reparación de Equipos</option>
+                                        <option value="limpieza">Limpieza y Sanitización</option>
+                                        <option value="instalacion">Instalación de Equipos</option>
+                                        <option value="mantenimiento">Mantenimiento Preventivo</option>
+                                        <option value="emergencia">Emergencia</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="{{ form.cantidad.id_for_label }}" class="form-label">
+                                    <label for="prioridad" class="form-label">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
                                         </svg>
-                                        <span>Cantidad</span>
+                                        <span>Prioridad</span>
                                         <span class="required">*</span>
                                     </label>
-                                    {{ form.cantidad }}
-                                    {% if form.cantidad.errors %}
-                                        <div class="error-message">
-                                            {% for error in form.cantidad.errors %}
-                                                <span>{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
+                                    <select id="prioridad" name="prioridad" class="form-select" required>
+                                        <option value="">Selecciona la prioridad</option>
+                                        <option value="baja">Baja</option>
+                                        <option value="media">Media</option>
+                                        <option value="alta">Alta</option>
+                                        <option value="urgente">Urgente</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ubicacion" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                        <span>Ubicación</span>
+                                        <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="ubicacion" name="ubicacion" class="form-input" placeholder="Ej: Consultorio Médico, Sala de Emergencias, etc." required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="equipo_afectado" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                                        </svg>
+                                        <span>Equipo Afectado</span>
+                                    </label>
+                                    <input type="text" id="equipo_afectado" name="equipo_afectado" class="form-input" placeholder="Ej: Monitor de signos vitales, Camilla, etc.">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14,2 14,8 20,8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div class="form-card-title">
+                                <h3>Descripción del Problema</h3>
+                                <p>Describe detalladamente el problema o solicitud</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-card-content">
+                            <div class="form-group">
+                                <label for="descripcion" class="form-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14,2 14,8 20,8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    </svg>
+                                    <span>Descripción Detallada</span>
+                                    <span class="required">*</span>
+                                </label>
+                                <textarea id="descripcion" name="descripcion" class="form-textarea" rows="6" placeholder="Describe el problema, síntomas observados, cuándo comenzó, y cualquier información relevante..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                </svg>
+                            </div>
+                            <div class="form-card-title">
+                                <h3>Información de Contacto</h3>
+                                <p>Datos para que el equipo de mantenimiento pueda contactarte</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-card-content">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="solicitante" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                        <span>Nombre del Solicitante</span>
+                                        <span class="required">*</span>
+                                    </label>
+                                    <input type="text" id="solicitante" name="solicitante" class="form-input" placeholder="Tu nombre completo" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="telefono" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                        </svg>
+                                        <span>Teléfono de Contacto</span>
+                                    </label>
+                                    <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="Número de teléfono">
                                 </div>
                             </div>
                         </div>
@@ -90,14 +189,14 @@
                     <div class="form-actions">
                         <button type="submit" class="modern-btn primary submit-btn">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17,21 17,13 7,13 7,21"></polyline>
-                                <polyline points="7,3 7,8 15,8"></polyline>
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                <line x1="10" y1="9" x2="14" y2="9"></line>
+                                <line x1="10" y1="13" x2="14" y2="13"></line>
                             </svg>
-                            <span>Agregar al Inventario</span>
+                            <span>Enviar Solicitud</span>
                         </button>
                         
-                        <button type="button" class="modern-btn secondary" onclick="location.href='{% url 'panel_inventario' %}'">
+                        <button type="button" class="modern-btn secondary" onclick="location.href='{% url 'panel_personal_medico' %}'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -140,7 +239,7 @@
     }
 }
 
-/* Estilos específicos para agregar inventario */
+/* Estilos específicos para comunicación con mantenimiento */
 .header-content {
     display: flex;
     justify-content: space-between;
@@ -216,7 +315,7 @@
 }
 
 .form-section {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
 }
 
@@ -227,7 +326,7 @@
     overflow: hidden;
 }
 
-.inventory-form {
+.maintenance-form {
     padding: 0;
 }
 
@@ -278,7 +377,7 @@
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
 }
 
@@ -302,47 +401,36 @@
     font-weight: 700;
 }
 
-.form-group select,
-.form-group input[type="number"] {
+.form-input,
+.form-select,
+.form-textarea {
     padding: 0.75rem 1rem;
     border: 2px solid #e5e7eb;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     transition: all 0.2s ease;
     background: white;
+    font-family: inherit;
 }
 
-.form-group select:focus,
-.form-group input[type="number"]:focus {
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.form-group select:hover,
-.form-group input[type="number"]:hover {
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
     border-color: #d1d5db;
-}
-
-.error-message {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
-}
-
-.error-message span {
-    color: #dc2626;
-    font-size: 0.75rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.error-message span::before {
-    content: "⚠";
-    font-size: 0.875rem;
 }
 
 .form-actions {
@@ -401,6 +489,10 @@
         height: 2.5rem;
     }
     
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .form-actions {
         flex-direction: column;
         gap: 0.75rem;
@@ -445,14 +537,16 @@
 }
 
 /* Estados de validación */
-.form-group select.error,
-.form-group input[type="number"].error {
+.form-input.error,
+.form-select.error,
+.form-textarea.error {
     border-color: #dc2626;
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
-.form-group select.success,
-.form-group input[type="number"].success {
+.form-input.success,
+.form-select.success,
+.form-textarea.success {
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
@@ -460,29 +554,26 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('inventoryForm');
+    const form = document.getElementById('maintenanceForm');
     const submitBtn = document.querySelector('.submit-btn');
-    const formGroups = document.querySelectorAll('.form-group');
     
     // Validación en tiempo real
     function validateField(field) {
-        const formGroup = field.closest('.form-group');
-        const errorMessage = formGroup.querySelector('.error-message');
-        
         // Remover clases anteriores
         field.classList.remove('error', 'success');
         
-        if (field.value.trim() === '') {
+        if (field.hasAttribute('required') && field.value.trim() === '') {
             field.classList.add('error');
             return false;
-        } else {
+        } else if (field.value.trim() !== '') {
             field.classList.add('success');
             return true;
         }
+        return true;
     }
     
     // Validar campos al escribir
-    const inputs = form.querySelectorAll('select, input[type="number"]');
+    const inputs = form.querySelectorAll('input, select, textarea');
     inputs.forEach(input => {
         input.addEventListener('blur', function() {
             validateField(this);
@@ -524,8 +615,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 12a9 9 0 11-6.219-8.56"></path>
                 </svg>
-                <span>Agregando...</span>
+                <span>Enviando...</span>
             `;
+            
+            // Mostrar notificación de éxito
+            showNotification('Solicitud enviada correctamente al equipo de mantenimiento', 'success');
         }
     });
     

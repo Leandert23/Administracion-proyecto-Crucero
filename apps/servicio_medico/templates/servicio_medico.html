@@ -5,67 +5,595 @@
 {% block title %}Panel de Control - Servicio Médico{% endblock %}
 
 {% block content %}
- <!-- Contenido específico para el panel de personal médico -->
-    <main class="main-content">
-        <header class="main-header">
-            <h1>Panel de Personal Médico</h1>
-        </header>
-  </main>
-  <div class="#">
-    <h2>Bienvenido al Panel de Personal Médico</h2>
-    <p>Aquí puedes gestionar las solicitudes de medicamentos, ver el historial médico de los pasajeros y más.</p>
-  </div>
-  <div class = "container">
-      <h2> Crear Historial Medico</h2>
-      <button class="btn btn-primary" onclick="location.href='{% url 'agregar_historial' %}'">Agregar Historial Médico</button>
-
-  </div>
-  <div class="container">
-    <h2> Ver Historiales Medicos</h2>
-    <button class="btn btn-primary" onclick="location.href='{% url 'historial_medico' %}'">Ver Historial Médico</button>
-  </div>
-  <div class ="container">
-    <h2> Cuartos disponibles </h2>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Número de Cuarto</th>
-          <th>Estado</th>
-          <th>Paciente</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for cuarto in cuartos %}
-        <tr>
-          <td>{{ cuarto.numero }}</td>
-          <td>{{ cuarto.get_estado_display }}</td>
-          <td>
-            {% if cuarto.estado == 'O' and cuarto.paciente %}
-              {{ cuarto.paciente.nombres }} {{ cuarto.paciente.primer_apellido }}
-            {% else %}
-              -
-            {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="3">No hay cuartos disponibles.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <button class="btn btn-primary" onclick="location.href='{% url 'modificar_cuarto' %}'">Modificar Cuartos</button>
-  </div>
-  <div class = "container">
-    <h2> Inventario </h2>
-    <button class="btn btn-primary" onclick="location.href='{% url 'panel_inventario' %}'">Ver Inventario</button>
-  </div>
-  <div class = "container">
+<!-- Contenido específico para el panel de personal médico -->
+<main class="main-content">
+    <header class="main-header">
+        <h1 class="page-title">Panel de Personal Médico</h1>
+    </header>
     
-  </div>
-  <div>
-    <h2> Avisos de solicitud de Medicamento</h2>
+    <!-- Mensaje de bienvenida -->
+    <div class="welcome-section">
+        <div class="welcome-card">
+            <h2 class="welcome-title">Bienvenido al Panel de Personal Médico</h2>
+            <p class="welcome-text">Aquí puedes gestionar las solicitudes de medicamentos, ver el historial médico de los pasajeros y más.</p>
+        </div>
+    </div>
 
-  </div>
-  <div class = "container">
-    <h2> Comunicación con Mantenimiento </h2>
-    <button class="btn btn-primary" onclick="location.href='{% url 'comunicacion_mantenimiento' %}'">Contactar Mantenimiento</button>
+    <!-- Grid de funcionalidades -->
+    <div class="dashboard-grid">
+        <!-- Crear Historial Médico -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Crear Historial Médico</h3>
+                <p class="card-description">Registra nuevos historiales médicos de pasajeros</p>
+                <button class="modern-btn primary" onclick="location.href='{% url 'agregar_historial' %}'">
+                    <span>Agregar Historial Médico</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ver Historiales Médicos -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Ver Historiales Médicos</h3>
+                <p class="card-description">Consulta y gestiona historiales médicos existentes</p>
+                <button class="modern-btn secondary" onclick="location.href='{% url 'historial_medico' %}'">
+                    <span>Ver Historial Médico</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modificar Personal -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Modificar Personal</h3>
+                <p class="card-description">Gestiona el personal médico y sus asignaciones</p>
+                <button class="modern-btn tertiary" onclick="showComingSoon('Modificar Personal')">
+                    <span>Gestionar Personal</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuartos Disponibles -->
+        <div class="function-card full-width">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Cuartos Disponibles</h3>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Número de Cuarto</th>
+                                <th>Estado</th>
+                                <th>Paciente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuarto in cuartos %}
+                            <tr>
+                                <td>{{ cuarto.numero }}</td>
+                                <td>
+                                    <span class="status-badge {{ cuarto.estado|lower }}">
+                                        {{ cuarto.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if cuarto.estado == 'O' and cuarto.paciente %}
+                                        {{ cuarto.paciente.nombres }} {{ cuarto.paciente.primer_apellido }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="no-data">No hay cuartos disponibles.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button class="modern-btn outline" onclick="location.href='{% url 'modificar_cuarto' %}'">
+                    <span>Modificar Cuartos</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Inventario -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Inventario</h3>
+                <p class="card-description">Gestiona el inventario de medicamentos y suministros</p>
+                <button class="modern-btn primary" onclick="location.href='{% url 'panel_inventario' %}'">
+                    <span>Ver Inventario</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Avisos de solicitud de Medicamento -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Avisos de Solicitud de Medicamento</h3>
+                <p class="card-description">Revisa las solicitudes pendientes de medicamentos</p>
+                <div class="notification-placeholder">
+                    <p>No hay solicitudes pendientes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comunicación con Mantenimiento -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Comunicación con Mantenimiento</h3>
+                <p class="card-description">Contacta con el equipo de mantenimiento</p>
+                <button class="modern-btn secondary" onclick="location.href='{% url 'comunicacion_mantenimiento' %}'">
+                    <span>Contactar Mantenimiento</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Estilos específicos para el panel de servicio médico */
+.welcome-section {
+    margin: 2rem 0;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    margin: 0 2rem;
+}
+
+.welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: white;
+}
+
+.welcome-text {
+    font-size: 1rem;
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    padding: 0 2rem 2rem 2rem;
+}
+
+.function-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.function-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+.function-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.card-icon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.card-description {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+}
+
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.modern-btn.primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.modern-btn.primary:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.modern-btn.secondary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.modern-btn.secondary:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.modern-btn.outline {
+    background: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+}
+
+.modern-btn.outline:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.modern-btn.tertiary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.modern-btn.tertiary:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+
+.table-container {
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.modern-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #6b7280;
+}
+
+.modern-table tr:hover {
+    background: #f9fafb;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.d {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.o {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.m {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.no-data {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.notification-placeholder {
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Espaciado equilibrado del menú lateral */
+.main-content {
+    margin-left: 300px !important; /* Aumentado de 280px a 300px */
+    padding: 1.5rem 1.5rem 1.5rem 2rem !important; /* Padding equilibrado */
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 290px !important;
+        padding: 1.25rem 1.25rem 1.25rem 1.5rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 280px !important;
+        padding: 1rem 1rem 1rem 1.25rem !important;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 2rem 1rem;
+    }
+    
+    .welcome-card {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+    
+    .function-card {
+        padding: 1.5rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        margin-left: 80px !important; /* Cuando el sidebar está colapsado */
+        padding: 0.75rem 0.75rem 0.75rem 1rem !important;
+    }
+    
+    .welcome-card {
+        margin: 0 0.5rem;
+        padding: 1rem;
+    }
+    
+    .function-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-grid {
+        padding: 0 0.5rem 2rem 0.5rem;
+    }
+}
+</style>
+
+<script>
+// Función para mostrar mensaje "Próximamente"
+function showComingSoon(feature) {
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Crear el contenido del modal
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">${feature}</h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">Esta funcionalidad estará disponible próximamente</p>
+        </div>
+        <button onclick="closeModal()" style="
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+            Entendido
+        </button>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeModal = function() {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Cerrar con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+}
+
+// Agregar estilos de animación
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -75,7 +75,7 @@ def agregar_historial(request):
         form = PacienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('panel_inicio')
+            return redirect('historial_medico')
     else:
         form = PacienteForm()
     return render(request, 'agregar_historial.html', {'form': form})
@@ -92,10 +92,23 @@ def tu_vista_servicio_medico(request):
     cuartos_disponibles = cuarto.objects.filter(estado='D')
     return render(request, 'servicio_medico.html', {'cuartos_disponibles': cuartos_disponibles})
 
-def comunicacion_mantenmiento(request):
+def comunicacion_mantenimiento(request):
     if request.method == 'POST':
-        # Aquí puedes manejar el formulario enviado
-        pass
+        # Obtener datos del formulario
+        tipo_solicitud = request.POST.get('tipo_solicitud')
+        prioridad = request.POST.get('prioridad')
+        ubicacion = request.POST.get('ubicacion')
+        equipo_afectado = request.POST.get('equipo_afectado')
+        descripcion = request.POST.get('descripcion')
+        solicitante = request.POST.get('solicitante')
+        telefono = request.POST.get('telefono')
+        
+        # Aquí puedes agregar la lógica para guardar en la base de datos
+        # Por ejemplo, crear un modelo SolicitudMantenimiento
+        
+        # Por ahora, solo redirigimos con un mensaje de éxito
+        return redirect('panel_personal_medico')
+    
     return render(request, 'comunicacion_mantenimiento.html')
 
 def modificar_cuartos(request):
