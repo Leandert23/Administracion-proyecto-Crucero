@@ -1,4 +1,5 @@
-<div class="dashboard-container">
+{% load static %}
+    <div class="dashboard-container">
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -936,3 +937,5 @@ body {
 
     {% block content %}
     {% endblock %}
+
+    <script src="{% static 'js/sidebar.js' %}"></script>
