@@ -1,0 +1,7 @@
+<h2>Venta realizada con éxito</h2>
+<p>Venta ID: {{ venta.id }}</p>
+<p>Cliente: {{ venta.cliente }}</p>
+<p>Producto vendido: {{ venta.detalles.first.concepto }}</p>
+<p>Cantidad: {{ venta.detalles.first.cantidad }}</p>
+<p>Total: ${{ venta.monto_total }}</p>
+<a href="{% url 'ventas:sell_product' %}">Realizar otra venta</a>

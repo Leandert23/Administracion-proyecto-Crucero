@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Clientes{% endblock %}
+{% block page_title %}Lista de Clientes{% endblock %}
+{% block page_subtitle %}Gestiona todos los clientes del sistema{% endblock %}
+{% block ventas_active %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/ventas.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'ventas:nuevo_cliente' crucero.id %}" class="btn btn-success">
+    <i class="fas fa-user-plus"></i> Nuevo Cliente
+</a>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="filters-section">
+    <h3>Filtros</h3>
+    <form method="get">
+        <div class="filters-grid">
+            <div class="form-group">
+                <label for="q">Buscar por nombre, apellido o email</label>
+                <input type="text" name="q" id="q" class="form-control" placeholder="Ej: Juan, Pérez o juan@email.com" >
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                {% if query %}
+                <a href="{% url 'ventas:lista_clientes' crucero.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de clientes -->
+<div class="form-section">
+    <h3>Clientes Registrados ({{ clientes.count }})</h3>
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Fecha de Registro</th>
+                    <th>Total de Ventas</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>
+                        <span class="badge secondary">#{{ cliente.id }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong>
+                    </td>
+                    <td>
+                        <a href="mailto:{{ cliente.email }}" class="text-decoration-none">
+                            <i class="fas fa-envelope me-1"></i>{{ cliente.email }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if cliente.telefono %}
+                            <a href="tel:{{ cliente.telefono }}" class="text-decoration-none">
+                                <i class="fas fa-phone me-1"></i>{{ cliente.telefono }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No especificado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small>
+                            {{ cliente.fecha_registro|date:"d/m/Y" }}<br>
+                            <span class="text-muted">{{ cliente.fecha_registro|date:"H:i" }}</span>
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge info">
+                            {{ cliente.ventas.count }} venta{{ cliente.ventas.count|pluralize:"s" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'ventas:editar_cliente' crucero.id cliente.id %}" class="btn btn-sm btn-warning" title="Editar cliente">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-info" 
+                                    title="Ver ventas del cliente"
+                                    onclick="verVentasCliente({{ cliente.id }})">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No hay clientes registrados</h3>
+                        <p>Comienza creando tu primer cliente</p>
+                        <a href="{% url 'ventas:nuevo_cliente' crucero.id %}" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> Crear Primer Cliente
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

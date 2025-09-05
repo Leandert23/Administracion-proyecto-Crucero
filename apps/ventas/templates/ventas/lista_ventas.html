@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Ventas{% endblock %}
+{% block page_title %}Lista de Ventas{% endblock %}
+{% block page_subtitle %}Gestiona todas las ventas del crucero{% endblock %}
+{% block ventas_active %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/ventas.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'ventas:nueva_venta' crucero.id %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Nueva Venta
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtros -->
+<div class="filters-section">
+    <h3>Filtros</h3>
+    <form method="get">
+        <div class="filters-grid">
+            <div class="form-group">
+                <label for="tipo_venta">Tipo de Venta</label>
+                <select name="tipo_venta" id="tipo_venta">
+                    <option value="">Todos los tipos</option>
+                    {% for value, label in tipos_venta %}
+                        <option value="{{ value }}" {% if value == request.GET.tipo_venta %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado</label>
+                <select name="estado" id="estado">
+                    <option value="">Todos los estados</option>
+                    {% for value, label in estados %}
+                        <option value="{{ value }}" {% if value == request.GET.estado %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" 
+                       value="{{ request.GET.fecha_inicio }}">
+            </div>
+            <div class="form-group">
+                <label for="fecha_fin">Fecha Fin</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" 
+                       value="{{ request.GET.fecha_fin }}">
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{% url 'ventas:lista_ventas' crucero.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de ventas -->
+<div class="form-section">
+    <h3>Ventas Registradas ({{ ventas.count }})</h3>
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Vendedor</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td>
+                        <span class="badge secondary">#{{ venta.id }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</strong>
+                        <br>
+                        <small style="color: #6c757d;">{{ venta.cliente.email }}</small>
+                    </td>
+                    <td>
+                        {% if venta.tipo_venta == 'reserva' %}
+                            <span class="badge primary">🛏️ Reserva</span>
+                        {% elif venta.tipo_venta == 'restaurante' %}
+                            <span class="badge success">🍽️ Restaurante</span>
+                        {% elif venta.tipo_venta == 'bar_snack' %}
+                            <span class="badge warning">🍹 Bar/Snack</span>
+                        {% elif venta.tipo_venta == 'entretenimiento' %}
+                            <span class="badge info">🎭 Entretenimiento</span>
+                        {% else %}
+                            <span class="badge secondary">📋 {{ venta.get_tipo_venta_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                              title="{{ venta.descripcion }}">
+                            {{ venta.descripcion|truncatechars:50 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-weight: bold; color: #28a745;">${{ venta.monto_total|floatformat:2 }}</span>
+                    </td>
+                    <td>
+                        {% if venta.estado == 'confirmada' %}
+                            <span class="badge success">✅ {{ venta.get_estado_display }}</span>
+                        {% elif venta.estado == 'pendiente' %}
+                            <span class="badge warning">⏰ {{ venta.get_estado_display }}</span>
+                        {% elif venta.estado == 'cancelada' %}
+                            <span class="badge danger">❌ {{ venta.get_estado_display }}</span>
+                        {% else %}
+                            <span class="badge info">ℹ️ {{ venta.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if venta.vendedor %}
+                            <span class="badge secondary">{{ venta.vendedor.username }}</span>
+                        {% else %}
+                            <span style="color: #6c757d;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small>
+                            {{ venta.fecha_venta|date:"d/m/Y" }}<br>
+                            <span style="color: #6c757d;">{{ venta.fecha_venta|date:"H:i" }}</span>
+                        </small>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'ventas:detalle_venta' crucero.id venta.id %}" class="btn btn-sm btn-info" title="Ver Detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'ventas:editar_venta' crucero.id venta.id %}" class="btn btn-sm btn-warning" title="Editar Venta">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No hay ventas registradas</h3>
+                        <p>Comienza creando tu primera venta</p>
+                        <a href="{% url 'ventas:nueva_venta' crucero.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Primera Venta
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ventas/js/ventas.js' %}"></script>
+{% endblock %}

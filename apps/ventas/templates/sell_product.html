@@ -1,0 +1,31 @@
+<h1>Realizar venta de producto</h1>
+<form method="post">
+    {% csrf_token %}
+    <label>Producto:</label>
+    <select name="product_id">
+        {% for product in products %}
+            <option value="{{ product.id }}">{{ product.nombre }}</option>
+        {% endfor %}
+    </select><br>
+    <label>Usuario vendedor:</label>
+    <select name="user_id">
+        {% for user in users %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select><br>
+    <label>Cliente:</label>
+    <select name="cliente_id">
+        {% for cliente in clientes %}
+            <option value="{{ cliente.id }}">{{ cliente }}</option>
+        {% endfor %}
+    </select><br>
+    <label>Crucero:</label>
+    <select name="crucero_id">
+        {% for crucero in cruceros %}
+            <option value="{{ crucero.id }}">{{ crucero }}</option>
+        {% endfor %}
+    </select><br>
+    <label>Cantidad:</label>
+    <input type="number" name="quantity" min="1" required><br>
+    <button type="submit">Vender</button>
+</form>
