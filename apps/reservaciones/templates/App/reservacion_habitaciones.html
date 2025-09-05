@@ -14,7 +14,7 @@
       <p class="reservas-subtitle">Crucero: {{ crucero|title }}</p>
     </div>
     <div class="user-info">
-      <a href="{% url 'reservas' %}">
+  <a href="{% url 'reservas' crucero.nombre %}">
         <button class="btn-primary">⬅ Volver a Reservas</button>
       </a>
     </div>
@@ -25,10 +25,10 @@
       <div class="reserva-card opcion">
         <h3>Habitación {{ hab.numero }}</h3>
         <p>{{ hab.tipo_habitacion }}</p>
-        <p>Piso {{ hab.piso }} - {{ hab.lado }}</p>
+        <p>Piso {{ hab.cubierta }} - {{ hab.lado }}</p>
         <p>{% if hab.vista_mar %} Con vista al mar 🌊 {% else %} Sin vista {% endif %}</p>
         <p>Precio:$ {{hab.tipo_habitacion.precio_base}}</p>
-        <a href="{% url 'reservar_habitacion' crucero hab.id %}">
+        <a href="{% url 'reservar_habitacion' crucero.nombre hab.id %}">
           <button class="btn-primary">Reservar</button>
         </a>
       </div>

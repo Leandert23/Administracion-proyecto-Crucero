@@ -4,15 +4,14 @@ from django.utils import timezone
 from datetime import timedelta, date
 from django.contrib import messages
 from .models import (
-    Viaje,
-    Habitacion,
-    TipoHabitacion,
     Entretenimiento,
     Mesa,
     EventoPersonalizado,
     Reserva,
     Restaurante
 )
+from ..cruceros.models import Crucero, Habitacion, Viaje
+from ..cruceros.Services.fecha_general import obtener_fecha_actual
 
 def crucero_se_encuentra_en_planificacion():
     return True  # Aquí después vendrá la lógica real del otro módulo
@@ -23,51 +22,56 @@ def inicio(request):
     return render(request, "App/inicio")
 
 
-def reservas(request):
-    crucero = request.GET.get("crucero") or request.session.get("crucero_seleccionado")
-
-    request.session["crucero_seleccionado"] = crucero
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+def reservas(request, crucero=None):
+    # Si la URL pasa el nombre del crucero, se usa ese; si no, se intenta por GET o sesión
+    crucero_nombre = crucero or request.GET.get("crucero") or request.session.get("crucero_seleccionado")
+    crucero_obj = None
+    if crucero_nombre:
+        crucero_obj = Crucero.objects.filter(nombre=crucero_nombre).first()
+        request.session["crucero_seleccionado"] = crucero_nombre
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado="activo").first() if crucero_obj else None
 
     return render(request, "App/reservas.html", {
-        "crucero": crucero,
+        "crucero": crucero_obj,
         "viaje": viaje,
     })
 
 # HABITACIONES
 
-@login_required
+#@login_required
 def reservacion_habitaciones(request, crucero):
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado="planificacion").first()
     if not viaje:
-        return render(request, "App/no_viaje.html", {"crucero": crucero})
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
 
-    if not crucero_se_encuentra_en_planificacion():
+    if not crucero_obj.se_encuentra_en_planificacion:
         messages.warning(request, "Ya no puedes reservar habitaciones, el crucero zarpó.")
         return redirect("reservas")
 
     habitaciones = Habitacion.objects.filter(
-        crucero=crucero,
+        crucero=crucero_obj,
         reservada=False
     ).order_by("tipo_habitacion__precio_base")
 
     return render(request, "App/reservacion_habitaciones.html", {
         "habitaciones": habitaciones,
         "viaje": viaje,
-        "crucero": crucero,
+        "crucero": crucero_obj,
     })
 
 
-@login_required
+#@login_required
 def reservar_habitacion(request, crucero, habitacion_id):
-    habitacion = get_object_or_404(Habitacion, id=habitacion_id, crucero=crucero)
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado="planificacion").first()
+    habitacion = get_object_or_404(Habitacion, id=habitacion_id, crucero=crucero_obj)
 
     if not habitacion.reservada:
-        fecha_inicio = timezone.now().date()
-        fecha_fin = fecha_inicio + timedelta(days=7)
+        fecha_inicio = viaje.fecha_inicio
+        fecha_fin = viaje.fecha_fin
 
         Reserva.objects.create(
-            usuario=request.user,
             habitacion=habitacion,
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
@@ -83,32 +87,36 @@ def reservar_habitacion(request, crucero, habitacion_id):
 
 # ENTRETENIMIENTO
 
-@login_required
+#@login_required
 def catalogo_entretenimiento(request, crucero):
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado__in=["activo", "planificacion"]).first()
     if not viaje:
-        return render(request, "App/no_viaje.html", {"crucero": crucero})
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
 
-    actividades = Entretenimiento.objects.filter(
-        crucero=crucero,
-        dia=viaje.dia_actual,
-        reservada=False
-    ).order_by("precio")
+    if crucero_obj.se_encuentra_en_planificacion:
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
+    else:
+        actividades = Entretenimiento.objects.filter(
+            crucero=crucero_obj,
+            dia=crucero_obj.dia_actual_de_viaje,
+            reservada=False
+        ).order_by("precio")
 
     return render(request, "App/catalogo_entretenimiento.html", {
         "actividades": actividades,
         "viaje": viaje,
-        "crucero": crucero,
+        "crucero": crucero_obj,
     })
 
 
-@login_required
+#@login_required
 def reservar_entretenimiento(request, crucero, entretenimiento_id):
-    actividad = get_object_or_404(Entretenimiento, id=entretenimiento_id, crucero=crucero)
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    actividad = get_object_or_404(Entretenimiento, id=entretenimiento_id, crucero=crucero_obj)
 
     if not actividad.reservada:
         Reserva.objects.create(
-            usuario=request.user,
             entretenimiento=actividad,
             estado="confirmada",
         )
@@ -119,46 +127,56 @@ def reservar_entretenimiento(request, crucero, entretenimiento_id):
 
 # MESAS (Restaurantes)
 
-@login_required
+#@login_required
 def reservar_restaurante(request, crucero):
-    restaurantes = Restaurante.objects.filter(crucero=crucero)
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    restaurantes = Restaurante.objects.filter(crucero=crucero_obj)
 
-    return render(request, "App/reservar_restaurante.html", {
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado__in=["activo", "planificacion"]).first()
+    if not viaje:
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
+
+    if crucero_obj.se_encuentra_en_planificacion:
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
+    else:
+        return render(request, "App/reservar_restaurante.html", {
         "restaurantes": restaurantes,
-        "crucero": crucero,
+        "crucero": crucero_obj,
     })
 
 
-@login_required
+#@login_required
 def primer_restaurante(request, crucero):
-    mesas = Mesa.objects.filter(crucero=crucero, restaurante__nombre="L'odissea della Toscana", reservada=False)
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    mesas = Mesa.objects.filter(crucero=crucero_obj, restaurante__nombre="L'odissea della Toscana", reservada=False)
+    viaje = Viaje.objects.filter(crucero=crucero_obj).first()
 
     return render(request, "App/primer_restaurante.html", {
         "mesas": mesas,
-        "crucero": crucero,
+        "crucero": crucero_obj,
         "viaje": viaje,
     })
 
 
-@login_required
+#@login_required
 def segundo_restaurante(request, crucero):
-    mesas = Mesa.objects.filter(crucero=crucero, restaurante__nombre="Odessa Al-Bahr", reservada=False)
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    mesas = Mesa.objects.filter(crucero=crucero_obj, restaurante__nombre="Odessa Al-Bahr", reservada=False)
+    viaje = Viaje.objects.filter(crucero=crucero_obj).first()
 
     return render(request, "App/segundo_restaurante.html", {
         "mesas": mesas,
-        "crucero": crucero,
+        "crucero": crucero_obj,
         "viaje": viaje,
     })
 
-@login_required
+#@login_required
 def reservar_mesa(request, crucero, mesa_id):
-    mesa = get_object_or_404(Mesa, id=mesa_id, crucero=crucero)
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    mesa = get_object_or_404(Mesa, id=mesa_id, crucero=crucero_obj)
 
     if not mesa.reservada:
         Reserva.objects.create(
-            usuario=request.user,
             mesa=mesa,
             estado="confirmada",
         )
@@ -169,11 +187,12 @@ def reservar_mesa(request, crucero, mesa_id):
 
 # EVENTOS PERSONALIZADOS
 
-@login_required
+#@login_required
 def organizar_evento(request, crucero):
-    viaje = Viaje.objects.filter(crucero=crucero).first()
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    viaje = Viaje.objects.filter(crucero=crucero_obj).first()
     if not viaje:
-        return render(request, "App/no_viaje.html", {"crucero": crucero})
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
 
     if request.method == "POST":
         nombre = request.POST.get("nombre")
@@ -181,23 +200,23 @@ def organizar_evento(request, crucero):
         materiales = request.POST.get("materiales")
         dia = int(request.POST.get("dia"))
 
-        if dia < viaje.dia_actual:
-            messages.error(
-                request,
-                f"No puedes organizar eventos para días anteriores al día {viaje.dia_actual}."
-            )
-            return redirect("organizar_evento", crucero=crucero)
+        if crucero_obj.se_encuentra_en_viaje:
+            if dia < crucero_obj.dia_actual_de_viaje:
+                messages.error(
+                    request,
+                    f"No puedes organizar eventos para días anteriores al día {crucero.dia_actual_de_viaje}."
+                )
+                return redirect("organizar_evento", crucero=crucero)
 
         evento = EventoPersonalizado.objects.create(
             nombre=nombre,
             descripcion=descripcion,
             materiales=materiales,
             dia=dia,
-            crucero=crucero,
+            crucero=crucero_obj,
         )
 
         Reserva.objects.create(
-            usuario=request.user,
             evento_personalizado=evento,
             estado="pendiente",
         )
@@ -205,45 +224,46 @@ def organizar_evento(request, crucero):
         return redirect("mis_reservas", crucero=crucero)
 
     dias = range(1, 9)
+    viaje = Viaje.objects.filter(crucero=crucero_obj, estado__in=["activo", "planificacion"]).first()
+    if not viaje:
+        return render(request, "App/no_viaje.html", {"crucero": crucero_obj})
+
     return render(request, "App/organizar_evento.html", {
-        "crucero": crucero,
+        "crucero": crucero_obj,
         "viaje": viaje,
         "dias": dias
     })
 
 # MIS RESERVAS
 
-@login_required
+#@login_required
 def mis_reservas(request, crucero):
-    reservas_habitaciones = Reserva.objects.filter(
-        usuario=request.user, habitacion__isnull=False, habitacion__crucero=crucero
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    reservas_habitaciones = Reserva.objects.filter(habitacion__isnull=False, habitacion__crucero=crucero_obj
     )
-    reservas_entretenimiento = Reserva.objects.filter(
-        usuario=request.user, entretenimiento__isnull=False, entretenimiento__crucero=crucero
+    reservas_entretenimiento = Reserva.objects.filter(entretenimiento__isnull=False, entretenimiento__crucero=crucero_obj
     )
-    reservas_mesas = Reserva.objects.filter(
-        usuario=request.user, mesa__isnull=False, mesa__crucero=crucero
+    reservas_mesas = Reserva.objects.filter(mesa__isnull=False, mesa__crucero=crucero_obj
     )
-    reservas_eventos = Reserva.objects.filter(
-        usuario=request.user, evento_personalizado__isnull=False, evento_personalizado__crucero=crucero
+    reservas_eventos = Reserva.objects.filter(evento_personalizado__isnull=False, evento_personalizado__crucero=crucero_obj
     )
 
     total = 0
 
     for r in reservas_habitaciones:
-        total += r.habitacion.tipo_habitacion.precio_base
+        total += int(r.habitacion.tipo_habitacion.precio_base)
 
     for r in reservas_entretenimiento:
-        total += r.entretenimiento.precio
+        total += int(r.entretenimiento.precio)
 
     for r in reservas_mesas:
-        total += r.mesa.restaurante.precio if hasattr(r.mesa.restaurante, "precio") else 40
+        total += int(r.mesa.restaurante.precio) if hasattr(r.mesa.restaurante, "precio") else 40
 
     for r in reservas_eventos:
         total += 700.00
 
     return render(request, "App/mis_reservas.html", {
-        "crucero": crucero,
+        "crucero": crucero_obj,
         "reservas_habitaciones": reservas_habitaciones,
         "reservas_entretenimiento": reservas_entretenimiento,
         "reservas_mesas": reservas_mesas,
@@ -253,9 +273,10 @@ def mis_reservas(request, crucero):
 
 # CANCELAR RESERVA
 
-@login_required
+#@login_required
 def cancelar_reserva(request, crucero, reserva_id):
-    reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
+    crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+    reserva = get_object_or_404(Reserva, id=reserva_id)
 
     if reserva.habitacion:
         reserva.habitacion.reservada = False

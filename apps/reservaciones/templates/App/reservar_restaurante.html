@@ -101,20 +101,20 @@
         Crucero: {{ crucero|title }}
       </p>
     </div>
-    <a href="{% url 'reservas' %}" class="btn-primary">⬅ Volver a Reservas</a>
+  <a href="{% url 'reservas' crucero.nombre %}" class="btn-primary">⬅ Volver a Reservas</a>
   </header>
 
   <div class="botones-separados">
     <div class="reserva-card">
       <h3>L'odissea della Toscana</h3>
-      <a href="{% url 'primer_restaurante' crucero=crucero %}">
+      <a href="{% url 'primer_restaurante' crucero.nombre %}">
         <button>Ver Mesas</button>
       </a>
     </div>
 
     <div class="reserva-card">
       <h3>Odessa Al-Bahr</h3>
-      <a href="{% url 'segundo_restaurante' crucero=crucero %}">
+      <a href="{% url 'segundo_restaurante' crucero.nombre %}">
         <button>Ver Mesas</button>
       </a>
     </div>

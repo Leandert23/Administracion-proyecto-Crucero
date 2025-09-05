@@ -1,50 +1,8 @@
 from django.db import models
 from django.conf import settings
+from ..cruceros.models import Habitacion
 
 
-
-# TIPOS DE HABITACIONES
-
-class TipoHabitacion(models.Model):
-    CATEGORIAS = [
-        ("basico", "Camarote Básico"),
-        ("premium", "Camarote Premium"),
-    ]
-    SUBTIPOS = [
-        ("sencillo", "Sencillo (2 personas)"),
-        ("doble", "Doble (4 personas)"),
-    ]
-
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS, default="basico")
-    subtipo = models.CharField(max_length=20, choices=SUBTIPOS, default="sencillo")
-    capacidad = models.IntegerField(default=2)
-    precio_base = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
-
-    def __str__(self):
-        return f"{self.get_categoria_display()} - {self.get_subtipo_display()}"
-
-
-
-# HABITACIONES
-
-class Habitacion(models.Model):
-    LADOS = [
-        ("babor", "Babor"),
-        ("estribor", "Estribor"),
-    ]
-
-    crucero = models.CharField(max_length=20)  # vision, voyager, oasis
-    numero = models.CharField(max_length=10)
-    piso = models.IntegerField(default=1)
-    lado = models.CharField(max_length=10, choices=LADOS)
-    vista_mar = models.BooleanField(default=False)
-    reservada = models.BooleanField(default=False)
-    precio = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    tipo_habitacion = models.ForeignKey(TipoHabitacion, on_delete=models.CASCADE)
-
-    def _str_(self):
-        return f"{self.crucero} - Hab {self.numero} ({self.tipo_habitacion})"
 
 
 
@@ -130,7 +88,6 @@ class Reserva(models.Model):
         ("cancelada", "Cancelada"),
     ]
 
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reservas")
     habitacion = models.ForeignKey(Habitacion, null=True, blank=True, on_delete=models.CASCADE)
     entretenimiento = models.ForeignKey(Entretenimiento, null=True, blank=True, on_delete=models.CASCADE)
     mesa = models.ForeignKey(Mesa, null=True, blank=True, on_delete=models.CASCADE)

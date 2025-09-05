@@ -44,7 +44,7 @@
   <div class="no-viaje-container">
     <h1>🚢 No hay viajes disponibles</h1>
     <p>Actualmente no hay viajes activos para el crucero <strong>{{ crucero|title }}</strong>.</p>
-    <a href="{% url 'reservas' %}" class="btn-volver">Volver a Reservas</a>
+  <a href="{% url 'reservas' crucero.nombre %}" class="btn-volver">Volver a Reservas</a>
   </div>
 
 </body>

@@ -84,7 +84,19 @@ class Command(BaseCommand):
         return self.crear_nuevo_crucero(tipo, codigo, nombre, fecha_botadura, descripcion)
 
     def crear_nuevo_crucero(self, tipo, codigo, nombre, fecha_botadura, descripcion):
-        crucero = crear_crucero_desde_plantilla(
+        # Envolver la función de plantilla para forzar vista_mar según el nombre del tipo de habitación
+        def crear_crucero_con_vista_mar(**kwargs):
+            crucero = crear_crucero_desde_plantilla(**kwargs)
+            # Asignar vista_mar=True a habitaciones cuyo tipo contenga 'vista mar'
+            for habitacion in crucero.habitaciones.all():
+                tipo_nombre = habitacion.tipo_habitacion.nombre.lower()
+                if 'vista mar' in tipo_nombre or 'vista al mar' in tipo_nombre or 'mar' in tipo_nombre:
+                    if not habitacion.vista_mar:
+                        habitacion.vista_mar = True
+                        habitacion.save(update_fields=["vista_mar"])
+            return crucero
+
+        crucero = crear_crucero_con_vista_mar(
             tipo_crucero=tipo,
             codigo_identificacion=codigo,
             nombre=nombre,

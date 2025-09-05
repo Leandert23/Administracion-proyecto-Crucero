@@ -14,7 +14,7 @@
       <p class="reservas-subtitle">Crucero: {{ crucero|title }}</p>
     </div>
     <div class="user-info">
-      <a href="{% url 'reservas' %}">
+  <a href="{% url 'reservas' crucero.nombre %}">
         <button class="btn-primary">⬅ Volver a Reservas</button>
       </a>
     </div>
@@ -27,7 +27,7 @@
         <p>{{ act.descripcion }}</p>
         <p>Precio:${{act.precio}}
         <p>Día {{ act.dia }}</p>
-        <a href="{% url 'reservar_entretenimiento' crucero act.id %}">
+        <a href="{% url 'reservar_entretenimiento' crucero.nombre act.id %}">
           <button class="btn-primary">Reservar</button>
         </a>
       </div>

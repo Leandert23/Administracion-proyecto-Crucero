@@ -433,13 +433,18 @@
             <nav class="sidebar-nav">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="/" class="nav-link">
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Gestión Crucero</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -448,10 +453,10 @@
                         </a>
                     </li>
                     <li class="nav-item active">
-                        <a href="{% url 'reservas' %}" class="nav-link">
+                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
-                      </a>
-                  </li>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <span class="nav-text">Restaurante</span>
@@ -463,17 +468,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="entretenimiento.html" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="#" class="nav-link">
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
                     </li>
@@ -512,9 +512,6 @@
                     <p class="page-subtitle">Aquí podrá iniciar el proceso de reservación</p>
                 </div>
                 <div class="header-right">
-                    <a href="{% url 'inicio' %}">
-                        <button class="btn-primary">⬅ Volver al Inicio</button>
-                    </a>
                 </div>
                     
             </header>
@@ -611,22 +608,23 @@
         const select = document.getElementById("crucero-selector");
 
         function goReserva(tipo) {
-            const crucero = (select && select.value) || sessionStorage.getItem(SELECT_KEY) || "";
+            // Usar el nombre del crucero del contexto de Django
+            const crucero = "{{ crucero.nombre|urlencode }}";
             if (!crucero) {
                 alert("Primero selecciona un crucero.");
                 return;
             }
             let url = "";
             if (tipo === "habitaciones") {
-                url = `/reservas/${crucero}/habitaciones/`;
+                url = `/reservaciones/${crucero}/habitaciones/`;
             } else if (tipo === "entretenimiento") {
-                url = `/reservas/${crucero}/entretenimiento/`;
+                url = `/reservaciones/${crucero}/entretenimiento/`;
             } else if (tipo === "restaurantes") {
-                url = `/reservas/${crucero}/restaurantes/`;
-            } else if (tipo === "eventos") {
-                url = `/reservas/${crucero}/eventos/`;
+                url = `/reservaciones/${crucero}/restaurantes/`;
+            } else if (tipo === "evento") {
+                url = `/reservaciones/${crucero}/evento/`;
             } else if (tipo === "mis_reservas") {
-                url = `/reservas/${crucero}/mis_reservas/`;
+                url = `/reservaciones/${crucero}/mis/`;
             }
             window.location.href = url;
         }

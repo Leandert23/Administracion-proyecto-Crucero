@@ -38,14 +38,14 @@
       <div class="title">Restaurante: L'odissea della Toscana</div>
       <div>Crucero {{ crucero|title }}</div>
     </div>
-    <a href="{% url 'reservar_restaurante' crucero=crucero %}" class="btn">⬅ Volver</a>
+    <a href="{% url 'reservar_restaurante' crucero.nombre %}" class="btn">⬅ Volver</a>
   </header>
 
   <div class="grid">
     {% for mesa in mesas %}
       <div class="card">
         <h3>Mesa {{ mesa.numero }} | Capacidad: {{ mesa.capacidad }} | Precio: 40$</h3>
-        <a href="{% url 'reservar_mesa' crucero=crucero mesa_id=mesa.id %}" class="reserve-btn">
+        <a href="{% url 'reservar_mesa' crucero.nombre mesa.id %}" class="reserve-btn">
           Reservar
         </a>
       </div>

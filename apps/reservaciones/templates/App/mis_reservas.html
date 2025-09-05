@@ -14,7 +14,7 @@
       <p class="reservas-subtitle">Crucero: {{ crucero|title }}</p>
     </div>
     <div class="user-info">
-      <a href="{% url 'reservas' %}">
+  <a href="{% url 'reservas' crucero.nombre %}">
         <button class="btn-primary">⬅ Volver a Reservas</button>
       </a>
     </div>
@@ -31,7 +31,7 @@
         <p>Piso {{ r.habitacion.piso }} - {{ r.habitacion.lado }}</p>
         <p>Inicio: {{ r.fecha_inicio }} | Fin: {{ r.fecha_fin }}</p>
         <p>Precio: ${{ r.habitacion.tipo_habitacion.precio_base }}</p>
-        <a href="{% url 'cancelar_reserva' crucero r.id %}">
+        <a href="{% url 'cancelar_reserva' crucero.nombre r.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>
       </div>
@@ -48,7 +48,7 @@
         <p>{{ r.entretenimiento.descripcion }}</p>
         <p>Fecha: Día {{ r.entretenimiento.dia }}</p>
         <p>Precio: ${{ r.entretenimiento.precio }}</p>
-        <a href="{% url 'cancelar_reserva' crucero r.id %}">
+        <a href="{% url 'cancelar_reserva' crucero.nombre r.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>
       </div>
@@ -65,7 +65,7 @@
         <p>Capacidad: {{ r.mesa.capacidad }}</p>
         <p>Restaurante: {{ r.mesa.restaurante.nombre }}</p>
         <p>Precio: $40.00</p>
-        <a href="{% url 'cancelar_reserva' crucero r.id %}">
+        <a href="{% url 'cancelar_reserva' crucero.nombre r.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>
       </div>
@@ -82,7 +82,7 @@
         <p>{{ r.evento_personalizado.descripcion }}</p>
         <p>Día {{ r.evento_personalizado.dia }}</p>
         <p>Precio: $700.00</p>
-        <a href="{% url 'cancelar_reserva' crucero r.id %}">
+        <a href="{% url 'cancelar_reserva' crucero.nombre r.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>
       </div>

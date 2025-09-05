@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Viaje, TipoHabitacion, Habitacion, Restaurante, Mesa, Entretenimiento, EventoPersonalizado, Reserva
+from .models import Restaurante, Mesa, Entretenimiento, EventoPersonalizado, Reserva
 from . import utils
 
 @admin.action(description="Rellenar habitaciones para el crucero seleccionado")
@@ -34,34 +34,6 @@ def accion_borrar_entretenimiento(modeladmin, request, queryset):
     for viaje in queryset:
         utils.borrar_entretenimiento(viaje.crucero)
 
-@admin.register(Viaje)
-class ViajeAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "crucero", "dia_actual", "total_dias")
-    list_filter = ("crucero", "dia_actual")
-    search_fields = ("nombre", "crucero")
-
-    actions = [
-        accion_rellenar_habitaciones,
-        accion_borrar_habitaciones,
-        accion_rellenar_restaurantes,
-        accion_borrar_restaurantes,
-        accion_rellenar_entretenimiento,
-        accion_borrar_entretenimiento,
-    ]
-
-@admin.register(TipoHabitacion)
-class TipoHabitacionAdmin(admin.ModelAdmin):
-    list_display = ("categoria", "subtipo", "capacidad", "precio_base")
-    list_filter = ("categoria", "subtipo")
-
-
-@admin.register(Habitacion)
-class HabitacionAdmin(admin.ModelAdmin):
-    list_display = ("numero", "crucero", "piso", "lado", "vista_mar", "reservada", "tipo_habitacion")
-    list_filter = ("crucero", "piso", "lado", "reservada")
-    search_fields = ("numero",)
-
-
 @admin.register(Restaurante)
 class RestauranteAdmin(admin.ModelAdmin):
     list_display = ("nombre", "crucero")
@@ -88,8 +60,7 @@ class EventoAdmin(admin.ModelAdmin):
 
 @admin.register(Reserva)
 class ReservaAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "estado", "fecha_creacion")
+    list_display = ("estado", "fecha_creacion")
     list_filter = ("estado", "fecha_creacion")
-    search_fields = ("usuario__username",)
 
 

@@ -14,7 +14,7 @@
       <p class="reservas-subtitle">Crucero: {{ crucero|title }}</p>
     </div>
     <div class="user-info">
-      <a href="{% url 'reservas' %}">
+  <a href="{% url 'reservas' crucero.nombre %}">
         <button class="btn-primary">⬅ Volver a Reservas</button>
       </a>
     </div>
@@ -28,7 +28,7 @@
         <p><strong>Materiales:</strong> {{ ev.materiales }}</p>
         <p><strong>Día:</strong> {{ ev.dia }}</p>
         <p><strong>Estado:</strong> {{ ev.estado }}</p>
-        <a href="{% url 'cancelar_reserva' crucero ev.id %}">
+        <a href="{% url 'cancelar_reserva' crucero.nombre ev.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>
       </div>

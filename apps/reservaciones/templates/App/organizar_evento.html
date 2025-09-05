@@ -48,7 +48,7 @@
       <div class="title">Organizar Evento</div>
       <div>Crucero: {{ crucero|title }}</div>
     </div>
-    <a href="{% url 'reservas' %}" class="btn">⬅ Volver</a>
+  <a href="{% url 'reservas' crucero.nombre %}" class="btn">⬅ Volver</a>
   </header>
 
   <div class="container">

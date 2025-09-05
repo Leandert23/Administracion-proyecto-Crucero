@@ -36,8 +36,7 @@
                         </a>
                     </li>
                     {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
-                    {% with estado=crucero.estado|default:''|upper %}
-                    {% if estado == 'PLANIFICACION' or estado == 'EN_VIAJE' %}
+                    {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
                     <li class="nav-item">
                         <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
                             <span class="nav-text">Entretenimiento</span>
@@ -49,7 +48,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
                         </a>
                     </li>
@@ -141,7 +140,6 @@
                         </a>
                     </li>
                     {% endif %}
-                    {% endwith %}
                 </ul>
             </nav>
             

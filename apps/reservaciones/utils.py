@@ -1,72 +1,4 @@
-from .models import Habitacion, TipoHabitacion
 from .models import Restaurante, Mesa
-
-def rellenar_habitaciones(crucero):
-
-    if Habitacion.objects.filter(crucero=crucero).exists():
-        print(f"⚠ Ya existen habitaciones para el crucero {crucero}, no se agregaron nuevas.")
-        return
-
-    basico_sencillo = TipoHabitacion.objects.get(categoria="basico", subtipo="sencillo")
-    basico_doble = TipoHabitacion.objects.get(categoria="basico", subtipo="doble")
-    premium_sencillo = TipoHabitacion.objects.get(categoria="premium", subtipo="sencillo")
-    premium_doble = TipoHabitacion.objects.get(categoria="premium", subtipo="doble")
-
-    if crucero == "vision":  # pequeño
-        pisos = range(2, 6)  
-        habitaciones_por_piso = 150
-    elif crucero == "voyager":  # mediano
-        pisos = range(2, 9)  
-        habitaciones_por_piso = 200
-    elif crucero == "oasis":  # grande
-        pisos = range(2, 11)  
-        habitaciones_por_piso = 300
-    else:
-        print("❌ Crucero no válido")
-        return
-
-    for piso in pisos:
-        for i in range(habitaciones_por_piso):
-            lado = "babor" if i % 2 == 0 else "estribor"
-            uso = "0" if lado == "babor" else "1"
-
-            # Identificador CD
-            identificador = f"{i:02d}"
-
-            # Código de habitación
-            numero = f"{piso}{uso}{identificador}"
-
-            # 60% primeras habitaciones de cada piso
-            vista = i < int(habitaciones_por_piso * 0.6)
-
-            # selecciona el tipo de habitación
-            if i < habitaciones_por_piso * 0.4:
-                tipo = basico_sencillo
-            elif i < habitaciones_por_piso * 0.7:
-                tipo = basico_doble
-            elif i < habitaciones_por_piso * 0.9:
-                tipo = premium_sencillo
-            else:
-                tipo = premium_doble
-
-            Habitacion.objects.create(
-                crucero=crucero,
-                numero=numero,
-                piso=piso,
-                lado=lado,
-                vista_mar=vista,
-                tipo_habitacion=tipo,
-                reservada=False,
-                precio=tipo.precio_base  # precio de acuerdo al tipo
-            )
-
-
-    print(f"✅ Habitaciones para el crucero {crucero} creadas exitosamente.")
-
-def borrar_habitaciones(crucero):
-
-    eliminadas, _ = Habitacion.objects.filter(crucero=crucero).delete()
-    print(f"🗑 {eliminadas} habitaciones eliminadas del crucero {crucero}.")
 
 def rellenar_restaurantes(crucero):
 
@@ -75,11 +7,11 @@ def rellenar_restaurantes(crucero):
         return
 
     # cantidad de mesas por crucero
-    if crucero == "vision":
+    if crucero.tipo_crucero == "pequeno":
         mesas_por_restaurante = 60
-    elif crucero == "voyager":
+    elif crucero.tipo_crucero == "mediano":
         mesas_por_restaurante = 80
-    elif crucero == "oasis":
+    elif crucero.tipo_crucero == "grande":
         mesas_por_restaurante = 120
     else:
         print("❌ Crucero no válido")
@@ -109,7 +41,6 @@ def rellenar_restaurantes(crucero):
 
     print(f"✅ Restaurantes y mesas para el crucero {crucero} creados exitosamente.")
 
-
 def borrar_restaurantes(crucero):
 
     eliminadas_mesas, _ = Mesa.objects.filter(crucero=crucero).delete()
@@ -126,7 +57,7 @@ def rellenar_entretenimiento(crucero):
 
     actividades = []
 
-    if crucero == "vision":  # Pequeño
+    if crucero.tipo_crucero == "pequeno":  # Pequeño
         actividades = [
             ("Tour Histórico por la Ciudad Amurallada", "Recorrido guiado por la ciudad amurallada.", 2, 0, 2),
             ("Paseo a Caballo por la costa", "Paseo en caballo frente al mar.", 4, 0, 2),
@@ -134,7 +65,7 @@ def rellenar_entretenimiento(crucero):
             ("Tour a pie por Willemstad", "Caminata guiada por la ciudad.", 6, 0, 3),
         ]
 
-    elif crucero == "voyager":  # Mediano
+    elif crucero.tipo_crucero == "mediano":  # Mediano
         actividades = [
             ("Excursión a las Islas del Rosario", "Viaje en lancha con almuerzo incluido.", 2, 0, 6),
             ("Excursión de cuatrimoto en la playa", "Tour en cuatrimoto por la playa, solo adultos.", 2, 0, 3),
@@ -146,7 +77,7 @@ def rellenar_entretenimiento(crucero):
             ("Tour a pie por Willemstad", "Recorrido guiado a pie desde el puerto.", 6, 0, 3),
         ]
 
-    elif crucero == "oasis":  # Grande
+    elif crucero.tipo_crucero == "grande":  # Grande
         actividades = [
             ("Excursión a las Islas del Rosario", "Excursión en lancha con almuerzo incluido.", 2, 0, 7),
             ("Tour Histórico por la Ciudad Amurallada", "Recorrido guiado por la ciudad amurallada.", 2, 0, 2),

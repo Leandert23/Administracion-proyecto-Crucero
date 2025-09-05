@@ -29,7 +29,7 @@
                     {% endif %}
                 </p>
                 {% if not mesa.reservada %}
-                <form method="post" action="{% url 'reservar_mesa' crucero=crucero mesa_id=mesa.id %}">
+                <form method="post" action="{% url 'reservar_mesa' crucero.nombre mesa_id=mesa.id %}">
                     {% csrf_token %}
                     <button type="submit" class="btn-primary">Reservar</button>
                 </form>
@@ -41,7 +41,7 @@
         </div>
 
         <div style="margin-top: 20px;">
-            <a href="{% url 'reservar_restaurante' crucero=crucero %}" class="btn-secondary">← Volver a Restaurantes</a>
+            <a href="{% url 'reservar_restaurante' crucero.nombre %}" class="btn-secondary">← Volver a Restaurantes</a>
         </div>
     </main>
 </body>

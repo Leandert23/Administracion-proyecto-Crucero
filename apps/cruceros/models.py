@@ -172,7 +172,8 @@ class Habitacion(models.Model):
         help_text="Código UUAIII: UU=cubierta (2 dígitos), A=lado (0 babor / 1 estribor), III=consecutivo (001-999) por cubierta y lado"
     )
     numero = models.CharField(max_length=20)
-    ocupada = models.BooleanField(default=False)
+    reservada = models.BooleanField(default=False)
+    vista_mar = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.crucero.nombre} - {self.tipo_habitacion} - cubierta {self.cubierta} - {self.lado} - {self.numero}"
