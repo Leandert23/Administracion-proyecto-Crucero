@@ -2,146 +2,146 @@
 
 {% block title %}Dashboard - Sistema de Mantenimiento del Crucero{% endblock %}
 
+{% block page_title %}Dashboard Principal{% endblock %}
+{% block page_subtitle %}Panel de control central - Última actualización: <span class="last-update-time">{{ now|date:"H:i:s" }}</span>{% endblock %}
+
 {% block breadcrumb_items %}
 <li class="breadcrumb-item active">Dashboard Principal</li>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header principal con botones de acción -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="jumbotron bg-gradient-primary text-white p-4 rounded shadow-lg">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="display-6 fw-bold mb-2">
-                            <i class="fas fa-ship me-3"></i>
-                            Sistema de Mantenimiento del Crucero
-                        </h1>
-                        <p class="lead mb-0">Panel de control central - Última actualización: <span class="last-update-time">{{ now|date:"H:i:s" }}</span></p>
-                        <div class="mt-2">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="dashboardManager.updateDashboard()">
-                                    <i class="fas fa-sync-alt"></i> Actualizar Ahora
-                                </button>
-                                <button type="button" class="btn btn-outline-info btn-sm" onclick="dashboardManager.toggleAutoUpdate()">
-                                    <i class="fas fa-play"></i> <span id="auto-update-status">Auto</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <div class="btn-group-vertical">
-                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success btn-lg mb-2">
-                                <i class="fas fa-calendar-check me-2"></i>
-                                <strong>Crear Tarea Preventiva</strong>
-                            </a>
-                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning btn-lg">
-                                <i class="fas fa-wrench me-2"></i>
-                                <strong>Crear Tarea Correctiva</strong>
-                            </a>
-                        </div>
-                    </div>
+<!-- Acciones rápidas principales -->
+<div class="mb-4">
+    <div class="row">
+        <div class="col-lg-8 mb-3">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="dashboardManager.updateDashboard()">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar Ahora
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="dashboardManager.toggleAutoUpdate()">
+                    <i class="fas fa-play me-2"></i><span id="auto-update-status">Auto</span>
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="row">
+                <div class="col-6">
+                    <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        <small>Preventiva</small>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100">
+                        <i class="fas fa-wrench me-1"></i>
+                        <small>Correctiva</small>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Estadísticas principales en tiempo real -->
-    <div class="row mb-4">
+<!-- Estadísticas principales en tiempo real -->
+<div class="stats-section">
+    <h2 class="section-title">Estadísticas del Sistema</h2>
+    <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stats-card border-primary">
+            <div class="stats-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="stats-number text-primary" data-stat="total_equipos">{{ total_equipos|default:0 }}</div>
                         <div class="stats-label">Total Equipos</div>
                     </div>
                     <div class="stats-icon text-primary">
-                        <i class="fas fa-cogs fa-2x"></i>
+                        <i class="fas fa-cogs"></i>
                     </div>
                 </div>
-                <div class="mt-2">
-                    <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-eye"></i> Ver Equipos
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-eye me-1"></i>Ver Equipos
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stats-card border-info">
+            <div class="stats-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="stats-number text-info" data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</div>
                         <div class="stats-label">Tareas Pendientes</div>
                     </div>
                     <div class="stats-icon text-info">
-                        <i class="fas fa-tasks fa-2x"></i>
+                        <i class="fas fa-tasks"></i>
                     </div>
                 </div>
-                <div class="mt-2">
-                    <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-info btn-sm">
-                        <i class="fas fa-list"></i> Ver Tareas
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-info btn-sm w-100">
+                        <i class="fas fa-list me-1"></i>Ver Tareas
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stats-card {% if productos_stock_bajo > 0 %}border-warning{% else %}border-success{% endif %}">
+            <div class="stats-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}" data-stat="productos_stock_bajo">{{ productos_stock_bajo|default:0 }}</div>
-                        <div class="stats-label">Productos Stock Bajo</div>
+                        <div class="stats-label">Stock Bajo</div>
                     </div>
                     <div class="stats-icon {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
                 </div>
-                <div class="mt-2">
-                    <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-outline-{% if productos_stock_bajo > 0 %}warning{% else %}success{% endif %} btn-sm">
-                        <i class="fas fa-boxes"></i> Ver Inventario
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-outline-{% if productos_stock_bajo > 0 %}warning{% else %}success{% endif %} btn-sm w-100">
+                        <i class="fas fa-boxes me-1"></i>Ver Inventario
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stats-card {% if incidentes_pendientes > 0 %}border-danger{% else %}border-success{% endif %}">
+            <div class="stats-card">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="stats-number {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}" data-stat="incidentes_pendientes">{{ incidentes_pendientes|default:0 }}</div>
-                        <div class="stats-label">Incidentes Pendientes</div>
+                        <div class="stats-label">Incidentes</div>
                     </div>
                     <div class="stats-icon {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                        <i class="fas fa-exclamation-circle"></i>
                     </div>
                 </div>
-                <div class="mt-2">
-                    <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-{% if incidentes_pendientes > 0 %}danger{% else %}success{% endif %} btn-sm">
-                        <i class="fas fa-clipboard-list"></i> Ver Incidentes
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-{% if incidentes_pendientes > 0 %}danger{% else %}success{% endif %} btn-sm w-100">
+                        <i class="fas fa-clipboard-list me-1"></i>Ver Incidentes
                     </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Gráficas en tiempo real -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
+<!-- Gráficas en tiempo real -->
+<div class="stats-section">
+    <h2 class="section-title">Gráficas en Tiempo Real</h2>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-success text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        Estado de Tareas en Tiempo Real
+                        <i class="fas fa-chart-bar me-2 text-success"></i>
+                        Estado de Tareas
                     </h5>
                 </div>
                 <div class="card-body">
                     <div id="tareas-chart-container" style="height: 300px;">
                         <canvas id="tareasChart"></canvas>
                     </div>
-                    <div class="mt-3 text-center">
-                        <div class="row">
+                    <div class="mt-3">
+                        <div class="row text-center">
                             <div class="col-3">
                                 <small class="text-warning">
                                     <strong data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</strong><br>Pendientes
@@ -167,13 +167,13 @@
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-6">
+
+        <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-info text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-ship me-2"></i>
-                        Mantenimientos por Tipo de Crucero
+                        <i class="fas fa-ship me-2 text-info"></i>
+                        Mantenimientos por Tipo
                     </h5>
                 </div>
                 <div class="card-body">
@@ -197,89 +197,80 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Sección de navegación rápida -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-compass me-2"></i>
-                        Navegación Rápida del Sistema
-                    </h5>
+<!-- Navegación rápida del sistema -->
+<div class="stats-section">
+    <h2 class="section-title">Navegación Rápida</h2>
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cogs fa-2x text-primary mb-3"></i>
+                    <h6 class="card-title">Equipos</h6>
+                    <p class="card-text small text-muted">{{ total_equipos|default:0 }} registrados</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-primary btn-sm">Ver Lista</a>
+                        <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-primary btn-sm">Agregar Nuevo</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Gestión -->
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card border-info h-100">
-                                <div class="card-body text-center p-3">
-                                    <i class="fas fa-cogs fa-2x text-info mb-2"></i>
-                                    <h6 class="card-title">Equipos</h6>
-                                    <p class="card-text small">{{ total_equipos|default:0 }} registrados</p>
-                                    <div class="btn-group-vertical w-100">
-                                        <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-info btn-sm mb-1">Ver Lista</a>
-                                        <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-info btn-sm">Agregar Nuevo</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            </div>
+        </div>
 
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card border-success h-100">
-                                <div class="card-body text-center p-3">
-                                    <i class="fas fa-tasks fa-2x text-success mb-2"></i>
-                                    <h6 class="card-title">Tareas</h6>
-                                    <p class="card-text small">{{ tareas_pendientes|default:0 }} pendientes</p>
-                                    <div class="btn-group-vertical w-100">
-                                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-success btn-sm mb-1">Ver Lista</a>
-                                        <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-success btn-sm">Crear Nueva</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-2x text-success mb-3"></i>
+                    <h6 class="card-title">Tareas</h6>
+                    <p class="card-text small text-muted">{{ tareas_pendientes|default:0 }} pendientes</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-success btn-sm">Ver Lista</a>
+                        <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-success btn-sm">Crear Nueva</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card border-warning h-100">
-                                <div class="card-body text-center p-3">
-                                    <i class="fas fa-boxes fa-2x text-warning mb-2"></i>
-                                    <h6 class="card-title">Inventario</h6>
-                                    <p class="card-text small">{{ productos_stock_bajo|default:0 }} stock bajo</p>
-                                    <div class="btn-group-vertical w-100">
-                                        <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-warning btn-sm mb-1">Ver Stock</a>
-                                        <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-outline-warning btn-sm">Agregar Producto</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-warning mb-3"></i>
+                    <h6 class="card-title">Inventario</h6>
+                    <p class="card-text small text-muted">{{ productos_stock_bajo|default:0 }} stock bajo</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-outline-warning btn-sm">Ver Stock</a>
+                        <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-warning btn-sm">Agregar Producto</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <div class="card border-danger h-100">
-                                <div class="card-body text-center p-3">
-                                    <i class="fas fa-swimming-pool fa-2x text-info mb-2"></i>
-                                    <h6 class="card-title">Piscinas</h6>
-                                    <p class="card-text small">{{ piscinas_con_alerta|default:0 }} con alertas</p>
-                                    <div class="btn-group-vertical w-100">
-                                        <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-info btn-sm mb-1">Ver Piscinas</a>
-                                        <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-outline-info btn-sm">Nueva Medición</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-water fa-2x text-info mb-3"></i>
+                    <h6 class="card-title">Piscinas</h6>
+                    <p class="card-text small text-muted">{{ piscinas_con_alerta|default:0 }} con alertas</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-outline-info btn-sm">Ver Piscinas</a>
+                        <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info btn-sm">Nueva Medición</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Alertas y actividades importantes -->
-    <div class="row mb-4">
+<!-- Alertas y actividades importantes -->
+<div class="stats-section">
+    <h2 class="section-title">Alertas y Actividades</h2>
+    <div class="row">
         <!-- Tareas próximas a vencer -->
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-warning text-dark">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-clock me-2"></i>
+                        <i class="fas fa-clock me-2 text-warning"></i>
                         Tareas Próximas a Vencer
                     </h5>
                 </div>
@@ -287,7 +278,7 @@
                     {% if proximas_vencer %}
                         <div class="list-group list-group-flush">
                             {% for tarea in proximas_vencer %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-2 {% if tarea.dias_vencimiento <= 3 %}border-danger{% endif %}">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3 {% if tarea.dias_vencimiento <= 3 %}border-start border-danger border-4{% endif %}">
                                     <div>
                                         <h6 class="mb-1 {% if tarea.dias_vencimiento <= 3 %}text-danger fw-bold{% endif %}">
                                             {% if tarea.dias_vencimiento <= 3 %}
@@ -301,7 +292,7 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge {% if tarea.dias_vencimiento <= 3 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        <span class="badge {% if tarea.dias_vencimiento <= 3 %}bg-danger{% else %}bg-warning text-dark{% endif %} mb-1">
                                             {% if tarea.dias_vencimiento == 0 %}HOY{% elif tarea.dias_vencimiento == 1 %}1 día{% else %}{{ tarea.dias_vencimiento }} días{% endif %}
                                         </span>
                                         <br>
@@ -322,7 +313,7 @@
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <p class="text-muted">No hay tareas próximas a vencer</p>
                             <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-plus"></i> Crear Nueva Tarea
+                                <i class="fas fa-plus me-1"></i>Crear Nueva Tarea
                             </a>
                         </div>
                     {% endif %}
@@ -333,9 +324,9 @@
         <!-- Equipos con revisión próxima -->
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-info text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-tools me-2"></i>
+                        <i class="fas fa-tools me-2 text-info"></i>
                         Equipos por Revisar
                     </h5>
                 </div>
@@ -343,7 +334,7 @@
                     {% if equipos_revision_proxima %}
                         <div class="list-group list-group-flush">
                             {% for equipo in equipos_revision_proxima %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                     <div>
                                         <h6 class="mb-1">{{ equipo.nombre }}</h6>
                                         <small class="text-muted">
@@ -352,7 +343,7 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-info">
+                                        <span class="badge bg-info mb-1">
                                             {{ equipo.dias_hasta_revision }} días
                                         </span>
                                         <br>
@@ -373,7 +364,7 @@
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <p class="text-muted">No hay equipos con revisión próxima</p>
                             <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-plus"></i> Registrar Equipo
+                                <i class="fas fa-plus me-1"></i>Registrar Equipo
                             </a>
                         </div>
                     {% endif %}
@@ -381,14 +372,17 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Incidentes: pendientes y recientes -->
-    <div class="row mb-4">
+<!-- Incidentes: pendientes y recientes -->
+<div class="stats-section">
+    <h2 class="section-title">Gestión de Incidentes</h2>
+    <div class="row">
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-danger text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <i class="fas fa-exclamation-circle me-2 text-danger"></i>
                         Incidentes Pendientes
                     </h5>
                 </div>
@@ -396,7 +390,7 @@
                     {% if incidentes_pendientes_list %}
                         <div class="list-group list-group-flush">
                             {% for inc in incidentes_pendientes_list %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                     <div>
                                         <h6 class="mb-1">{{ inc.titulo }}</h6>
                                         <small class="text-muted">
@@ -406,7 +400,7 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-danger">{{ inc.get_severidad_display }}</span>
+                                        <span class="badge bg-danger mb-1">{{ inc.get_severidad_display }}</span>
                                         <br>
                                         <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
                                     </div>
@@ -423,7 +417,7 @@
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                             <p class="text-muted">No hay incidentes pendientes</p>
                             <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-plus"></i> Reportar Incidente
+                                <i class="fas fa-plus me-1"></i>Reportar Incidente
                             </a>
                         </div>
                     {% endif %}
@@ -433,9 +427,9 @@
 
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header bg-secondary text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>
+                        <i class="fas fa-history me-2 text-secondary"></i>
                         Incidentes Recientes
                     </h5>
                 </div>
@@ -443,7 +437,7 @@
                     {% if incidentes_recientes %}
                         <div class="list-group list-group-flush">
                             {% for inc in incidentes_recientes %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                     <div>
                                         <h6 class="mb-1">{{ inc.titulo }}</h6>
                                         <small class="text-muted">
@@ -454,9 +448,9 @@
                                     </div>
                                     <div class="text-end">
                                         {% if inc.resuelto %}
-                                            <span class="badge bg-success">Resuelto</span>
+                                            <span class="badge bg-success mb-1">Resuelto</span>
                                         {% else %}
-                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                            <span class="badge bg-warning text-dark mb-1">Pendiente</span>
                                         {% endif %}
                                         <br>
                                         <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
@@ -479,59 +473,83 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Acciones rápidas finales -->
-    <div class="row mb-4">
-        <div class="col-12">
+<!-- Acciones rápidas finales -->
+<div class="stats-section">
+    <h2 class="section-title">Acciones Rápidas</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
             <div class="card">
-                <div class="card-header bg-dark text-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-                        Acciones Rápidas Esenciales
+                        <i class="fas fa-bolt me-2 text-warning"></i>
+                        Acciones Principales
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100">
-                                <i class="fas fa-calendar-check"></i><br>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-calendar-check me-1"></i>
                                 <small>Tarea Preventiva</small>
                             </a>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100">
-                                <i class="fas fa-wrench"></i><br>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-wrench me-1"></i>
                                 <small>Tarea Correctiva</small>
                             </a>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-danger w-100">
-                                <i class="fas fa-exclamation-triangle"></i><br>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-danger w-100 mb-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
                                 <small>Reportar Incidente</small>
                             </a>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info w-100">
-                                <i class="fas fa-tint"></i><br>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info w-100 mb-2">
+                                <i class="fas fa-tint me-1"></i>
                                 <small>Medir Piscina</small>
                             </a>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <a href="{% url 'mantenimiento:reportes' %}" class="btn btn-primary w-100">
-                                <i class="fas fa-chart-bar"></i><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2 text-info"></i>
+                        Herramientas del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:reportes' %}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-chart-bar me-1"></i>
                                 <small>Ver Reportes</small>
                             </a>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <button onclick="window.dashboardManager?.updateDashboard()" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-sync-alt"></i><br>
+                        <div class="col-6">
+                            <button onclick="window.dashboardManager?.updateDashboard()" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-sync-alt me-1"></i>
                                 <small>Actualizar Todo</small>
                             </button>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <button onclick="window.dashboardManager?.checkAndRepairCharts()" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-tools"></i><br>
+                        <div class="col-6">
+                            <button onclick="repairCharts()" class="btn btn-outline-warning w-100 mb-2">
+                                <i class="fas fa-tools me-1"></i>
                                 <small>Reparar Gráficas</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="window.dashboardManager?.toggleAutoUpdate()" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="fas fa-play me-1"></i>
+                                <small id="auto-update-toggle-text">Auto Update</small>
                             </button>
                         </div>
                     </div>
@@ -1152,6 +1170,24 @@ window.addEventListener('beforeunload', () => {
 window.updateDashboard = function() {
     if (window.dashboardManager) {
         window.dashboardManager.updateDashboard();
+    }
+};
+
+// Función global para reparar gráficas
+window.repairCharts = function() {
+    if (window.dashboardManager) {
+        window.dashboardManager.checkAndRepairCharts();
+    } else {
+        // Si no existe el dashboard manager, intentar inicializarlo
+        console.log('🔄 Inicializando dashboard manager...');
+        if (typeof OptimizedDashboardManager !== 'undefined') {
+            window.dashboardManager = new OptimizedDashboardManager();
+            setTimeout(() => {
+                if (window.dashboardManager) {
+                    window.dashboardManager.checkAndRepairCharts();
+                }
+            }, 1000);
+        }
     }
 };
 
