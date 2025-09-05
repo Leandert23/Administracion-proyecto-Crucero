@@ -35,6 +35,9 @@
                             <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
+                    {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
+                    {% with estado=crucero.estado|default:''|upper %}
+                    {% if estado == 'PLANIFICACION' or estado == 'EN_VIAJE' %}
                     <li class="nav-item">
                         <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
                             <span class="nav-text">Entretenimiento</span>
@@ -85,6 +88,60 @@
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
+                    {% else %}
+                    {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endwith %}
                 </ul>
             </nav>
             
@@ -180,5 +237,20 @@
     <script src="{% static 'Js/modals_manager.js' %}"></script>
     <script src="{% static 'Js/busqueda_producto.js' %}"></script>
     <script src="{% static 'Js/init_almacen.js' %}"></script>
+    <script>
+    (function(){
+        // Mostrar alert en módulos inactivos
+        var inactivos = document.querySelectorAll('.modulo-inactivo');
+        if(inactivos && inactivos.length){
+            var mensaje = 'Los módulos se encuentran inactivos porque el crucero no tiene una ruta asignada. Asigne una ruta desde Gestión Crucero.';
+            inactivos.forEach(function(a){
+                a.addEventListener('click', function(e){
+                    e.preventDefault();
+                    alert(mensaje);
+                });
+            });
+        }
+    })();
+    </script>
 </body>
 </html>
