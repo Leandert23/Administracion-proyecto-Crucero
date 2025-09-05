@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 class="mb-0">{{ tarea.titulo }}</h3>
+          <div class="badge badge-lg 
+            {% if tarea.estado == 'creada' %}badge-secondary
+            {% elif tarea.estado == 'planificada' %}badge-info
+            {% elif tarea.estado == 'asignada' %}badge-warning
+            {% elif tarea.estado == 'en_progreso' %}badge-primary
+            {% elif tarea.estado == 'completada' %}badge-success
+            {% elif tarea.estado == 'cancelada' %}badge-danger
+            {% elif tarea.estado == 'pausada' %}badge-dark
+            {% else %}badge-light{% endif %}">
+            {{ tarea.get_estado_display }}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Descripción:</strong><br>{{ tarea.descripcion }}</p>
+              <p><strong>Tipo:</strong> {{ tarea.get_tipo_display }}</p>
+              <p><strong>Prioridad:</strong> 
+                <span class="badge 
+                  {% if tarea.prioridad == 'baja' %}badge-success
+                  {% elif tarea.prioridad == 'media' %}badge-warning
+                  {% elif tarea.prioridad == 'alta' %}badge-danger
+                  {% elif tarea.prioridad == 'critica' %}badge-dark
+                  {% else %}badge-secondary{% endif %}">
+                  {{ tarea.get_prioridad_display }}
+                </span>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Ubicación:</strong> {{ tarea.ubicacion.codigo_ubicacion }} - {{ tarea.ubicacion.descripcion }}</p>
+              {% if tarea.equipo %}
+              <p><strong>Equipo:</strong> {{ tarea.equipo.codigo }} - {{ tarea.equipo.nombre }}</p>
+              {% endif %}
+              <p><strong>Tipo crucero:</strong> {{ tarea.tipo_crucero.get_tipo_display }}</p>
+              <p><strong>Fecha programada:</strong> {{ tarea.fecha_programada|date:'d/m/Y H:i' }}</p>
+              {% if tarea.fecha_inicio %}
+              <p><strong>Fecha inicio:</strong> {{ tarea.fecha_inicio|date:'d/m/Y H:i' }}</p>
+              {% endif %}
+              {% if tarea.fecha_completada %}
+              <p><strong>Fecha completada:</strong> {{ tarea.fecha_completada|date:'d/m/Y H:i' }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Alertas de Estado -->
+          {% if not puede_iniciar and tarea.estado == 'asignada' %}
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Esta tarea no puede iniciarse:
+            {% if not personal_asignado.exists %}
+            <br>• No tiene personal asignado
+            {% endif %}
+            {% if not materiales_necesarios %}
+            <br>• Faltan materiales necesarios
+            {% endif %}
+          </div>
+          {% endif %}
+          
+          {% if tarea.observaciones %}
+          <div class="mt-3">
+            <strong>Observaciones:</strong>
+            <p class="text-muted">{{ tarea.observaciones }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <!-- Personal Asignado -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5><i class="fas fa-users"></i> Personal Asignado</h5>
+        </div>
+        <div class="card-body">
+          {% for asignacion in personal_asignado %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <strong>{{ asignacion.personal.nombre }}</strong><br>
+              <small class="text-muted">{{ asignacion.personal.get_rol_display }} - {{ asignacion.horas_asignadas }}h</small>
+            </div>
+            <span class="badge badge-{% if asignacion.estado == 'asignado' %}warning{% else %}success{% endif %}">
+              {{ asignacion.get_estado_display }}
+            </span>
+          </div>
+          {% empty %}
+          <p class="text-muted">Sin personal asignado</p>
+          {% endfor %}
+          
+          <!-- Formulario para asignar personal -->
+          <hr>
+          <form method="post" action="{% url 'mantenimiento:tarea_asignar_personal' tarea.pk %}">
+            {% csrf_token %}
+            {{ asignacion_form.as_p }}
+            <button class="btn btn-sm btn-primary" type="submit">
+              <i class="fas fa-user-plus"></i> Asignar Personal
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Productos Utilizados -->
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="fas fa-boxes"></i> Productos Utilizados</h5>
+        </div>
+        <div class="card-body">
+          {% for producto in productos_utilizados %}
+          <div class="mb-2">
+            <strong>{{ producto.producto.nombre }}</strong><br>
+            <small class="text-muted">{{ producto.cantidad_utilizada }} {{ producto.producto.get_unidad_display }}</small>
+          </div>
+          {% empty %}
+          <p class="text-muted">Sin productos registrados</p>
+          {% endfor %}
+          
+          <!-- Formulario para registrar productos -->
+          <hr>
+          <form method="post" action="{% url 'mantenimiento:tarea_registrar_producto' tarea.pk %}">
+            {% csrf_token %}
+            {{ producto_form.as_p }}
+            <button class="btn btn-sm btn-success" type="submit">
+              <i class="fas fa-plus"></i> Registrar Producto
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Cambios -->
+  {% if cambios_estado %}
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5><i class="fas fa-history"></i> Historial de Estados</h5>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            {% for cambio in cambios_estado %}
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <h6 class="timeline-title">
+                  {{ cambio.estado_anterior }} → {{ cambio.estado_nuevo }}
+                </h6>
+                <p class="timeline-text">{{ cambio.fecha_cambio|date:'d/m/Y H:i' }}</p>
+                {% if cambio.observaciones %}
+                <p class="timeline-text"><em>{{ cambio.observaciones }}</em></p>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Botones de Acción -->
+  <div class="mt-4">
+    <a class="btn btn-secondary" href="{% url 'mantenimiento:tarea_list' %}">
+      <i class="fas fa-arrow-left"></i> Volver a Tareas
+    </a>
+    <a class="btn btn-info" href="{% url 'mantenimiento:tarea_workflow' tarea.pk %}">
+      <i class="fas fa-project-diagram"></i> Ver Workflow Completo
+    </a>
+    <a class="btn btn-danger" href="{% url 'mantenimiento:tarea_delete' tarea.pk %}">Eliminar</a>
+    {% if tarea.estado != 'completada' and tarea.estado != 'cancelada' %}
+    <a class="btn btn-warning" href="{% url 'mantenimiento:tarea_update' tarea.pk %}">
+      <i class="fas fa-edit"></i> Editar Tarea
+    </a>
+    <form method="post" action="{% url 'mantenimiento:tarea_siguiente_estado' tarea.pk %}" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_detail' tarea.pk %}">
+      <button type="submit" class="btn btn-success" 
+              title="Avanzar estado: Creada/Planificada/Asignada → En Progreso → Completada">
+        <i class="fas fa-forward"></i> Avanzar estado
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -35px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #007bff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-item:before {
+  content: '';
+  position: absolute;
+  left: -31px;
+  top: 15px;
+  width: 2px;
+  height: calc(100% + 15px);
+  background-color: #dee2e6;
+}
+
+.timeline-item:last-child:before {
+  display: none;
+}
+
+.badge-lg {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Consumo de productos desde {{ fecha_inicio|date:'Y-m-d' }}</h2>
+  <h5>Más utilizados</h5>
+  <ul>
+    {% for p in productos_consumo %}
+      <li>{{ p.producto__nombre }}: {{ p.total_consumido }}</li>
+    {% empty %}
+      <li>Sin consumo registrado</li>
+    {% endfor %}
+  </ul>
+  <h5 class="mt-4">Stock Bajo</h5>
+  <ul>
+    {% for inv in productos_stock_bajo %}
+      <li>{{ inv.producto.nombre }} ({{ inv.tipo_crucero.tipo }}) - {{ inv.stock_actual }}/{{ inv.stock_minimo }}</li>
+    {% empty %}
+      <li>Sin alertas</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">{{ piscina.nombre }}</h2>
+    <div>
+      <a class="btn btn-outline-success" href="{% url 'mantenimiento:medicion_piscina_create' %}">Registrar Medición</a>
+      <a class="btn btn-primary" href="{% url 'mantenimiento:piscina_update' piscina.pk %}">Editar</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-header">Detalles</div>
+        <div class="card-body">
+          <p><strong>Ubicación:</strong> {{ piscina.ubicacion.codigo_ubicacion }}</p>
+          <p><strong>Volumen:</strong> {{ piscina.volumen_m3 }} m³</p>
+          <p><strong>En servicio:</strong> {{ piscina.en_servicio|yesno:"Sí,No" }}</p>
+          <p><strong>Última limpieza:</strong> {{ piscina.fecha_ultima_limpieza|date:'Y-m-d'|default:'-' }}</p>
+          <p><strong>Observaciones:</strong> {{ piscina.observaciones|default:'-' }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card mb-3">
+        <div class="card-header">Mediciones Recientes</div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>pH</th>
+                  <th>Cloro (mg/L)</th>
+                  <th>Filtro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in mediciones %}
+                <tr>
+                  <td>{{ m.fecha_hora|date:'Y-m-d H:i' }}</td>
+                  <td>{{ m.ph }}</td>
+                  <td>{{ m.cloro_mg_l }}</td>
+                  <td>{{ m.get_estado_filtro_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">Sin mediciones</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block page_title %}Tareas de Mantenimiento{% endblock %}
+{% block page_subtitle %}Gestión completa de tareas preventivas y correctivas{% endblock %}
+
+{% block content %}
+<div class="stats-section">
+    <!-- Header con acciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h4 class="card-title mb-1">
+                                <i class="fas fa-tasks me-2 text-primary"></i>Tareas de Mantenimiento
+                            </h4>
+                            <p class="text-muted mb-0">{{ page_obj.paginator.count }} tareas registradas</p>
+                        </div>
+                        <div class="btn-group flex-wrap" role="group">
+                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success">
+                                <i class="fas fa-calendar-check me-1"></i>Preventiva
+                            </a>
+                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning">
+                                <i class="fas fa-wrench me-1"></i>Correctiva
+                            </a>
+                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Nueva Tarea
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-filter me-2 text-info"></i>Filtros y Búsqueda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="tipo_crucero" class="form-label fw-semibold">
+                                <i class="fas fa-ship me-1 text-info"></i>Tipo de Crucero
+                            </label>
+                            <select name="tipo_crucero" class="form-select">
+                                <option value="">Todos los cruceros</option>
+                                {% for tc in tipos_crucero %}
+                                <option value="{{ tc.id }}" {% if request.GET.tipo_crucero == tc.id|stringformat:'s' %}selected{% endif %}>{{ tc.get_tipo_display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="tipo" class="form-label fw-semibold">
+                                <i class="fas fa-wrench me-1 text-success"></i>Tipo de Tarea
+                            </label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Todos los tipos</option>
+                                {% for val,label in tipos %}
+                                <option value="{{ val }}" {% if request.GET.tipo == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="estado" class="form-label fw-semibold">
+                                <i class="fas fa-info-circle me-1 text-warning"></i>Estado
+                            </label>
+                            <select name="estado" class="form-select">
+                                <option value="">Todos los estados</option>
+                                {% for val,label in estados %}
+                                <option value="{{ val }}" {% if request.GET.estado == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-search me-1"></i>Filtrar
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="incluir_finalizadas" value="1" id="toggleFinalizadas" {% if incluir_finalizadas %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="form-check-label fw-semibold" for="toggleFinalizadas">
+                                    <i class="fas fa-check-circle me-1 text-success"></i>Incluir tareas completadas/canceladas
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de tareas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-list me-2 text-secondary"></i>Lista de Tareas
+                        <span class="badge bg-primary ms-2">{{ page_obj|length }}</span>
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="border-0 fw-semibold">
+                                        <i class="fas fa-tag me-2 text-primary"></i>Título
+                                    </th>
+                                    <th class="border-0 fw-semibold">
+                                        <i class="fas fa-wrench me-2 text-success"></i>Tipo
+                                    </th>
+                                    <th class="border-0 fw-semibold">
+                                        <i class="fas fa-exclamation-circle me-2 text-warning"></i>Prioridad
+                                    </th>
+                                    <th class="border-0 fw-semibold">
+                                        <i class="fas fa-info-circle me-2 text-info"></i>Estado
+                                    </th>
+                                    <th class="border-0 fw-semibold">
+                                        <i class="fas fa-calendar me-2 text-danger"></i>Programada
+                                    </th>
+                                    <th class="border-0 fw-semibold text-center">
+                                        <i class="fas fa-cogs me-2 text-secondary"></i>Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tarea in page_obj %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'mantenimiento:tarea_detail' tarea.pk %}" class="text-decoration-none fw-semibold">
+                                            <i class="fas fa-arrow-right me-2 text-primary"></i>{{ tarea.titulo }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if tarea.tipo == 'preventivo' %}success{% else %}warning{% endif %}">
+                                            {{ tarea.get_tipo_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if tarea.prioridad == 'critica' %}danger{% elif tarea.prioridad == 'alta' %}warning{% elif tarea.prioridad == 'media' %}info{% else %}secondary{% endif %}">
+                                            {{ tarea.get_prioridad_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if tarea.estado == 'completada' %}success{% elif tarea.estado == 'en_progreso' %}info{% elif tarea.estado == 'cancelada' %}secondary{% else %}warning{% endif %}">
+                                            {{ tarea.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold">{{ tarea.fecha_programada|date:'d/m/Y' }}</span>
+                                            <small class="text-muted">{{ tarea.fecha_programada|date:'H:i' }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'mantenimiento:tarea_detail' tarea.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'mantenimiento:tarea_update' tarea.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'mantenimiento:tarea_delete' tarea.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% if tarea.estado != 'completada' and tarea.estado != 'cancelada' %}
+                                            <form method="post" action="{% url 'mantenimiento:tarea_siguiente_estado' tarea.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{% url 'mantenimiento:tarea_list' %}">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Avanzar estado">
+                                                    <i class="fas fa-forward"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Sin tareas encontradas</h5>
+                                        <p class="text-muted mb-3">No se encontraron tareas que coincidan con los filtros aplicados.</p>
+                                        <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i>Crear primera tarea
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Paginación -->
+                {% if page_obj.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Navegación de tareas">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
