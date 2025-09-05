@@ -40,22 +40,63 @@ class SeccionAlmacen(models.Model):
 
 
 class Producto(models.Model):
+
     TIPOS_PRODUCTO = [
-        ("COMIDA", "Comida"),
-        ("BIENES", "Bienes"),
+        ("ALIMENTOS_FRESCOS", "Alimentos Frescos"),
+        ("ALIMENTOS_SECOS", "Alimentos Secos"),
+        ("BEBIDAS", "Bebidas"),
+        ("INSUMOS_COCINA", "Insumos de Cocina"),
+        ("LIMPIEZA", "Limpieza"),
+        ("SUMINISTROS_MEDICOS", "Suministros Médicos"),
+        ("MANTENIMIENTO", "Materiales de Mantenimiento"),
+        ("REPUESTOS_TECNICOS", "Repuestos Técnicos"),
+        ("EQUIPOS", "Equipos"),
+        ("TEXTILES", "Textiles"),
+        ("OFICINA", "Oficina"),
+        ("ENTRETENIMIENTO", "Entretenimiento"),
+        ("SPA_GYM", "SPA / GYM"),
+        ("SEGURIDAD", "Seguridad"),
+        ("MERCHANDISING", "Merchandising"),
+        ("TECNOLOGIA", "Tecnología"),
     ]
 
+    # Subtipos globales (pueden reutilizarse entre tipos; se validan según SUBTIPOS_POR_TIPO)
     SUBTIPOS_PRODUCTO = [
-        ("CADUCABLE", "Caducable"),
-        ("NO_CADUCABLE", "No caducable"),
-        ("REFRIGERADO", "Refrigerado"),
-        ("NO_REFRIGERADO", "No refrigerado"),
-        ("BEBIDA", "Bebida"),
-        ("LICOR", "Licor"),
-        ("REPUESTOS", "Repuestos"),
-        ("LIMPIEZA", "Materiales de limpieza"),
-        ("MEDICOS", "Materiales médicos"),
-        ("ACTIVOS", "Bienes activos"),
+        # Alimentos frescos
+        ("FRUTA", "Fruta"), ("VERDURA", "Verdura"), ("CARNE", "Carne"), ("PESCADO", "Pescado"), ("MARISCO", "Marisco"),
+        ("LACTEOS", "Lácteos"), ("PANIFICADOS", "Panificados"), ("CHARCUTERIA", "Charcutería"),
+        # Alimentos secos
+        ("CEREAL", "Cereal"), ("PASTA", "Pasta"), ("LEGUMINOSAS", "Leguminosas"), ("ENLATADOS", "Enlatados"),
+        ("SNACKS", "Snacks"), ("CONDIMENTOS", "Condimentos"), ("AZUCAR_SAL", "Azúcar / Sal"),
+        # Bebidas
+        ("AGUA", "Agua"), ("REFRESCO", "Refresco"), ("JUGO", "Jugo"), ("ENERGETICA", "Energética"),
+        ("CAFE_TEA", "Café / Té"), ("CERVEZA", "Cerveza"), ("VINO", "Vino"), ("DESTILADO", "Destilado"), ("COCTEL_PREMEZCLA", "Cóctel Premezclado"),
+        # Insumos cocina
+        ("DESCARTABLES", "Descartables"), ("ENVASES", "Envases"), ("UTENSILIOS", "Utensilios"), ("GAS_COCINA", "Gas Cocina"), ("HIELO", "Hielo"),
+        # Limpieza
+        ("DETERGENTES", "Detergentes"), ("DESINFECTANTES", "Desinfectantes"), ("UTENSILIOS_LIMPIEZA", "Utensilios Limpieza"), ("PAPEL_SANITARIO", "Papel Sanitario"), ("AMBIENTADORES", "Ambientadores"),
+        # Médicos
+        ("MEDICAMENTO", "Medicamento"), ("CURACION", "Curación"), ("EQUIPO_DIAGNOSTICO", "Equipo Diagnóstico"), ("EPP", "Equipo Protección Personal"), ("INSTRUMENTAL", "Instrumental"), ("SOLUCION_IV", "Solución IV"),
+        # Mantenimiento
+        ("PINTURA", "Pintura"), ("LUBRICANTE", "Lubricante"), ("SELLADOR", "Sellador"), ("ADHESIVO", "Adhesivo"), ("ABRASIVO", "Abrasivo"), ("FILTRO", "Filtro"), ("ACEITE", "Aceite"),
+        # Repuestos técnicos
+        ("MOTOR", "Motor"), ("ELECTRICO", "Eléctrico"), ("HVAC", "HVAC"), ("NAVEGACION", "Navegación"), ("ILUMINACION", "Iluminación"), ("BOMBAS", "Bombas"), ("VALVULAS", "Válvulas"),
+        # Equipos
+        ("ELECTRODOMESTICO", "Electrodoméstico"), ("AUDIO_VIDEO", "Audio / Video"), ("INFORMATICO", "Informático"), ("GIMNASIO", "Gimnasio"), ("COCINA_INDUSTRIAL", "Cocina Industrial"),
+        # Textiles
+        ("ROPA_CAMA", "Ropa de Cama"), ("TOALLA", "Toalla"), ("UNIFORME", "Uniforme"), ("CORTINA", "Cortina"), ("TAPICERIA", "Tapicería"),
+        # Oficina
+        ("PAPELERIA", "Papelería"), ("IMPRESION", "Impresión"), ("ESCRITORIO", "Escritorio"), ("CONSUMIBLE_IT", "Consumible IT"),
+        # Entretenimiento
+        ("JUEGO_MESA", "Juego de Mesa"), ("JUEGO_VIDEO", "Videojuego"), ("LIBRO_REVISTA", "Libro / Revista"), ("EVENTO", "Evento"), ("SONIDO_LUZ", "Sonido / Luz"),
+        # SPA / GYM
+        ("COSMETICO", "Cosmético"), ("ACEITE_MASAJE", "Aceite de Masaje"), ("SUPLEMENTO", "Suplemento"), ("ACC_FITNESS", "Accesorio Fitness"),
+        # Seguridad
+        ("CHALECO_SALVAVIDAS", "Chaleco Salvavidas"), ("EXTINTOR", "Extintor"), ("SENALIZACION", "Señalización"), ("ARNES", "Arnés"), ("BOTIQUIN", "Botiquín"), ("DETECTOR", "Detector"),
+        # Merchandising
+        ("RECUERDO", "Recuerdo"), ("PRENDA_LOGO", "Prenda con Logo"), ("ACCESORIO_LOGO", "Accesorio con Logo"), ("BEBIDA_PREMIUM", "Bebida Premium"), ("DULCE_GOURMET", "Dulce Gourmet"),
+        # Tecnología
+        ("ROUTER", "Router"), ("SWITCH", "Switch"), ("CABLEADO", "Cableado"), ("CAMARA_SEGURIDAD", "Cámara de Seguridad"), ("SENSOR", "Sensor"), ("DISPOSITIVO_PORTATIL", "Dispositivo Portátil"),
     ]
 
     UNIDADES_MEDIDA = [
@@ -65,14 +106,29 @@ class Producto(models.Model):
         ("U", "Unidades"),
     ]
 
+    # Mapeo de subtipos válidos por tipo (sets para validación rápida)
     SUBTIPOS_POR_TIPO = {
-        "COMIDA": {"CADUCABLE", "NO_CADUCABLE", "REFRIGERADO", "NO_REFRIGERADO", "BEBIDA", "LICOR"},
-        "BIENES": {"REPUESTOS", "LIMPIEZA", "MEDICOS", "ACTIVOS"},
+        "ALIMENTOS_FRESCOS": {"FRUTA","VERDURA","CARNE","PESCADO","MARISCO","LACTEOS","PANIFICADOS","CHARCUTERIA"},
+        "ALIMENTOS_SECOS": {"CEREAL","PASTA","LEGUMINOSAS","ENLATADOS","SNACKS","CONDIMENTOS","AZUCAR_SAL"},
+        "BEBIDAS": {"AGUA","REFRESCO","JUGO","ENERGETICA","CAFE_TEA","CERVEZA","VINO","DESTILADO","COCTEL_PREMEZCLA"},
+        "INSUMOS_COCINA": {"DESCARTABLES","ENVASES","UTENSILIOS","GAS_COCINA","HIELO"},
+        "LIMPIEZA": {"DETERGENTES","DESINFECTANTES","UTENSILIOS_LIMPIEZA","PAPEL_SANITARIO","AMBIENTADORES"},
+        "SUMINISTROS_MEDICOS": {"MEDICAMENTO","CURACION","EQUIPO_DIAGNOSTICO","EPP","INSTRUMENTAL","SOLUCION_IV"},
+        "MANTENIMIENTO": {"PINTURA","LUBRICANTE","SELLADOR","ADHESIVO","ABRASIVO","FILTRO","ACEITE"},
+        "REPUESTOS_TECNICOS": {"MOTOR","ELECTRICO","HVAC","NAVEGACION","ILUMINACION","BOMBAS","VALVULAS"},
+        "EQUIPOS": {"ELECTRODOMESTICO","AUDIO_VIDEO","INFORMATICO","GIMNASIO","COCINA_INDUSTRIAL"},
+        "TEXTILES": {"ROPA_CAMA","TOALLA","UNIFORME","CORTINA","TAPICERIA"},
+        "OFICINA": {"PAPELERIA","IMPRESION","ESCRITORIO","CONSUMIBLE_IT"},
+        "ENTRETENIMIENTO": {"JUEGO_MESA","JUEGO_VIDEO","LIBRO_REVISTA","EVENTO","SONIDO_LUZ"},
+        "SPA_GYM": {"COSMETICO","ACEITE_MASAJE","SUPLEMENTO","ACC_FITNESS"},
+        "SEGURIDAD": {"CHALECO_SALVAVIDAS","EXTINTOR","SENALIZACION","ARNES","BOTIQUIN","DETECTOR"},
+        "MERCHANDISING": {"RECUERDO","PRENDA_LOGO","ACCESORIO_LOGO","BEBIDA_PREMIUM","DULCE_GOURMET"},
+        "TECNOLOGIA": {"ROUTER","SWITCH","CABLEADO","CAMARA_SEGURIDAD","SENSOR","DISPOSITIVO_PORTATIL"},
     }
 
     nombre = models.CharField(max_length=100, db_index=True)
-    tipo = models.CharField(max_length=10, choices=TIPOS_PRODUCTO)
-    subtipo = models.CharField(max_length=15, choices=SUBTIPOS_PRODUCTO, blank=True, null=True)
+    tipo = models.CharField(max_length=25, choices=TIPOS_PRODUCTO)
+    subtipo = models.CharField(max_length=25, choices=SUBTIPOS_PRODUCTO, blank=True, null=True)
     seccion = models.ForeignKey('SeccionAlmacen', on_delete=models.CASCADE, related_name='productos')
     cantidad_ideal = models.PositiveIntegerField()
     medida = models.CharField(max_length=1, choices=UNIDADES_MEDIDA)
@@ -88,9 +144,11 @@ class Producto(models.Model):
         
         if cantidad_actual <= 0:
             return 'NO HAY STOCK'
+        if cantidad_actual <= self.cantidad_ideal * 0.10:
+            return 'CRITICO'
         if cantidad_actual <= self.cantidad_ideal * 0.30:
             return 'BAJO'
-        if cantidad_actual <= self.cantidad_ideal * 0.60:
+        if cantidad_actual <= self.cantidad_ideal * 0.70:
             return 'MEDIO'
         return 'ALTO'
 

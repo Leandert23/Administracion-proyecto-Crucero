@@ -193,7 +193,8 @@ def obtener_lotes_producto(request):
     except Producto.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'producto_no_encontrado'})
     
-    lotes = producto.lotes.order_by('-fecha_ingreso', '-id')
+    # Solo lotes con stock disponible (>0)
+    lotes = producto.lotes.filter(cantidad_productos__gt=0).order_by('-fecha_ingreso', '-id')
     
     html = render_to_string('Partials/tabla_lotes_producto.html', {
         'producto': producto,
@@ -219,7 +220,8 @@ def obtener_lotes_producto_json(request):
     except Producto.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'producto_no_encontrado'}, status=404)
     
-    lotes = producto.lotes.order_by('-fecha_ingreso', '-id')
+    # Solo incluir lotes con cantidad disponible (>0)
+    lotes = producto.lotes.filter(cantidad_productos__gt=0).order_by('-fecha_ingreso', '-id')
     datos_lotes = []
     
     for lote in lotes:

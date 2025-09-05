@@ -1,5 +1,6 @@
 from django.db import transaction
 from ..models import Producto, MovimientoAlmacen
+from apps.almacen.signals import emitir_señal_si_falta_stock_de 
 from typing import List, Tuple
 
 # Conjunto de módulos válidos según MovimientoAlmacen.TIPO_MODULO
@@ -15,14 +16,6 @@ def _normalizar_modulo(modulo: str | None) -> str:
     if limpio not in _MODULOS_VALIDOS:
         return "ALMACEN"
     return limpio
-
-def productosPocasUnidades(cantidadesIniciales: dict, porcentajeMinimo: float = 0.2) -> List[Tuple[str, int]]:
-    productosPocos = []
-    for producto in Producto.objects.all():
-        inicial = cantidadesIniciales.get(producto.nombre, producto.cantidad)
-        if inicial > 0 and producto.cantidad <= inicial * porcentajeMinimo:
-            productosPocos.append((producto.nombre, producto.cantidad))
-    return productosPocos
 
 def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto, descripcion=None):
     modulo_norm = _normalizar_modulo(modulo)
@@ -88,7 +81,8 @@ def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento, descrip
         lotes_ordenados = metodo_ordenamiento(producto)
         _verificar_stock_suficiente(lotes_ordenados, cantidad)
         _procesar_lotes(lotes_ordenados, cantidad, modulo, producto, descripcion=descripcion)
-        # No es necesario recalcular porque cantidad es property (suma dinámica)
+    # Después de registrar la salida y actualizar lotes, emitir señal para evaluar si ahora falta stock de este producto
+    emitir_señal_si_falta_stock_de(producto)
 
 def retirar_producto_fifo(producto_id, cantidad, modulo, descripcion=None):
     _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fifo, descripcion=descripcion)

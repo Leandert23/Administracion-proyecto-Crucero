@@ -203,39 +203,37 @@
         initializeTypeFilters() {
             const filterContainer = document.getElementById('inventario-filtros');
             if (!filterContainer) return;
-            
+
             filterContainer.addEventListener('click', event => {
                 const filterButton = event.target.closest('.filter-btn');
                 if (!filterButton) return;
-                
-                const filterType = filterButton.dataset.filter;
+
+                const filterType = filterButton.dataset.filter; // Ej: 'ALIMENTOS_FRESCOS', 'BEBIDAS', 'ALL'
                 if (!filterType) return;
-                
-                filterContainer.querySelectorAll('.filter-btn').forEach(button => {
-                    button.classList.remove('active');
-                });
-                
+
+                filterContainer.querySelectorAll('.filter-btn').forEach(button => button.classList.remove('active'));
                 filterButton.classList.add('active');
-                
-                let selectedType = '';
-                if (filterType === 'low') selectedType = 'COMIDA';
-                else if (filterType === 'elec') selectedType = 'BIENES';
-                
-                const searchText = this.getSearchText();
-                this.activeFilters = { busqueda: searchText };
-                if (selectedType) this.activeFilters.tipo = selectedType;
-                
+
+                this.activeFilters = { busqueda: this.getSearchText() };
+                if (filterType !== 'ALL') {
+                    // El backend espera el nombre del tipo exactamente como está en el modelo
+                    this.activeFilters.tipo = filterType;
+                }
+
                 const filterInfo = document.getElementById('filter-active-text');
                 if (filterInfo) {
-                    let infoText = 'Mostrando todos los productos';
-                    if (selectedType === 'COMIDA') infoText = 'Mostrando productos de Comida';
-                    else if (selectedType === 'BIENES') infoText = 'Mostrando productos de Bienes';
-                    filterInfo.textContent = infoText;
+                    if (filterType === 'ALL') {
+                        filterInfo.textContent = 'Mostrando todos los productos';
+                    } else {
+                        // Reemplazar guiones bajos por espacios y capitalizar mínimamente
+                        const legible = filterType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                        filterInfo.textContent = `Mostrando productos de ${legible}`;
+                    }
                 }
-                
+
                 this.loadInventoryPage(1);
             });
-    },
+        },
 
         bindViewButtons() {
             const container = document.getElementById('table-container');

@@ -9,6 +9,7 @@ from .Services.vista_helpers import (
     avanzar_dia,
     construir_contexto_preview,
 )
+from apps.almacen.signals import emitir_señal_si_falta_stock_general_en
 
 def lista_cruceros(request):
     fecha_sistema = obtener_fecha_sistema()
@@ -17,6 +18,8 @@ def lista_cruceros(request):
     if request.method == 'POST':
         if 'advance_day' in request.POST:
             avanzar_dia(fecha_sistema, cruceros)
+            for crucero in cruceros:
+                emitir_señal_si_falta_stock_general_en(crucero)
             return redirect('lista_cruceros')
         else:
             respuesta = _procesar_formulario_crucero(request)
