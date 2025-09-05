@@ -1,0 +1,285 @@
+/* 1. Layout / Grid -------------------------------------------------- */
+.form-grid {
+    --fg-gap-x: 20px;
+    --fg-gap-y: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--fg-gap-y) var(--fg-gap-x);
+    padding: 20px 22px 6px;
+    background: linear-gradient(#fff,#fff) padding-box,
+                            linear-gradient(140deg,#3b82f6 0%,#6366f1 60%,#9333ea 100%) border-box;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    margin: 14px 16px;
+    box-shadow: 0 4px 14px -4px rgba(15,23,42,.08);
+}
+
+/* 2. Field wrapper & states ----------------------------------------- */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    padding: 10px 12px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    transition: border-color .25s, background .25s, box-shadow .25s;
+}
+
+.form-field:hover { border-color: #cbd5e1; background: #f1f5f9; }
+
+.form-field.focused {
+    border-color: #3b82f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+}
+
+.form-field label {
+    font-size: .63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-field label::after {
+    content: "";
+    flex: 1 1 auto;
+    border-top: 1px dashed #e2e8f0;
+    margin-left: 6px;
+    opacity: .6;
+}
+
+/* 3. Inputs & validation -------------------------------------------- */
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field input[type="date"],
+.form-field select,
+.form-field textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: .75rem;
+    background: #ffffff;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.form-field textarea {
+    resize: vertical;
+    min-height: 84px;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,.35);
+}
+
+.form-field input:disabled,
+.form-field select:disabled,
+.form-field textarea:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.form-field input:invalid:not(:focus):not(:placeholder-shown),
+.form-field select:invalid:not(:focus):not(:placeholder-shown),
+.form-field textarea:invalid:not(:focus):not(:placeholder-shown) {
+    border-color: #dc2626;
+}
+
+.form-field input:invalid:not(:focus):not(:placeholder-shown)+.error-text,
+.form-field select:invalid:not(:focus):not(:placeholder-shown)+.error-text,
+.form-field textarea:invalid:not(:focus):not(:placeholder-shown)+.error-text {
+    display: block;
+}
+
+/* 4. Help & error messages ------------------------------------------ */
+.help-text {
+    font-size: .58rem;
+    color: #64748b;
+    line-height: 1.3;
+}
+
+.error-text {
+    display: block;
+    font-size: .58rem;
+    color: #dc2626;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* 5. Buttons --------------------------------------------------------- */
+.btn-primary {
+    background: #3b82f6;
+    border: 1px solid #3b82f6;
+    color: #fff;
+    box-shadow: 0 2px 6px -1px rgba(59,130,246,.4), 0 1px 2px rgba(0,0,0,.08);
+    transition: background .25s, box-shadow .25s, transform .15s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 14px -4px rgba(37,99,235,.5), 0 2px 6px -2px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active { 
+    background: #1d4ed8; 
+    transform: translateY(0);
+    box-shadow: 0 2px 6px -2px rgba(37,99,235,.45);
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 2px 4px -1px rgba(220,38,38,.4), 0 1px 2px rgba(0,0,0,.08);
+    transition: background .25s;
+}
+
+.btn-danger:hover { background: #b91c1c; }
+
+/* 6. Footer layout --------------------------------------------------- */
+.modal-footer { gap: 10px; display: flex; }
+.modal-footer .btn { min-width: 110px; justify-content: center; }
+
+/* 7. Responsive ------------------------------------------------------ */
+@media (max-width: 640px) {
+    .form-grid { padding: 18px 18px 4px; margin: 10px 8px; }
+    .form-field { padding: 10px 12px; }
+}
+
+/* 8. Modales Crear (Producto & Lote) ---------------------------------- */
+#modalCrearProducto,
+#modalCrearLote,
+#modalCrearSalida,
+#modalCrearMerma {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    display: none;
+    overflow: auto;
+    padding: 48px 20px;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: saturate(140%) blur(2px);
+}
+#modalCrearProducto[aria-hidden="false"],
+#modalCrearLote[aria-hidden="false"],
+#modalCrearSalida[aria-hidden="false"],
+#modalCrearMerma[aria-hidden="false"] { display: flex; }
+
+#modalCrearProducto .modal-container,
+#modalCrearLote .modal-container,
+#modalCrearSalida .modal-container,
+#modalCrearMerma .modal-container {
+    width: 100%;
+    max-width: 660px;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 18px 55px -12px rgba(15,23,42,.35), 0 4px 12px -2px rgba(15,23,42,.18);
+    position: relative;
+    animation: modalIn .45s cubic-bezier(.4,0,.2,1);
+}
+
+#modalCrearProducto .modal-header,
+#modalCrearLote .modal-header,
+#modalCrearSalida .modal-header,
+#modalCrearMerma .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 4px;
+}
+
+#modalCrearProducto .modal-header h2,
+#modalCrearLote   .modal-header h2,
+#modalCrearSalida .modal-header h2,
+#modalCrearMerma .modal-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #0f172a; }
+
+#modalCrearProducto .close-btn,
+#modalCrearLote .close-btn,
+#modalCrearSalida .close-btn,
+#modalCrearMerma .close-btn {
+    background: none;
+    border: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 10px;
+    transition: background .25s, color .25s;
+}
+
+#modalCrearProducto .close-btn:hover,
+#modalCrearLote .close-btn:hover,
+#modalCrearSalida .close-btn:hover,
+#modalCrearMerma .close-btn:hover { background: #f1f5f9; color: #334155; }
+
+@keyframes modalIn { from { opacity:0; transform: translateY(22px);} to { opacity:1; transform: translateY(0);} }
+
+@media (max-width:640px){
+    #modalCrearProducto,
+    #modalCrearLote,
+    #modalCrearSalida,
+    #modalCrearMerma { padding: 32px 12px; }
+    #modalCrearProducto .modal-container,
+    #modalCrearLote .modal-container,
+    #modalCrearSalida .modal-container,
+    #modalCrearMerma .modal-container { border-radius: 20px; }
+}
+
+/* 9. Buscador dinámico de productos (entrada de lote) --------------- */
+.buscador-producto-wrapper { position: relative; }
+.form-field .buscador-producto-wrapper { width:100%; }
+.form-field .buscador-producto-wrapper > input[type="text"] {
+    width:100%;
+    display:block;
+    box-sizing:border-box;
+}
+.lista-resultados {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -8px rgba(15,23,42,.18), 0 4px 10px -4px rgba(15,23,42,.12);
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px 0;
+    z-index: 50;
+    display: none;
+}
+.lista-resultados.visible { display: block; animation: fadeInResultados .18s ease; }
+.item-resultado {
+    padding: 8px 14px;
+    font-size: .72rem;
+    line-height: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 6px;
+    margin: 2px 6px;
+    transition: background .18s, box-shadow .18s;
+}
+.item-resultado strong { font-weight: 600; color:#0f172a; }
+.item-resultado small { font-size: .63rem; color:#64748b; }
+.item-resultado:hover, .item-resultado.activo {
+    background: linear-gradient(90deg,#eef6ff,#f1f5f9);
+    box-shadow: 0 0 0 2px #3b82f6 inset;
+}
+.lista-resultados.vacio { padding: 12px 14px; font-size: .65rem; color:#64748b; }
+@keyframes fadeInResultados { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }
