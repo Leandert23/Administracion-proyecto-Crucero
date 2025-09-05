@@ -6,6 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # cambio qlq
     # Ajuste: el proyecto real está dentro del subdirectorio
     # Administracion-proyecto-Crucero-Development-Almac-n/Administrador_Cruceros
     # Añadimos ese directorio al sys.path si no está
