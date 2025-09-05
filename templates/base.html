@@ -37,57 +37,75 @@
 
             <nav class="sidebar-nav">
                 <ul class="nav-list">
-                    <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
                             <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'ubicacion' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:ubicacion_list' %}" class="nav-link">
-                            <span class="nav-text">Ubicaciones</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Ventas</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'producto' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:producto_list' %}" class="nav-link">
-                            <span class="nav-text">Productos</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Reservas</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'inventario' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:inventario_list' %}" class="nav-link">
-                            <span class="nav-text">Inventario</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Restaurante</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'equipo' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:equipo_list' %}" class="nav-link">
-                            <span class="nav-text">Equipos</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Bares</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'tarea' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:tarea_list' %}" class="nav-link">
-                            <span class="nav-text">Tareas</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'incidente' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:incidente_list' %}" class="nav-link">
-                            <span class="nav-text">Incidentes</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Compras</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'reporte' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:reportes' %}" class="nav-link">
-                            <span class="nav-text">Reportes</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Almacen</span>
                         </a>
                     </li>
 
-                    <li class="nav-item {% if 'piscina' in request.resolver_match.url_name %}active{% endif %}">
-                        <a href="{% url 'mantenimiento:piscina_list' %}" class="nav-link">
-                            <span class="nav-text">Piscinas</span>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="return false;">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
                 </ul>
