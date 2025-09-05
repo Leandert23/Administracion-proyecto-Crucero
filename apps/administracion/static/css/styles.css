@@ -42,6 +42,53 @@ body {
   box-shadow: 0 2px 8px #f9c2c244;
   font-size: 1.05em;
 }
+.modal-overlay {
+  display: none; /* Oculto por defecto */
+  position: fixed; /* Posición fija */
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro con transparencia */
+  z-index: 1000; /* Asegura que esté encima de todo */
+  justify-content: center;
+  align-items: center;
+}
+/* Estilos para la ventana modal */
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  position: relative;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+/* Estilo para el botón de cerrar */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.open-modal-btn{
+    gap: 6px;
+    padding: 12px 20px;
+    background: #fff;
+    color: #0f0f0f;
+    text-decoration: none;
+    border-radius: 0 8px 8px 0;
+    border: 1px solid #e2e8f0;
+    margin-right: 12px;
+    max-width:450px;
+    border-radius:18px; 
+    padding:24px; 
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.open-modal-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 50px rgba(0,0,0,0.15);
+}
 .dashboard-box {
   background: #fff;
   border-radius: 18px;
@@ -266,4 +313,160 @@ body {
     font-size: 16px;
     color: #64748b;
     margin: 0;
+}
+
+.tab-button:hover {
+  background: #475569;
+}
+
+.tab-button.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.purchase-request-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #fbbf24;
+}
+
+.purchase-request-card.approved {
+  border-left-color: #10b981;
+}
+
+.purchase-request-card.rejected {
+  border-left-color: #ef4444;
+}
+
+.purchase-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-approve {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Added styles for budget calculator */
+.budget-calculator {
+  background: #f0f9ff;
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.budget-input-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.budget-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.budget-input label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #1e40af;
+}
+
+.budget-input input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.budget-result {
+  background: #1e40af;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+/* Estilos adicionales para las mejoras */
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  filter: invert(1);
+}
+
+.ship-image {
+  width: 100px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.purchase-requests {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 24px;
+  margin-top: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+}
+
+.request-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.request-details {
+  flex: 1;
+}
+
+.request-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.rejection-reason {
+  margin-top: 10px;
+  width: 100%;
+  display: none;
+}
+
+.budget-calculation {
+  background: #f0f9ff;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px 0;
 }
