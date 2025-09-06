@@ -91,6 +91,8 @@ def dashboard_empresa(request, crucero_id=None):
     contexto = {
         'crucero': crucero,
         'presupuesto': admin.presupuesto_estimado if admin else 0,
+        'costos': admin.costos_totales if admin else 0,
+        'ganancias': admin.ganancias_totales if admin else 0,
         'alertas': Alerta.objects.filter(leida=False) if admin else [],
         'usuario_roles': obtener_roles_usuario(request.user),
         'es_administrador': es_administrador,

@@ -17,6 +17,7 @@ def manejar_compra_defectuosa(sender, presupuesto_lote, mensaje, **kwargs):
     print(f"Compra defectuosa detectada. Presupuesto: {presupuesto_lote}, Mensaje: {mensaje}")
 '''''''''
 
+
 '''''''''
 @receiver(post_save, sender=Compras)
 def actualizar_costos_totales(sender, **kwargs):
