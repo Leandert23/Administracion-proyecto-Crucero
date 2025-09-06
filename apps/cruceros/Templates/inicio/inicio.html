@@ -26,6 +26,11 @@
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>
+                                        <li class="nav-item">
+                        <a href="{% url 'dashboard' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
                     <li class="nav-item active">
                         <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
                             <span class="nav-text">Gestión Crucero</span>
