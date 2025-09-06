@@ -1,0 +1,651 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Actividad Rutinaria - {{ crucero.nombre }}</title>
+    <link rel="stylesheet" href="{% static 'entretenimiento/css/entretenimiento.css' %}?v=1.3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos para el formulario */
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 32px;
+            margin-bottom: 32px;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+            background: white;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .file-input-container {
+            position: relative;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-container:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+
+        .file-input-container.dragover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            font-size: 16px;
+            color: #374151;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .file-input-hint {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-group.error .form-input,
+        .form-group.error .form-textarea,
+        .form-group.error .form-select {
+            border-color: #dc2626;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            font-weight: 500;
+            animation: slideInRight 0.3s ease-out;
+            display: none;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-container {
+                margin: 16px;
+                padding: 24px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .form-title {
+                font-size: 24px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                margin: 8px;
+                padding: 16px;
+            }
+
+            .form-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1 class="form-title">Crear Actividad Rutinaria</h1>
+            <p class="form-subtitle">Complete el formulario para crear una nueva actividad rutinaria en {{ crucero.nombre }}</p>
+        </div>
+
+        <form id="actividad-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="titulo" class="form-label">Título *</label>
+                    <input type="text" id="titulo" name="titulo" class="form-input" required maxlength="200" placeholder="Ej: Yoga en cubierta">
+                    <div class="error-message">Este campo es requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dia_crucero" class="form-label">Día del Crucero *</label>
+                    <select id="dia_crucero" name="dia_crucero" class="form-select" required>
+                        <option value="">Seleccionar día</option>
+                        {% for dia, label in dias_opciones %}
+                        <option value="{{ dia }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="error-message">Debe seleccionar un día</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hora_inicio" class="form-label">Hora de Inicio *</label>
+                    <input type="time" id="hora_inicio" name="hora_inicio" class="form-input" required>
+                    <div class="error-message">Este campo es requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hora_fin" class="form-label">Hora de Fin *</label>
+                    <input type="time" id="hora_fin" name="hora_fin" class="form-input" required>
+                    <div class="error-message">Este campo es requerido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="maximo_actividad" class="form-label">Máximo de Participantes *</label>
+                    <input type="number" id="maximo_actividad" name="maximo_actividad" class="form-input" required min="1" placeholder="Ej: 50">
+                    <div class="error-message">Debe ser un número mayor a 0</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ubicacion" class="form-label">Ubicación *</label>
+                    <input type="text" id="ubicacion" name="ubicacion" class="form-input" required maxlength="200" placeholder="Ej: Cubierta Superior">
+                    <div class="error-message">Este campo es requerido</div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="descripcion" class="form-label">Descripción *</label>
+                    <textarea id="descripcion" name="descripcion" class="form-textarea" required maxlength="1000" placeholder="Describa detalladamente la actividad..."></textarea>
+                    <div class="error-message">Este campo es requerido</div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Imagen (Opcional)</label>
+                    <div class="file-input-container" id="file-input-container">
+                        <span class="file-input-label"> Seleccionar imagen JPG</span>
+                        <span class="file-input-hint">Máximo 500KB • Formato JPG únicamente</span>
+                        <input type="file" id="imagen" name="imagen" class="file-input" accept=".jpg,.jpeg">
+                        <img id="image-preview" class="image-preview" alt="Vista previa">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="btn btn-secondary">
+                    ← Volver
+                </a>
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <span id="submit-text"> Crear Actividad</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div id="success-message" class="success-message"></div>
+
+    <script>
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Función para mostrar errores
+        function showFormErrors(errors) {
+            // Limpiar errores previos
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.form-group').forEach(el => {
+                el.classList.remove('error');
+            });
+
+            // Mostrar nuevos errores
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+
+            errors.forEach(error => {
+                // Crear mensaje de error general
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = error;
+                errorDiv.style.display = 'block';
+
+                // Agregar al final del formulario
+                document.getElementById('actividad-form').appendChild(errorDiv);
+            });
+        }
+
+        // Vista previa de imagen
+        document.getElementById('imagen').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('image-preview');
+
+            if (file) {
+                // Validar formato
+                if (!file.type.match('image/jpeg')) {
+                    alert('Solo se permiten imágenes JPG');
+                    this.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                // Validar tamaño
+                if (file.size > 500 * 1024) {
+                    alert('La imagen no puede superar los 500KB');
+                    this.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // Drag and drop para imagen
+        const fileInputContainer = document.getElementById('file-input-container');
+        const fileInput = document.getElementById('imagen');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            fileInputContainer.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            fileInputContainer.classList.remove('dragover');
+        }
+
+        fileInputContainer.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Envío del formulario
+        document.getElementById('actividad-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validar horas antes de enviar
+            if (!validarHoras()) {
+                validarHorasCampos();
+                return; // No enviar si las horas no son válidas
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+
+            // Deshabilitar botón
+            submitBtn.disabled = true;
+            submitText.textContent = ' Creando...';
+
+            // Crear FormData
+            const formData = new FormData(this);
+
+            // Enviar petición
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessMessage(data.message);
+                    // Limpiar formulario
+                    this.reset();
+                    document.getElementById('image-preview').style.display = 'none';
+                    // Volver a la vista inicial después de 250ms
+                    setTimeout(() => {
+                        window.history.back();
+                    }, 250);
+                } else {
+                    showFormErrors(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showFormErrors('Error de conexión. Intente nuevamente.');
+            })
+            .finally(() => {
+                // Rehabilitar botón
+                submitBtn.disabled = false;
+                submitText.textContent = ' Crear Actividad';
+            });
+        });
+
+        // Función para validar minutos en inputs de tiempo
+        function validarMinutos(input) {
+            const valor = input.value;
+            if (valor) {
+                const partes = valor.split(':');
+                if (partes.length === 2) {
+                    const minutos = parseInt(partes[1], 10);
+                    if (minutos < 0 || minutos > 59) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Función para validar números positivos
+        function validarNumeroPositivo(input) {
+            const valor = parseFloat(input.value);
+            return !isNaN(valor) && valor >= 0;
+        }
+
+        // Función para validar horas (fin después de inicio con mínimo 30 min)
+        function validarHoras() {
+            const horaInicio = document.getElementById('hora_inicio').value;
+            const horaFin = document.getElementById('hora_fin').value;
+
+            if (!horaInicio || !horaFin) {
+                return true; // Si no hay valores, no validar aún
+            }
+
+            const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
+            const [horaFinH, horaFinM] = horaFin.split(':').map(Number);
+
+            const minutosInicio = horaInicioH * 60 + horaInicioM;
+            const minutosFin = horaFinH * 60 + horaFinM;
+
+            // Verificar que la hora fin sea al menos 30 minutos después de la hora inicio
+            return minutosFin >= minutosInicio + 30;
+        }
+
+        // Función para validar campos de hora y mostrar errores
+        function validarHorasCampos() {
+            const horaInicioGroup = document.getElementById('hora_inicio').closest('.form-group');
+            const horaFinGroup = document.getElementById('hora_fin').closest('.form-group');
+            const horaInicioError = horaInicioGroup.querySelector('.error-message');
+            const horaFinError = horaFinGroup.querySelector('.error-message');
+
+            if (!validarHoras()) {
+                horaFinGroup.classList.add('error');
+                horaFinError.textContent = 'La hora de fin debe ser al menos 30 minutos después de la hora de inicio';
+                horaFinError.style.display = 'block';
+            } else {
+                horaFinGroup.classList.remove('error');
+                horaInicioGroup.classList.remove('error');
+            }
+        }
+
+        // Validación en tiempo real
+        document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(input => {
+            input.addEventListener('blur', function() {
+                const formGroup = this.closest('.form-group');
+                const errorMessage = formGroup.querySelector('.error-message');
+
+                if (this.hasAttribute('required') && !this.value.trim()) {
+                    formGroup.classList.add('error');
+                    errorMessage.textContent = 'Este campo es requerido';
+                } else if (this.type === 'time' && this.value && !validarMinutos(this)) {
+                    formGroup.classList.add('error');
+                    errorMessage.textContent = 'Los minutos deben estar entre 00 y 59';
+                } else if (this.type === 'number' && this.value && !validarNumeroPositivo(this)) {
+                    formGroup.classList.add('error');
+                    errorMessage.textContent = 'El valor debe ser mayor o igual a 0';
+                } else {
+                    formGroup.classList.remove('error');
+                }
+
+                // Validar horas cuando cambie cualquiera de los campos de tiempo
+                if (this.id === 'hora_inicio' || this.id === 'hora_fin') {
+                    validarHorasCampos();
+                }
+            });
+
+            // Validación en tiempo real para campos de tiempo
+            if (input.type === 'time') {
+                input.addEventListener('input', function() {
+                    const formGroup = this.closest('.form-group');
+                    const errorMessage = formGroup.querySelector('.error-message');
+
+                    if (this.value && !validarMinutos(this)) {
+                        formGroup.classList.add('error');
+                        errorMessage.textContent = 'Los minutos deben estar entre 00 y 59';
+                        errorMessage.style.display = 'block';
+                    } else if (this.value && validarMinutos(this)) {
+                        formGroup.classList.remove('error');
+                    }
+
+                    // Validar horas cuando cambie cualquiera de los campos de tiempo
+                    if (this.id === 'hora_inicio' || this.id === 'hora_fin') {
+                        setTimeout(() => validarHorasCampos(), 100); // Pequeño delay para que se actualice el valor
+                    }
+                });
+            }
+
+            // Validación en tiempo real para campos numéricos
+            if (input.type === 'number') {
+                input.addEventListener('input', function() {
+                    const formGroup = this.closest('.form-group');
+                    const errorMessage = formGroup.querySelector('.error-message');
+
+                    if (this.value && !validarNumeroPositivo(this)) {
+                        formGroup.classList.add('error');
+                        errorMessage.textContent = 'El valor debe ser mayor o igual a 0';
+                        errorMessage.style.display = 'block';
+                    } else if (this.value && validarNumeroPositivo(this)) {
+                        formGroup.classList.remove('error');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -611,6 +611,31 @@
         </div>
     </div>
 
+    <!-- Modal para Nueva Actividad -->
+    <div id="new-activity-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nueva Actividad</h2>
+                <button class="modal-close" onclick="closeNewActivityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Seleccione el tipo de actividad que desea crear:</p>
+                <div class="activity-type-selection">
+                    <button class="activity-type-btn" data-type="rutinaria" onclick="createNewActivity('rutinaria')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividad Rutinaria</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Crear una nueva actividad diaria y gratuita para el crucero</div>
+                    </button>
+                    <button class="activity-type-btn" data-type="pago" onclick="createNewActivity('pago')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividad de Pago</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Crear una nueva actividad especial con costo adicional</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Formulario de Registro -->
     <div id="processing-modal" class="modal-overlay">
         <div class="modal-content">
@@ -877,6 +902,7 @@
             const processingModal = document.getElementById('processing-modal');
             const deleteActivitiesModal = document.getElementById('delete-activities-modal');
             const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+            const newActivityModal = document.getElementById('new-activity-modal');
 
             confirmationModal.style.display = 'none';
             confirmationModal.classList.remove('active');
@@ -889,6 +915,9 @@
 
             loadPreloadedDataModal.style.display = 'none';
             loadPreloadedDataModal.classList.remove('active');
+
+            newActivityModal.style.display = 'none';
+            newActivityModal.classList.remove('active');
 
             document.body.style.overflow = 'auto';
         }
@@ -938,6 +967,7 @@
             const processingModal = document.getElementById('processing-modal');
             const deleteActivitiesModal = document.getElementById('delete-activities-modal');
             const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+            const newActivityModal = document.getElementById('new-activity-modal');
 
             if (event.target === confirmationModal) {
                 closeModal();
@@ -953,6 +983,10 @@
 
             if (event.target === loadPreloadedDataModal) {
                 closeLoadPreloadedDataModal();
+            }
+
+            if (event.target === newActivityModal) {
+                closeNewActivityModal();
             }
         });
 
@@ -1143,13 +1177,16 @@
             if (event.key === 'Escape') {
                 const deleteActivitiesModal = document.getElementById('delete-activities-modal');
                 const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+                const newActivityModal = document.getElementById('new-activity-modal');
 
-                if (loadPreloadedDataModal.style.display === 'flex') {
+                if (newActivityModal.style.display === 'flex') {
+                    closeNewActivityModal();
+                } else if (loadPreloadedDataModal.style.display === 'flex') {
                     closeLoadPreloadedDataModal();
                 } else if (deleteActivitiesModal.style.display === 'flex') {
                     closeDeleteActivitiesModal();
                 } else {
-                closeAllModals();
+                    closeAllModals();
                 }
             }
         });
@@ -1305,6 +1342,22 @@
             document.body.style.overflow = 'auto';
         }
 
+        // Función para abrir el modal de nueva actividad
+        function openNewActivityModal() {
+            const modal = document.getElementById('new-activity-modal');
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Función para cerrar el modal de nueva actividad
+        function closeNewActivityModal() {
+            const modal = document.getElementById('new-activity-modal');
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
         // Función para cargar datos precargados
         function loadPreloadedData(type) {
             console.log('Cargando datos precargados para:', type);
@@ -1345,6 +1398,27 @@
             });
         }
 
+        // Función para crear nueva actividad
+        function createNewActivity(type) {
+            console.log('Creando nueva actividad:', type);
+
+            // Obtener el ID del crucero desde la URL
+            const urlParts = window.location.pathname.split('/');
+            const cruceroId = urlParts[2]; // El ID del crucero está en la posición 2 de la URL
+
+            // Construir la URL de redirección según el tipo de actividad
+            let redirectUrl;
+            if (type === 'rutinaria') {
+                redirectUrl = `/entretenimiento/${cruceroId}/crear-actividad-rutinaria/`;
+            } else if (type === 'pago') {
+                redirectUrl = `/entretenimiento/${cruceroId}/crear-actividad-pago/`;
+            }
+
+            // Cerrar el modal y redirigir
+            closeNewActivityModal();
+            window.location.href = redirectUrl;
+        }
+
         // Función para inicializar los eventos de los botones de acción
         function initializeActionButtons() {
             const deleteBtn = document.querySelector('[data-action="eliminar-registro"]');
@@ -1357,6 +1431,11 @@
                 loadDataBtn.addEventListener('click', function() {
                     loadPreloadedData('rutinaria'); // Ejecutar directamente para actividades rutinarias
                 });
+            }
+
+            const newActivityBtn = document.querySelector('[data-action="nueva-actividad"]');
+            if (newActivityBtn) {
+                newActivityBtn.addEventListener('click', openNewActivityModal);
             }
 
             // Agregar eventos de hover a los botones del modal
