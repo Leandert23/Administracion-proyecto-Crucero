@@ -2,9 +2,6 @@
 
 {% block title %}Dashboard - Sistema de Mantenimiento del Crucero{% endblock %}
 
-{% block page_title %}Dashboard Principal{% endblock %}
-{% block page_subtitle %}Panel de control central - Última actualización: <span class="last-update-time">{{ now|date:"H:i:s" }}</span>{% endblock %}
-
 {% block breadcrumb_items %}
 <li class="breadcrumb-item active">Dashboard Principal</li>
 {% endblock %}
@@ -15,12 +12,7 @@
     <div class="row">
         <div class="col-lg-8 mb-3">
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary" onclick="dashboardManager.updateDashboard()">
-                    <i class="fas fa-sync-alt me-2"></i>Actualizar Ahora
-                </button>
-                <button type="button" class="btn btn-outline-info" onclick="dashboardManager.toggleAutoUpdate()">
-                    <i class="fas fa-play me-2"></i><span id="auto-update-status">Auto</span>
-                </button>
+    
             </div>
         </div>
         <div class="col-lg-4">
@@ -915,8 +907,8 @@ class OptimizedDashboardManager {
                 }
             })
             .catch(error => {
-                console.error('❌ Error actualizando dashboard:', error);
-                this.showUpdateError();
+                //console.error('❌ Error actualizando dashboard:', error);
+               // this.showUpdateError();
                 this.updateStatusIndicator('error');
             });
     }
@@ -973,9 +965,7 @@ class OptimizedDashboardManager {
         this.showToast('✅ Dashboard actualizado correctamente', 'success');
     }
     
-    showUpdateError() {
-        this.showToast('❌ Error actualizando dashboard', 'danger');
-    }
+    
     
     showToast(message, type = 'info') {
         const toast = document.createElement('div');
