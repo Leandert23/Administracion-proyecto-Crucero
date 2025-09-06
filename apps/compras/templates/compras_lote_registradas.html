@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Compras por Lote Registradas</title>
+</head>
+<body>
+    <a href="{% url 'dashboard' %}"><button>Volver</button></a>
+    <h2>Compras por Lote Registradas</h2>
+    <table border="1" style="width:100%;">
+        <tr>
+            <th>Fecha</th>
+            <th>Proveedor</th>
+            <th>Presupuesto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        {% for compra in compras_lote %}
+        <tr>
+            <td>{{ compra.fecha|date:"Y-m-d H:i" }}</td>
+            <td>{{ compra.proveedor.name }}</td>
+            <td>${{ compra.presupuesto_lote }}</td>
+            <td>{{ compra.get_estado_display }}</td>
+            <td>
+                <a href="{% url 'detalle_compra_lote_registrada' compra.id %}"><button>Ver detalles</button></a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No hay compras registradas.</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -1,0 +1,155 @@
+/* Botón Volver destacado */
+.btn-volver {
+    margin: 20px;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 0;
+}
+
+h2 {
+    text-align: center;
+    color: #2d3a4a;
+    margin-top: 32px;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+fieldset {
+    border: 1px solid #cfd8dc;
+    border-radius: 8px;
+    padding: 18px 24px 16px 24px;
+    margin-bottom: 24px;
+    background: #f8fafc;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+legend {
+    color: #2d3a4a;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0 8px;
+}
+
+label {
+    display: inline-block;
+    min-width: 160px;
+    color: #2d3a4a;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+input[type="text"],
+textarea {
+    padding: 8px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    margin-bottom: 12px;
+    width: 60%;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+    width: 80%;
+    min-height: 60px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid #e3eaf2;
+    font-size: 0.97rem;
+}
+
+th {
+    background: #e3eaf2;
+    color: #2d3a4a;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+button[type="button"] {
+	background: #2563eb;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 7px 18px;
+	font-size: 1rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background 0.2s, box-shadow 0.2s;
+	box-shadow: 0 1px 4px rgba(37,99,235,0.08);
+}
+
+button[type="button"]:hover {
+    background: #78909c;
+    color: #fff;
+}
+
+a {
+    color: #607d8b;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.btn-volver {
+    /* background: #fff; */
+    color: #2563eb;
+    border: 1px solid #2563eb;
+    font-weight: 600;
+    padding: 10px 28px;
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-volver:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+@media (max-width: 900px) {
+    fieldset {
+        padding: 12px 6px 10px 6px;
+    }
+    th, td {
+        padding: 8px 6px;
+        font-size: 0.9rem;
+    }
+    input[type="text"], textarea {
+        width: 100%;
+    }
+}

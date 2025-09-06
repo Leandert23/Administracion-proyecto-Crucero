@@ -17,7 +17,7 @@ def emitir_señal_si_falta_stock_de(producto: Producto):
 		return Producto.objects.none()
 
 	estado = producto.estado.upper()
-	if estado == 'MEDIO':
+	if producto.cantidad < 0.7 * producto.cantidad_ideal:
 		query_set = Producto.objects.filter(pk=producto.pk)
 		falta_stock_signal.send(sender=Producto, productos=query_set)
 		return query_set
@@ -41,3 +41,87 @@ def emitir_señal_si_falta_stock_general_en(crucero: Crucero):
 	if query_set.exists():
 		falta_stock_signal.send(sender=Producto, productos=query_set)
 	return query_set
+
+
+#Comunicacion con Compras
+
+from django.dispatch import receiver
+from apps.compras.signals import lote_signal
+from django.dispatch import receiver
+@receiver(lote_signal)
+def receiver_lote(sender, compra_lote, **kwargs):
+	from apps.almacen.models import OrdenCompra, Producto
+	print(f"Procesando lote: {compra_lote.id}")
+	for item in compra_lote.items.all():
+		print(f"- {item.nombre}: {item.cantidad} {item.medida}")
+		try:
+			producto = Producto.objects.get(pk=item.producto_id)
+		except Producto.DoesNotExist:
+			print(f"Producto con id {item.producto_id} no encontrado. No se crea OrdenCompra.")
+			continue
+		OrdenCompra.objects.create(
+			producto=producto,
+			cantidad_productos=item.cantidad,
+			estado="POR_REGISTRAR",
+			compra_lote=compra_lote
+		)
+		print(f"OrdenCompra creada para producto {producto.nombre} (cantidad: {item.cantidad})")
+
+# --- Atributos de CompraLote ---
+# id (autogenerado por Django)
+# empresa_nombre
+# empresa_contacto
+# empresa_ubicacion
+# proveedor (ForeignKey a Proveedores)
+# puerto_entrega
+# notas_compra
+# presupuesto_lote
+# estado
+# fecha (auto_now_add)
+
+# --- Atributos de CompraLoteItem ---
+# id (autogenerado por Django)
+# compra_lote (ForeignKey a CompraLote)
+# producto_id
+# nombre
+# medida
+# cantidad
+
+#Decision final
+
+from django.dispatch import Signal
+
+decision_solicitud_almacen = Signal()
+
+def enviar_decision_solicitud_almacen(orden_compra, mensaje=None):
+	"""
+	Recibe una OrdenCompra. Si todas las ordenes_compra_en_almacen del mismo compra_lote están APROBADAS,
+	envía la señal de aceptado. Si alguna está DENEGADA, envía la señal de denegado.
+	"""
+	compra_lote = orden_compra.compra_lote
+	ordenes = compra_lote.ordenes_compra_en_almacen.all()
+	total = ordenes.count()
+	aprobadas = ordenes.filter(estado="APROBADA").count()
+	denegadas = ordenes.filter(estado="DENEGADA").count()
+
+	if denegadas > 0:
+		# Si alguna está denegada, señal de denegado
+		if mensaje is None:
+			mensaje = "Solicitud denegada"
+		decision_solicitud_almacen.send(
+			sender=None,
+			id=compra_lote.id,
+			aceptado=False,
+			mensaje=mensaje
+		)
+	elif total > 0 and aprobadas == total:
+		# Todas aprobadas
+		if mensaje is None:
+			mensaje = "Solicitud aceptada"
+		decision_solicitud_almacen.send(
+			sender=None,
+			id=compra_lote.id,
+			aceptado=True,
+			mensaje=mensaje
+		)
+	# Si hay pendientes, no se envía señal aún

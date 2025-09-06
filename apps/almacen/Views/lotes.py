@@ -82,6 +82,9 @@ def registrar_lote(request):
             # Actualizar estado a aprobada/registrada (no existe estado final, reutilizamos APROBADA)
             orden.estado = 'APROBADA'
             orden.save(update_fields=['estado'])
+            # Enviar señal de decisión de solicitud de almacén
+            from apps.almacen.signals import enviar_decision_solicitud_almacen
+            enviar_decision_solicitud_almacen(orden)
 
         return JsonResponse({
             'success': True,

@@ -30,6 +30,7 @@ urlpatterns = [
     path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),  
     path('reservaciones/', include('apps.reservaciones.urls')),
     path('ventas/', include('apps.ventas.urls')),
+    path("compras/", include(("apps.compras.urls", "compras"), namespace="compras")),
     path('dashboard/', include('apps.administracion.urls')),
     path("login/", LoginPersonalizado.as_view(), name="login"),
     path("logout/", logout_usuario, name="logout"),

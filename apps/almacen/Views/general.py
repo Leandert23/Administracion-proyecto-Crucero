@@ -31,8 +31,6 @@ def mostrar_vista_almacen(request, crucero_id):
 #[(nombreProducto, cantidad)]
 @require_GET
 def obtener_ordenes_compra_por_registrar(request):
-    
-    ()
     ordenes_compra = OrdenCompra.objects.filter(estado="POR_REGISTRAR").select_related('producto__seccion')
     
     
@@ -74,7 +72,6 @@ def detalle_orden_compra(request, orden_id):
         'orden': {
             'id': orden.id,
             'cantidad_productos': orden.cantidad_productos,
-            'precio_lote': orden.precio_lote,
             'estado': orden.estado,
         },
         'producto': {

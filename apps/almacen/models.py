@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
 from ..cruceros.models import Instalacion
-
+from ..compras.models import CompraLote
 
 class SeccionAlmacen(models.Model):
     TIPOS_SECCION = [
@@ -261,13 +261,14 @@ class OrdenCompra(models.Model):
         ("PENDIENTE", "Pendiente"),
         ("APROBADA", "Aprobada"),
         ("POR_REGISTRAR", "Por registrar"),
+        ("DENEGADA", "Denegada")
     ]
 
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="ordenes_compra")
     cantidad_productos = models.PositiveIntegerField()
-    precio_lote = models.PositiveIntegerField(help_text="Precio total esperado del lote")
     estado = models.CharField(max_length=15, choices=ESTADOS_ORDEN, default="PENDIENTE")
     fecha_creacion = models.DateField(default=obtener_fecha_actual)
+    compra_lote = models.ForeignKey(CompraLote, on_delete=models.CASCADE, related_name="ordenes_compra_en_almacen")
 
     class Meta:
         verbose_name = "Orden de Compra"

@@ -1,0 +1,194 @@
+/* Botón Editar */
+.btn-editar {
+    background-color: #ffc107;
+    color: #222;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    margin-left: 6px;
+}
+.btn-editar:hover {
+    background-color: #e0a800;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(255,193,7,0.15);
+}
+/* Estilo para el formulario de registro de proveedores tipo ficha */
+#proveedores-content {
+    background: #fafbfc;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 32px 24px;
+    max-width: 900px;
+    margin: 32px auto;
+    border: 1px solid #e2e8f0;
+}
+#proveedores-content h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 24px;
+    text-align: center;
+}
+#proveedor-form {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 24px 20px 16px 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+#proveedor-form p {
+    margin: 0 0 18px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+#proveedor-form label {
+    min-width: 160px;
+    font-weight: 600;
+    color: #222;
+    font-size: 1rem;
+}
+#proveedor-form input[type="text"],
+#proveedor-form input[type="email"],
+#proveedor-form input[type="number"],
+#proveedor-form textarea {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #222;
+    transition: border 0.2s;
+}
+#proveedor-form input[type="text"]:focus,
+#proveedor-form textarea:focus {
+    border: 1.5px solid #3b82f6;
+    outline: none;
+    background: #fff;
+}
+#proveedor-form button[type="button"] {
+    background: #e5e7eb;
+    color: #222;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 16px;
+    font-size: 0.98rem;
+    font-weight: 500;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#proveedor-form button[type="button"]:hover {
+    background: #d1d5db;
+}
+#proveedor-form button[type="submit"] {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 32px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(59,130,246,0.08);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+    margin-bottom: 0;
+    letter-spacing: 0.5px;
+}
+#proveedor-form button[type="submit"]:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(59,130,246,0.15);
+}
+#proveedor-form ul {
+    margin: 0 0 10px 0;
+    padding: 0 0 0 180px;
+    list-style: disc inside;
+    color: #444;
+    font-size: 0.98rem;
+}
+#proveedor-form ul li {
+    margin-bottom: 2px;
+}
+#proveedores-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 32px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+#proveedores-content th, #proveedores-content td {
+    border: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 1rem;
+}
+#proveedores-content th {
+    background: #f1f5f9;
+    color: #222;
+    font-weight: 700;
+}
+#proveedores-content tr:nth-child(even) td {
+    background: #f8fafc;
+}
+#proveedores-content tr:hover td {
+    background: #e0e7ef;
+}
+.btn-devolver {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 32px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(59,130,246,0.08);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+    margin-bottom: 0;
+    letter-spacing: 0.5px;
+}
+.btn-devolver:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(59,130,246,0.15);
+}
+.btn-borrar {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(239,68,68,0.08);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.5px;
+}
+.btn-borrar:hover {
+    background: #b91c1c;
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(239,68,68,0.15);
+}
+@media (max-width: 700px) {
+    #proveedores-content, #proveedor-form {
+        padding: 10px 2vw;
+    }
+    #proveedor-form label {
+        min-width: 90px;
+        font-size: 0.98rem;
+    }
+    #proveedores-content table, #proveedores-content th, #proveedores-content td {
+        font-size: 0.92rem;
+    }
+}
