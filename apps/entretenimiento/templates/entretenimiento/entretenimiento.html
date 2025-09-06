@@ -95,6 +95,21 @@
             box-shadow: none;
         }
 
+        /* Estilos específicos para el botón de cargar datos precargados */
+        .action-btn[data-action="cargar-datos-precargados"] {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .action-btn[data-action="cargar-datos-precargados"]:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #3b82f6;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            color: white;
+        }
+
         /* Estilos responsivos para la sección de botones */
         @media (max-width: 768px) {
             .action-buttons-section {
@@ -144,6 +159,22 @@
                 background: #dc2626;
                 color: white;
                 border-color: #dc2626;
+            }
+
+            /* Mantener color azul en móviles */
+            .action-btn[data-action="cargar-datos-precargados"] {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                color: white;
+                border-color: #3b82f6;
+            }
+
+            /* Mantener sin hover en móviles */
+            .action-btn[data-action="cargar-datos-precargados"]:hover {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                border-color: #3b82f6;
+                transform: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                color: white;
             }
 
         /* ===== ESTILOS PARA EL MODAL DE ELIMINAR ACTIVIDADES v2.1 ===== */
@@ -446,8 +477,8 @@
                             <button class="action-btn" data-action="notificaciones">
                                 <span class="action-text">Notificaciones</span>
                             </button>
-                            <button class="action-btn" data-action="reservas">
-                                <span class="action-text">Reservas</span>
+                            <button class="action-btn" data-action="cargar-datos-precargados">
+                                <span class="action-text">Cargar datos precargados</span>
                             </button>
                             <button class="action-btn" data-action="eliminar-registro">
                                 <span class="action-text">Eliminar registro de actividades</span>
@@ -549,6 +580,31 @@
                             style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
                         <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades de Pago</div>
                         <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Actividades especiales con costo adicional</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Cargar Datos Precargados -->
+    <div id="load-preloaded-data-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Cargar Datos Precargados</h2>
+                <button class="modal-close" onclick="closeLoadPreloadedDataModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Seleccione el tipo de actividades para cargar datos precargados:</p>
+                <div class="activity-type-selection">
+                    <button class="activity-type-btn" data-type="rutinaria" onclick="loadPreloadedData('rutinaria')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades Rutinarias</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Cargar datos precargados de actividades diarias y gratuitas</div>
+                    </button>
+                    <button class="activity-type-btn" data-type="pago" onclick="loadPreloadedData('pago')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades de Pago</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Cargar datos precargados de actividades con costo adicional</div>
                     </button>
                 </div>
             </div>
@@ -820,6 +876,7 @@
             const confirmationModal = document.getElementById('confirmation-modal');
             const processingModal = document.getElementById('processing-modal');
             const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+            const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
 
             confirmationModal.style.display = 'none';
             confirmationModal.classList.remove('active');
@@ -829,6 +886,9 @@
 
             deleteActivitiesModal.style.display = 'none';
             deleteActivitiesModal.classList.remove('active');
+
+            loadPreloadedDataModal.style.display = 'none';
+            loadPreloadedDataModal.classList.remove('active');
 
             document.body.style.overflow = 'auto';
         }
@@ -877,6 +937,7 @@
             const confirmationModal = document.getElementById('confirmation-modal');
             const processingModal = document.getElementById('processing-modal');
             const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+            const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
 
             if (event.target === confirmationModal) {
                 closeModal();
@@ -888,6 +949,10 @@
 
             if (event.target === deleteActivitiesModal) {
                 closeDeleteActivitiesModal();
+            }
+
+            if (event.target === loadPreloadedDataModal) {
+                closeLoadPreloadedDataModal();
             }
         });
 
@@ -1077,10 +1142,14 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 const deleteActivitiesModal = document.getElementById('delete-activities-modal');
-                if (deleteActivitiesModal.style.display === 'flex') {
+                const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+
+                if (loadPreloadedDataModal.style.display === 'flex') {
+                    closeLoadPreloadedDataModal();
+                } else if (deleteActivitiesModal.style.display === 'flex') {
                     closeDeleteActivitiesModal();
                 } else {
-                    closeAllModals();
+                closeAllModals();
                 }
             }
         });
@@ -1220,11 +1289,74 @@
             }
         }
 
+        // Función para abrir el modal de cargar datos precargados
+        function openLoadPreloadedDataModal() {
+            const modal = document.getElementById('load-preloaded-data-modal');
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Función para cerrar el modal de cargar datos precargados
+        function closeLoadPreloadedDataModal() {
+            const modal = document.getElementById('load-preloaded-data-modal');
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Función para cargar datos precargados
+        function loadPreloadedData(type) {
+            console.log('Cargando datos precargados para:', type);
+
+            // Obtener el ID del crucero desde la URL
+            const urlParts = window.location.pathname.split('/');
+            const cruceroId = urlParts[2]; // El ID del crucero está en la posición 2 de la URL
+
+            // Hacer petición AJAX para cargar datos precargados
+            fetch(`/entretenimiento/${cruceroId}/cargar-datos-precargados/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    tipo_actividad: type
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Datos precargados cargados:', data.message);
+                    // Mostrar mensaje de éxito temporal
+                    showSuccessMessage(data.message);
+                    // Refrescar la página después de 250ms
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 250);
+                } else {
+                    console.error('Error al cargar datos:', data.message);
+                    showFormErrors([data.message]);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+                showFormErrors(['Error de conexión al cargar datos']);
+            });
+        }
+
         // Función para inicializar los eventos de los botones de acción
         function initializeActionButtons() {
             const deleteBtn = document.querySelector('[data-action="eliminar-registro"]');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', openDeleteActivitiesModal);
+            }
+
+            const loadDataBtn = document.querySelector('[data-action="cargar-datos-precargados"]');
+            if (loadDataBtn) {
+                loadDataBtn.addEventListener('click', function() {
+                    loadPreloadedData('rutinaria'); // Ejecutar directamente para actividades rutinarias
+                });
             }
 
             // Agregar eventos de hover a los botones del modal

@@ -7,6 +7,7 @@ from datetime import timedelta
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from .utils import cargar_actividades_entretenimiento
 import json
 import uuid
 import os
@@ -382,4 +383,99 @@ def eliminar_actividades_pago(request):
         return JsonResponse({
             'success': False,
             'message': 'Ocurrió un error al eliminar las actividades de pago.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def cargar_datos_precargados(request, crucero_id):
+    """Vista para cargar datos precargados de actividades según el tipo de crucero"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Parsear los datos JSON del request
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Los datos enviados no son un JSON válido.'
+            })
+
+        # Validar que se proporcione el tipo de actividad
+        if 'tipo_actividad' not in data:
+            return JsonResponse({
+                'success': False,
+                'message': 'El tipo de actividad es requerido.'
+            })
+
+        tipo_actividad = data['tipo_actividad']
+
+        # Validar que el tipo sea válido
+        if tipo_actividad not in ['rutinaria', 'pago']:
+            return JsonResponse({
+                'success': False,
+                'message': 'El tipo de actividad debe ser "rutinaria" o "pago".'
+            })
+
+        # Obtener el crucero
+        try:
+            crucero = Crucero.objects.get(pk=crucero_id)
+        except Crucero.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'El crucero especificado no existe.'
+            })
+
+        # Obtener el viaje activo o en planificación
+        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+            })
+
+        # Llamar a la función para cargar actividades
+        try:
+            resultado = cargar_actividades_entretenimiento(viaje)
+
+            # Contar actividades creadas según el tipo solicitado
+            if tipo_actividad == 'rutinaria':
+                actividades_creadas = len(resultado.get('rutinarias', []))
+                mensaje = f'Se cargaron {actividades_creadas} actividades rutinarias exitosamente.'
+            else:  # tipo_actividad == 'pago'
+                actividades_creadas = len(resultado.get('pago', []))
+                mensaje = f'Se cargaron {actividades_creadas} actividades de pago exitosamente.'
+
+            return JsonResponse({
+                'success': True,
+                'message': mensaje,
+                'actividades_creadas': actividades_creadas,
+                'tipo_crucero': crucero.tipo_crucero,
+                'tipo_actividad': tipo_actividad
+            })
+
+        except Exception as e:
+            print(f"Error al cargar actividades: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'message': 'Ocurrió un error al cargar las actividades.'
+            })
+
+    except Exception as e:
+        print(f"Error crítico en cargar_datos_precargados: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error interno del servidor.'
         })
