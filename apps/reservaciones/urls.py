@@ -21,6 +21,20 @@ urlpatterns = [
     # Mis reservas y cancelar
     path("<str:crucero>/mis/", views.mis_reservas, name="mis_reservas"),
     path("<str:crucero>/cancelar/<int:reserva_id>/", views.cancelar_reserva, name="cancelar_reserva"),
+
+    # API para nueva reserva
+    path("<str:crucero>/api/tipos-habitacion/", views.api_tipos_habitacion, name="api_tipos_habitacion"),
+    path("<str:crucero>/api/habitacion-disponible/", views.api_habitacion_disponible, name="api_habitacion_disponible"),
+    path("<str:crucero>/api/crear-reserva/", views.api_crear_reserva, name="api_crear_reserva"),
+
+    # API para reserva de entretenimiento
+    path("<str:crucero>/api/buscar-cliente/", views.api_buscar_cliente_por_habitacion, name="api_buscar_cliente"),
+    path("<str:crucero>/api/actividades-pago/", views.api_actividades_pago_disponibles, name="api_actividades_pago"),
+    path("<str:crucero>/api/actividades-gratuitas/", views.api_actividades_gratuitas_disponibles, name="api_actividades_gratuitas"),
+    path("<str:crucero>/api/crear-reserva-entretenimiento/", views.api_crear_reserva_entretenimiento, name="api_crear_reserva_entretenimiento"),
+
+    # API para ver reservas
+    path("<str:crucero>/api/ver-reservas/", views.api_ver_reservas, name="api_ver_reservas"),
 ]
 
 

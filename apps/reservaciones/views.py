@@ -1,8 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta, date
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from .models import (
     Entretenimiento,
     Mesa,
@@ -10,8 +14,10 @@ from .models import (
     Reserva,
     Restaurante
 )
-from ..cruceros.models import Crucero, Habitacion, Viaje
+from ..cruceros.models import Crucero, Habitacion, TipoHabitacion, Viaje
+from ..entretenimiento.models import Actividad, ActividadRutinaria
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
+import json
 
 def crucero_se_encuentra_en_planificacion():
     return True  # Aquí después vendrá la lógica real del otro módulo
@@ -117,7 +123,8 @@ def reservar_entretenimiento(request, crucero, entretenimiento_id):
 
     if not actividad.reservada:
         Reserva.objects.create(
-            entretenimiento=actividad,
+            entretenimientoP=actividad,
+            costo=actividad.precio,
             estado="confirmada",
         )
         actividad.reservada = True
@@ -241,7 +248,9 @@ def mis_reservas(request, crucero):
     crucero_obj = get_object_or_404(Crucero, nombre=crucero)
     reservas_habitaciones = Reserva.objects.filter(habitacion__isnull=False, habitacion__crucero=crucero_obj
     )
-    reservas_entretenimiento = Reserva.objects.filter(entretenimiento__isnull=False, entretenimiento__crucero=crucero_obj
+    reservas_entretenimiento = Reserva.objects.filter(
+        (Q(entretenimientoP__isnull=False) & Q(entretenimientoP__crucero=crucero_obj)) |
+        (Q(entretenimientoR__isnull=False) & Q(entretenimientoR__crucero=crucero_obj))
     )
     reservas_mesas = Reserva.objects.filter(mesa__isnull=False, mesa__crucero=crucero_obj
     )
@@ -254,7 +263,7 @@ def mis_reservas(request, crucero):
         total += int(r.habitacion.tipo_habitacion.precio_base)
 
     for r in reservas_entretenimiento:
-        total += int(r.entretenimiento.precio)
+        total += int(r.costo)
 
     for r in reservas_mesas:
         total += int(r.mesa.restaurante.precio) if hasattr(r.mesa.restaurante, "precio") else 40
@@ -282,9 +291,13 @@ def cancelar_reserva(request, crucero, reserva_id):
         reserva.habitacion.reservada = False
         reserva.habitacion.save()
 
-    if reserva.entretenimiento:
-        reserva.entretenimiento.reservada = False
-        reserva.entretenimiento.save()
+    if reserva.entretenimientoP:
+        reserva.entretenimientoP.reservada = False
+        reserva.entretenimientoP.save()
+
+    if reserva.entretenimientoR:
+        reserva.entretenimientoR.reservada = False
+        reserva.entretenimientoR.save()
 
     if reserva.mesa:
         reserva.mesa.reservada = False
@@ -295,3 +308,504 @@ def cancelar_reserva(request, crucero, reserva_id):
 
     reserva.delete()
     return redirect("mis_reservas", crucero=crucero)
+
+# API ENDPOINTS PARA NUEVA RESERVA
+
+@require_http_methods(["GET"])
+def api_tipos_habitacion(request, crucero):
+    """API para obtener tipos de habitación disponibles"""
+    try:
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+        tipos = TipoHabitacion.objects.all().values(
+            'id', 'nombre', 'capacidad', 'precio_base', 'descripcion'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'tipos': list(tipos)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener tipos de habitación: {str(e)}'
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_habitacion_disponible(request, crucero):
+    """API para buscar habitación disponible de un tipo específico"""
+    try:
+        data = json.loads(request.body)
+        tipo_habitacion_id = data.get('tipo_habitacion_id')
+
+        if not tipo_habitacion_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de tipo de habitación requerido'
+            })
+
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Buscar la primera habitación disponible (reservada=False) del tipo especificado
+        habitacion = Habitacion.objects.filter(
+            crucero=crucero_obj,
+            tipo_habitacion_id=tipo_habitacion_id,
+            reservada=False
+        ).first()
+
+        if habitacion:
+            return JsonResponse({
+                'success': True,
+                'habitacion': {
+                    'id': habitacion.id,
+                    'numero': habitacion.numero,
+                    'cubierta': habitacion.cubierta,
+                    'lado': habitacion.get_lado_display(),
+                    'tipo_habitacion': habitacion.tipo_habitacion.nombre,
+                    'vista_mar': habitacion.vista_mar
+                }
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay habitaciones disponibles de este tipo'
+            })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al buscar habitación: {str(e)}'
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_crear_reserva(request, crucero):
+    """API para crear una nueva reserva"""
+    try:
+        print(f"DEBUG: Iniciando api_crear_reserva para crucero: {crucero}")
+        data = json.loads(request.body)
+        print(f"DEBUG: Datos recibidos: {data}")
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+        print(f"DEBUG: Crucero encontrado: {crucero_obj.nombre}")
+
+        # Validar datos requeridos
+        required_fields = ['nombre', 'apellido', 'fecha_nacimiento', 'numero_personas', 'tipo_habitacion_id']
+        for field in required_fields:
+            if not data.get(field):
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Campo requerido faltante: {field}'
+                })
+
+        tipo_habitacion_id = data['tipo_habitacion_id']
+        numero_personas = data['numero_personas']
+
+        # Verificar que el número de personas no exceda la capacidad del tipo de habitación
+        tipo_habitacion = get_object_or_404(TipoHabitacion, id=tipo_habitacion_id)
+        if numero_personas > tipo_habitacion.capacidad:
+            return JsonResponse({
+                'success': False,
+                'message': f'El número de personas ({numero_personas}) excede la capacidad del tipo de habitación ({tipo_habitacion.capacidad})'
+            })
+
+        # Buscar habitación disponible del tipo especificado
+        habitacion = Habitacion.objects.filter(
+            crucero=crucero_obj,
+            tipo_habitacion_id=tipo_habitacion_id,
+            reservada=False
+        ).first()
+
+        if not habitacion:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay habitaciones disponibles de este tipo'
+            })
+
+        # Obtener el viaje activo o en planificación
+        viaje = Viaje.objects.filter(
+            crucero=crucero_obj,
+            estado__in=['activo', 'planificacion']
+        ).first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay viaje activo o en planificación para este crucero'
+            })
+
+        # Crear la reserva con el código de ubicación
+        print(f"DEBUG: Creando reserva con habitación: {habitacion.numero}, código: {habitacion.codigo_ubicacion}")
+        reserva = Reserva.objects.create(
+            nombre_cliente=data['nombre'],
+            apellido_cliente=data['apellido'],
+            fecha_nacimiento_cliente=data['fecha_nacimiento'],
+            numero_personas=numero_personas,
+            codigo_ubicacion_habitacion=habitacion.codigo_ubicacion,  # Guardar el código de ubicación
+            fecha_inicio=viaje.fecha_inicio,
+            fecha_fin=viaje.fecha_fin,
+            estado="confirmada"
+        )
+        print(f"DEBUG: Reserva creada con ID: {reserva.id}")
+
+        # Marcar la habitación como reservada
+        habitacion.reservada = True
+        habitacion.save()
+        print(f"DEBUG: Habitación {habitacion.numero} marcada como reservada")
+
+        print(f"DEBUG: Devolviendo respuesta exitosa")
+        return JsonResponse({
+            'success': True,
+            'message': f'Reserva creada exitosamente. Habitación asignada: {habitacion.codigo_ubicacion}',
+            'reserva_id': reserva.id,
+            'habitacion': {
+                'codigo_ubicacion': habitacion.codigo_ubicacion,
+                'numero': habitacion.numero,
+                'tipo': tipo_habitacion.nombre
+            }
+        })
+
+    except json.JSONDecodeError as e:
+        print(f"DEBUG: JSONDecodeError: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error en el formato de los datos enviados'
+        })
+    except Exception as e:
+        print(f"DEBUG: Exception en api_crear_reserva: {str(e)}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error interno al procesar la reserva. Por favor, inténtelo nuevamente.'
+        })
+
+# API ENDPOINTS PARA RESERVA DE ENTRETENIMIENTO
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_buscar_cliente_por_habitacion(request, crucero):
+    """API para buscar cliente por número de habitación"""
+    try:
+        data = json.loads(request.body)
+        numero_habitacion = data.get('numero_habitacion')
+
+        if not numero_habitacion:
+            return JsonResponse({
+                'success': False,
+                'message': 'Número de habitación requerido'
+            })
+
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Buscar reserva por número de habitación (usando codigo_ubicacion_habitacion)
+        reserva = Reserva.objects.filter(
+            codigo_ubicacion_habitacion=numero_habitacion,
+            # Solo reservas activas/confirmadas
+        ).first()
+
+        if reserva:
+            return JsonResponse({
+                'success': True,
+                'cliente': {
+                    'id': reserva.id,
+                    'nombre': reserva.nombre_cliente,
+                    'apellido': reserva.apellido_cliente,
+                    'fecha_nacimiento': reserva.fecha_nacimiento_cliente.strftime('%Y-%m-%d') if reserva.fecha_nacimiento_cliente else None,
+                    'numero_habitacion': reserva.codigo_ubicacion_habitacion
+                }
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontró una reserva para este número de habitación'
+            })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_buscar_cliente_por_habitacion: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al buscar cliente'
+        })
+
+@require_http_methods(["GET"])
+def api_actividades_gratuitas_disponibles(request, crucero):
+    """API para obtener actividades gratuitas disponibles"""
+    try:
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Obtener viaje activo del crucero
+        viaje = Viaje.objects.filter(
+            crucero=crucero_obj,
+            estado__in=['activo', 'planificacion']
+        ).first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay viaje activo para este crucero'
+            })
+
+        # Obtener actividades gratuitas disponibles para este viaje
+        actividades = ActividadRutinaria.objects.filter(viaje=viaje).values(
+            'id_actividad', 'titulo', 'descripcion', 'dia_crucero',
+            'hora_inicio', 'hora_fin', 'maximo_actividad', 'ubicacion'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'actividades': list(actividades)
+        })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_actividades_gratuitas_disponibles: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al obtener actividades gratuitas'
+        })
+
+@require_http_methods(["GET"])
+def api_actividades_pago_disponibles(request, crucero):
+    """API para obtener actividades de pago disponibles"""
+    try:
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Obtener viaje activo del crucero
+        viaje = Viaje.objects.filter(
+            crucero=crucero_obj,
+            estado__in=['activo', 'planificacion']
+        ).first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay viaje activo para este crucero'
+            })
+
+        # Obtener actividades de pago disponibles para este viaje
+        actividades = Actividad.objects.filter(viaje=viaje).values(
+            'id_actividad', 'titulo', 'descripcion', 'coste',
+            'dia_crucero', 'hora_inicio', 'hora_fin', 'maximoActividad'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'actividades': list(actividades)
+        })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_actividades_pago_disponibles: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al obtener actividades de pago'
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_crear_reserva_entretenimiento(request, crucero):
+    """API para crear reserva de entretenimiento"""
+    try:
+        data = json.loads(request.body)
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Validar datos requeridos
+        required_fields = ['cliente_id', 'tipo_actividad', 'numero_participantes']
+        if data['tipo_actividad'] in ['pago', 'gratuito']:
+            required_fields.append('actividad_id')
+
+        for field in required_fields:
+            if not data.get(field):
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Campo requerido faltante: {field}'
+                })
+
+        # Obtener la reserva del cliente
+        reserva_cliente = get_object_or_404(Reserva, id=data['cliente_id'])
+
+        # Obtener viaje activo
+        viaje = Viaje.objects.filter(
+            crucero=crucero_obj,
+            estado__in=['activo', 'planificacion']
+        ).first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay viaje activo para este crucero'
+            })
+
+        numero_participantes = int(data['numero_participantes'])
+
+        if data['tipo_actividad'] == 'pago':
+            # Crear reserva de actividad de pago
+            actividad = get_object_or_404(Actividad, id_actividad=data['actividad_id'])
+
+            # Calcular costo total
+            costo_total = actividad.coste * numero_participantes
+
+            # Crear nueva reserva para la actividad
+            reserva_actividad = Reserva.objects.create(
+                nombre_cliente=reserva_cliente.nombre_cliente,
+                apellido_cliente=reserva_cliente.apellido_cliente,
+                fecha_nacimiento_cliente=reserva_cliente.fecha_nacimiento_cliente,
+                numero_personas=numero_participantes,
+                codigo_ubicacion_habitacion=reserva_cliente.codigo_ubicacion_habitacion,
+                actividad_pago=actividad,
+                costo_total=costo_total,
+                fecha_inicio=viaje.fecha_inicio,
+                fecha_fin=viaje.fecha_fin,
+                estado="confirmada"
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Reserva de actividad de pago creada exitosamente. Costo total: ${costo_total}',
+                'reserva_id': reserva_actividad.id,
+                'actividad': {
+                    'titulo': actividad.titulo,
+                    'costo_unitario': float(actividad.coste),
+                    'costo_total': float(costo_total)
+                }
+            })
+
+        elif data['tipo_actividad'] == 'gratuito':
+            # Crear reserva de actividad gratuita
+            actividad_gratuita = get_object_or_404(ActividadRutinaria, id_actividad=data['actividad_id'])
+
+            # Crear nueva reserva para la actividad gratuita
+            reserva_actividad = Reserva.objects.create(
+                nombre_cliente=reserva_cliente.nombre_cliente,
+                apellido_cliente=reserva_cliente.apellido_cliente,
+                fecha_nacimiento_cliente=reserva_cliente.fecha_nacimiento_cliente,
+                numero_personas=numero_participantes,
+                codigo_ubicacion_habitacion=reserva_cliente.codigo_ubicacion_habitacion,
+                actividad_rutinaria=actividad_gratuita,
+                costo_total=0.00,  # Actividades gratuitas no tienen costo
+                fecha_inicio=viaje.fecha_inicio,
+                fecha_fin=viaje.fecha_fin,
+                estado="confirmada"
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Reserva de actividad gratuita creada exitosamente.',
+                'reserva_id': reserva_actividad.id,
+                'actividad': {
+                    'titulo': actividad_gratuita.titulo,
+                    'ubicacion': actividad_gratuita.ubicacion,
+                    'dia_crucero': actividad_gratuita.dia_crucero
+                }
+            })
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad no válido'
+            })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_crear_reserva_entretenimiento: {str(e)}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al crear reserva de entretenimiento'
+        })
+
+# API ENDPOINT PARA VER RESERVAS
+
+@require_http_methods(["GET"])
+def api_ver_reservas(request, crucero):
+    """API para obtener todas las reservas con información completa"""
+    try:
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Obtener todas las reservas del crucero
+        reservas = Reserva.objects.filter(
+            codigo_ubicacion_habitacion__isnull=False
+        ).select_related(
+            'actividad_pago',
+            'actividad_rutinaria'
+        )
+
+        reservas_data = []
+
+        for reserva in reservas:
+            reserva_info = {
+                'id': reserva.id,
+                'nombre': reserva.nombre_cliente or 'No disponible',
+                'apellido': reserva.apellido_cliente or 'No disponible',
+                'numero_habitacion': reserva.codigo_ubicacion_habitacion,
+                'costo_total': float(reserva.costo_total),
+                'numero_personas': reserva.numero_personas,
+                'estado': reserva.estado,
+                'fecha_creacion': reserva.fecha_creacion.strftime('%Y-%m-%d %H:%M'),
+            }
+
+            # Verificar si hay actividad de pago
+            if reserva.actividad_pago:
+                reserva_info['tipo_reserva'] = 'actividad_pago'
+                reserva_info['actividad'] = {
+                    'titulo': reserva.actividad_pago.titulo,
+                    'descripcion': reserva.actividad_pago.descripcion,
+                    'dia_crucero': reserva.actividad_pago.dia_crucero,
+                    'hora_inicio': str(reserva.actividad_pago.hora_inicio),
+                    'hora_fin': str(reserva.actividad_pago.hora_fin),
+                    'costo_unitario': float(reserva.actividad_pago.coste)
+                }
+            # Verificar si hay actividad rutinaria
+            elif reserva.actividad_rutinaria:
+                reserva_info['tipo_reserva'] = 'actividad_rutinaria'
+                reserva_info['actividad'] = {
+                    'titulo': reserva.actividad_rutinaria.titulo,
+                    'descripcion': reserva.actividad_rutinaria.descripcion,
+                    'dia_crucero': reserva.actividad_rutinaria.dia_crucero,
+                    'hora_inicio': str(reserva.actividad_rutinaria.hora_inicio),
+                    'hora_fin': str(reserva.actividad_rutinaria.hora_fin),
+                    'ubicacion': reserva.actividad_rutinaria.ubicacion
+                }
+            # Si no hay actividades, mostrar información de la habitación
+            else:
+                reserva_info['tipo_reserva'] = 'habitacion'
+
+                # Buscar información de la habitación usando el código de ubicación
+                try:
+                    habitacion = Habitacion.objects.select_related('tipo_habitacion').get(
+                        codigo_ubicacion=reserva.codigo_ubicacion_habitacion
+                    )
+                    reserva_info['habitacion'] = {
+                        'numero': habitacion.numero,
+                        'cubierta': habitacion.cubierta,
+                        'lado': habitacion.get_lado_display(),
+                        'tipo_habitacion': habitacion.tipo_habitacion.nombre,
+                        'capacidad': habitacion.tipo_habitacion.capacidad,
+                        'descripcion': habitacion.tipo_habitacion.descripcion or 'Sin descripción',
+                        'vista_mar': habitacion.vista_mar
+                    }
+                except Habitacion.DoesNotExist:
+                    reserva_info['habitacion'] = {
+                        'numero': 'No disponible',
+                        'cubierta': 'No disponible',
+                        'lado': 'No disponible',
+                        'tipo_habitacion': 'No disponible',
+                        'capacidad': 0,
+                        'descripcion': 'Información no disponible',
+                        'vista_mar': False
+                    }
+
+            reservas_data.append(reserva_info)
+
+        return JsonResponse({
+            'success': True,
+            'reservas': reservas_data,
+            'total_reservas': len(reservas_data)
+        })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_ver_reservas: {str(e)}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al obtener las reservas'
+        })

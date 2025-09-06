@@ -13,4 +13,5 @@ urlpatterns = [
     path('eliminar-actividades-pago/', views.eliminar_actividades_pago, name='eliminar_actividades_pago'),
     path('<int:crucero_id>/api/actividades/', views.api_get_activities, name='api_get_activities'),
     path('<int:crucero_id>/api/eliminar-actividad/', views.api_delete_activity, name='api_delete_activity'),
+    path('<int:crucero_id>/api/reservas/', views.api_get_reservas, name='api_get_reservas'),
 ]
