@@ -1,0 +1,994 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Modificar Cuartos - Servicio Médico{% endblock %}
+
+{% block content %}
+<!-- Contenido específico para modificar cuartos -->
+<main class="main-content">
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="page-title">Gestión de Cuartos</h1>
+                <p class="page-subtitle">Administra el estado y asignación de cuartos médicos</p>
+                {% if crucero_activo %}
+                    <p class="crucero-info">Crucero: <strong>{{ crucero_activo.nombre }}</strong> ({{ crucero_activo.get_tipo_crucero_display }})</p>
+                {% endif %}
+            </div>
+            <div class="header-actions">
+                <button class="modern-btn secondary" onclick="location.href='{% url 'panel_personal_medico' %}'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Volver al Panel</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mensajes de notificación -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <div class="alert-content">
+                        {% if message.tags == 'error' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                        {% elif message.tags == 'success' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22,4 12,14.01 9,11.01"></polyline>
+                            </svg>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Información de resumen -->
+    <div class="summary-section">
+        <div class="summary-cards">
+            <div class="summary-card available">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                </div>
+                <div class="card-info">
+                    <h3>Disponibles</h3>
+                    <p class="count">{{ cuartos|length }}</p>
+                </div>
+            </div>
+            <div class="summary-card occupied">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="card-info">
+                    <h3>Ocupados</h3>
+                    <p class="count">0</p>
+                </div>
+            </div>
+            <div class="summary-card total">
+                <div class="card-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div class="card-info">
+                    <h3>Total</h3>
+                    <p class="count">{{ cuartos|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de gestión de cuartos -->
+    <div class="table-section">
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    Gestión de Cuartos Médicos
+                </h3>
+                <div class="table-stats">
+                    <span class="stats-text">Total: {{ cuartos|length }} cuartos</span>
+                </div>
+            </div>
+
+            <form method="post" class="rooms-form" id="roomsForm">
+                {% csrf_token %}
+                <div class="table-container">
+                    <table class="modern-table" id="roomsTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="numero">
+                                    <span>Número</span>
+                                    <svg class="sort-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6,9 12,15 18,9"></polyline>
+                                    </svg>
+                                </th>
+                                <th>Tipo</th>
+                                <th>Estado Actual</th>
+                                <th>Paciente Asignado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuarto in cuartos %}
+                            <tr class="room-row" data-numero="{{ cuarto.numero }}">
+                                <td class="room-number">
+                                    <div class="room-badge">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                        </svg>
+                                        <span>{{ cuarto.numero }}</span>
+                                    </div>
+                                </td>
+                                <td class="room-type">
+                                    <span class="type-badge">Médico</span>
+                                </td>
+                                <td class="room-status">
+                                    <div class="status-selector">
+                                        <select name="estado_{{ cuarto.id }}" id="estado_{{ cuarto.id }}" class="status-select" onchange="mostrarPacienteSelect('{{ cuarto.id }}')">
+                                            <option value="D" {% if cuarto.estado == 'D' %}selected{% endif %}>Disponible</option>
+                                            <option value="O" {% if cuarto.estado == 'O' %}selected{% endif %}>Ocupado</option>
+                                            <option value="M" {% if cuarto.estado == 'M' %}selected{% endif %}>Mantenimiento</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="patient-assignment">
+                                    <div class="patient-selector" id="patient_selector_{{ cuarto.id }}" style="display: {% if cuarto.estado == 'O' %}block{% else %}none{% endif %};">
+                                        <select name="paciente_{{ cuarto.id }}" id="paciente_{{ cuarto.id }}" class="patient-select">
+                                            <option value="">-- Seleccione paciente --</option>
+                                            {% for paciente in pacientes %}
+                                                <option value="{{ paciente.id }}" {% if cuarto.paciente and cuarto.paciente.id == paciente.id %}selected{% endif %}>
+                                                    {{ paciente.nombres }} {{ paciente.primer_apellido }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="current-patient" id="current_patient_{{ cuarto.id }}" style="display: {% if cuarto.estado == 'O' and cuarto.paciente %}block{% else %}none{% endif %};">
+                                        {% if cuarto.paciente %}
+                                            <div class="patient-info">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                                <span>{{ cuarto.paciente.nombres }} {{ cuarto.paciente.primer_apellido }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="actions-cell">
+                                    <div class="action-buttons">
+                                        <button type="submit" name="cuarto_id" value="{{ cuarto.id }}" class="action-btn save-btn" title="Guardar cambios">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                                <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                                                <polyline points="7,3 7,8 15,8"></polyline>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="no-data-row">
+                                <td colspan="5" class="no-data">
+                                    <div class="no-data-content">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                        </svg>
+                                        <h3>No hay cuartos registrados</h3>
+                                        <p>No se encontraron cuartos médicos en el sistema</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Estilos específicos para la gestión de cuartos */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.crucero-info {
+    font-size: 0.875rem;
+    color: #3b82f6;
+    margin: 0.5rem 0 0 0;
+    padding: 0.5rem 1rem;
+    background: #eff6ff;
+    border-radius: 0.5rem;
+    border-left: 3px solid #3b82f6;
+}
+
+/* Estilos para mensajes de notificación */
+.messages-container {
+    margin: 1.5rem 0;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    color: inherit;
+    opacity: 0.7;
+}
+
+.alert-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.alert-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.alert-error svg {
+    color: #dc2626;
+}
+
+.alert-success svg {
+    color: #16a34a;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Sección de resumen */
+.summary-section {
+    margin: 2rem 0;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card.available {
+    border-left: 4px solid #10b981;
+}
+
+.summary-card.occupied {
+    border-left: 4px solid #ef4444;
+}
+
+.summary-card.total {
+    border-left: 4px solid #3b82f6;
+}
+
+.summary-card .card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.summary-card.available .card-icon {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+}
+
+.summary-card.occupied .card-icon {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #991b1b;
+}
+
+.summary-card.total .card-icon {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+}
+
+.card-info h3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-info .count {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+/* Sección de tabla */
+.table-section {
+    margin-bottom: 2rem;
+}
+
+.table-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.table-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.table-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.table-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stats-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.modern-table th {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modern-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modern-table th.sortable:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+}
+
+.sort-icon {
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.modern-table th.sortable:hover .sort-icon {
+    opacity: 1;
+}
+
+.modern-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.modern-table tr:hover {
+    background: #f9fafb;
+}
+
+/* Estilos específicos de celdas */
+.room-number {
+    width: 120px;
+}
+
+.room-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.room-type {
+    width: 150px;
+}
+
+.type-badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.room-status {
+    width: 180px;
+}
+
+.status-selector {
+    width: 100%;
+}
+
+.status-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.patient-assignment {
+    width: 250px;
+}
+
+.patient-selector {
+    width: 100%;
+}
+
+.patient-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.patient-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.current-patient {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 0.5rem;
+    color: #0369a1;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.patient-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 0.5rem;
+    color: #92400e;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.patient-warning svg {
+    color: #d97706;
+    flex-shrink: 0;
+}
+
+.actions-cell {
+    width: 100px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.action-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.save-btn:hover {
+    background: #f59e0b;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Estados de datos */
+.no-data-row td {
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.no-data-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: #9ca3af;
+}
+
+.no-data-content svg {
+    color: #d1d5db;
+}
+
+.no-data-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0;
+}
+
+.no-data-content p {
+    margin: 0;
+    color: #9ca3af;
+}
+
+/* Botones modernos */
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.modern-btn.secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+.modern-btn.secondary:hover {
+    background: linear-gradient(135deg, #4b5563, #374151);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+}
+
+/* Espaciado equilibrado del menú lateral */
+.main-content {
+    margin-left: 300px !important; /* Aumentado de 280px a 300px */
+    padding: 1.5rem 1.5rem 1.5rem 2rem !important; /* Padding equilibrado */
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 290px !important;
+        padding: 1.25rem 1.25rem 1.25rem 1.5rem !important;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .summary-cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 280px !important;
+        padding: 1rem 1rem 1rem 1.25rem !important;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .table-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .modern-table th,
+    .modern-table td {
+        padding: 0.75rem 1rem;
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        margin-left: 80px !important; /* Cuando el sidebar está colapsado */
+        padding: 0.75rem 0.75rem 0.75rem 1rem !important;
+    }
+    
+    .table-header {
+        padding: 0.75rem;
+    }
+    
+    .modern-table th,
+    .modern-table td {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .summary-card {
+        padding: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.summary-card {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.summary-card:nth-child(1) { animation-delay: 0.1s; }
+.summary-card:nth-child(2) { animation-delay: 0.2s; }
+.summary-card:nth-child(3) { animation-delay: 0.3s; }
+
+.table-card {
+    animation: slideInUp 0.5s ease-out 0.4s both;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para mostrar/ocultar selector de paciente
+    window.mostrarPacienteSelect = function(cuartoId) {
+        const estado = document.getElementById('estado_' + cuartoId).value;
+        const pacienteSelect = document.getElementById('paciente_' + cuartoId);
+        const patientSelector = document.getElementById('patient_selector_' + cuartoId);
+        const currentPatient = document.getElementById('current_patient_' + cuartoId);
+        
+        if (estado === 'O') {
+            patientSelector.style.display = 'block';
+            currentPatient.style.display = 'none';
+            
+            // Agregar validación en tiempo real
+            if (pacienteSelect) {
+                pacienteSelect.addEventListener('change', function() {
+                    validarPacienteUnico(cuartoId, this.value);
+                });
+            }
+        } else {
+            patientSelector.style.display = 'none';
+            currentPatient.style.display = 'none';
+            if (pacienteSelect) pacienteSelect.value = '';
+        }
+    };
+    
+    // Función para validar que un paciente no ocupe múltiples cuartos
+    function validarPacienteUnico(cuartoId, pacienteId) {
+        if (!pacienteId) return;
+        
+        // Buscar otros cuartos ocupados por el mismo paciente
+        const otrosCuartos = document.querySelectorAll('select[id^="paciente_"]');
+        let pacienteEnOtroCuarto = false;
+        let cuartoOcupado = '';
+        
+        otrosCuartos.forEach(select => {
+            const otroCuartoId = select.id.replace('paciente_', '');
+            if (otroCuartoId !== cuartoId && select.value === pacienteId) {
+                const estadoSelect = document.getElementById('estado_' + otroCuartoId);
+                if (estadoSelect && estadoSelect.value === 'O') {
+                    pacienteEnOtroCuarto = true;
+                    cuartoOcupado = otroCuartoId;
+                }
+            }
+        });
+        
+        if (pacienteEnOtroCuarto) {
+            // Mostrar advertencia visual
+            const pacienteSelect = document.getElementById('paciente_' + cuartoId);
+            pacienteSelect.style.borderColor = '#ef4444';
+            pacienteSelect.style.backgroundColor = '#fef2f2';
+            
+            // Crear o actualizar mensaje de advertencia
+            let warningDiv = document.getElementById('warning_' + cuartoId);
+            if (!warningDiv) {
+                warningDiv = document.createElement('div');
+                warningDiv.id = 'warning_' + cuartoId;
+                warningDiv.className = 'patient-warning';
+                warningDiv.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Este paciente ya está ocupando otro cuarto</span>
+                `;
+                patientSelector.appendChild(warningDiv);
+            }
+            warningDiv.style.display = 'flex';
+        } else {
+            // Limpiar advertencia
+            const pacienteSelect = document.getElementById('paciente_' + cuartoId);
+            if (pacienteSelect) {
+                pacienteSelect.style.borderColor = '#e5e7eb';
+                pacienteSelect.style.backgroundColor = 'white';
+            }
+            
+            const warningDiv = document.getElementById('warning_' + cuartoId);
+            if (warningDiv) {
+                warningDiv.style.display = 'none';
+            }
+        }
+    }
+
+    // Función de ordenamiento
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.column;
+            const tbody = document.querySelector('#roomsTable tbody');
+            const rowsArray = Array.from(tbody.querySelectorAll('.room-row'));
+            
+            // Toggle sort direction
+            const isAscending = this.classList.contains('asc');
+            sortableHeaders.forEach(h => h.classList.remove('asc', 'desc'));
+            this.classList.add(isAscending ? 'desc' : 'asc');
+            
+            rowsArray.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(column) {
+                    case 'numero':
+                        aValue = parseInt(a.dataset.numero);
+                        bValue = parseInt(b.dataset.numero);
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (isAscending) {
+                    return bValue - aValue;
+                } else {
+                    return aValue - bValue;
+                }
+            });
+            
+            rowsArray.forEach(row => tbody.appendChild(row));
+        });
+    });
+
+    // Validación del formulario
+    const form = document.getElementById('roomsForm');
+    form.addEventListener('submit', function(e) {
+        const occupiedRooms = document.querySelectorAll('select[id^="estado_"]');
+        let hasErrors = false;
+        
+        occupiedRooms.forEach(select => {
+            if (select.value === 'O') {
+                const cuartoId = select.id.replace('estado_', '');
+                const patientSelect = document.getElementById('paciente_' + cuartoId);
+                
+                if (!patientSelect || !patientSelect.value) {
+                    hasErrors = true;
+                    if (patientSelect) {
+                        patientSelect.style.borderColor = '#ef4444';
+                        patientSelect.style.backgroundColor = '#fef2f2';
+                    }
+                } else {
+                    patientSelect.style.borderColor = '#e5e7eb';
+                    patientSelect.style.backgroundColor = 'white';
+                }
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor, selecciona un paciente para todos los cuartos ocupados.');
+        }
+    });
+
+    // Actualizar contadores en tiempo real
+    function updateCounters() {
+        const totalRooms = document.querySelectorAll('.room-row').length;
+        const availableRooms = document.querySelectorAll('select[id^="estado_"] option:checked[value="D"]').length;
+        const occupiedRooms = document.querySelectorAll('select[id^="estado_"] option:checked[value="O"]').length;
+        
+        // Actualizar contadores si existen
+        const availableCount = document.querySelector('.summary-card.available .count');
+        const occupiedCount = document.querySelector('.summary-card.occupied .count');
+        const totalCount = document.querySelector('.summary-card.total .count');
+        
+        if (availableCount) availableCount.textContent = availableRooms;
+        if (occupiedCount) occupiedCount.textContent = occupiedRooms;
+        if (totalCount) totalCount.textContent = totalRooms;
+    }
+
+    // Escuchar cambios en los selects
+    document.querySelectorAll('select[id^="estado_"]').forEach(select => {
+        select.addEventListener('change', updateCounters);
+    });
+
+    // Inicializar contadores
+    updateCounters();
+});
+</script>
+{% endblock %}

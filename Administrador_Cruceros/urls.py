@@ -34,6 +34,7 @@ urlpatterns = [
     path("login/", LoginPersonalizado.as_view(), name="login"),
     path("logout/", logout_usuario, name="logout"),
     path('registro/', registro_usuario, name='registro'),
+    path('servicio-medico/', include('apps.servicio_medico.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

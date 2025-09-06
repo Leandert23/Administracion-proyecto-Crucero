@@ -1,0 +1,1205 @@
+
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Control - Servicio Médico{% endblock %}
+
+{% block content %}
+<!-- Contenido específico para el panel de personal médico -->
+<main class="main-content">
+    <header class="main-header">
+        <h1 class="page-title">Panel de Personal Médico</h1>
+    </header>
+    
+    <!-- Mensaje de bienvenida -->
+    <div class="welcome-section">
+        <div class="welcome-card">
+            <h2 class="welcome-title">Bienvenido al Panel de Personal Médico</h2>
+            <p class="welcome-text">Aquí puedes gestionar el historial médico de los pasajeros, el inventario de medicamentos y las urgencias médicas.</p>
+        </div>
+    </div>
+
+    <!-- Grid de funcionalidades -->
+    <div class="dashboard-grid">
+        <!-- Crear Historial Médico -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Crear Historial Médico</h3>
+                <p class="card-description">Registra nuevos historiales médicos de pasajeros</p>
+                <button class="modern-btn primary" onclick="location.href='{% url 'agregar_historial' %}'">
+                    <span>Agregar Historial Médico</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ver Historiales Médicos -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Ver Historiales Médicos</h3>
+                <p class="card-description">Consulta y gestiona historiales médicos existentes</p>
+                <button class="modern-btn secondary" onclick="location.href='{% url 'historial_medico' %}'">
+                    <span>Ver Historial Médico</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modificar Personal -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Modificar Personal</h3>
+                <p class="card-description">Gestiona el personal médico y sus asignaciones</p>
+                <button class="modern-btn tertiary" onclick="showComingSoon('Modificar Personal')">
+                    <span>Gestionar Personal</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuartos Disponibles -->
+        <div class="function-card full-width">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Cuartos Médicos</h3>
+                    {% if crucero_activo %}
+                        <p class="crucero-info-small">{{ crucero_activo.nombre }} ({{ crucero_activo.get_tipo_crucero_display }})</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Resumen de cuartos -->
+                <div class="rooms-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Total:</span>
+                        <span class="summary-value">{{ cuartos|length }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Disponibles:</span>
+                        <span class="summary-value available">{{ cuartos|length }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Ocupados:</span>
+                        <span class="summary-value occupied">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Mantenimiento:</span>
+                        <span class="summary-value maintenance">0</span>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="modern-table" id="roomsTable">
+                        <thead>
+                            <tr>
+                                <th>Número de Cuarto</th>
+                                <th>Estado</th>
+                                <th>Paciente</th>
+                                <th>Última Modificación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuarto in cuartos %}
+                            <tr class="room-row {% if forloop.counter > 3 %}hidden-room{% endif %}" data-room-index="{{ forloop.counter }}">
+                                <td>
+                                    <div class="room-number-badge">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                        </svg>
+                                        <span>{{ cuarto.numero }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge {{ cuarto.estado|lower }}">
+                                        {{ cuarto.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if cuarto.estado == 'O' and cuarto.paciente %}
+                                        <div class="patient-info">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            <span>{{ cuarto.paciente.nombres }} {{ cuarto.paciente.primer_apellido }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="no-patient">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="date-info">{{ cuarto.fecha_ultima_modificacion|date:"d/m/Y H:i" }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="no-data">
+                                    <div class="no-data-content">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                                        </svg>
+                                        <p>No hay cuartos médicos disponibles.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Botón para mostrar/ocultar cuartos adicionales -->
+                    {% if cuartos|length > 3 %}
+                    <div class="expand-rooms-container">
+                        <button class="expand-rooms-btn" id="expandRoomsBtn" onclick="toggleAdditionalRooms()">
+                            <span class="btn-text">
+                                <span class="show-text">Ver {{ cuartos|length|add:"-3" }} cuartos adicionales</span>
+                                <span class="hide-text" style="display: none;">Ocultar cuartos adicionales</span>
+                            </span>
+                            <svg class="expand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                <button class="modern-btn outline" onclick="location.href='{% url 'modificar_cuarto' %}'">
+                    <span>Gestionar Cuartos</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Inventario -->
+        <div class="function-card">
+            <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Inventario</h3>
+                <p class="card-description">Gestiona el inventario de medicamentos y suministros</p>
+                <button class="modern-btn primary" onclick="abrirModalSolicitudAlmacen()">
+                    <span>Ver Inventario</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Panel de Urgencias Médicas -->
+        <div class="function-card urgent-card">
+            <div class="card-icon urgent-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path>
+                    <path d="M12 2v20"></path>
+                    <path d="M2 12h20"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title urgent-title">Panel de Urgencias Médicas</h3>
+                <p class="card-description">Monitorea las notificaciones de urgencia</p>
+                <button class="modern-btn urgent-btn" onclick="location.href='{% url 'panel_urgencias' %}'">
+                    <span>Ver Urgencias</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+{% include 'modal_solicitud_a_almacen.html' %}
+<style>
+/* Estilos específicos para el panel de servicio médico */
+.welcome-section {
+    margin: 2rem 0;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    margin: 0 2rem;
+}
+
+.welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: white;
+}
+
+.welcome-text {
+    font-size: 1rem;
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    padding: 0 2rem 2rem 2rem;
+}
+
+.function-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.function-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+.function-card.full-width {
+    grid-column: 1 / -1;
+}
+
+/* ===== ESTILOS PROFESIONALES PARA LA TARJETA DE URGENCIAS ===== */
+.urgent-card {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.urgent-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-color: #d1d5db;
+}
+
+.urgent-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #dc3545;
+}
+
+.urgent-card::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    background: #dc3545;
+    border-radius: 50%;
+}
+
+.urgent-icon {
+    color: #dc3545;
+    filter: none;
+}
+
+.urgent-title {
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.urgent-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    transition: all 0.2s ease;
+}
+
+.urgent-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+}
+
+.urgent-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+}
+
+.card-icon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.card-description {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+}
+
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.modern-btn.primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.modern-btn.primary:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.modern-btn.secondary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.modern-btn.secondary:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.modern-btn.outline {
+    background: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+}
+
+.modern-btn.outline:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.modern-btn.tertiary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.modern-btn.tertiary:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+
+.table-container {
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.modern-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modern-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #6b7280;
+}
+
+.modern-table tr:hover {
+    background: #f9fafb;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.d {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.o {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.m {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.no-data {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Estilos para la sección de cuartos */
+.card-header {
+    margin-bottom: 1rem;
+}
+
+.crucero-info-small {
+    font-size: 0.875rem;
+    color: #3b82f6;
+    margin: 0.25rem 0 0 0;
+    font-weight: 500;
+}
+
+.rooms-summary {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.summary-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.summary-value.available {
+    color: #10b981;
+}
+
+.summary-value.occupied {
+    color: #ef4444;
+}
+
+.summary-value.maintenance {
+    color: #f59e0b;
+}
+
+.room-number-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.patient-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.no-patient {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.date-info {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.no-data-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: #9ca3af;
+}
+
+.no-data-content svg {
+    color: #d1d5db;
+}
+
+.no-data-content p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Estilos para el menú desplegable de cuartos */
+.expand-rooms-container {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.expand-rooms-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.expand-rooms-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.3);
+}
+
+.expand-rooms-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.expand-rooms-btn.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+/* Estilos para cuartos ocultos */
+.hidden-room {
+    display: none !important;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.hidden-room.show {
+    display: table-row !important;
+    opacity: 1;
+    transform: translateY(0);
+    animation: slideInFromTop 0.6s ease-out;
+}
+
+.hidden-room.hide {
+    display: table-row !important;
+    opacity: 0;
+    transform: translateY(-30px);
+    animation: slideOutToTop 0.6s ease-in;
+}
+
+/* Animaciones */
+@keyframes slideInFromTop {
+    0% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-10px) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideOutToTop {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+}
+
+/* Efecto de ondas en el botón */
+.expand-rooms-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.expand-rooms-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Mejoras adicionales para la tabla */
+.modern-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: #f8fafc;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de entrada para la tabla */
+.modern-table tbody tr {
+    animation: fadeInRow 0.5s ease-out;
+}
+
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* Efecto de pulso en el botón cuando hay cuartos ocultos */
+.expand-rooms-btn {
+    position: relative;
+}
+
+.expand-rooms-btn::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #3b82f6, #1d4ed8, #3b82f6);
+    border-radius: 0.75rem;
+    z-index: -1;
+    opacity: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+}
+
+/* Responsive design para el botón */
+@media (max-width: 768px) {
+    .expand-rooms-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .expand-rooms-container {
+        padding: 1rem 0;
+    }
+}
+
+.notification-placeholder {
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Espaciado equilibrado del menú lateral */
+.main-content {
+    margin-left: 300px !important; /* Aumentado de 280px a 300px */
+    padding: 1.5rem 1.5rem 1.5rem 2rem !important; /* Padding equilibrado */
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 290px !important;
+        padding: 1.25rem 1.25rem 1.25rem 1.5rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 280px !important;
+        padding: 1rem 1rem 1rem 1.25rem !important;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem 2rem 1rem;
+    }
+    
+    .welcome-card {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+    
+    .function-card {
+        padding: 1.5rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.25rem;
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        margin-left: 80px !important; /* Cuando el sidebar está colapsado */
+        padding: 0.75rem 0.75rem 0.75rem 1rem !important;
+    }
+    
+    .welcome-card {
+        margin: 0 0.5rem;
+        padding: 1rem;
+    }
+    
+    .function-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-grid {
+        padding: 0 0.5rem 2rem 0.5rem;
+    }
+}
+</style>
+
+<script>
+// Función para mostrar mensaje "Próximamente"
+function showComingSoon(feature) {
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Crear el contenido del modal
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">${feature}</h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.875rem;">Esta funcionalidad estará disponible próximamente</p>
+        </div>
+        <button onclick="closeModal()" style="
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+            Entendido
+        </button>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeModal = function() {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Cerrar con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+}
+
+// Agregar estilos de animación
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Función para actualizar contadores de cuartos
+function updateRoomCounters() {
+    const roomRows = document.querySelectorAll('.room-row');
+    let total = roomRows.length;
+    let available = 0;
+    let occupied = 0;
+    let maintenance = 0;
+    
+    roomRows.forEach(row => {
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) {
+            if (statusBadge.classList.contains('d')) {
+                available++;
+            } else if (statusBadge.classList.contains('o')) {
+                occupied++;
+            } else if (statusBadge.classList.contains('m')) {
+                maintenance++;
+            }
+        }
+    });
+    
+    // Actualizar contadores si existen
+    const totalElement = document.querySelector('.summary-value:not(.available):not(.occupied):not(.maintenance)');
+    const availableElement = document.querySelector('.summary-value.available');
+    const occupiedElement = document.querySelector('.summary-value.occupied');
+    const maintenanceElement = document.querySelector('.summary-value.maintenance');
+    
+    if (totalElement) totalElement.textContent = total;
+    if (availableElement) availableElement.textContent = available;
+    if (occupiedElement) occupiedElement.textContent = occupied;
+    if (maintenanceElement) maintenanceElement.textContent = maintenance;
+}
+
+
+// Función para alternar la visualización de cuartos adicionales
+function toggleAdditionalRooms() {
+    // Seleccionar todos los cuartos que están ocultos (índice > 3)
+    const allRooms = document.querySelectorAll('.room-row[data-room-index]');
+    const hiddenRooms = Array.from(allRooms).filter(room => {
+        const index = parseInt(room.getAttribute('data-room-index'));
+        return index > 3;
+    });
+    
+    const expandBtn = document.getElementById('expandRoomsBtn');
+    const showText = expandBtn.querySelector('.show-text');
+    const hideText = expandBtn.querySelector('.hide-text');
+    
+    const isExpanded = expandBtn.classList.contains('expanded');
+    
+    if (!isExpanded) {
+        // Mostrar cuartos adicionales con animación
+        expandBtn.classList.add('expanded');
+        showText.style.display = 'none';
+        hideText.style.display = 'inline';
+        
+        hiddenRooms.forEach((room, index) => {
+            setTimeout(() => {
+                console.log(`Mostrando cuarto ${index + 1}`);
+                room.classList.remove('hidden-room');
+                room.classList.add('show');
+            }, index * 100); // Animación escalonada
+        });
+        
+        // Actualizar contadores después de mostrar todos los cuartos
+        setTimeout(() => {
+            updateRoomCounters();
+        }, hiddenRooms.length * 100 + 200);
+        
+    } else {
+        // Ocultar cuartos adicionales con animación escalonada
+        console.log('Ocultando cuartos con animación escalonada...');
+        
+        // Cambiar estado del botón inmediatamente
+        expandBtn.classList.remove('expanded');
+        showText.style.display = 'inline';
+        hideText.style.display = 'none';
+        
+        // Aplicar animación escalonada
+        hiddenRooms.forEach((room, index) => {
+            setTimeout(() => {
+                console.log(`Ocultando cuarto ${index + 1}`);
+                room.classList.add('hide');
+                room.classList.remove('show');
+            }, index * 100);
+        });
+        
+        // Ocultar completamente después de la animación
+        setTimeout(() => {
+            console.log('Ocultando completamente los cuartos...');
+            hiddenRooms.forEach((room) => {
+                room.classList.add('hidden-room');
+                room.classList.remove('hide');
+            });
+            updateRoomCounters();
+        }, hiddenRooms.length * 100 + 700); // Tiempo para animación de 0.6s
+    }
+}
+
+// Función mejorada para actualizar contadores de cuartos
+function updateRoomCounters() {
+    const allRoomRows = document.querySelectorAll('.room-row:not(.hidden-room)');
+    let total = allRoomRows.length;
+    let available = 0;
+    let occupied = 0;
+    let maintenance = 0;
+    
+    allRoomRows.forEach(row => {
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge) {
+            if (statusBadge.classList.contains('d')) {
+                available++;
+            } else if (statusBadge.classList.contains('o')) {
+                occupied++;
+            } else if (statusBadge.classList.contains('m')) {
+                maintenance++;
+            }
+        }
+    });
+    
+    // Actualizar contadores si existen
+    const totalElement = document.querySelector('.summary-value:not(.available):not(.occupied):not(.maintenance)');
+    const availableElement = document.querySelector('.summary-value.available');
+    const occupiedElement = document.querySelector('.summary-value.occupied');
+    const maintenanceElement = document.querySelector('.summary-value.maintenance');
+    
+    if (totalElement) {
+        totalElement.textContent = total;
+        // Animación de conteo
+        animateCounter(totalElement, total);
+    }
+    if (availableElement) {
+        availableElement.textContent = available;
+        animateCounter(availableElement, available);
+    }
+    if (occupiedElement) {
+        occupiedElement.textContent = occupied;
+        animateCounter(occupiedElement, occupied);
+    }
+    if (maintenanceElement) {
+        maintenanceElement.textContent = maintenance;
+        animateCounter(maintenanceElement, maintenance);
+    }
+}
+
+// Función para animar el conteo de números
+function animateCounter(element, targetValue) {
+    const startValue = parseInt(element.textContent) || 0;
+    const duration = 500; // 500ms
+    const startTime = performance.now();
+    
+    function updateCounter(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Función de easing (ease-out)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(startValue + (targetValue - startValue) * easeOut);
+        
+        element.textContent = currentValue;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+        }
+    }
+    
+    requestAnimationFrame(updateCounter);
+}
+
+// Actualizar contadores al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    updateRoomCounters();
+    
+    // Agregar efecto de hover a las filas de cuartos
+    const roomRows = document.querySelectorAll('.room-row');
+    roomRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

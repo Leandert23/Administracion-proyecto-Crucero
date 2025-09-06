@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.reservaciones",
     "apps.ventas",
     "apps.administracion",
+    "apps.servicio_medico",
     
 ]
 
