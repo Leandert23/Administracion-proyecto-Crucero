@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
 from ..cruceros.models import Crucero, Viaje
+from ..reservaciones.models import Reserva
 from django.db.models import Q
 from datetime import timedelta
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
@@ -945,4 +946,88 @@ def api_delete_activity(request, crucero_id):
         return JsonResponse({
             'success': False,
             'message': 'Ocurrió un error al eliminar la actividad.'
+        })
+
+
+def api_get_reservas(request, crucero_id):
+    """Vista API para obtener todas las reservas relacionadas con actividades de entretenimiento"""
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        # Obtener crucero y viaje
+        crucero = get_object_or_404(Crucero, pk=crucero_id)
+        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+            })
+
+        reservas_data = []
+
+        # Obtener reservas de actividades de pago
+        reservas_pago = Reserva.objects.filter(
+            actividad_pago__viaje=viaje,
+            actividad_pago__isnull=False
+        ).select_related('actividad_pago').order_by('-fecha_creacion')
+
+        for reserva in reservas_pago:
+            reservas_data.append({
+                'id': reserva.id,
+                'nombre': reserva.nombre_cliente or '',
+                'apellido': reserva.apellido_cliente or '',
+                'n_habitacion': reserva.codigo_ubicacion_habitacion or '',
+                'n_personas': reserva.numero_personas,
+                'fecha_reserva': reserva.fecha_creacion.strftime('%Y-%m-%d'),
+                'hora_reserva': reserva.fecha_creacion.strftime('%H:%M'),
+                'dia_actividad': reserva.actividad_pago.dia_crucero,
+                'nombre_actividad': reserva.actividad_pago.titulo,
+                'tipo_actividad': 'pago',
+                'coste': str(reserva.actividad_pago.coste) if reserva.actividad_pago.coste else None,
+                'ubicacion': None,
+                'descripcion_actividad': reserva.actividad_pago.descripcion
+            })
+
+        # Obtener reservas de actividades rutinarias
+        reservas_rutinarias = Reserva.objects.filter(
+            actividad_rutinaria__viaje=viaje,
+            actividad_rutinaria__isnull=False
+        ).select_related('actividad_rutinaria').order_by('-fecha_creacion')
+
+        for reserva in reservas_rutinarias:
+            reservas_data.append({
+                'id': reserva.id,
+                'nombre': reserva.nombre_cliente or '',
+                'apellido': reserva.apellido_cliente or '',
+                'n_habitacion': reserva.codigo_ubicacion_habitacion or '',
+                'n_personas': reserva.numero_personas,
+                'fecha_reserva': reserva.fecha_creacion.strftime('%Y-%m-%d'),
+                'hora_reserva': reserva.fecha_creacion.strftime('%H:%M'),
+                'dia_actividad': reserva.actividad_rutinaria.dia_crucero,
+                'nombre_actividad': reserva.actividad_rutinaria.titulo,
+                'tipo_actividad': 'rutinaria',
+                'coste': None,
+                'ubicacion': reserva.actividad_rutinaria.ubicacion,
+                'descripcion_actividad': reserva.actividad_rutinaria.descripcion
+            })
+
+        # Ordenar por fecha de creación (más recientes primero)
+        reservas_data.sort(key=lambda x: x['fecha_reserva'] + ' ' + x['hora_reserva'], reverse=True)
+
+        return JsonResponse({
+            'success': True,
+            'reservas': reservas_data,
+            'total': len(reservas_data)
+        })
+
+    except Exception as e:
+        print(f"Error al obtener reservas: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al obtener las reservas.'
         })

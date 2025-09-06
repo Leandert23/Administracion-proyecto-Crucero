@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from ..cruceros.models import Habitacion
+from ..entretenimiento.models import Actividad, ActividadRutinaria
 
 
 
@@ -88,8 +89,21 @@ class Reserva(models.Model):
         ("cancelada", "Cancelada"),
     ]
 
-    habitacion = models.ForeignKey(Habitacion, null=True, blank=True, on_delete=models.CASCADE)
-    entretenimiento = models.ForeignKey(Entretenimiento, null=True, blank=True, on_delete=models.CASCADE)
+    # Datos del cliente
+    nombre_cliente = models.CharField(max_length=100, blank=True, null=True)
+    apellido_cliente = models.CharField(max_length=100, blank=True, null=True)
+    fecha_nacimiento_cliente = models.DateField(blank=True, null=True)
+    numero_personas = models.PositiveIntegerField(default=1)
+
+    # Código de ubicación de la habitación (en lugar de FK)
+    codigo_ubicacion_habitacion = models.CharField(max_length=6, blank=True, null=True, help_text="Código UUAIII de la habitación reservada")
+
+    # Relaciones con actividades de entretenimiento
+    actividad_pago = models.ForeignKey(Actividad, null=True, blank=True, on_delete=models.CASCADE, related_name='reservas_pago')
+    actividad_rutinaria = models.ForeignKey(ActividadRutinaria, null=True, blank=True, on_delete=models.CASCADE, related_name='reservas_rutinarias')
+
+    # Costo total calculado
+    costo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     mesa = models.ForeignKey(Mesa, null=True, blank=True, on_delete=models.CASCADE)
     evento_personalizado = models.ForeignKey(EventoPersonalizado, null=True, blank=True, on_delete=models.CASCADE)
 
@@ -102,12 +116,15 @@ class Reserva(models.Model):
         ordering = ["-fecha_creacion"]
 
     def __str__(self):
-        if self.habitacion:
-            return f"Reserva Habitación {self.habitacion.numero} ({self.usuario})"
-        if self.entretenimiento:
-            return f"Reserva Entretenimiento {self.entretenimiento.nombre} ({self.usuario})"
+        cliente_info = f"{self.nombre_cliente} {self.apellido_cliente}" if self.nombre_cliente else f"Cliente #{self.id}"
+        if self.codigo_ubicacion_habitacion:
+            return f"Reserva Habitación {self.codigo_ubicacion_habitacion} ({cliente_info})"
+        if self.actividad_pago:
+            return f"Reserva Actividad Pago {self.actividad_pago.titulo} ({cliente_info})"
+        if self.actividad_rutinaria:
+            return f"Reserva Actividad Rutinaria {self.actividad_rutinaria.titulo} ({cliente_info})"
         if self.mesa:
-            return f"Reserva Mesa {self.mesa.numero} ({self.usuario})"
+            return f"Reserva Mesa {self.mesa.numero} ({cliente_info})"
         if self.evento_personalizado:
-            return f"Reserva Evento {self.evento_personalizado.nombre} ({self.usuario})"
-        return f"Reserva #{self.id} ({self.usuario})"
+            return f"Reserva Evento {self.evento_personalizado.nombre} ({cliente_info})"
+        return f"Reserva #{self.id} ({cliente_info})"

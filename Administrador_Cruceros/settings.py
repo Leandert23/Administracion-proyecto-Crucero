@@ -138,7 +138,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'almacen' / 'Static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
     BASE_DIR / 'apps' / 'mantenimiento' / 'static',
-    BASE_DIR / 'apps' / 'reservaciones' / 'static'
+    BASE_DIR / 'apps' / 'reservaciones' / 'static',
 ]
 
 # Media files (user-uploaded content)
