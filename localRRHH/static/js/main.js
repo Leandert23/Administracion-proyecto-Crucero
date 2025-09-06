@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     inputText.disabled = !chk.checked;
                 } else if (idx === 3) {
                     const currentVal = td.textContent.trim().replace('$', '').replace(',', '');
-                    td.innerHTML = `<input type="number" min="0" class="edit-input" value="${currentVal}">`;
+                    td.innerHTML = `<input type="number" min="1" max="99999999" class="edit-input" value="${currentVal}" title="El salario debe ser mayor a 0 y máximo 8 dígitos">`;
                 }
             }
         });
@@ -209,13 +209,27 @@ document.addEventListener('DOMContentLoaded', function () {
     function guardarEdicion(tr) {
         trEnEdicionActual = tr;
 
-        const salario = tr.cells[3].querySelector('input').value;
+        const salarioInput = tr.cells[3].querySelector('input');
+        const salario = salarioInput.value;
         const categoria = tr.cells[6].querySelector('select').value;
         const puesto = tr.cells[7].querySelector('select').value;
         const pStatus = tr.cells[8].querySelector('select').value;
         const amonestacionEstado = tr.cells[9].querySelector('input').checked;
         inputDetalleActual = tr.cells[10].querySelector('input');
         let amonestacionDetalle = inputDetalleActual.value;
+
+        // Validación del salario
+        const salarioNum = parseInt(salario);
+        if (!salario || salarioNum <= 0) {
+            alert('El salario debe ser mayor a 0.');
+            salarioInput.focus();
+            return;
+        }
+        if (salarioNum > 99999999) {
+            alert('El salario no puede ser mayor a 99,999,999 (8 dígitos).');
+            salarioInput.focus();
+            return;
+        }
 
         dataParaGuardar = {
             id: tr.dataset.id,
@@ -335,5 +349,112 @@ document.addEventListener('DOMContentLoaded', function () {
 
         btnCancelar.textContent = 'Eliminar';
         btnCancelar.classList.replace('btn-cancelar', 'btn-eliminar');
+    }
+
+    // Función para actualizar plantel
+    function actualizarPlantel() {
+        location.reload();
+    }
+
+    // Función para vaciar plantel
+    function vaciarPlantel() {
+        if (!confirm('¿Está completamente seguro de vaciar todo el plantel?\n\nEsta acción eliminará TODOS los registros de personal y no se puede deshacer.')) {
+            return;
+        }
+
+        if (!confirm('CONFIRMACIÓN FINAL: ¿Realmente desea eliminar todos los empleados?\n\nSe perderán todos los datos permanentemente.')) {
+            return;
+        }
+
+        fetch('/api/vaciar-plantel/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Error al vaciar plantel');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`¡Plantel vaciado exitosamente!\nSe eliminaron ${data.eliminados} registros.`);
+            location.reload(); // Recargar para mostrar la tabla vacía
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+            console.error('Error vaciando plantel:', error);
+        });
+    }
+
+    // Funciones para generar plantel
+    function mostrarModalGenerarPlantel() {
+        document.getElementById('modalGenerarPlantel').style.display = 'block';
+    }
+
+    function ocultarModalGenerarPlantel() {
+        document.getElementById('modalGenerarPlantel').style.display = 'none';
+    }
+
+    // Event listeners para el modal
+    const btnCancelarGenerar = document.getElementById('btnCancelarGenerar');
+    const btnConfirmarGenerar = document.getElementById('btnConfirmarGenerar');
+
+    if (btnCancelarGenerar) {
+        btnCancelarGenerar.onclick = ocultarModalGenerarPlantel;
+    }
+
+    if (btnConfirmarGenerar) {
+        btnConfirmarGenerar.onclick = function() {
+            const cantidad = document.getElementById('selectCantidadTripulantes').value;
+            generarPlantel(cantidad);
+        };
+    }
+
+    function generarPlantel(cantidad) {
+        if (!confirm(`¿Está seguro de generar ${cantidad} tripulantes? Esto puede tomar tiempo.`)) {
+            return;
+        }
+
+        // Deshabilitar el botón mientras se genera
+        btnConfirmarGenerar.disabled = true;
+        btnConfirmarGenerar.textContent = 'Generando...';
+
+        fetch(`/api/generar-plantel/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ cantidad: parseInt(cantidad) }),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Error al generar plantel');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`¡Plantel generado exitosamente!\nSe crearon ${data.creados} tripulantes.`);
+            ocultarModalGenerarPlantel();
+            location.reload(); // Recargar para mostrar los nuevos registros
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+            console.error('Error generando plantel:', error);
+        })
+        .finally(() => {
+            // Rehabilitar el botón
+            btnConfirmarGenerar.disabled = false;
+            btnConfirmarGenerar.textContent = 'Generar Plantel';
+        });
     }
 });

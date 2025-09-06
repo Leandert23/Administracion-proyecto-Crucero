@@ -105,6 +105,15 @@
                     <p class="page-subtitle">Gestión del personal y administración de empleados</p>
                 </div>
                 <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <button class="btn btn-success generar-plantel" onclick="mostrarModalGenerarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Generar Plantel
+                    </button>
+                    <button class="btn btn-primary actualizar-plantel" onclick="actualizarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Actualizar Plantel
+                    </button>
+                    <button class="btn btn-danger vaciar-plantel" onclick="vaciarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Vaciar Plantel
+                    </button>
                 </div>
             </header>
 
@@ -295,6 +304,38 @@
       <div style="margin-top:15px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
         <button id="btnGuardarMotivo" class="btn btn-primary" style="padding:8px 16px; font-size:14px;">Guardar</button>
         <button id="btnCancelarMotivo" class="btn btn-secondary" style="padding:8px 16px; font-size:14px;">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Modal para generar plantel -->
+    <div id="modalGenerarPlantel" style="display:none; position:fixed; z-index:10001; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; border-radius:12px; padding:30px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); width: 400px;">
+        <h3 style="margin:0 0 20px 0; font-weight:600; color:#1e293b; font-size:18px; text-align:center;">Generar Plantel Genérico</h3>
+
+        <div style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:10px; font-weight:500;">Seleccione cantidad de tripulantes:</label>
+          <select id="selectCantidadTripulantes" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+            <option value="630">630 Tripulantes</option>
+            <option value="1300">1300 Tripulantes</option>
+            <option value="1950">1950 Tripulantes</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:20px; padding:15px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+          <h4 style="margin:0 0 10px 0; font-size:14px; color:#374151;">Prioridad de módulos:</h4>
+          <ol style="margin:0; padding-left:20px; font-size:13px; color:#6b7280;">
+            <li>Mantenimiento</li>
+            <li>Restaurantes (Culinario)</li>
+            <li>Entretenimiento</li>
+            <li>Médico</li>
+            <li>Administrativo</li>
+          </ol>
+        </div>
+
+        <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+          <button id="btnCancelarGenerar" class="btn btn-secondary" style="padding:10px 20px; font-size:14px;">Cancelar</button>
+          <button id="btnConfirmarGenerar" class="btn btn-success" style="padding:10px 20px; font-size:14px;">Generar Plantel</button>
+        </div>
       </div>
     </div>
 

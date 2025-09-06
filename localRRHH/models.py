@@ -63,7 +63,7 @@ class Personal(models.Model):
     nombre = models.CharField(max_length=10, validators=[validate_name])
     apellido = models.CharField(max_length=10, validators=[validate_name])
 
-    salario = models.PositiveIntegerField(validators=[MaxValueValidator(9999999999)])
+    salario = models.PositiveIntegerField(validators=[MaxValueValidator(99999999)])
 
     edad = models.PositiveIntegerField(validators=[MinValueValidator(21)], help_text='Mayor o igual 21 años')
 
