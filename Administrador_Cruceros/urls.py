@@ -36,7 +36,11 @@ urlpatterns = [
     path("logout/", logout_usuario, name="logout"),
     path('registro/', registro_usuario, name='registro'),
     path('servicio-medico/', include('apps.servicio_medico.urls')),
+<<<<<<< HEAD
     path('bares-snacks/', include(('apps.bares_snacks.urls', 'bares_snacks'), namespace='bares_snacks')),
+=======
+    path('restaurante/', include('apps.restaurante.urls')),
+>>>>>>> b28c3837f8b91ee492fd551adf2640a9eb304332
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

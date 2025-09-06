@@ -46,8 +46,12 @@ INSTALLED_APPS = [
     "apps.compras",
     "apps.administracion",
     "apps.servicio_medico",
+<<<<<<< HEAD
     "apps.bares_snacks"
     
+=======
+    "apps.restaurante",
+>>>>>>> b28c3837f8b91ee492fd551adf2640a9eb304332
 ]
 
 MIDDLEWARE = [
