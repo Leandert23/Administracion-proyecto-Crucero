@@ -327,7 +327,7 @@ def actividadRutMedianoInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "clasesaerobics.jpg"
+            "img_src": "claseaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
@@ -954,7 +954,7 @@ def actividadRutGrandeInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "clasesaerobics.jpg"
+            "img_src": "claseaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
@@ -1418,7 +1418,7 @@ def actividadRutPequenoInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "clasesaerobics.jpg"
+            "img_src": "claseaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
