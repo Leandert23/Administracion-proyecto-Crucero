@@ -4,11 +4,11 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
+    path('', views.dashboard_empresa, name='dashboard_empresa'),
     path('<int:crucero_id>', views.dashboard_empresa, name='dashboard'),
-    path('crucero/<int:crucero_id>/', views.dashboard_crucero_individual, name='dashboard_crucero_individual'),
+    path('crucero/<int:crucero_id>', views.dashboard_crucero_individual, name='dashboard_crucero'),
     path('api/cruceros-dashboard/', views.cruceros_dashboard_data, name='cruceros_dashboard_data'),
     path('gestion-roles/', views.gestion_roles, name='gestion_roles'),
-    path('mi-perfil-roles/', views.mi_perfil_roles, name='mi_perfil_roles'),
     # Agregar URLs para manejar solicitudes de compra
     path('api/purchase-requests/<int:request_id>/approve/', views.approve_purchase_request, name='approve_purchase_request'),
     path('api/purchase-requests/<int:request_id>/reject/', views.reject_purchase_request, name='reject_purchase_request'),

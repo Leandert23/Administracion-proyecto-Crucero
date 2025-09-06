@@ -5,19 +5,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Administración - Cruceros</title>
+    <title>Dashboard - {{ crucero.nombre }}</title>
     <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
     <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
     <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
     <style>
-        .dashboard-admin {
+        .dashboard-crucero {
             background: #f8fafc;
             min-height: 100vh;
         }
         
-        .admin-header {
+        .crucero-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem;
@@ -25,14 +25,28 @@
             border-radius: 0 0 20px 20px;
         }
         
-        .admin-title {
+        .crucero-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .crucero-image {
+            width: 120px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .crucero-details h1 {
             margin: 0;
             font-size: 2.5rem;
             font-weight: 700;
         }
         
-        .admin-subtitle {
-            margin: 0.5rem 0 0 0;
+        .crucero-details p {
+            margin: 0.5rem 0;
             opacity: 0.9;
             font-size: 1.1rem;
         }
@@ -79,67 +93,25 @@
             border-left-color: #ef4444;
         }
         
-        .cruceros-section {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             margin-bottom: 2rem;
         }
         
-        .cruceros-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         
-        .crucero-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .crucero-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .crucero-card h4 {
-            margin: 0 0 0.5rem 0;
+        .chart-title {
+            margin: 0 0 1rem 0;
             color: #1e293b;
-        }
-        
-        .crucero-card p {
-            margin: 0.25rem 0;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 0.5rem;
-        }
-        
-        .status-operativo {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .status-mantenimiento {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status-inactivo {
-            background: #fee2e2;
-            color: #991b1b;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
         
         .purchase-requests {
@@ -195,6 +167,13 @@
             font-size: 0.9rem;
         }
         
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
         .status-pending {
             background: #fef3c7;
             color: #92400e;
@@ -210,41 +189,13 @@
             color: #991b1b;
         }
         
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .quick-action-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .quick-action-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .quick-action-card h3 {
-            margin: 0 0 0.5rem 0;
-            color: #1e293b;
-        }
-        
-        .quick-action-card p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-        
         @media (max-width: 768px) {
-            .cruceros-grid {
+            .crucero-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .charts-section {
                 grid-template-columns: 1fr;
             }
             
@@ -257,7 +208,7 @@
     </style>
 </head>
 <body>
-    <div class="dashboard-admin">
+    <div class="dashboard-crucero">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -273,12 +224,12 @@
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>         
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="{% url 'dashboard' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
+                            <span class="nav-text">Dashboard General</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="{% url 'dashboard_crucero_individual' crucero.id %}" class="nav-link">
                             <span class="nav-text">Dashboard Crucero</span>
                         </a>
@@ -307,16 +258,27 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <div class="admin-header">
-                <h1 class="admin-title">Dashboard de Administración</h1>
-                <p class="admin-subtitle">Panel de control general del sistema de cruceros</p>
+            <!-- Header del Crucero -->
+            <div class="crucero-header">
+                <div class="crucero-info">
+                    {% if crucero.foto_barco %}
+                        <img src="{{ crucero.foto_barbo.url }}" alt="{{ crucero.nombre }}" class="crucero-image">
+                    {% else %}
+                        <img src="{% static 'Images/CruceroPredeterminado.png' %}" alt="Crucero" class="crucero-image">
+                    {% endif %}
+                    <div class="crucero-details">
+                        <h1>{{ crucero.nombre }}</h1>
+                        <p><strong>Código:</strong> {{ crucero.codigo_identificacion }}</p>
+                        <p><strong>Estado:</strong> {{ crucero.get_estado_operativo_display }}</p>
+                        <p><strong>Puerto Base:</strong> {{ crucero.puerto_base }}</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Estadísticas principales -->
             <div class="stats-grid">
                 <div class="stat-card success">
-                    <h3>Presupuesto Total</h3>
+                    <h3>Presupuesto Estimado</h3>
                     <p class="value">${{ presupuesto|floatformat:2 }}</p>
                 </div>
                 <div class="stat-card warning">
@@ -328,38 +290,34 @@
                     <p class="value">${{ ganancias|floatformat:2 }}</p>
                 </div>
                 <div class="stat-card">
+                    <h3>Capacidad Pasajeros</h3>
+                    <p class="value">{{ crucero.capacidad_pasajeros }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Capacidad Tripulación</h3>
+                    <p class="value">{{ crucero.capacidad_tripulacion }}</p>
+                </div>
+                <div class="stat-card">
                     <h3>Alertas Activas</h3>
                     <p class="value">{{ alertas|length }}</p>
                 </div>
             </div>
 
-            <!-- Acciones rápidas -->
-            <div class="quick-actions">
-                <div class="quick-action-card" onclick="window.location.href='{% url 'gestion_roles' %}'">
-                    <h3>👥 Gestión de Roles</h3>
-                    <p>Administrar permisos y roles de usuarios</p>
+            <!-- Sección de gráficos -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3 class="chart-title">Distribución de Costos</h3>
+                    <canvas id="costsChart" width="400" height="200"></canvas>
                 </div>
-                <div class="quick-action-card" onclick="window.location.href='{% url 'mi_perfil_roles' %}'">
-                    <h3>👤 Mi Perfil</h3>
-                    <p>Ver mis roles y permisos asignados</p>
-                </div>
-                <div class="quick-action-card" onclick="window.location.href='{% url 'gestion_crucero' crucero.id %}'">
-                    <h3>🚢 Gestión Crucero</h3>
-                    <p>Configurar y gestionar cruceros</p>
-                </div>
-            </div>
-
-            <!-- Lista de cruceros -->
-            <div class="cruceros-section">
-                <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.2rem; font-weight: 600;">Flota de Cruceros</h3>
-                <div class="cruceros-grid" id="cruceros-container">
-                    <!-- Los cruceros se cargarán dinámicamente -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Distribución de Ganancias</h3>
+                    <canvas id="earningsChart" width="400" height="200"></canvas>
                 </div>
             </div>
 
             <!-- Solicitudes de compra -->
             <div class="purchase-requests">
-                <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.2rem; font-weight: 600;">Solicitudes de Compra Pendientes</h3>
+                <h3 class="chart-title">Solicitudes de Compra Pendientes</h3>
                 <div id="purchase-requests-container">
                     <!-- Las solicitudes se cargarán dinámicamente -->
                 </div>
@@ -368,7 +326,7 @@
             <!-- Alertas -->
             {% if alertas %}
                 <div class="purchase-requests" style="margin-top: 2rem;">
-                    <h3 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.2rem; font-weight: 600;">Alertas del Sistema</h3>
+                    <h3 class="chart-title">Alertas del Sistema</h3>
                     {% for alerta in alertas %}
                         <div class="request-item">
                             <div class="request-details">
@@ -382,6 +340,7 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'Js/sidebar.js' %}"></script>
     <script>
         // Cargar datos del dashboard
@@ -389,41 +348,77 @@
             fetch('/administracion/api/cruceros-dashboard/')
                 .then(response => response.json())
                 .then(data => {
-                    renderCruceros(data.ships);
-                    renderPurchaseRequests(data.purchase_requests);
+                    const crucero = data.ships.find(ship => ship.id === {{ crucero.id }});
+                    if (crucero) {
+                        renderCharts(crucero);
+                        renderPurchaseRequests(data.purchase_requests);
+                    }
                 })
                 .catch(error => {
                     console.error('Error al cargar datos:', error);
                 });
         });
 
-        function renderCruceros(ships) {
-            const container = document.getElementById('cruceros-container');
-            container.innerHTML = ships.map(ship => `
-                <div class="crucero-card" onclick="window.location.href='/administracion/crucero/${ship.id}/'">
-                    <h4>${ship.name}</h4>
-                    <p><strong>Estado:</strong> ${ship.status}</p>
-                    <p><strong>Pasajeros:</strong> ${ship.passengers}</p>
-                    <p><strong>Tripulación:</strong> ${ship.employees.total}</p>
-                    <p><strong>Ubicación:</strong> ${ship.location}</p>
-                    <span class="status-badge status-${ship.status}">${ship.status}</span>
-                </div>
-            `).join('');
+        function renderCharts(crucero) {
+            // Gráfico de costos
+            const costsCtx = document.getElementById('costsChart').getContext('2d');
+            new Chart(costsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Combustible', 'Comida', 'Mantenimiento', 'Personal'],
+                    datasets: [{
+                        data: [
+                            crucero.costs.categories.combustible,
+                            crucero.costs.categories.comida,
+                            crucero.costs.categories.mantenimiento,
+                            crucero.costs.categories.personal
+                        ],
+                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Gráfico de ganancias
+            const earningsCtx = document.getElementById('earningsChart').getContext('2d');
+            new Chart(earningsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Boletos', 'Restaurantes', 'Bares', 'Tiendas', 'Servicios'],
+                    datasets: [{
+                        data: [
+                            crucero.earnings.categories.boletos,
+                            crucero.earnings.categories.restaurantes,
+                            crucero.earnings.categories.bares,
+                            crucero.earnings.categories.tiendas,
+                            crucero.earnings.categories.servicios
+                        ],
+                        backgroundColor: ['#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
         }
 
         function renderPurchaseRequests(requests) {
             const container = document.getElementById('purchase-requests-container');
-            const pendingRequests = requests.filter(req => req.status === 'pending');
+            const cruceroRequests = requests.filter(req => req.ship_name === '{{ crucero.nombre }}');
             
-            if (pendingRequests.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">No hay solicitudes de compra pendientes.</p>';
+            if (cruceroRequests.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 2rem;">No hay solicitudes de compra pendientes para este crucero.</p>';
                 return;
             }
 
-            container.innerHTML = pendingRequests.map(request => `
+            container.innerHTML = cruceroRequests.map(request => `
                 <div class="request-item">
                     <div class="request-details">
-                        <h4>$${request.amount.toLocaleString()} - ${request.ship_name}</h4>
+                        <h4>$${request.amount.toLocaleString()}</h4>
                         <p>${request.description}</p>
                         <p><small>Creada: ${request.created_at}</small></p>
                         <span class="status-badge status-${request.status}">${request.status}</span>

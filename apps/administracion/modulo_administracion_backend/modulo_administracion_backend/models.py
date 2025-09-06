@@ -4,12 +4,12 @@ from apps.cruceros.models import Crucero
 
 class Administracion(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='finanzas')
-    costos_totales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    ganancias_totales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    presupuesto_estimado = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    precio_combustible = models.DecimalField(max_digits=10, decimal_places=2, default=2.5)
-    num_pasajeros_actual = models.PositiveIntegerField(default=0)
-    num_empleados_actual = models.PositiveIntegerField(default=0)
+    costos_totales = models.DecimalField(max_digits=12, decimal_places=2)
+    ganancias_totales = models.DecimalField(max_digits=12, decimal_places=2)
+    presupuesto_estimado = models.DecimalField(max_digits=12, decimal_places=2)
+    precio_combustible = models.DecimalField(max_digits=10, decimal_places=2)
+    num_pasajeros_actual = models.PositiveIntegerField()
+    num_empleados_actual = models.PositiveIntegerField()
 
     # Agregar método para calcular presupuesto
     def calcular_presupuesto_estimado(self, pasajeros=None, empleados=None, dias=None, distancia=None):
