@@ -41,23 +41,23 @@
     <div class="restaurant-images-section">
         <h3>Nuestros Restaurantes</h3>
         <div class="restaurant-images-grid">
-            <div class="restaurant-image-card">
+            <a href="{% url 'restaurant:buffet' %}" class="restaurant-image-card">
                 <img src="/imagenes/Buffet.png" alt="Buffet" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
-            </div>
+            </a>
 
-            <div class="restaurant-image-card">
+            <a href="{% url 'restaurant:main_dining_room' %}" class="restaurant-image-card">
                 <img src="/imagenes/MainDiningRoom.png" alt="Main Dining Room" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
-            </div>
+            </a>
 
-            <div class="restaurant-image-card">
+            <a href="{% url 'restaurant:especialidades' %}" class="restaurant-image-card">
                 <img src="/imagenes/especialidades.png" alt="Restaurante Especializado" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 </section>
@@ -89,7 +89,7 @@ html, body {
 .restaurant-images-section{margin-top:40px}
 .restaurant-images-section h3{color:#111827;font-size:20px;margin-bottom:20px;font-weight:600}
 .restaurant-images-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
-.restaurant-image-card{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);transition:transform .3s ease,box-shadow .3s ease}
+.restaurant-image-card{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);transition:transform .3s ease,box-shadow .3s ease;text-decoration:none;color:inherit;display:block}
 .restaurant-image-card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,.18)}
 .restaurant-img{width:100%;height:180px;object-fit:cover;display:block}
 .image-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:24px;color:white}
