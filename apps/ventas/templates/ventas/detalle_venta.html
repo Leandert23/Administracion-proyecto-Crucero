@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Venta #{{ venta.id }}{% endblock %}
+{% block page_title %}Detalle de Venta #{{ venta.id }}{% endblock %}
+{% block page_subtitle %}Información completa de la venta{% endblock %}
+{% block ventas_active %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/ventas.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'ventas:editar_venta' crucero.id venta.id %}" class="btn btn-warning" style="margin-right: 10px;">
+    <i class="fas fa-edit"></i> Editar
+</a>
+<a href="{% url 'ventas:lista_ventas' crucero.id %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Volver
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Información principal de la venta -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px;">
+    <div class="form-section">
+        <h3>Información de la Venta</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <p><strong>Cliente:</strong> {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</p>
+                <p><strong>Email:</strong> {{ venta.cliente.email }}</p>
+                <p><strong>Teléfono:</strong> {{ venta.cliente.telefono|default:"No especificado" }}</p>
+            </div>
+            <div>
+                <p><strong>Tipo de Venta:</strong> 
+                    {% if venta.tipo_venta == 'reserva' %}
+                        <span class="badge primary">🛏️ Reserva de Cabina</span>
+                    {% elif venta.tipo_venta == 'restaurante' %}
+                        <span class="badge success">🍽️ Restaurante</span>
+                    {% elif venta.tipo_venta == 'bar_snack' %}
+                        <span class="badge warning">🍹 Bar/Snack</span>
+                    {% elif venta.tipo_venta == 'entretenimiento' %}
+                        <span class="badge info">🎭 Entretenimiento</span>
+                    {% else %}
+                        <span class="badge secondary">{{ venta.get_tipo_venta_display }}</span>
+                    {% endif %}
+                </p>
+                <p><strong>Estado:</strong> 
+                    {% if venta.estado == 'confirmada' %}
+                        <span class="badge success">✅ {{ venta.get_estado_display }}</span>
+                    {% elif venta.estado == 'pendiente' %}
+                        <span class="badge warning">⏰ {{ venta.get_estado_display }}</span>
+                    {% elif venta.estado == 'cancelada' %}
+                        <span class="badge danger">❌ {{ venta.get_estado_display }}</span>
+                    {% else %}
+                        <span class="badge info">ℹ️ {{ venta.get_estado_display }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <hr style="margin: 20px 0;">
+        <div>
+            <p><strong>Descripción:</strong></p>
+            <p style="color: #6c757d;">{{ venta.descripcion|linebreaks }}</p>
+        </div>
+        {% if venta.notas %}
+        <div>
+            <p><strong>Notas:</strong></p>
+            <p style="color: #6c757d;">{{ venta.notas|linebreaks }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="form-section">
+        <h3>Resumen Financiero</h3>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #28a745; margin: 0;">${{ venta.monto_total|floatformat:2 }}</h3>
+            <p style="color: #6c757d; margin: 5px 0;">Total de la Venta</p>
+        </div>
+        <hr>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <p style="margin: 0; font-weight: 600;"><strong>Fecha de Venta:</strong></p>
+                <p style="color: #6c757d; margin: 5px 0;">{{ venta.fecha_venta|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div>
+                <p style="margin: 0; font-weight: 600;"><strong>Última Modificación:</strong></p>
+                <p style="color: #6c757d; margin: 5px 0;">{{ venta.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalles de la venta -->
+<div class="form-section">
+    <h3>Detalles de la Venta</h3>
+    {% if detalles %}
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.concepto }}</td>
+                    <td style="text-align: center;">{{ detalle.cantidad }}</td>
+                    <td style="text-align: right;">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                    <td style="text-align: right; font-weight: bold;">${{ detalle.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot style="background: #f8f9fa;">
+                <tr>
+                    <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
+                    <td style="text-align: right; font-weight: bold; color: #28a745;">${{ venta.monto_total|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>No hay detalles registrados</h3>
+        <p>No hay detalles registrados para esta venta</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Historial de pagos -->
+<div class="form-section">
+    <h3>Historial de Pagos</h3>
+    {% if pagos %}
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Método de Pago</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Referencia</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
+                    <td>{{ pago.metodo_pago.nombre }}</td>
+                    <td style="text-align: right; font-weight: bold;">${{ pago.monto|floatformat:2 }}</td>
+                    <td>
+                        {% if pago.estado == 'completado' %}
+                            <span class="badge success">✅ {{ pago.get_estado_display }}</span>
+                        {% elif pago.estado == 'pendiente' %}
+                            <span class="badge warning">⏰ {{ pago.get_estado_display }}</span>
+                        {% elif pago.estado == 'fallido' %}
+                            <span class="badge danger">❌ {{ pago.get_estado_display }}</span>
+                        {% else %}
+                            <span class="badge info">ℹ️ {{ pago.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ pago.referencia|default:"-" }}</td>
+                    <td>{{ pago.notas|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-credit-card"></i>
+        <h3>No hay pagos registrados</h3>
+        <p>No hay pagos registrados para esta venta</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Ventas{% endblock %}
+{% block page_title %}Dashboard de Ventas{% endblock %}
+{% block page_subtitle %}Resumen de ventas y estadísticas del crucero{% endblock %}
+{% block ventas_active %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/ventas.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'ventas:nueva_venta' crucero.id %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Nueva Venta
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Tarjetas de estadísticas -->
+<div class="quick-cards">
+    <div class="quick-card stats-card">
+        <div class="quick-card__icon" aria-hidden="true">📅</div>
+        <div class="quick-card__body">
+            <h3 class="quick-card__title">Ventas Hoy</h3>
+            <p class="quick-card__text">${{ total_hoy|floatformat:2 }}</p>
+        </div>
+    </div>
+    
+    <div class="quick-card stats-card success">
+        <div class="quick-card__icon" aria-hidden="true">🛒</div>
+        <div class="quick-card__body">
+            <h3 class="quick-card__title">Cantidad Hoy</h3>
+            <p class="quick-card__text">{{ cantidad_hoy }}</p>
+        </div>
+    </div>
+    
+    <div class="quick-card stats-card info">
+        <div class="quick-card__icon" aria-hidden="true">📈</div>
+        <div class="quick-card__body">
+            <h3 class="quick-card__title">Ventas Semana</h3>
+            <p class="quick-card__text">${{ total_semana|floatformat:2 }}</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Acciones rápidas -->
+<div class="quick-actions">
+    <a href="{% url 'ventas:nueva_venta' crucero.id %}" class="quick-action-btn">
+        <i class="fas fa-plus"></i>
+        <span>Nueva Venta</span>
+    </a>
+    <a href="{% url 'ventas:nuevo_cliente' crucero.id %}" class="quick-action-btn">
+        <i class="fas fa-user-plus"></i>
+        <span>Nuevo Cliente</span>
+    </a>
+    <a href="{% url 'ventas:lista_ventas' crucero.id %}" class="quick-action-btn">
+        <i class="fas fa-list"></i>
+        <span>Ver Todas las Ventas</span>
+    </a>
+    <a href="{% url 'ventas:lista_clientes' crucero.id %}" class="quick-action-btn">
+        <i class="fas fa-users"></i>
+        <span>Gestionar Clientes</span>
+    </a>
+</div>
+
+<!-- Ventas por tipo -->
+<div class="form-section">
+    <h3>Ventas por Tipo</h3>
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo de Venta</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo in ventas_por_tipo %}
+                <tr>
+                    <td>
+                        {% if tipo.tipo_venta == 'reserva' %}
+                            Reserva de Cabina
+                        {% elif tipo.tipo_venta == 'restaurante' %}
+                            Restaurante
+                        {% elif tipo.tipo_venta == 'bar_snack' %}
+                            Bar/Snack
+                        {% elif tipo.tipo_venta == 'entretenimiento' %}
+                            🎭 Entretenimiento
+                        {% else %}
+                            📋 {{ tipo.tipo_venta|title }}
+                        {% endif %}
+                    </td>
+                    <td>{{ tipo.cantidad }}</td>
+                    <td>${{ tipo.total|floatformat:2 }}</td>
+                    <td>
+                        {% widthratio tipo.total total_semana 100 %}%
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No hay ventas registradas aún</h3>
+                        <p>Comienza creando tu primera venta</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Últimas ventas -->
+<div class="form-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Últimas Ventas</h3>
+        <a href="{% url 'ventas:lista_ventas' crucero.id %}" class="btn btn-primary btn-sm">
+            Ver Todas
+        </a>
+    </div>
+    <div class="data-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ultimas_ventas %}
+                <tr>
+                    <td>#{{ venta.id }}</td>
+                    <td>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</td>
+                    <td>
+                        <span class="badge primary">
+                            {{ venta.get_tipo_venta_display }}
+                        </span>
+                    </td>
+                    <td>${{ venta.monto_total|floatformat:2 }}</td>
+                    <td>
+                        {% if venta.estado == 'confirmada' %}
+                            <span class="badge success">{{ venta.get_estado_display }}</span>
+                        {% elif venta.estado == 'pendiente' %}
+                            <span class="badge warning">{{ venta.get_estado_display }}</span>
+                        {% elif venta.estado == 'cancelada' %}
+                            <span class="badge danger">{{ venta.get_estado_display }}</span>
+                        {% else %}
+                            <span class="badge info">{{ venta.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'ventas:detalle_venta' crucero.id venta.id %}" 
+                               class="btn btn-primary btn-sm" title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'ventas:editar_venta' crucero.id venta.id %}" 
+                               class="btn btn-warning btn-sm" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No hay ventas registradas aún</h3>
+                        <p>Comienza creando tu primera venta</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

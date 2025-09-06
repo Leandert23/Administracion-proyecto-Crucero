@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Venta #{{ venta.id }}{% endblock %}
+{% block page_title %}Editar Venta #{{ venta.id }}{% endblock %}
+{% block page_subtitle %}Modifica la información de la venta{% endblock %}
+{% block ventas_active %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/ventas.css' %}">
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'ventas:detalle_venta' crucero.id venta.id %}" class="btn btn-info me-2">
+    <i class="fas fa-eye"></i> Ver Detalle
+</a>
+<a href="{% url 'ventas:lista_ventas' crucero.id %}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Volver
+</a>
+{% endblock %}
+
+
+{% block content %}
+<form method="post" id="venta-form">
+    {% csrf_token %}
+    <!-- Información de la venta -->
+    <div class="form-section">
+        <h3>Información de la Venta</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="{{ form.cliente.id_for_label }}">
+                    Cliente <span class="required">*</span>
+                </label>
+                {{ form.cliente }}
+                {% if form.cliente.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                        {% for error in form.cliente.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.tipo_venta.id_for_label }}">
+                    Tipo de Venta <span class="required">*</span>
+                </label>
+                {{ form.tipo_venta }}
+                {% if form.tipo_venta.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                        {% for error in form.tipo_venta.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.estado.id_for_label }}">
+                    Estado <span class="required">*</span>
+                </label>
+                {{ form.estado }}
+                {% if form.estado.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                        {% for error in form.estado.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="monto-total-display">
+                    Monto Total
+                </label>
+                <div style="display: flex; align-items: center;">
+                    <span style="background: #f8f9fa; border: 1px solid #ced4da; border-right: none; padding: 10px; border-radius: 4px 0 0 4px;">$</span>
+                    <input type="text" id="monto-total-display" value="{{ venta.monto_total|floatformat:2 }}" readonly 
+                           style="flex: 1; border-radius: 0 4px 4px 0; border-left: none;">
+                </div>
+                <small style="color: #6c757d;">Se calcula automáticamente</small>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.descripcion.id_for_label }}">
+                Descripción <span class="required">*</span>
+            </label>
+            {{ form.descripcion }}
+            {% if form.descripcion.errors %}
+                <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                    {% for error in form.descripcion.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.notas.id_for_label }}">
+                Notas
+            </label>
+            {{ form.notas }}
+            {% if form.notas.errors %}
+                <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                    {% for error in form.notas.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Detalles de la venta -->
+    <div class="form-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Detalles de la Venta</h3>
+            <!-- No agregar botón de agregar detalle aquí, solo en nueva_venta -->
+        </div>
+        {{ formset.management_form }}
+        <div id="detalles-container">
+            {% for form in formset %}
+            <div class="detalle-row" data-form-index="{{ forloop.counter0 }}" 
+                 style="border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #f8f9fa;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div class="form-group">
+                        <label for="{{ form.concepto.id_for_label }}">
+                            Concepto <span class="required">*</span>
+                        </label>
+                        {{ form.concepto }}
+                        {% if form.concepto.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                                {% for error in form.concepto.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.cantidad.id_for_label }}">
+                            Cantidad <span class="required">*</span>
+                        </label>
+                        {{ form.cantidad }}
+                        {% if form.cantidad.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                                {% for error in form.cantidad.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.precio_unitario.id_for_label }}">
+                            Precio Unitario <span class="required">*</span>
+                        </label>
+                        <div style="display: flex; align-items: center;">
+                            <span style="background: #f8f9fa; border: 1px solid #ced4da; border-right: none; padding: 10px; border-radius: 4px 0 0 4px;">$</span>
+                            {{ form.precio_unitario }}
+                        </div>
+                        {% if form.precio_unitario.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 5px;">
+                                {% for error in form.precio_unitario.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Subtotal</label>
+                        <div style="display: flex; align-items: center;">
+                            <span style="background: #f8f9fa; border: 1px solid #ced4da; border-right: none; padding: 10px; border-radius: 4px 0 0 4px;">$</span>
+                            <input type="text" class="subtotal-display" value="0.00" readonly 
+                                   style="flex: 1; border-radius: 0 4px 4px 0; border-left: none;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {% if not forloop.first %}
+                        <button type="button" class="btn btn-danger btn-sm remove-detail" 
+                                title="Eliminar detalle">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Campos ocultos del formset -->
+                {{ form.id }}
+                {{ form.DELETE }}
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Total general -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center; min-width: 200px;">
+                <h5 style="margin: 0; color: #333;">
+                    Total: <span style="color: #28a745;" id="total-general">${{ venta.monto_total|floatformat:2 }}</span>
+                </h5>
+            </div>
+        </div>
+    </div>
+    <!-- Botones de acción -->
+    <div style="text-align: center; margin-top: 30px;">
+        <button type="submit" class="btn btn-primary btn-lg" style="margin-right: 15px;">
+            <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+        <a href="{% url 'ventas:detalle_venta' crucero.id venta.id %}" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times"></i> Cancelar
+        </a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ventas/js/ventas.js' %}"></script>
+{% endblock %}
