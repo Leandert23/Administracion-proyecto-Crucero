@@ -410,7 +410,7 @@
             if (file) {
                 // Validar formato
                 if (!file.type.match('image/jpeg')) {
-                    alert('Solo se permiten imágenes JPG');
+                    showFormErrors(['Solo se permiten imágenes en formato JPG']);
                     this.value = '';
                     preview.style.display = 'none';
                     return;
@@ -418,7 +418,7 @@
 
                 // Validar tamaño
                 if (file.size > 500 * 1024) {
-                    alert('La imagen no puede superar los 500KB');
+                    showFormErrors(['La imagen no puede superar los 500KB']);
                     this.value = '';
                     preview.style.display = 'none';
                     return;
