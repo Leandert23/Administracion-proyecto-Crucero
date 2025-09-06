@@ -31,7 +31,7 @@ urlpatterns = [
     path('reservaciones/', include('apps.reservaciones.urls')),
     path('ventas/', include('apps.ventas.urls')),
     path("compras/", include(("apps.compras.urls", "compras"), namespace="compras")),
-    path('dashboard/', include('apps.administracion.urls')),
+    path('dashboard/', include(('apps.administracion.urls', 'administracion'), namespace='administracion')),
     path("login/", LoginPersonalizado.as_view(), name="login"),
     path("logout/", logout_usuario, name="logout"),
     path('registro/', registro_usuario, name='registro'),

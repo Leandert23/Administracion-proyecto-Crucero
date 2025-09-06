@@ -1,6 +1,3 @@
-
-
-
 from django.urls import path
 
 from .views import dashboard_view, proveedores_view, eliminar_proveedor, registrar_solicitud_compra_view, lista_solicitudes_view, detalle_solicitud_view, procesar_solicitud_view, historial_compras_view, procesar_materiales_solicitud_view, compras_lote_registradas_view, detalle_compra_lote_view

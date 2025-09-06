@@ -47,11 +47,11 @@
     },
     "instalaciones": {
         "items": [
-            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 320, "cubierta": 5, "descripcion": "Buffet principal (1 de 2)"},
-            {"nombre": "Restaurante Buffet Caribe", "tipo": "restaurantes", "capacidad": 180, "cubierta": 6, "descripcion": "Segundo buffet (2 de 2)"},
-            {"nombre": "Restaurante A la Carta Marina", "tipo": "restaurantes", "capacidad": 140, "cubierta": 7, "descripcion": "Restaurante a la carta"},
-            {"nombre": "Restaurante Especialidad Fusión Asiática (Pago)", "tipo": "restaurantes", "capacidad": 90, "cubierta": 8, "descripcion": "Especialidad con cargo adicional (1 de 2)"},
-            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 80, "cubierta": 4, "descripcion": "Especialidad con cargo adicional (2 de 2)"},
+            {"nombre": "Main Dinning Room 'The Odyssey'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Italiano 'L'odissea della Toscana'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Árabe 'Odessa Al-Bahr'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'El navegante'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'Odyssey Café'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
             {"nombre": "Bar Panorama", "tipo": "bares_cafes", "capacidad": 120, "cubierta": 6},
             {"nombre": "Bar Piscina", "tipo": "bares_cafes", "capacidad": 70, "cubierta": 9, "descripcion": "Bar de apoyo a piscina"},
             {"nombre": "Café Promenade", "tipo": "bares_cafes", "capacidad": 60, "cubierta": 4, "descripcion": "Café y bollería"},
