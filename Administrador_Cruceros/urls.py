@@ -20,20 +20,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.administracion.views import LoginPersonalizado,logout_usuario, registro_usuario
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.cruceros.urls')),
     path('almacen/', include('apps.almacen.urls')),
     path('entretenimiento/', include('apps.entretenimiento.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),  
+    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),
     path('reservaciones/', include('apps.reservaciones.urls')),
     path('ventas/', include('apps.ventas.urls')),
     path('dashboard/', include('apps.administracion.urls')),
-    path("login/", LoginPersonalizado.as_view(), name="login"),
-    path("logout/", logout_usuario, name="logout"),
-    path('registro/', registro_usuario, name='registro'),
     path('servicio-medico/', include('apps.servicio_medico.urls')),
 ]
 

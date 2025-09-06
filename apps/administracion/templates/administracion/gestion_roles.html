@@ -1,184 +1,351 @@
-{% extends 'base.html' %}
+{% extends 'administracion/base.html' %}
+{% load static %}
 
 {% block title %}Gestión de Roles - Administración{% endblock %}
 
-{% block page_title %}Gestión de Roles{% endblock %}
+{% block page_title %}Gestión de Roles y Permisos{% endblock %}
 
-{% block page_actions %}
-  <div class="btn-group" role="group">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#asignarRolModal">
-      <i class="fas fa-user-plus"></i> Asignar Rol
-    </button>
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearRolModal">
-      <i class="fas fa-plus"></i> Crear Rol
-    </button>
-  </div>
+{% block page_subtitle %}Administrar roles, módulos y asignaciones de permisos{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Gestión de Roles</li>
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-      <!-- Módulos -->
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Módulos del Sistema</h5>
-          </div>
-          <div class="card-body">
-            {% for modulo in modulos %}
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>{{ modulo.nombre }}</span>
-                <span class="badge bg-{% if modulo.activo %}success{% else %}secondary{% endif %}">
-                  {% if modulo.activo %}Activo{% else %}Inactivo{% endif %}
-                </span>
-              </div>
-            {% empty %}
-              <p class="text-muted">No hay módulos registrados.</p>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Roles -->
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Roles Disponibles</h5>
-          </div>
-          <div class="card-body">
-            {% for rol in roles %}
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                  <strong>{{ rol.nombre }}</strong>
-                  <br>
-                  <small class="text-muted">{{ rol.modulo.nombre }} - {{ rol.get_tipo_display }}</small>
+<div class="roles-management">
+    <!-- Estadísticas de roles -->
+    <div class="stats-section">
+        <h2 class="section-title">Estadísticas de Roles</h2>
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ modulos|length }}</div>
+                        <div class="stats-label">Módulos del Sistema</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
                 </div>
-                <span class="badge bg-{% if rol.activo %}primary{% else %}secondary{% endif %}">
-                  {% if rol.activo %}Activo{% else %}Inactivo{% endif %}
-                </span>
-              </div>
-            {% empty %}
-              <p class="text-muted">No hay roles registrados.</p>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Usuarios con Roles -->
-      <div class="col-md-4">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">Asignaciones de Roles</h5>
-          </div>
-          <div class="card-body">
-            {% for usuario_rol in usuarios_roles %}
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                  <strong>{{ usuario_rol.usuario.username }}</strong>
-                  <br>
-                  <small class="text-muted">{{ usuario_rol.rol.nombre }} ({{ usuario_rol.rol.modulo.nombre }})</small>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ roles|length }}</div>
+                        <div class="stats-label">Roles Configurados</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
                 </div>
-                <span class="badge bg-{% if usuario_rol.esta_activo %}success{% else %}danger{% endif %}">
-                  {% if usuario_rol.esta_activo %}Activo{% else %}Inactivo{% endif %}
-                </span>
-              </div>
-            {% empty %}
-              <p class="text-muted">No hay asignaciones de roles.</p>
-            {% endfor %}
-          </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ usuarios_roles|length }}</div>
+                        <div class="stats-label">Asignaciones Activas</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ usuarios|length }}</div>
+                        <div class="stats-label">Usuarios Registrados</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-    
-    <!-- Modal para Asignar Rol -->
-    <div class="modal fade" id="asignarRolModal" tabindex="-1">
-      <div class="modal-dialog">
+
+    <!-- Acciones principales -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">Gestión de Roles</h2>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#asignarRolModal">
+                <i class="fas fa-user-plus me-2"></i>Asignar Rol
+            </button>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearRolModal">
+                <i class="fas fa-plus me-2"></i>Crear Rol
+            </button>
+        </div>
+    </div>
+
+    <!-- Módulos, Roles y Asignaciones -->
+    <div class="roles-grid">
+        <!-- Módulos del Sistema -->
+        <div class="role-card">
+            <div class="role-header">
+                <h5 class="role-title">Módulos del Sistema</h5>
+                <span class="badge bg-primary">{{ modulos|length }}</span>
+            </div>
+            <div class="role-content">
+                {% for modulo in modulos %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ modulo.nombre }}</strong>
+                            {% if modulo.descripcion %}
+                                <br>
+                                <small class="text-muted">{{ modulo.descripcion }}</small>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-{% if modulo.activo %}success{% else %}secondary{% endif %}">
+                            {% if modulo.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-3">No hay módulos registrados.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Roles Disponibles -->
+        <div class="role-card">
+            <div class="role-header">
+                <h5 class="role-title">Roles Disponibles</h5>
+                <span class="badge bg-info">{{ roles|length }}</span>
+            </div>
+            <div class="role-content">
+                {% for rol in roles %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ rol.nombre }}</strong>
+                            <br>
+                            <small class="text-muted">{{ rol.modulo.nombre }} - {{ rol.get_tipo_display }}</small>
+                        </div>
+                        <span class="badge bg-{% if rol.activo %}primary{% else %}secondary{% endif %}">
+                            {% if rol.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-3">No hay roles registrados.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Asignaciones de Roles -->
+        <div class="role-card">
+            <div class="role-header">
+                <h5 class="role-title">Asignaciones de Roles</h5>
+                <span class="badge bg-warning">{{ usuarios_roles|length }}</span>
+            </div>
+            <div class="role-content">
+                {% for usuario_rol in usuarios_roles %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ usuario_rol.usuario.username }}</strong>
+                            <br>
+                            <small class="text-muted">{{ usuario_rol.rol.nombre }} ({{ usuario_rol.rol.modulo.nombre }})</small>
+                        </div>
+                        <span class="badge bg-{% if usuario_rol.esta_activo %}success{% else %}danger{% endif %}">
+                            {% if usuario_rol.esta_activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-3">No hay asignaciones de roles.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Asignar Rol -->
+<div class="modal fade" id="asignarRolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Asignar Rol a Usuario</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <form method="post" action="{% url 'gestion_roles' %}">
-            {% csrf_token %}
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="usuario" class="form-label">Usuario</label>
-                <select class="form-select" id="usuario" name="usuario" required>
-                  <option value="">Seleccionar usuario...</option>
-                  {% for usuario in usuarios %}
-                    <option value="{{ usuario.id }}">{{ usuario.username }} </option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="rol" class="form-label">Rol</label>
-                <select class="form-select" id="rol" name="rol" required>
-                  <option value="">Seleccionar rol...</option>
-                  {% for rol in roles %}
-                    <option value="{{ rol.id }}">{{ rol.nombre }} ({{ rol.modulo.nombre }})</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="fecha_expiracion" class="form-label">Fecha de Expiración (Opcional)</label>
-                <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion">
-              </div>
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Asignar Rol a Usuario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Asignar Rol</button>
-            </div>
-          </form>
+            <form method="post" action="{% url 'gestion_roles' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="usuario" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Usuario
+                                </label>
+                                <select class="form-select" id="usuario" name="usuario" required>
+                                    <option value="">Seleccionar usuario...</option>
+                                    {% for usuario in usuarios %}
+                                        <option value="{{ usuario.id }}">{{ usuario.username }}
+                                            {% if usuario.get_full_name %} - {{ usuario.get_full_name }}{% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="rol" class="form-label">
+                                    <i class="fas fa-users-cog me-2"></i>Rol
+                                </label>
+                                <select class="form-select" id="rol" name="rol" required>
+                                    <option value="">Seleccionar rol...</option>
+                                    {% for rol in roles %}
+                                        <option value="{{ rol.id }}">{{ rol.nombre }} ({{ rol.modulo.nombre }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_expiracion" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i>Fecha de Expiración (Opcional)
+                        </label>
+                        <input type="date" class="form-control" id="fecha_expiracion" name="fecha_expiracion">
+                        <div class="form-text">Si no se especifica, el rol no expirará.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Asignar Rol
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>
     </div>
-    
-    <!-- Modal para Crear Rol -->
-    <div class="modal fade" id="crearRolModal" tabindex="-1">
-      <div class="modal-dialog">
+</div>
+
+<!-- Modal para Crear Rol -->
+<div class="modal fade" id="crearRolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Crear Nuevo Rol</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <form method="post" action="{% url 'gestion_roles' %}">
-            {% csrf_token %}
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="nombre_rol" class="form-label">Nombre del Rol</label>
-                <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" required>
-              </div>
-              <div class="mb-3">
-                <label for="modulo_rol" class="form-label">Módulo</label>
-                <select class="form-select" id="modulo_rol" name="modulo_rol" required>
-                  <option value="">Seleccionar módulo...</option>
-                  {% for modulo in modulos %}
-                    <option value="{{ modulo.id }}">{{ modulo.nombre }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="tipo_rol" class="form-label">Tipo de Rol</label>
-                <select class="form-select" id="tipo_rol" name="tipo_rol" required>
-                  <option value="">Seleccionar tipo...</option>
-                  <option value="admin">Administrador</option>
-                  <option value="editor">Editor</option>
-                  <option value="lector">Lector</option>
-                  <option value="especialista">Especialista</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="descripcion_rol" class="form-label">Descripción</label>
-                <textarea class="form-control" id="descripcion_rol" name="descripcion_rol" rows="3"></textarea>
-              </div>
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Crear Nuevo Rol
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-success">Crear Rol</button>
-            </div>
-          </form>
+            <form method="post" action="{% url 'gestion_roles' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nombre_rol" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Nombre del Rol
+                                </label>
+                                <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" required
+                                       placeholder="Ej: Administrador, Editor, etc.">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="modulo_rol" class="form-label">
+                                    <i class="fas fa-cubes me-2"></i>Módulo
+                                </label>
+                                <select class="form-select" id="modulo_rol" name="modulo_rol" required>
+                                    <option value="">Seleccionar módulo...</option>
+                                    {% for modulo in modulos %}
+                                        <option value="{{ modulo.id }}">{{ modulo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo_rol" class="form-label">
+                            <i class="fas fa-layer-group me-2"></i>Tipo de Rol
+                        </label>
+                        <select class="form-select" id="tipo_rol" name="tipo_rol" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="admin">Administrador - Control total del módulo</option>
+                            <option value="editor">Editor - Puede crear y modificar contenido</option>
+                            <option value="lector">Lector - Solo lectura del contenido</option>
+                            <option value="especialista">Especialista - Acceso especializado a funciones específicas</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion_rol" class="form-label">
+                            <i class="fas fa-align-left me-2"></i>Descripción
+                        </label>
+                        <textarea class="form-control" id="descripcion_rol" name="descripcion_rol" rows="3"
+                                  placeholder="Describe las funciones y responsabilidades de este rol..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Crear Rol
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>
     </div>
-    
-  
+</div>
+
+<style>
+.role-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.role-badge.admin {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+}
+
+.role-badge.editor {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: white;
+}
+
+.role-badge.lector {
+    background: linear-gradient(135deg, #0369a1, #0284c7);
+    color: white;
+}
+
+.role-badge.especialista {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funcionalidad adicional para la gestión de roles
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar el selector de roles cuando cambia el módulo
+    document.getElementById('modulo_rol').addEventListener('change', function() {
+        const moduloId = this.value;
+        const rolSelect = document.getElementById('rol');
+
+        // Aquí se podría hacer una petición AJAX para filtrar roles por módulo
+        // Por ahora, solo limpiamos la selección
+        if (moduloId) {
+            rolSelect.value = '';
+        }
+    });
+
+    // Validación adicional para fechas
+    document.getElementById('fecha_expiracion').addEventListener('change', function() {
+        const fechaSeleccionada = new Date(this.value);
+        const hoy = new Date();
+
+        if (fechaSeleccionada < hoy) {
+            mostrarMensaje('warning', 'La fecha de expiración debe ser futura.');
+            this.value = '';
+        }
+    });
+});
+</script>
 {% endblock %}

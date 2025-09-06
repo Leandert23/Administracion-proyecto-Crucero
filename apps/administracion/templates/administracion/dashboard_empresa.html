@@ -1,0 +1,432 @@
+{% extends 'administracion/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Empresa - Administración{% endblock %}
+
+{% block page_title %}Dashboard de la Empresa{% endblock %}
+
+{% block page_subtitle %}Vista general de todos los cruceros y operaciones{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Empresa</li>
+{% endblock %}
+
+{% block content %}
+<div class="empresa-dashboard">
+    <!-- Estadísticas generales de la empresa -->
+    <div class="stats-section">
+        <h2 class="section-title">Estadísticas Generales</h2>
+        <div class="stats-grid">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ total_cruceros }}</div>
+                        <div class="stats-label">Total Cruceros</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-ship"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ cruceros_activos }}</div>
+                        <div class="stats-label">Cruceros Activos</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ total_cruceros|add:cruceros_activos|sub:total_cruceros }}</div>
+                        <div class="stats-label">En Mantenimiento</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stats-number">{{ total_usuarios }}</div>
+                        <div class="stats-label">Usuarios Activos</div>
+                    </div>
+                    <div class="stats-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cruceros de la empresa -->
+    <div class="cruceros-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">Flota de Cruceros</h2>
+            <div class="btn-group">
+                <button class="btn btn-outline-primary" onclick="filtrarCruceros('todos')">
+                    <i class="fas fa-list me-1"></i>Todos
+                </button>
+                <button class="btn btn-outline-success" onclick="filtrarCruceros('activo')">
+                    <i class="fas fa-play-circle me-1"></i>Activos
+                </button>
+                <button class="btn btn-outline-warning" onclick="filtrarCruceros('mantenimiento')">
+                    <i class="fas fa-tools me-1"></i>Mantenimiento
+                </button>
+            </div>
+        </div>
+
+        <div class="cruceros-grid">
+            {% for crucero in cruceros %}
+            <div class="crucero-card" data-estado="{{ crucero.estado_operativo }}">
+                <div class="crucero-header">
+                    <div class="crucero-image">
+                        {% if crucero.foto_barco %}
+                            <img src="{{ crucero.foto_barco.url }}" alt="{{ crucero.nombre }}" class="img-fluid">
+                        {% else %}
+                            <div class="no-image">
+                                <i class="fas fa-ship"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="crucero-status">
+                        <span class="badge bg-{% if crucero.estado_operativo == 'activo' %}success{% elif crucero.estado_operativo == 'mantenimiento' %}warning{% else %}danger{% endif %}">
+                            {{ crucero.get_estado_operativo_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="crucero-body">
+                    <h5 class="crucero-title">{{ crucero.nombre }}</h5>
+                    <p class="crucero-code">{{ crucero.codigo_identificacion }}</p>
+
+                    <div class="crucero-specs">
+                        <div class="spec">
+                            <i class="fas fa-users"></i>
+                            <span>{{ crucero.capacidad_pasajeros }} pax</span>
+                        </div>
+                        <div class="spec">
+                            <i class="fas fa-ruler-combined"></i>
+                            <span>{{ crucero.eslora }}m</span>
+                        </div>
+                        <div class="spec">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>{{ crucero.tonelaje }}t</span>
+                        </div>
+                    </div>
+
+                    <div class="crucero-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ crucero.puerto_base }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-flag"></i>
+                            <span>{{ crucero.bandera }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crucero-footer">
+                    <a href="{% url 'dashboard_crucero' crucero_id=crucero.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>Ver Dashboard
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="verDetalles({{ crucero.id }})">
+                        <i class="fas fa-info-circle me-1"></i>Detalles
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-cruceros">
+                <i class="fas fa-ship"></i>
+                <h4>No hay cruceros registrados</h4>
+                <p>La flota de cruceros aparecerá aquí cuando se registren.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions-section">
+        <h2 class="section-title">Acciones Rápidas</h2>
+        <div class="quick-actions">
+            <a href="/admin/" class="action-card" target="_blank">
+                <div class="action-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="action-title">Agregar Crucero</div>
+                <div class="action-description">Registrar un nuevo crucero en la flota</div>
+            </a>
+
+            <a href="/admin/" class="action-card" target="_blank">
+                <div class="action-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="action-title">Crear Ruta</div>
+                <div class="action-description">Planificar nuevas rutas de navegación</div>
+            </a>
+
+            <a href="{% url 'gestion_roles' %}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-users-cog"></i>
+                </div>
+                <div class="action-title">Gestionar Roles</div>
+                <div class="action-description">Administrar permisos y roles de usuarios</div>
+            </a>
+
+            <a href="/admin/" class="action-card" target="_blank">
+                <div class="action-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="action-title">Administración</div>
+                <div class="action-description">Panel completo de administración de Django</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.empresa-dashboard {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.cruceros-section {
+    margin-bottom: 3rem;
+}
+
+.cruceros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.crucero-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.crucero-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.crucero-header {
+    position: relative;
+    height: 150px;
+    overflow: hidden;
+}
+
+.crucero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #94a3b8;
+}
+
+.crucero-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.crucero-body {
+    padding: 1.5rem;
+}
+
+.crucero-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.crucero-code {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.crucero-specs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.spec {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.spec i {
+    color: #3b82f6;
+}
+
+.crucero-info {
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.info-item i {
+    color: #10b981;
+    width: 16px;
+}
+
+.crucero-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-cruceros {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #64748b;
+}
+
+.no-cruceros i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.quick-actions-section {
+    margin-top: 3rem;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.action-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+}
+
+.action-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.action-description {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .cruceros-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .crucero-specs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .crucero-footer {
+        flex-direction: column;
+    }
+
+    .crucero-footer .btn {
+        width: 100%;
+    }
+}
+</style>
+
+{% block extra_js %}
+<script>
+function filtrarCruceros(estado) {
+    const cards = document.querySelectorAll('.crucero-card');
+
+    cards.forEach(card => {
+        if (estado === 'todos') {
+            card.style.display = 'block';
+        } else {
+            card.style.display = card.dataset.estado === estado ? 'block' : 'none';
+        }
+    });
+
+    // Actualizar botones activos
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    event.target.classList.add('active');
+}
+
+function verDetalles(cruceroId) {
+    // Aquí se podría abrir un modal con más detalles del crucero
+    mostrarMensaje('info', 'Funcionalidad de detalles próximamente disponible.');
+}
+</script>
+{% endblock %}
+{% endblock %}
