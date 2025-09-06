@@ -1,0 +1,356 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - {{ crucero.nombre }}</title>
+    <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
+    <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
+    <link rel="stylesheet" href="{% static 'administracion/css/administracion.css' %}">
+</head>
+<body>
+    <div id="administracion-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Gestión Crucero</span>
+                        </a>
+                    </li>
+                    {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
+                    <li class="nav-item">
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Administración</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Administración</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">Reportes del Sistema</h1>
+                    <p class="page-subtitle">Genera y gestiona reportes del sistema</p>
+                </div>
+                <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <a href="{% url 'administracion:dashboard' crucero.id %}" class="btn btn-secondary">
+                        ← Volver al Dashboard
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Generar nuevo reporte -->
+                <div class="form-section">
+                    <h3>Generar Nuevo Reporte</h3>
+                    <form method="post" class="form-container">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="nombre_reporte" class="form-label">Nombre del Reporte</label>
+                            <input type="text" id="nombre_reporte" name="nombre_reporte" class="form-input" placeholder="Ej: Reporte de Ventas Mensual" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tipo_reporte" class="form-label">Tipo de Reporte</label>
+                            <select id="tipo_reporte" name="tipo_reporte" class="form-select" required>
+                                <option value="">Selecciona un tipo</option>
+                                {% for value, label in tipos_reporte %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="formato" class="form-label">Formato</label>
+                            <select id="formato" name="formato" class="form-select">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-export"></i> Generar Reporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Reportes generados -->
+                <div class="inventory-container no-shadow" style="margin-top:20px;">
+                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">
+                        Reportes Generados
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha Generación</th>
+                                    <th>Usuario</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reporte in reportes_generados %}
+                                <tr>
+                                    <td>{{ reporte.nombre }}</td>
+                                    <td>
+                                        <span class="badge primary">
+                                            {{ reporte.get_tipo_reporte_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ reporte.fecha_generacion|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ reporte.usuario.username|default:"Usuario Anónimo" }}</td>
+                                    <td>
+                                        {% if reporte.archivo_generado %}
+                                            <span class="badge success">Completado</span>
+                                        {% else %}
+                                            <span class="badge warning">En Proceso</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            {% if reporte.archivo_generado %}
+                                            <button class="btn btn-primary btn-sm" title="Descargar">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-info btn-sm" title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <h3>No hay reportes generados</h3>
+                                        <p>Los reportes generados aparecerán aquí</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tipos de reportes disponibles -->
+                <div class="form-section" style="margin-top: 30px;">
+                    <h3>Tipos de Reportes Disponibles</h3>
+                    <div class="quick-cards">
+                        <div class="quick-card">
+                            <div class="quick-card__icon" aria-hidden="true">🛒</div>
+                            <div class="quick-card__body">
+                                <h3 class="quick-card__title">Reporte de Ventas</h3>
+                                <p class="quick-card__text">Análisis detallado de ventas por período</p>
+                            </div>
+                        </div>
+                        <div class="quick-card">
+                            <div class="quick-card__icon" aria-hidden="true">📦</div>
+                            <div class="quick-card__body">
+                                <h3 class="quick-card__title">Reporte de Inventario</h3>
+                                <p class="quick-card__text">Estado actual del inventario y movimientos</p>
+                            </div>
+                        </div>
+                        <div class="quick-card">
+                            <div class="quick-card__icon" aria-hidden="true">👥</div>
+                            <div class="quick-card__body">
+                                <h3 class="quick-card__title">Reporte de Usuarios</h3>
+                                <p class="quick-card__text">Actividad y estadísticas de usuarios</p>
+                            </div>
+                        </div>
+                        <div class="quick-card">
+                            <div class="quick-card__icon" aria-hidden="true">📋</div>
+                            <div class="quick-card__body">
+                                <h3 class="quick-card__title">Reporte de Actividades</h3>
+                                <p class="quick-card__text">Log de actividades del sistema</p>
+                            </div>
+                        </div>
+                        <div class="quick-card">
+                            <div class="quick-card__icon" aria-hidden="true">💰</div>
+                            <div class="quick-card__body">
+                                <h3 class="quick-card__title">Reporte Financiero</h3>
+                                <p class="quick-card__text">Análisis financiero completo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'Js/sidebar.js' %}"></script>
+    <script>
+    (function(){
+        // Mostrar alert en módulos inactivos
+        var inactivos = document.querySelectorAll('.modulo-inactivo');
+        if(inactivos && inactivos.length){
+            var mensaje = 'Los módulos se encuentran inactivos porque el crucero no tiene una ruta asignada. Asigne una ruta desde Gestión Crucero.';
+            inactivos.forEach(function(a){
+                a.addEventListener('click', function(e){
+                    e.preventDefault();
+                    alert(mensaje);
+                });
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

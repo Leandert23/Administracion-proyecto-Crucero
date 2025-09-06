@@ -5,20 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
+    <title>Logs de Actividad - {{ crucero.nombre }}</title>
     <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
+    <link rel="stylesheet" href="{% static 'administracion/css/administracion.css' %}">
 </head>
 <body>
-    <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
+    <div id="administracion-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
                     <span class="logo-text">Panel de Control</span>
                 </div>
             </div>
@@ -35,7 +32,6 @@
                             <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
-                    {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
                     {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
                     <li class="nav-item">
                         <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
@@ -67,7 +63,7 @@
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
@@ -87,13 +83,12 @@
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
                             <span class="nav-text">Administración</span>
                         </a>
                     </li>
                     {% else %}
-                    {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
                             <span class="nav-text">Entretenimiento</span>
@@ -124,7 +119,7 @@
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
                             <span class="nav-text">Almacen</span>
                         </a>
@@ -144,7 +139,7 @@
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
                             <span class="nav-text">Administración</span>
                         </a>
@@ -171,80 +166,135 @@
                         <span></span>
                         <span></span>
                     </button>
-                    <h1 class="page-title">Almacén</h1>
-                    <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
+                    <h1 class="page-title">Logs de Actividad</h1>
+                    <p class="page-subtitle">Historial de actividades del sistema</p>
                 </div>
                 <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <a href="{% url 'administracion:dashboard' crucero.id %}" class="btn btn-secondary">
+                        ← Volver al Dashboard
+                    </a>
                 </div>
             </header>
 
             <!-- Dashboard Content -->
             <div class="dashboard-content">
-                <!-- Tarjetas resumen superiores -->
-                <div class="quick-cards">
-                    <div class="quick-card" id="inventario-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Inventario</h3>
-                            <p class="quick-card__text">Maneja el inventario general</p>
+                <!-- Filtros -->
+                <div class="form-section">
+                    <h3>Filtros</h3>
+                    <form method="get" class="form-inline">
+                        <div class="form-group">
+                            <label for="tipo_actividad" class="form-label">Tipo de Actividad</label>
+                            <select id="tipo_actividad" name="tipo_actividad" class="form-select">
+                                <option value="">Todos</option>
+                                {% for value, label in tipos_actividad %}
+                                <option value="{{ value }}" {% if filtros.tipo_actividad == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
-                    </div>
-                    <div class="quick-card" id="entrada-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Entrada de Lote</h3>
-                            <p class="quick-card__text">Registrar manualmente la entrada de un lote</p>
+                        
+                        <div class="form-group">
+                            <label for="modulo" class="form-label">Módulo</label>
+                            <input type="text" id="modulo" name="modulo" value="{{ filtros.modulo }}" class="form-input" placeholder="Ej: ventas, almacen">
                         </div>
-                    </div>
-                    <div class="quick-card" id="salida-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Salida de producto</h3>
-                            <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
+                        
+                        <div class="form-group">
+                            <label for="usuario" class="form-label">Usuario</label>
+                            <input type="text" id="usuario" name="usuario" value="{{ filtros.usuario }}" class="form-input" placeholder="Nombre de usuario">
                         </div>
-                    </div>
-                    <div class="quick-card" id="historial-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Historial de Movimientos</h3>
-                            <p class="quick-card__text">Ver historial de entradas y salidas</p>
+                        
+                        <div class="form-group">
+                            <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ filtros.fecha_inicio }}" class="form-input">
                         </div>
-                    </div>
-                    <div class="quick-card" id="reportes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Reportes de Mermas</h3>
-                            <p class="quick-card__text">Reportar algún daño a productos</p>
+                        
+                        <div class="form-group">
+                            <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" value="{{ filtros.fecha_fin }}" class="form-input">
                         </div>
-                    </div>
-                </div> <!-- quick-cards -->
-                <div id="contenedor-ordenes-compra" class="inventory-container no-shadow" style="margin-top:10px;">
-                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">Lotes Pendientes por Registrar</h3>
-                    <div class="table-container" id="tabla-ordenes-compra-wrapper"></div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="{% url 'administracion:logs' crucero.id %}" class="btn btn-secondary">
+                                Limpiar Filtros
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </div> <!-- dashboard-content -->
+
+                <!-- Tabla de logs -->
+                <div class="inventory-container no-shadow" style="margin-top:20px;">
+                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">
+                        Logs de Actividad ({{ page_obj.paginator.count }} registros)
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Usuario</th>
+                                    <th>Tipo</th>
+                                    <th>Módulo</th>
+                                    <th>Descripción</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in page_obj %}
+                                <tr>
+                                    <td>{{ log.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+                                    <td>{{ log.usuario.username|default:"Usuario Anónimo" }}</td>
+                                    <td>
+                                        <span class="badge primary">
+                                            {{ log.get_tipo_actividad_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.modulo|title }}</td>
+                                    <td>{{ log.descripcion }}</td>
+                                    <td>{{ log.ip_address|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <h3>No hay logs disponibles</h3>
+                                        <p>Los logs de actividad aparecerán aquí</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">
+                            ← Anterior
+                        </a>
+                        {% endif %}
+                        
+                        <span class="pagination-info">
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">
+                            Siguiente →
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </main>
-    </div> <!-- dashboard-container -->
-
-    <!-- MODALES OCULTAS -->
-    
-    {% include 'Modals/inventario.html' %}
-    {% include 'Modals/historial.html' %}
-    {% include 'Modals/creacion_producto.html' %}
-    {% include 'Modals/entrada_lote.html' %}
-    {% include 'Modals/salida_producto.html' %}
-    {% include 'Modals/registro_merma.html' %}
-    {% include 'Modals/lotes_de_producto.html' %}
-
+    </div>
 
     <script src="{% static 'Js/sidebar.js' %}"></script>
-    <script src="{% static 'Js/inventario.js' %}"></script>
-    <script src="{% static 'Js/historial.js' %}"></script>
-    <script src="{% static 'Js/forms_manager.js' %}"></script>
-    <script src="{% static 'Js/lotes.js' %}"></script>
-    <script src="{% static 'Js/modals_manager.js' %}"></script>
-    <script src="{% static 'Js/busqueda_producto.js' %}"></script>
-    <script src="{% static 'Js/init_almacen.js' %}"></script>
     <script>
     (function(){
         // Mostrar alert en módulos inactivos

@@ -5,20 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
+    <title>Respaldos - {{ crucero.nombre }}</title>
     <link rel="stylesheet" href="{% static 'Css/almacen.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/inventario_modal.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
-    <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
+    <link rel="stylesheet" href="{% static 'administracion/css/administracion.css' %}">
 </head>
 <body>
-    <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
+    <div id="administracion-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
                     <span class="logo-text">Panel de Control</span>
                 </div>
             </div>
@@ -35,7 +32,6 @@
                             <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
-                    {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
                     {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
                     <li class="nav-item">
                         <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
@@ -67,7 +63,7 @@
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
@@ -87,13 +83,12 @@
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
                             <span class="nav-text">Administración</span>
                         </a>
                     </li>
                     {% else %}
-                    {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
                             <span class="nav-text">Entretenimiento</span>
@@ -124,7 +119,7 @@
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
                             <span class="nav-text">Almacen</span>
                         </a>
@@ -144,7 +139,7 @@
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
                             <span class="nav-text">Administración</span>
                         </a>
@@ -171,80 +166,131 @@
                         <span></span>
                         <span></span>
                     </button>
-                    <h1 class="page-title">Almacén</h1>
-                    <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
+                    <h1 class="page-title">Respaldos del Sistema</h1>
+                    <p class="page-subtitle">Gestiona los respaldos de seguridad del sistema</p>
                 </div>
                 <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <a href="{% url 'administracion:dashboard' crucero.id %}" class="btn btn-secondary">
+                        ← Volver al Dashboard
+                    </a>
                 </div>
             </header>
 
             <!-- Dashboard Content -->
             <div class="dashboard-content">
-                <!-- Tarjetas resumen superiores -->
-                <div class="quick-cards">
-                    <div class="quick-card" id="inventario-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Inventario</h3>
-                            <p class="quick-card__text">Maneja el inventario general</p>
+                <!-- Crear nuevo respaldo -->
+                <div class="form-section">
+                    <h3>Crear Nuevo Respaldo</h3>
+                    <form method="post" class="form-inline">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="form-label">Descripción del respaldo</label>
+                            <input type="text" name="descripcion" class="form-input" placeholder="Ej: Respaldo semanal del sistema" required>
                         </div>
-                    </div>
-                    <div class="quick-card" id="entrada-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Entrada de Lote</h3>
-                            <p class="quick-card__text">Registrar manualmente la entrada de un lote</p>
+                        <div class="form-actions">
+                            <button type="submit" name="crear_backup" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Crear Respaldo
+                            </button>
                         </div>
-                    </div>
-                    <div class="quick-card" id="salida-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Salida de producto</h3>
-                            <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
-                        </div>
-                    </div>
-                    <div class="quick-card" id="historial-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Historial de Movimientos</h3>
-                            <p class="quick-card__text">Ver historial de entradas y salidas</p>
-                        </div>
-                    </div>
-                    <div class="quick-card" id="reportes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Reportes de Mermas</h3>
-                            <p class="quick-card__text">Reportar algún daño a productos</p>
-                        </div>
-                    </div>
-                </div> <!-- quick-cards -->
-                <div id="contenedor-ordenes-compra" class="inventory-container no-shadow" style="margin-top:10px;">
-                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">Lotes Pendientes por Registrar</h3>
-                    <div class="table-container" id="tabla-ordenes-compra-wrapper"></div>
+                    </form>
                 </div>
-            </div> <!-- dashboard-content -->
+
+                <!-- Lista de respaldos -->
+                <div class="inventory-container no-shadow" style="margin-top:20px;">
+                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">
+                        Historial de Respaldos
+                    </h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Archivo</th>
+                                    <th>Estado</th>
+                                    <th>Tamaño</th>
+                                    <th>Fecha Creación</th>
+                                    <th>Usuario</th>
+                                    <th>Descripción</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in respaldos %}
+                                <tr>
+                                    <td>{{ backup.nombre_archivo }}</td>
+                                    <td>
+                                        {% if backup.estado == 'completado' %}
+                                            <span class="badge success">{{ backup.get_estado_display }}</span>
+                                        {% elif backup.estado == 'en_proceso' %}
+                                            <span class="badge warning">{{ backup.get_estado_display }}</span>
+                                        {% elif backup.estado == 'fallido' %}
+                                            <span class="badge danger">{{ backup.get_estado_display }}</span>
+                                        {% else %}
+                                            <span class="badge info">{{ backup.get_estado_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if backup.tamaño_archivo > 0 %}
+                                            {{ backup.tamaño_archivo|filesizeformat }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ backup.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ backup.usuario.username|default:"Usuario Anónimo" }}</td>
+                                    <td>{{ backup.descripcion|truncatechars:50 }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            {% if backup.estado == 'completado' %}
+                                            <button class="btn btn-primary btn-sm" title="Descargar">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-danger btn-sm" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="empty-state">
+                                        <i class="fas fa-database"></i>
+                                        <h3>No hay respaldos disponibles</h3>
+                                        <p>Crea tu primer respaldo del sistema</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Información sobre respaldos -->
+                <div class="form-section" style="margin-top: 30px;">
+                    <h3>Información sobre Respaldos</h3>
+                    <div class="info-box">
+                        <h4>¿Qué incluye un respaldo?</h4>
+                        <ul>
+                            <li>Base de datos completa del sistema</li>
+                            <li>Configuraciones del crucero</li>
+                            <li>Datos de inventario y ventas</li>
+                            <li>Logs de actividad</li>
+                        </ul>
+                        
+                        <h4>Recomendaciones:</h4>
+                        <ul>
+                            <li>Realiza respaldos regulares (semanalmente)</li>
+                            <li>Guarda los respaldos en ubicaciones seguras</li>
+                            <li>Verifica la integridad de los respaldos</li>
+                            <li>Mantén al menos 3 respaldos recientes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </main>
-    </div> <!-- dashboard-container -->
-
-    <!-- MODALES OCULTAS -->
-    
-    {% include 'Modals/inventario.html' %}
-    {% include 'Modals/historial.html' %}
-    {% include 'Modals/creacion_producto.html' %}
-    {% include 'Modals/entrada_lote.html' %}
-    {% include 'Modals/salida_producto.html' %}
-    {% include 'Modals/registro_merma.html' %}
-    {% include 'Modals/lotes_de_producto.html' %}
-
+    </div>
 
     <script src="{% static 'Js/sidebar.js' %}"></script>
-    <script src="{% static 'Js/inventario.js' %}"></script>
-    <script src="{% static 'Js/historial.js' %}"></script>
-    <script src="{% static 'Js/forms_manager.js' %}"></script>
-    <script src="{% static 'Js/lotes.js' %}"></script>
-    <script src="{% static 'Js/modals_manager.js' %}"></script>
-    <script src="{% static 'Js/busqueda_producto.js' %}"></script>
-    <script src="{% static 'Js/init_almacen.js' %}"></script>
     <script>
     (function(){
         // Mostrar alert en módulos inactivos
