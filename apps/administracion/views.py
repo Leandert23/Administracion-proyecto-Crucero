@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import User
 import json
 from apps.cruceros.models import Crucero
 from .models import Administracion, Alerta, Modulo, Rol, UsuarioRol, SolicitudCompra
@@ -108,11 +109,13 @@ def gestion_roles(request):
     modulos = Modulo.objects.filter(activo=True)
     roles = Rol.objects.filter(activo=True).select_related('modulo')
     usuarios_roles = UsuarioRol.objects.filter(activo=True).select_related('usuario', 'rol', 'rol__modulo')
-    
+    usuarios = User.objects.filter(is_active=True).order_by('first_name', 'last_name', 'username')
+
     contexto = {
         'modulos': modulos,
         'roles': roles,
         'usuarios_roles': usuarios_roles,
+        'usuarios': usuarios,
     }
     return render(request, 'administracion/gestion_roles.html', contexto)
 
