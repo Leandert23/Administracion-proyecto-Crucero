@@ -39,7 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "apps.cruceros",
     "apps.almacen",
-    "apps.entretenimiento"
+    "apps.entretenimiento",
+    "apps.mantenimiento",
+    "apps.reservaciones"
+    
 ]
 
 MIDDLEWARE = [
@@ -62,6 +65,7 @@ TEMPLATES = [
             BASE_DIR / 'apps' / 'cruceros' / 'templates',
             BASE_DIR / 'apps' / 'almacen' / 'templates',
             BASE_DIR / 'apps' / 'entretenimiento' / 'templates',
+            BASE_DIR / 'apps' / 'mantenimiento' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -129,6 +133,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'cruceros' / 'Static',
     BASE_DIR / 'apps' / 'almacen' / 'Static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
+    BASE_DIR / 'apps' / 'mantenimiento' / 'static',
+    BASE_DIR / 'apps' / 'reservaciones' / 'static'
 ]
 
 # Media files (user-uploaded content)

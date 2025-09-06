@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>{{ incidente.titulo }}</h2>
+  <p><strong>Severidad:</strong> {{ incidente.get_severidad_display }}</p>
+  <p><strong>Descripción:</strong> {{ incidente.descripcion }}</p>
+  <p><strong>Ubicación:</strong> {{ incidente.ubicacion.codigo_ubicacion }}</p>
+  <div class="mt-3">
+    <a class="btn btn-secondary" href="{% url 'mantenimiento:incidente_list' %}">Volver</a>
+  </div>
+</div>
+{% endblock %}

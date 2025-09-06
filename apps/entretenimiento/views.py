@@ -1,7 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
+from ..cruceros.models import Crucero, Viaje
 from django.db.models import Q
+from datetime import timedelta
+from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -10,26 +13,46 @@ import os
 
 # Create your views here.
 
-def entretenimiento_view(request):
-    """Vista para mostrar la página de entretenimiento"""
+def entretenimiento_view(request, crucero_id):
+    """Vista para mostrar la página de entretenimiento de un crucero específico.
+    Filtra actividades por el viaje activo o en planificación del crucero.
+    """
+    
+    # Esto se agregó para solo mostrar las actividades de un crucero específico, así se diferencia entre pequeño, mediano, grande
+    crucero = get_object_or_404(Crucero, pk=crucero_id)
+    viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+    # Obtener fecha del sistema (creando registro si no existe)
+    fecha_actual_sistema = obtener_fecha_actual()
+    if not fecha_actual_sistema:
+        try:
+            fecha_actual_sistema = obtener_fecha_actual().fecha_actual
+        except Exception:
+            fecha_actual_sistema = None
 
     # Obtener el día seleccionado desde los parámetros GET
     dia_seleccionado = request.GET.get('dia')
 
-    # Obtener todos los días disponibles
-    dias_pago = Actividad.objects.values_list('dia_crucero', flat=True).distinct()
-    dias_rutinarias = ActividadRutinaria.objects.values_list('dia_crucero', flat=True).distinct()
+    # Base queryset filtrada por viaje si existe
+    actividades_base = Actividad.objects.filter(viaje=viaje) if viaje else Actividad.objects.none()
+    rutinarias_base = ActividadRutinaria.objects.filter(viaje=viaje) if viaje else ActividadRutinaria.objects.none()
+
+    dias_pago = actividades_base.values_list('dia_crucero', flat=True).distinct()
+    dias_rutinarias = rutinarias_base.values_list('dia_crucero', flat=True).distinct()
     dias_disponibles = sorted(set(list(dias_pago) + list(dias_rutinarias)))
 
-    # Filtrar actividades según el día seleccionado y ordenar por ID
+    fecha_dia_seleccionado = None
     if dia_seleccionado and dia_seleccionado.isdigit():
         dia_seleccionado = int(dia_seleccionado)
-        actividades_pago = Actividad.objects.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
-        actividades_rutinarias = ActividadRutinaria.objects.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        actividades_pago = actividades_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        actividades_rutinarias = rutinarias_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        if viaje and viaje.fecha_inicio:
+            try:
+                fecha_dia_seleccionado = viaje.fecha_inicio + timedelta(days=dia_seleccionado - 1)
+            except Exception:
+                fecha_dia_seleccionado = None
     else:
-        # Si no hay día seleccionado, mostrar todas las actividades
-        actividades_pago = Actividad.objects.all().order_by('id_actividad')
-        actividades_rutinarias = ActividadRutinaria.objects.all().order_by('id_actividad')
+        actividades_pago = actividades_base.order_by('id_actividad')
+        actividades_rutinarias = rutinarias_base.order_by('id_actividad')
         dia_seleccionado = None
 
     # Combinar ambas listas para mostrar las actividades
@@ -71,7 +94,11 @@ def entretenimiento_view(request):
     context = {
         'actividades': todas_actividades,
         'dias_disponibles': dias_disponibles,
-        'dia_seleccionado': dia_seleccionado
+        'dia_seleccionado': dia_seleccionado,
+        'fecha_actual_sistema': fecha_actual_sistema,
+        'fecha_dia_seleccionado': fecha_dia_seleccionado,
+        'crucero': crucero,
+        'viaje': viaje,
     }
 
     return render(request, 'entretenimiento/entretenimiento.html', context)
@@ -180,13 +207,21 @@ def registro_view(request):
                         'message': 'La actividad seleccionada no tiene un precio válido.'
                     })
 
+                # Obtener viaje desde la actividad
+                viaje = actividad.viaje
+                if not viaje:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'La actividad no está asociada a un viaje válido.'
+                    })
+
                 # Calcular monto total basado en el costo de la actividad
                 monto_total = float(actividad.coste) * n_personas
 
                 # Generar ID de factura único
                 id_factura = f"INV-{uuid.uuid4().hex[:8].upper()}"
 
-                # Crear registro de actividad de pago
+                # Crear registro de actividad de pago enlazado al viaje
                 registro = RegistroActividadPago.objects.create(
                     nombre=nombre,
                     apellido=apellido,
@@ -194,7 +229,8 @@ def registro_view(request):
                     n_personas=n_personas,
                     monto_total=monto_total,
                     estado='pendiente',
-                    id_factura=id_factura
+                    id_factura=id_factura,
+                    viaje=viaje
                 )
 
                 mensaje = f"Registro creado exitosamente. Su ID de factura es: {id_factura}"
@@ -215,12 +251,20 @@ def registro_view(request):
             try:
                 actividad = ActividadRutinaria.objects.get(id_actividad=actividad_id)
 
-                # Crear registro de actividad rutinaria
+                viaje = actividad.viaje
+                if not viaje:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'La actividad no está asociada a un viaje válido.'
+                    })
+
+                # Crear registro de actividad rutinaria enlazado al viaje
                 registro = RegistroActividadRut.objects.create(
                     nombre=nombre,
                     apellido=apellido,
                     n_habitacion=n_habitacion,
-                    n_personas=n_personas
+                    n_personas=n_personas,
+                    viaje=viaje
                 )
 
                 mensaje = "Registro de actividad rutinaria creado exitosamente."
@@ -245,7 +289,8 @@ def registro_view(request):
         return JsonResponse({
             'success': True,
             'message': mensaje,
-            'registro_id': registro.id if 'registro' in locals() else None
+            'registro_id': registro.id if 'registro' in locals() else None,
+            'viaje_id': registro.viaje.id if hasattr(registro, 'viaje') and registro.viaje else None
         })
 
     except Exception as e:

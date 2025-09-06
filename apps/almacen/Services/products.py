@@ -1,12 +1,7 @@
 from django.db import transaction
-from django.apps import apps
+from ..models import Producto, MovimientoAlmacen
+from apps.almacen.signals import emitir_señal_si_falta_stock_de 
 from typing import List, Tuple
-
-def _Producto():
-    return apps.get_model('almacen', 'Producto')
-
-def _MovimientoAlmacen():
-    return apps.get_model('almacen', 'MovimientoAlmacen')
 
 # Conjunto de módulos válidos según MovimientoAlmacen.TIPO_MODULO
 _MODULOS_VALIDOS = {
@@ -22,20 +17,10 @@ def _normalizar_modulo(modulo: str | None) -> str:
         return "ALMACEN"
     return limpio
 
-def productosPocasUnidades(cantidadesIniciales: dict, porcentajeMinimo: float = 0.2) -> List[Tuple[str, int]]:
-    productosPocos = []
-    Producto = _Producto()
-    for producto in Producto.objects.all():
-        inicial = cantidadesIniciales.get(producto.nombre, producto.cantidad)
-        if inicial > 0 and producto.cantidad <= inicial * porcentajeMinimo:
-            productosPocos.append((producto.nombre, producto.cantidad))
-    return productosPocos
-
 def _procesar_lotes(lotes, cantidad_necesaria, modulo, producto, descripcion=None):
     modulo_norm = _normalizar_modulo(modulo)
     cantidad_restante = cantidad_necesaria
 
-    MovimientoAlmacen = _MovimientoAlmacen()
     for lote in lotes:
         if cantidad_restante <= 0:
             break
@@ -92,12 +77,12 @@ def _realizar_retiro(producto_id, cantidad, modulo, metodo_ordenamiento, descrip
         raise ValueError("La cantidad debe ser mayor que 0")
 
     with transaction.atomic():
-        Producto = _Producto()
         producto = Producto.objects.select_for_update().get(pk=producto_id)
         lotes_ordenados = metodo_ordenamiento(producto)
         _verificar_stock_suficiente(lotes_ordenados, cantidad)
         _procesar_lotes(lotes_ordenados, cantidad, modulo, producto, descripcion=descripcion)
-        # No es necesario recalcular porque cantidad es property (suma dinámica)
+    # Después de registrar la salida y actualizar lotes, emitir señal para evaluar si ahora falta stock de este producto
+    emitir_señal_si_falta_stock_de(producto)
 
 def retirar_producto_fifo(producto_id, cantidad, modulo, descripcion=None):
     _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fifo, descripcion=descripcion)

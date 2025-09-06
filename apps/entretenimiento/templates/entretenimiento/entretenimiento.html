@@ -33,12 +33,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/1/" class="nav-link">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
                             <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
                     <li class="nav-item active">
-                        <a href="/entretenimiento/" class="nav-link">
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
                             <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
@@ -48,7 +48,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
                         </a>
                     </li>
@@ -68,7 +68,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/almacen/1" class="nav-link">
+                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
                     </li>
@@ -120,11 +120,17 @@
                 <!-- Date Display -->
                 <div class="date-container">
                     <div class="date-display">
-                        <span class="date-text" id="current-date">
+                        <span class="date-text" id="current-date" data-server="1">
                             {% if dia_seleccionado %}
                                 Día {{ dia_seleccionado }} del Crucero
+                                {% if fecha_dia_seleccionado %}- Fecha viaje: {{ fecha_dia_seleccionado|date:"Y-m-d" }}{% endif %}
+                                {% if fecha_actual_sistema %}<br><small style="font-weight:400;color:#64748b">Fecha sistema: {{ fecha_actual_sistema|date:"Y-m-d" }}</small>{% endif %}
                             {% else %}
-                                Todos los Días
+                                {% if fecha_actual_sistema %}
+                                    {{ fecha_actual_sistema|date:"Y-m-d" }}
+                                {% else %}
+                                    Todos los Días
+                                {% endif %}
                             {% endif %}
                         </span>
                     </div>
@@ -312,23 +318,12 @@
         // Función para actualizar la fecha automáticamente
         function updateDate() {
             const dateElement = document.getElementById('current-date');
+            if (!dateElement) return;
+            // Si el servidor ya colocó la fecha del sistema / viaje, no sobreescribir
+            if (dateElement.dataset.server === '1') return;
             const now = new Date();
-            
-            // Array con los nombres de los meses en español
-            const months = [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ];
-            
-            // Obtener día, mes y año
-            const day = now.getDate();
-            const month = months[now.getMonth()];
-            const year = now.getFullYear();
-            
-            // Formatear la fecha
-            const formattedDate = `Hoy, ${day} de ${month} de ${year}`;
-            
-            // Actualizar el elemento
+            const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            const formattedDate = `Hoy, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
             dateElement.textContent = formattedDate;
         }
 

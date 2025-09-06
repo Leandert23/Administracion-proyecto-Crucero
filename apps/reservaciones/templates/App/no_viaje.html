@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sin viajes</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    .no-viaje-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      color: white;
+    }
+    .no-viaje-container h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .no-viaje-container p {
+      font-size: 1.2em;
+      opacity: 0.8;
+    }
+    .btn-volver {
+      margin-top: 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .btn-volver:hover {
+      background: #1e40af;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="reservas-bg">
+
+  <div class="no-viaje-container">
+    <h1>🚢 No hay viajes disponibles</h1>
+    <p>Actualmente no hay viajes activos para el crucero <strong>{{ crucero|title }}</strong>.</p>
+  <a href="{% url 'reservas' crucero.nombre %}" class="btn-volver">Volver a Reservas</a>
+  </div>
+
+</body>
+</html>

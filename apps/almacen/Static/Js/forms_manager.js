@@ -134,9 +134,24 @@
                     this.selectSubtipo = contexto.formulario.querySelector('#id_subtipo');
                     this.selectTipo = contexto.formulario.querySelector('#id_tipo');
                     
+                    // Mapeo sincronizado con Producto.SUBTIPOS_POR_TIPO (models.py)
                     this.mapeoSubtipo = {
-                        COMIDA: ['CADUCABLE', 'NO_CADUCABLE', 'REFRIGERADO', 'NO_REFRIGERADO', 'BEBIDA', 'LICOR'],
-                        BIENES: ['REPUESTOS', 'LIMPIEZA', 'MEDICOS', 'ACTIVOS']
+                        ALIMENTOS_FRESCOS: ['FRUTA','VERDURA','CARNE','PESCADO','MARISCO','LACTEOS','PANIFICADOS','CHARCUTERIA'],
+                        ALIMENTOS_SECOS: ['CEREAL','PASTA','LEGUMINOSAS','ENLATADOS','SNACKS','CONDIMENTOS','AZUCAR_SAL'],
+                        BEBIDAS: ['AGUA','REFRESCO','JUGO','ENERGETICA','CAFE_TEA','CERVEZA','VINO','DESTILADO','COCTEL_PREMEZCLA'],
+                        INSUMOS_COCINA: ['DESCARTABLES','ENVASES','UTENSILIOS','GAS_COCINA','HIELO'],
+                        LIMPIEZA: ['DETERGENTES','DESINFECTANTES','UTENSILIOS_LIMPIEZA','PAPEL_SANITARIO','AMBIENTADORES'],
+                        SUMINISTROS_MEDICOS: ['MEDICAMENTO','CURACION','EQUIPO_DIAGNOSTICO','EPP','INSTRUMENTAL','SOLUCION_IV'],
+                        MANTENIMIENTO: ['PINTURA','LUBRICANTE','SELLADOR','ADHESIVO','ABRASIVO','FILTRO','ACEITE'],
+                        REPUESTOS_TECNICOS: ['MOTOR','ELECTRICO','HVAC','NAVEGACION','ILUMINACION','BOMBAS','VALVULAS'],
+                        EQUIPOS: ['ELECTRODOMESTICO','AUDIO_VIDEO','INFORMATICO','GIMNASIO','COCINA_INDUSTRIAL'],
+                        TEXTILES: ['ROPA_CAMA','TOALLA','UNIFORME','CORTINA','TAPICERIA'],
+                        OFICINA: ['PAPELERIA','IMPRESION','ESCRITORIO','CONSUMIBLE_IT'],
+                        ENTRETENIMIENTO: ['JUEGO_MESA','JUEGO_VIDEO','LIBRO_REVISTA','EVENTO','SONIDO_LUZ'],
+                        SPA_GYM: ['COSMETICO','ACEITE_MASAJE','SUPLEMENTO','ACC_FITNESS'],
+                        SEGURIDAD: ['CHALECO_SALVAVIDAS','EXTINTOR','SENALIZACION','ARNES','BOTIQUIN','DETECTOR'],
+                        MERCHANDISING: ['RECUERDO','PRENDA_LOGO','ACCESORIO_LOGO','BEBIDA_PREMIUM','DULCE_GOURMET'],
+                        TECNOLOGIA: ['ROUTER','SWITCH','CABLEADO','CAMARA_SEGURIDAD','SENSOR','DISPOSITIVO_PORTATIL']
                     };
                     
                     this.llenarSelectSubtipo();

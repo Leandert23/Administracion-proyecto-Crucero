@@ -328,6 +328,17 @@ def crear_lote_habitaciones(crucero: Crucero, piso: int, cantidad: int, tipo_hab
         # bulk_create no llama a save(), por eso ya establecimos codigo_ubicacion
         Habitacion.objects.bulk_create(habitaciones_a_insertar, batch_size=500)
 
+        # Actualizar vista_mar según el nombre del tipo de habitación
+        tipo_nombre = tipo_habitacion.nombre.lower()
+        if 'vista mar' in tipo_nombre or 'vista al mar' in tipo_nombre:
+            # Solo actualizar las habitaciones recién creadas de este lote
+            Habitacion.objects.filter(
+                crucero=crucero,
+                tipo_habitacion=tipo_habitacion,
+                cubierta=piso,
+                numero__in=[h.numero for h in habitaciones_a_insertar]
+            ).update(vista_mar=True)
+
     # nuevo_consecutivo es útil si la interfaz lo requiere; retornamos el total creado + 1
     nuevo_consecutivo = sum(contadores_lado.values())
 
