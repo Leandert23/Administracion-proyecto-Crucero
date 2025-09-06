@@ -54,16 +54,6 @@
         </div>
         <div class="sketch-center">
             <div class="sketch-box">
-                <div class="sketch-title">solicitados</div>
-                <ul class="sketch-list">
-                    {% for solicitud in solicitudes %}
-                        <li>&#9675; {{ solicitud.razon }} - {{ solicitud.get_estado_display }}</li>
-                    {% empty %}
-                        <li>No hay solicitudes</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="sketch-box">
                 <div class="sketch-title">pacientes</div>
                 <ul class="sketch-list">
                     {% for paciente in pacientes %}

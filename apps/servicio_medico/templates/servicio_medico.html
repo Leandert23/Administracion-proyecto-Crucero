@@ -15,7 +15,7 @@
     <div class="welcome-section">
         <div class="welcome-card">
             <h2 class="welcome-title">Bienvenido al Panel de Personal Médico</h2>
-            <p class="welcome-text">Aquí puedes gestionar las solicitudes de medicamentos, ver el historial médico de los pasajeros y más.</p>
+            <p class="welcome-text">Aquí puedes gestionar el historial médico de los pasajeros, el inventario de medicamentos y las urgencias médicas.</p>
         </div>
     </div>
 
@@ -164,22 +164,6 @@
             </div>
         </div>
 
-        <!-- Avisos de solicitud de Medicamento -->
-        <div class="function-card">
-            <div class="card-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">Avisos de Solicitud de Medicamento</h3>
-                <p class="card-description">Revisa las solicitudes pendientes de medicamentos</p>
-                <div class="notification-placeholder">
-                    <p>No hay solicitudes pendientes</p>
-                </div>
-            </div>
-        </div>
 
         <!-- Panel de Urgencias Médicas -->
         <div class="function-card urgent-card">
@@ -191,8 +175,8 @@
                 </svg>
             </div>
             <div class="card-content">
-                <h3 class="card-title urgent-title">🚨 Panel de Urgencias Médicas</h3>
-                <p class="card-description">Monitorea las notificaciones de urgencia desde otros módulos del crucero</p>
+                <h3 class="card-title urgent-title">Panel de Urgencias Médicas</h3>
+                <p class="card-description">Monitorea las notificaciones de urgencia</p>
                 <button class="modern-btn urgent-btn" onclick="location.href='{% url 'panel_urgencias' %}'">
                     <span>Ver Urgencias</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -261,12 +245,20 @@
     grid-column: 1 / -1;
 }
 
-/* Estilos para la tarjeta de urgencias */
+/* ===== ESTILOS PROFESIONALES PARA LA TARJETA DE URGENCIAS ===== */
 .urgent-card {
-    border: 2px solid #dc3545;
-    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.urgent-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-color: #d1d5db;
 }
 
 .urgent-card::before {
@@ -275,45 +267,53 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #dc3545, #ff6b6b, #dc3545);
-    animation: urgent-pulse 2s infinite;
+    height: 3px;
+    background: #dc3545;
 }
 
-@keyframes urgent-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+.urgent-card::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    background: #dc3545;
+    border-radius: 50%;
 }
 
 .urgent-icon {
     color: #dc3545;
-    animation: urgent-heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes urgent-heartbeat {
-    0% { transform: scale(1); }
-    14% { transform: scale(1.1); }
-    28% { transform: scale(1); }
-    42% { transform: scale(1.1); }
-    70% { transform: scale(1); }
+    filter: none;
 }
 
 .urgent-title {
     color: #dc3545;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
 }
 
 .urgent-btn {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    background: #dc3545;
     color: white;
     border: none;
-    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    transition: all 0.2s ease;
 }
 
 .urgent-btn:hover {
-    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+}
+
+.urgent-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
 }
 
 .card-icon {

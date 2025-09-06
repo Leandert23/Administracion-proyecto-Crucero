@@ -38,12 +38,10 @@ def eliminar_paciente(request, paciente_id):
 def panel_personal_medico(request):
     # Datos de ejemplo, reemplazar por consultas reales
     medico = Medico.objects.first()
-    solicitudes = Solicitudmedicamento.objects.all()[:5]
     pacientes = Paciente.objects.all()[:5]
     inventario = Inventario.objects.all()[:5]
     context = {
         'medico': medico or {'nombres': 'Nombre', 'apellido': 'Apellido'},
-        'solicitudes': solicitudes,
         'pacientes': pacientes,
         'inventario': inventario,
     }
@@ -52,13 +50,11 @@ def panel_personal_medico(request):
 def panel_servicio_medico(request,):
     # Datos de ejemplo, reemplazar por consultas reales
     medico = Medico.objects.first()
-    solicitudes = Solicitudmedicamento.objects.all()[:5]
     pacientes = Paciente.objects.all()[:5]
     inventario = Inventario.objects.all()[:5]
     cuartos = cuarto.objects.all().order_by('numero')
     context = {
         'medico': medico or {'nombres': 'Nombre', 'apellido': 'Apellido'},
-        'solicitudes': solicitudes,
         'pacientes': pacientes,
         'inventario': inventario,
         'cuartos': cuartos,

@@ -6,224 +6,715 @@
 {% block content %}
 <main class="main-content">
     <div class="container-fluid">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1>🚨 Panel de Urgencias Médicas</h1>
-                <p>Monitoreo de notificaciones de urgencia desde otros módulos</p>
+        <!-- Header Simple -->
+        <div class="header-section">
+            <h1>Panel de Urgencias Médicas</h1>
+            <p>Gestiona las notificaciones de emergencia del crucero</p>
+        </div>
+
+        <!-- Contadores Simples -->
+        <div class="counters-section">
+            <div class="counter-card pending">
+                <div class="counter-number" id="contador-pendientes">{{ notificaciones_pendientes.count }}</div>
+                <div class="counter-label">Pendientes</div>
+            </div>
+            <div class="counter-card completed">
+                <div class="counter-number" id="contador-atendidas">{{ notificaciones_atendidas.count }}</div>
+                <div class="counter-label">Atendidas</div>
             </div>
         </div>
-        
-        <!-- Estadísticas -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3 id="contador-pendientes">{{ notificaciones_pendientes.count }}</h3>
-                        <p>Urgencias Pendientes</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3 id="contador-atendidas">{{ notificaciones_atendidas.count }}</h3>
-                        <p>Total Atendidas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h3>{{ notificaciones_pendientes.count|add:notificaciones_atendidas.count }}</h3>
-                        <p>Total Urgencias</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
+
         <!-- Notificaciones Pendientes -->
-        <div class="row">
-            <div class="col-12">
-                <h4>Urgencias Pendientes (<span id="contador-titulo">{{ notificaciones_pendientes.count }}</span>)</h4>
-                
-                <button class="btn btn-info btn-sm mb-3" id="btn-probar-api">
-                    🔬 Probar API
-                </button>
-                
-                <div id="contenedor-urgencias">
-                    {% for notif in notificaciones_pendientes %}
-                    <div class="card mb-3 border-danger" id="notif-{{ notif.id }}">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <h5>
-                                        <span class="badge bg-danger">PENDIENTE</span>
-                                        <strong>{{ notif.tipo_urgencia }}</strong>
-                                    </h5>
-                                    <p>
-                                        <strong>📍 Ubicación:</strong> {{ notif.ubicacion }}<br>
-                                        <strong>👤 Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})<br>
-                                        <strong>📝 Descripción:</strong> {{ notif.descripcion }}<br>
-                                        <strong>🕐 Hora:</strong> {{ notif.fecha_creacion|date:"d/m/Y H:i:s" }}
-                                    </p>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <button class="btn btn-success" data-notif-id="{{ notif.id }}">
-                                        ✅ Marcar Atendida
-                                    </button>
-                                </div>
-                            </div>
+        <div class="section">
+            <h2>Urgencias Pendientes (<span id="contador-titulo">{{ notificaciones_pendientes.count }}</span>)</h2>
+            
+            <div id="contenedor-urgencias">
+                {% for notif in notificaciones_pendientes %}
+                <div class="urgency-card pending" id="notif-{{ notif.id }}">
+                    <div class="urgency-header">
+                        <div class="urgency-type">{{ notif.tipo_urgencia }}</div>
+                        <div class="urgency-priority priority-{{ notif.prioridad|lower }}">{{ notif.get_prioridad_display }}</div>
+                    </div>
+                    
+                    <div class="urgency-details">
+                        <div class="detail-row">
+                            <strong>Ubicación:</strong> {{ notif.ubicacion }}
                         </div>
+                        <div class="detail-row">
+                            <strong>Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})
+                        </div>
+                        <div class="detail-row">
+                            <strong>Descripción:</strong> {{ notif.descripcion }}
+                        </div>
+                        {% if notif.numero_afectados > 1 %}
+                        <div class="detail-row">
+                            <strong>Personas afectadas:</strong> {{ notif.numero_afectados }}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% empty %}
-                    <div class="alert alert-success">
-                        ✅ No hay urgencias pendientes
+                    
+                    <div class="urgency-actions">
+                        <button class="btn-attend" data-notif-id="{{ notif.id }}">
+                            Marcar como Atendida
+                        </button>
                     </div>
-                    {% endfor %}
                 </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No hay urgencias pendientes</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
-        
-        <!-- Notificaciones Atendidas -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h4>📋 Historial de Urgencias Atendidas (<span id="contador-atendidas-titulo">{{ notificaciones_atendidas.count }}</span>)</h4>
-                
-                <div id="contenedor-atendidas">
-                    {% if notificaciones_atendidas %}
-                        {% for notif in notificaciones_atendidas %}
-                        <div class="card mb-3 border-success">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <h5>
-                                            <span class="badge bg-success">ATENDIDA</span>
-                                            <strong>{{ notif.tipo_urgencia }}</strong>
-                                        </h5>
-                                        <p>
-                                            <strong>📍 Ubicación:</strong> {{ notif.ubicacion }}<br>
-                                            <strong>👤 Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})<br>
-                                            <strong>📝 Descripción:</strong> {{ notif.descripcion }}<br>
-                                            <strong>🕐 Reportada:</strong> {{ notif.fecha_creacion|date:"d/m/Y H:i:s" }}<br>
-                                            <strong>✅ Atendida:</strong> {{ notif.fecha_atendida|date:"d/m/Y H:i:s" }}
-                                            {% if notif.observaciones_medicas %}
-                                            <br><strong>📋 Observaciones:</strong> {{ notif.observaciones_medicas }}
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <small class="text-muted">
-                                            Tiempo de respuesta:<br>
-                                            {% if notif.fecha_atendida and notif.fecha_creacion %}
-                                                {% with tiempo=notif.fecha_atendida|timesince:notif.fecha_creacion %}
-                                                    {{ tiempo }}
-                                                {% endwith %}
-                                            {% endif %}
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
+
+        <!-- Historial de Atendidas -->
+        <div class="section">
+            <h2>Historial de Urgencias Atendidas (<span id="contador-atendidas-titulo">{{ notificaciones_atendidas.count }}</span>)</h2>
+            
+            <div id="contenedor-atendidas">
+                {% for notif in notificaciones_atendidas %}
+                <div class="urgency-card completed" id="notif-{{ notif.id }}">
+                    <div class="urgency-header">
+                        <div class="urgency-type">{{ notif.tipo_urgencia }}</div>
+                        <div class="urgency-status">ATENDIDA</div>
+                    </div>
+                    
+                    <div class="urgency-details">
+                        <div class="detail-row">
+                            <strong>Ubicación:</strong> {{ notif.ubicacion }}
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No hay urgencias atendidas aún
+                        <div class="detail-row">
+                            <strong>Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})
                         </div>
-                    {% endif %}
+                        <div class="detail-row">
+                            <strong>Descripción:</strong> {{ notif.descripcion }}
+                        </div>
+                        {% if notif.observaciones %}
+                        <div class="detail-row">
+                            <strong>Observaciones:</strong> {{ notif.observaciones }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="urgency-meta">
+                        <small>
+                            Reportada: {{ notif.fecha_reporte|date:"d/m/Y H:i" }}<br>
+                            Atendida: {{ notif.fecha_atendida|date:"d/m/Y H:i" }}
+                        </small>
+                    </div>
                 </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No hay urgencias atendidas</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </main>
 
-<script>
-console.log('=== PANEL DE URGENCIAS SIMPLE - CARGANDO ===');
-
-// Función para obtener el token CSRF
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+<style>
+/* ===== ESTILOS SIMPLES Y CLAROS ===== */
+.main-content {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 2rem 0;
 }
 
-// Función para marcar como atendida
-function marcarAtendida(notificacionId) {
-    console.log('=== MARCAR ATENDIDA ===');
-    console.log('ID:', notificacionId);
+.container-fluid {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Header */
+.header-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.header-section h1 {
+    color: #dc3545;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.header-section p {
+    color: #6c757d;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Contadores */
+.counters-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.counter-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+}
+
+.counter-card.pending {
+    border-left: 4px solid #dc3545;
+}
+
+.counter-card.completed {
+    border-left: 4px solid #28a745;
+}
+
+.counter-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.counter-card.pending .counter-number {
+    color: #dc3545;
+}
+
+.counter-card.completed .counter-number {
+    color: #28a745;
+}
+
+.counter-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Secciones */
+.section {
+    margin-bottom: 2rem;
+}
+
+.section h2 {
+    color: #343a40;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Tarjetas de urgencia */
+.urgency-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #dc3545;
+}
+
+.urgency-card.completed {
+    border-left-color: #28a745;
+    opacity: 0.8;
+}
+
+.urgency-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.urgency-type {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.urgency-priority {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.priority-c {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.priority-a {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.priority-b {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.urgency-status {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.urgency-details {
+    margin-bottom: 1rem;
+}
+
+.detail-row {
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.detail-row strong {
+    color: #343a40;
+}
+
+.urgency-actions {
+    text-align: right;
+}
+
+.btn-attend {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-attend:hover {
+    background: #218838;
+}
+
+.urgency-meta {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    color: #6c757d;
+}
+
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Modal personalizado */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #343a40;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body p {
+    margin: 0 0 1rem 0;
+    color: #495057;
+    font-size: 0.95rem;
+}
+
+.modal-body textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s;
+}
+
+.modal-body textarea:focus {
+    outline: none;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+.btn-confirm {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-confirm:hover {
+    background: #218838;
+}
+
+/* Panel de confirmación */
+.confirmation-modal {
+    max-width: 400px;
+    text-align: center;
+}
+
+.confirmation-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+}
+
+.confirmation-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.confirmation-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.confirmation-modal .modal-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.confirmation-modal {
+    animation: slideIn 0.3s ease, pulse 0.6s ease 0.3s;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .counters-section {
+        flex-direction: column;
+        align-items: center;
+    }
     
-    if (confirm('¿Marcar esta urgencia como atendida?')) {
-        const observaciones = prompt('Observaciones médicas (opcional):');
+    .counter-card {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .urgency-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .urgency-actions {
+        text-align: left;
+    }
+    
+    .modal-container {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .btn-cancel,
+    .btn-confirm {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Panel de urgencias cargado');
+    
+    // Función para obtener cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Función para marcar como atendida
+    function marcarAtendida(notificacionId) {
+        console.log('Marcando como atendida:', notificacionId);
+        
+        // Mostrar modal personalizado
+        mostrarModalObservaciones(notificacionId);
+    }
+    
+    // Función para mostrar modal de observaciones
+    function mostrarModalObservaciones(notificacionId) {
+        // Crear overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3>Marcar Urgencia como Atendida</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Ingrese observaciones sobre la atención (opcional):</p>
+                    <textarea id="observaciones-input" placeholder="Ej: Paciente estabilizado, medicamento administrado, derivado a especialista..." rows="4"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-cancel">Cancelar</button>
+                    <button class="btn-confirm" data-notif-id="${notificacionId}">Marcar Atendida</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Event listeners para los botones
+        const closeBtn = overlay.querySelector('.modal-close');
+        const cancelBtn = overlay.querySelector('.btn-cancel');
+        const confirmBtn = overlay.querySelector('.btn-confirm');
+        
+        closeBtn.addEventListener('click', cerrarModal);
+        cancelBtn.addEventListener('click', cerrarModal);
+        confirmBtn.addEventListener('click', function() {
+            const notifId = this.getAttribute('data-notif-id');
+            confirmarAtendida(notifId);
+        });
+        
+        // Enfocar el textarea
+        setTimeout(() => {
+            document.getElementById('observaciones-input').focus();
+        }, 100);
+        
+        // Cerrar modal al hacer clic fuera
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                cerrarModal();
+            }
+        });
+        
+        // Cerrar modal con tecla Escape
+        const handleEscape = function(e) {
+            if (e.key === 'Escape') {
+                cerrarModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+    
+    // Función para cerrar modal
+    window.cerrarModal = function() {
+        const overlay = document.querySelector('.modal-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+    
+    // Función para confirmar atención
+    window.confirmarAtendida = function(notificacionId) {
+        const observaciones = document.getElementById('observaciones-input').value;
+        cerrarModal();
         
         const csrfToken = getCookie('csrftoken');
-        const url = `/servicio-medico/api/urgencias/atendida/${notificacionId}/`;
         
-        console.log('Enviando petición a:', url);
-        
-        fetch(url, {
+        fetch(`/servicio-medico/api/urgencias/atendida/${notificacionId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
-                observaciones: observaciones || ''
+                observaciones: observaciones
             })
         })
-        .then(response => {
-            console.log('Respuesta recibida:', response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Datos recibidos:', data);
-            
+            console.log('Respuesta:', data);
             if (data.success) {
                 // Mover la tarjeta a la sección de atendidas
                 const tarjeta = document.getElementById(`notif-${notificacionId}`);
                 if (tarjeta) {
                     // Cambiar el estilo de la tarjeta
-                    tarjeta.classList.remove('border-danger');
-                    tarjeta.classList.add('border-success');
+                    tarjeta.classList.remove('pending');
+                    tarjeta.classList.add('completed');
                     
-                    // Cambiar el badge de estado
-                    const badge = tarjeta.querySelector('.badge');
-                    if (badge) {
-                        badge.textContent = 'ATENDIDA';
-                        badge.className = 'badge bg-success';
+                    // Cambiar el header
+                    const header = tarjeta.querySelector('.urgency-header');
+                    if (header) {
+                        const priority = header.querySelector('.urgency-priority');
+                        if (priority) {
+                            priority.textContent = 'ATENDIDA';
+                            priority.className = 'urgency-status';
+                        }
                     }
                     
                     // Remover el botón de marcar atendida
-                    const boton = tarjeta.querySelector('[data-notif-id]');
-                    if (boton) {
-                        boton.remove();
+                    const actions = tarjeta.querySelector('.urgency-actions');
+                    if (actions) {
+                        actions.remove();
                     }
                     
-                    // Agregar información de tiempo de respuesta
-                    const colDerecha = tarjeta.querySelector('.col-md-4');
-                    if (colDerecha) {
-                        colDerecha.innerHTML = `
-                            <small class="text-muted">
-                                ✅ Atendida ahora<br>
-                                Tiempo de respuesta:<br>
-                                <strong>Inmediato</strong>
-                            </small>
-                        `;
+                    // Agregar información de tiempo
+                    const details = tarjeta.querySelector('.urgency-details');
+                    if (details && observaciones) {
+                        const observacionesRow = document.createElement('div');
+                        observacionesRow.className = 'detail-row';
+                        observacionesRow.innerHTML = `<strong>Observaciones:</strong> ${observaciones}`;
+                        details.appendChild(observacionesRow);
                     }
+                    
+                    // Agregar meta información
+                    const meta = document.createElement('div');
+                    meta.className = 'urgency-meta';
+                    meta.innerHTML = `
+                        <small>
+                            Reportada: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}<br>
+                            Atendida: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}
+                        </small>
+                    `;
+                    tarjeta.appendChild(meta);
                     
                     // Mover la tarjeta a la sección de atendidas
                     const contenedorAtendidas = document.getElementById('contenedor-atendidas');
                     if (contenedorAtendidas) {
                         // Remover mensaje de "no hay urgencias atendidas" si existe
-                        const mensajeVacio = contenedorAtendidas.querySelector('.alert-info');
+                        const mensajeVacio = contenedorAtendidas.querySelector('.empty-state');
                         if (mensajeVacio) {
                             mensajeVacio.remove();
                         }
@@ -235,106 +726,142 @@ function marcarAtendida(notificacionId) {
                     actualizarContadores();
                     
                     // Si no hay más urgencias pendientes, mostrar mensaje
-                    const urgenciasRestantes = document.querySelectorAll('[data-notif-id]');
+                    const urgenciasRestantes = document.querySelectorAll('.urgency-card.pending');
                     if (urgenciasRestantes.length === 0) {
                         mostrarMensajeSinUrgencias();
                     }
                 }
                 
-                alert('✅ Urgencia marcada como atendida correctamente');
+                mostrarConfirmacion('Urgencia marcada como atendida correctamente', 'success');
             } else {
-                alert('Error: ' + data.error);
+                mostrarConfirmacion('Error: ' + data.error, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error de conexión: ' + error.message);
+            mostrarConfirmacion('Error de conexión: ' + error.message, 'error');
         });
     }
-}
-
-// Función para probar API
-function probarAPI() {
-    console.log('=== PROBANDO API ===');
     
-    const csrfToken = getCookie('csrftoken');
-    const url = '/servicio-medico/api/test/';
-    
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-CSRFToken': csrfToken
+    // Función para mostrar mensaje cuando no hay urgencias
+    function mostrarMensajeSinUrgencias() {
+        const contenedor = document.getElementById('contenedor-urgencias');
+        if (contenedor) {
+            contenedor.innerHTML = '<div class="empty-state"><p>No hay urgencias pendientes</p></div>';
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('API Test response:', data);
-        alert('API Test: ' + data.mensaje);
-    })
-    .catch(error => {
-        console.error('API Test error:', error);
-        alert('Error en API Test: ' + error.message);
-    });
-}
-
-// Función para actualizar contadores
-function actualizarContadores() {
-    const urgenciasPendientes = document.querySelectorAll('[data-notif-id]');
-    const urgenciasAtendidas = document.querySelectorAll('#contenedor-atendidas .card');
+    }
     
-    const contadorPendientes = document.getElementById('contador-pendientes');
-    const contadorTitulo = document.getElementById('contador-titulo');
-    const contadorAtendidas = document.getElementById('contador-atendidas');
-    const contadorAtendidasTitulo = document.getElementById('contador-atendidas-titulo');
-    
-    if (contadorPendientes) {
-        contadorPendientes.textContent = urgenciasPendientes.length;
-    }
-    if (contadorTitulo) {
-        contadorTitulo.textContent = urgenciasPendientes.length;
-    }
-    if (contadorAtendidas) {
-        contadorAtendidas.textContent = urgenciasAtendidas.length;
-    }
-    if (contadorAtendidasTitulo) {
-        contadorAtendidasTitulo.textContent = urgenciasAtendidas.length;
-    }
-}
-
-// Función para mostrar mensaje cuando no hay urgencias
-function mostrarMensajeSinUrgencias() {
-    const contenedor = document.getElementById('contenedor-urgencias');
-    if (contenedor) {
-        contenedor.innerHTML = `
-            <div class="alert alert-success text-center">
-                <h4>¡Excelente trabajo!</h4>
-                <p>No hay urgencias pendientes. Todas han sido atendidas.</p>
+    // Función para mostrar panel de confirmación
+    function mostrarConfirmacion(mensaje, tipo = 'success') {
+        // Crear overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        // Determinar colores según el tipo
+        let colorPrimario, colorSecundario, icono;
+        if (tipo === 'success') {
+            colorPrimario = '#28a745';
+            colorSecundario = '#d4edda';
+            icono = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22,4 12,14.01 9,11.01"></polyline>
+                </svg>
+            `;
+        } else if (tipo === 'error') {
+            colorPrimario = '#dc3545';
+            colorSecundario = '#f8d7da';
+            icono = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            `;
+        } else {
+            colorPrimario = '#6c757d';
+            colorSecundario = '#e9ecef';
+            icono = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            `;
+        }
+        
+        overlay.innerHTML = `
+            <div class="modal-container confirmation-modal">
+                <div class="modal-header" style="background: ${colorSecundario}; border-bottom: 2px solid ${colorPrimario};">
+                    <div class="confirmation-icon" style="color: ${colorPrimario};">
+                        ${icono}
+                    </div>
+                    <h3 style="color: ${colorPrimario}; margin: 0;">Confirmación</h3>
+                </div>
+                <div class="modal-body">
+                    <p style="text-align: center; font-size: 1.1rem; color: #495057; margin: 0;">${mensaje}</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-confirm" style="background: ${colorPrimario}; color: white; width: 100%;" onclick="cerrarConfirmacion()">Aceptar</button>
+                </div>
             </div>
         `;
+        
+        document.body.appendChild(overlay);
+        
+        // Event listener para el botón
+        const confirmBtn = overlay.querySelector('.btn-confirm');
+        confirmBtn.addEventListener('click', cerrarConfirmacion);
+        
+        // Cerrar modal al hacer clic fuera
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                cerrarConfirmacion();
+            }
+        });
+        
+        // Cerrar modal con tecla Escape
+        const handleEscape = function(e) {
+            if (e.key === 'Escape') {
+                cerrarConfirmacion();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        // Auto-cerrar después de 3 segundos
+        setTimeout(() => {
+            cerrarConfirmacion();
+        }, 3000);
     }
-}
-
-// Configurar event listeners cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOM LISTO - CONFIGURANDO EVENTOS ===');
     
-    // Event listener para botones de marcar atendida
-    document.querySelectorAll('[data-notif-id]').forEach(button => {
+    // Función para cerrar confirmación
+    window.cerrarConfirmacion = function() {
+        const overlay = document.querySelector('.modal-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+    
+    // Función para actualizar contadores
+    function actualizarContadores() {
+        const urgenciasPendientes = document.querySelectorAll('.urgency-card.pending');
+        const urgenciasAtendidas = document.querySelectorAll('.urgency-card.completed');
+        
+        document.getElementById('contador-pendientes').textContent = urgenciasPendientes.length;
+        document.getElementById('contador-atendidas').textContent = urgenciasAtendidas.length;
+        document.getElementById('contador-titulo').textContent = urgenciasPendientes.length;
+        document.getElementById('contador-atendidas-titulo').textContent = urgenciasAtendidas.length;
+    }
+    
+    // Event listeners para botones
+    document.querySelectorAll('.btn-attend').forEach(button => {
         button.addEventListener('click', function() {
             const notifId = this.getAttribute('data-notif-id');
             console.log('Botón clickeado, ID:', notifId);
             marcarAtendida(notifId);
         });
     });
-    
-    // Event listener para botón de probar API
-    const btnProbarAPI = document.getElementById('btn-probar-api');
-    if (btnProbarAPI) {
-        btnProbarAPI.addEventListener('click', function() {
-            console.log('Botón probar API clickeado');
-            probarAPI();
-        });
-    }
     
     console.log('Event listeners configurados correctamente');
 });

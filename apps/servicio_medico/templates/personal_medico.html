@@ -134,16 +134,6 @@
                     </div>
                 </div>
                 <div class="right-panel">
-                    <div class="content-box solicitados-box">
-                        <h3>Solicitados</h3>
-                        <ul class="data-list">
-                            {% for solicitud in solicitudes %}
-                            <li>{{ solicitud.razon|default:'-' }} - {{ solicitud.estado|default:'-' }}</li>
-                            {% empty %}
-                            <li>No hay solicitudes</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
                     <div class="content-box pacientes-box">
                         <h3>Pacientes</h3>
                         <ul class="data-list patients-list">
