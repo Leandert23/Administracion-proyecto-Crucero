@@ -12,6 +12,140 @@
         .filter-buttons {
             margin-bottom: 25px !important;
         }
+
+        /* ===== ESTILOS PARA LA SECCIÓN DE BOTONES MÚLTIPLES ===== */
+
+        .action-buttons-section {
+            margin-bottom: 32px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .action-buttons-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            min-width: 160px;
+        }
+
+        .action-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-text {
+            white-space: nowrap;
+        }
+
+        /* Estilos específicos para el botón de eliminar */
+        .action-btn[data-action="eliminar-registro"] {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+            cursor: pointer;
+        }
+
+        .action-btn[data-action="eliminar-registro"]:hover {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Estilos responsivos para la sección de botones */
+        @media (max-width: 768px) {
+            .action-buttons-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+
+            .action-buttons-row {
+                gap: 8px;
+            }
+
+            .action-btn {
+                flex: 1;
+                min-width: 0;
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+
+            .action-text {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-buttons-section {
+                padding: 16px;
+            }
+
+            .action-buttons-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 14px 16px;
+            }
+
+            /* Mantener color rojo en móviles */
+            .action-btn[data-action="eliminar-registro"] {
+                background: #dc2626;
+                color: white;
+                border-color: #dc2626;
+            }
+        }
     </style>
 </head>
 <body>
@@ -157,6 +291,46 @@
                     <button class="filter-btn" data-filter="gratuito" onclick="filterActivities('gratuito')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
                         Solo Actividades Gratuitas
                     </button>
+                </div>
+
+                <!-- Sección de Botones Múltiples -->
+                <div class="action-buttons-section">
+                    <h3 class="section-title">Acciones Rápidas</h3>
+                    <div class="action-buttons-grid">
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="nueva-actividad">
+                                <span class="action-text">Nueva Actividad</span>
+                            </button>
+                            <button class="action-btn" data-action="estadisticas">
+                                <span class="action-text">Estadísticas</span>
+                            </button>
+                            <button class="action-btn" data-action="calendario">
+                                <span class="action-text">Calendario</span>
+                            </button>
+                        </div>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="configuracion">
+                                <span class="action-text">Configuración</span>
+                            </button>
+                            <button class="action-btn" data-action="reportes">
+                                <span class="action-text">Reportes</span>
+                            </button>
+                            <button class="action-btn" data-action="ayuda">
+                                <span class="action-text">Ayuda</span>
+                            </button>
+                        </div>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="notificaciones">
+                                <span class="action-text">Notificaciones</span>
+                            </button>
+                            <button class="action-btn" data-action="reservas">
+                                <span class="action-text">Reservas</span>
+                            </button>
+                            <button class="action-btn" data-action="eliminar-registro">
+                                <span class="action-text">Eliminar registro de actividades</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Content Cards Grid -->
