@@ -36,11 +36,41 @@
             </div>
         </a>
     </div>
+
+    <!-- Imágenes de restaurantes -->
+    <div class="restaurant-images-section">
+        <h3>Nuestros Restaurantes</h3>
+        <div class="restaurant-images-grid">
+            <div class="restaurant-image-card">
+                <img src="/imagenes/Buffet.png" alt="Buffet" class="restaurant-img">
+                <div class="image-overlay">
+                </div>
+            </div>
+
+            <div class="restaurant-image-card">
+                <img src="/imagenes/MainDiningRoom.png" alt="Main Dining Room" class="restaurant-img">
+                <div class="image-overlay">
+                </div>
+            </div>
+
+            <div class="restaurant-image-card">
+                <img src="/imagenes/especialidades.png" alt="Restaurante Especializado" class="restaurant-img">
+                <div class="image-overlay">
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+/* Deshabilitar scroll solo en la página de inicio del restaurante */
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
 .home-header{margin-bottom:14px}
 .home-header h2{margin:0 0 4px;font-size:22px}
 .home-header p{margin:0;color:#64748b}
@@ -54,5 +84,15 @@
 .icon-wrap.emp{background:rgba(139,92,246,.12);color:#8b5cf6}
 .card-body h3{margin:0 0 4px;font-size:18px}
 .card-body p{margin:0;color:#6b7280}
+
+/* Estilos para las imágenes de restaurantes */
+.restaurant-images-section{margin-top:40px}
+.restaurant-images-section h3{color:#111827;font-size:20px;margin-bottom:20px;font-weight:600}
+.restaurant-images-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.restaurant-image-card{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);transition:transform .3s ease,box-shadow .3s ease}
+.restaurant-image-card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.restaurant-img{width:100%;height:180px;object-fit:cover;display:block}
+.image-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:24px;color:white}
+.image-overlay h4{margin:0;font-size:20px;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,.5)}
 </style>
 {% endblock %}

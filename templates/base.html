@@ -25,6 +25,67 @@
       .form-group{display:flex;flex-direction:column;gap:6px}
       .form-group input,.form-group select,.form-group textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px}
       .empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:24px}
+      
+      /* Estilos para la navegación del restaurante con botón de mantenimiento integrado */
+      .restaurant-subnav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0;
+        width: 100%;
+      }
+      
+      .subnav-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      
+      .maintenance-nav-button {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        white-space: nowrap;
+      }
+      
+      .maintenance-nav-button:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+      
+      .maintenance-nav-button i {
+        font-size: 14px;
+      }
+      
+      /* Responsive para el botón de mantenimiento en navegación */
+      @media (max-width: 768px) {
+        .restaurant-subnav {
+          flex-direction: column;
+          gap: 12px;
+          align-items: stretch;
+        }
+        
+        .subnav-links {
+          justify-content: center;
+        }
+        
+        .maintenance-nav-button {
+          align-self: center;
+          max-width: 200px;
+        }
+      }
     </style>
 </head>
 <body>
@@ -135,13 +196,15 @@
 
                 {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}
                 <nav class="restaurant-subnav">
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Inicio</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Inventario</a>
-                    {# Enlace de Mantenimiento oculto: el reporte se realiza con el botón flotante #}
-                    <!-- Finanzas eliminado -->
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
-                    
+                    <div class="subnav-links">
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Inicio</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Inventario</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
+                    </div>
+                    <button id="maintenance-nav-btn" class="maintenance-nav-button" type="button">
+                        <i class="fas fa-tools"></i> Reportar Mantenimiento
+                    </button>
                 </nav>
                 {% endif %}
 

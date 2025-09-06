@@ -78,21 +78,14 @@
   }
 
   function createButton(){
-    if (document.getElementById('maintenance-fab')) return;
-    const btn = document.createElement('button');
-    btn.id = 'maintenance-fab';
-    btn.type = 'button';
-    btn.innerHTML = '<i class="fas fa-tools"></i> Reportar Mantenimiento';
-    btn.style.cssText = `
-      position: fixed; right: 20px; bottom: 20px; z-index: 9999;
-      background: #3b82f6; color: #fff; border: none; border-radius: 999px;
-      padding: 12px 16px; box-shadow: 0 6px 18px rgba(0,0,0,.2);
-      cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;
-    `;
-    btn.addEventListener('mouseenter', ()=>{ btn.style.transform='translateY(-2px)'; });
-    btn.addEventListener('mouseleave', ()=>{ btn.style.transform='none'; });
-    btn.addEventListener('click', openModal);
-    document.body.appendChild(btn);
+    // Buscar el botón de mantenimiento en la navegación
+    const navBtn = document.getElementById('maintenance-nav-btn');
+    if (navBtn) {
+      navBtn.addEventListener('click', openModal);
+      return; // Si existe el botón en la navegación, no crear el flotante
+    }
+    
+    // No crear botón flotante - solo usar el botón en la navegación
   }
 
   function closeModal(){
