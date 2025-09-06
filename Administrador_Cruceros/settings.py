@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     "apps.mantenimiento",
     "apps.reservaciones",
     "apps.ventas",
-    
+    "apps.nueva_app",
+
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,7 @@ TEMPLATES = [
             BASE_DIR / 'apps' / 'almacen' / 'templates',
             BASE_DIR / 'apps' / 'entretenimiento' / 'templates',
             BASE_DIR / 'apps' / 'mantenimiento' / 'templates',
+            BASE_DIR / 'apps' / 'nueva_app' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -135,7 +137,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'almacen' / 'Static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
     BASE_DIR / 'apps' / 'mantenimiento' / 'static',
-    BASE_DIR / 'apps' / 'reservaciones' / 'static'
+    BASE_DIR / 'apps' / 'reservaciones' / 'static',
+    BASE_DIR / 'apps' / 'nueva_app' / 'Static'
 ]
 
 # Media files (user-uploaded content)

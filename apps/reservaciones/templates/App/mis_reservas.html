@@ -44,10 +44,16 @@
     </div>
     {% for r in reservas_entretenimiento %}
       <div class="reserva-card opcion">
-        <h3>{{ r.entretenimiento.nombre }}</h3>
-        <p>{{ r.entretenimiento.descripcion }}</p>
-        <p>Fecha: Día {{ r.entretenimiento.dia }}</p>
-        <p>Precio: ${{ r.entretenimiento.precio }}</p>
+        {% if r.entretenimientoP %}
+          <h3>{{ r.entretenimientoP.nombre }} (Pago)</h3>
+          <p>{{ r.entretenimientoP.descripcion }}</p>
+          <p>Fecha: Día {{ r.entretenimientoP.dia }}</p>
+        {% elif r.entretenimientoR %}
+          <h3>{{ r.entretenimientoR.nombre }} (Rutinario)</h3>
+          <p>{{ r.entretenimientoR.descripcion }}</p>
+          <p>Fecha: Día {{ r.entretenimientoR.dia }}</p>
+        {% endif %}
+        <p>Precio: ${{ r.costo }}</p>
         <a href="{% url 'cancelar_reserva' crucero.nombre r.id %}">
           <button class="btn-danger">Cancelar</button>
         </a>

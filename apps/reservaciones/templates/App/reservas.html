@@ -412,9 +412,325 @@
             .page-title {
                 font-size: 24px;
             }
-            
+
             .action-button {
                 min-width: 100%;
+            }
+        }
+
+        /* ===== ESTILOS PARA LA SECCIÓN DE ACCIONES RÁPIDAS ===== */
+
+        .action-buttons-section {
+            margin-bottom: 32px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .action-buttons-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            min-width: 160px;
+        }
+
+        .action-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-text {
+            white-space: nowrap;
+        }
+
+        /* Estilos responsivos para la sección de botones */
+        @media (max-width: 768px) {
+            .action-buttons-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+
+            .action-buttons-row {
+                gap: 8px;
+            }
+
+            .action-btn {
+                flex: 1;
+                min-width: 0;
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+
+            .action-text {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-buttons-section {
+                padding: 16px;
+            }
+
+            .action-buttons-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 14px 16px;
+            }
+        }
+
+        /* ===== ESTILOS PARA LOS MODALES ===== */
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .large-modal {
+            max-width: 900px;
+            width: 90vw;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #2563eb;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+
+        /* ===== ESTILOS PARA EL FORMULARIO DE RESERVA ===== */
+
+        .reservation-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #374151;
+            background: white;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:invalid {
+            border-color: #ef4444;
+        }
+
+        .form-errors {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            color: #dc2626;
+        }
+
+        .submit-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Animaciones para el toast de éxito */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
             }
         }
     </style>
@@ -516,118 +832,246 @@
                     
             </header>
 
-            <!-- Contenedor de botones -->
-            <div class="button-container" style="max-width:1100px; margin:0 auto; text-align:center;">
-
-                <a href="#" class="action-button reservation-button" onclick="goReserva('habitaciones'); return false;">
-                    <div class="button-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7Z"/>
-                            <path d="M2 7h20"/>
-                            <path d="M9 5v4"/>
-                            <path d="M15 5v4"/>
-                        </svg>
-                    </div>
-                    <h3 class="button-title">Reservar Camarote</h3>
-                    <p class="button-description">Reserve su camarote para su estadía en el crucero</p>
-                    <button class="btn-primary">Iniciar Reserva</button>
-                </a>
-
-                <a href="#" class="action-button reservation-button" onclick="goReserva('entretenimiento'); return false;">
-                    <div class="button-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M8 12h8"/>
-                        <path d="M12 8v8"/>
-                    </svg>
-                    </div>
-                    <h3 class="button-title">Reservar Entretenimiento</h3>
-                    <p class="button-description">Disfruta de actividades exclusivas en tu viaje</p>
-                    <button class="btn-primary">Ver Catálogo</button>
-                </a>
-
-                <a href="#" class="action-button reservation-button" onclick="goReserva('restaurantes'); return false;">
-                    <div class="button-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 2v12"/>
-                            <path d="M12 2v12"/>
-                            <path d="M16 2v12"/>
-                            <path d="M3 14h18"/>
-                        </svg>
-                    </div>
-                    <h3 class="button-title">Reservar Mesa</h3>
-                    <p class="button-description">Elige un restaurante y reserva tu mesa a bordo</p>
-                    <button class="btn-primary">Ver Restaurantes</button>
-                </a>
-
-                <a href="#" class="action-button reservation-button" onclick="goReserva('evento'); return false;">
-                    <div class="button-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                            fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="4" width="20" height="16" rx="2"/>
-                            <path d="M8 2v4"/>
-                            <path d="M16 2v4"/>
-                            <path d="M2 10h20"/>
-                        </svg>
-                    </div>
-                    <h3 class="button-title">Organizar Evento</h3>
-                    <p class="button-description">Cree su propio evento especial a bordo</p>
-                    <button class="btn-primary">Organizar</button>
-                </a>
-
-                <div style="margin-top:40px; text-align:center; width:100%;">
-                    <a href="#" class="action-button reservation-button" onclick="goReserva('mis_reservas'); return false;" 
-                    style="max-width:400px; display:inline-block;">
-                        <div class="button-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                            fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/>
-                                <path d="M3 12h18"/>
-                                <path d="M3 18h18"/>
-                            </svg>
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Sección de Acciones Rápidas -->
+                <div class="action-buttons-section">
+                    <h3 class="section-title">Acciones Rápidas</h3>
+                    <div class="action-buttons-grid">
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="reservar-entretenimiento">
+                                <span class="action-text">Reservar Entretenimiento</span>
+                            </button>
                         </div>
-                        <h3 class="button-title">Mis Reservas</h3>
-                        <p class="button-description">Consulta y gestiona todas tus reservas</p>
-                        <button class="btn-primary">Ver Reservas</button>
-                    </a>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="mis-reservas">
+                                <span class="action-text">Ver Reservas</span>
+                            </button>
+                        </div>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="nueva-reserva">
+                                <span class="action-text">Reservar Habitación</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </main>
+    </div>
+
+    <!-- Modal de Reservar Entretenimiento -->
+    <div id="reservar-entretenimiento-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Reservar Entretenimiento</h2>
+                <button class="modal-close" onclick="closeReservarEntretenimientoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="entretenimiento-form" style="padding: 20px;">
+                    <!-- Paso 1: Búsqueda de cliente por habitación -->
+                    <div id="paso-busqueda" class="paso-form">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Buscar Cliente</h4>
+                        <div class="form-group">
+                            <label for="numero-habitacion" class="form-label">Número de Habitación *</label>
+                            <input type="text" id="numero-habitacion" class="form-input" placeholder="Ej: 101001" maxlength="6">
+                        </div>
+                        <button type="button" class="action-btn" onclick="buscarCliente()" style="width: 100%; margin-top: 10px;">
+                            <span class="action-text">Buscar Cliente</span>
+                        </button>
+                    </div>
+
+                    <!-- Paso 2: Información del cliente (solo lectura) -->
+                    <div id="paso-cliente" class="paso-form" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Información del Cliente</h4>
+                        <div class="cliente-info" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <label class="form-label">Nombre:</label>
+                                    <div id="cliente-nombre" style="padding: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+                                </div>
+                                <div>
+                                    <label class="form-label">Apellido:</label>
+                                    <div id="cliente-apellido" style="padding: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+                                </div>
+                                <div>
+                                    <label class="form-label">Fecha de Nacimiento:</label>
+                                    <div id="cliente-fecha-nacimiento" style="padding: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+                                </div>
+                                <div>
+                                    <label class="form-label">Habitación:</label>
+                                    <div id="cliente-habitacion" style="padding: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="cliente-id">
+                    </div>
+
+                    <!-- Paso 3: Selección de tipo de actividad -->
+                    <div id="paso-tipo-actividad" class="paso-form" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Tipo de Actividad</h4>
+                        <div class="tipo-actividad-selector" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <button type="button" class="tipo-btn" data-tipo="pago" onclick="seleccionarTipoActividad('pago')" style="padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 5px;">Actividad de Pago</div>
+                                <div style="font-size: 12px; color: #64748b;">Actividades con costo adicional</div>
+                            </button>
+                            <button type="button" class="tipo-btn" data-tipo="gratuito" onclick="seleccionarTipoActividad('gratuito')" style="padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
+                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 5px;">Actividad Gratuita</div>
+                                <div style="font-size: 12px; color: #64748b;">Actividades incluidas en el viaje</div>
+                            </button>
+                        </div>
+                        <input type="hidden" id="tipo-actividad-seleccionado">
+                    </div>
+
+                    <!-- Paso 4: Selección de actividad específica (solo para pago) -->
+                    <div id="paso-actividad-pago" class="paso-form" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Seleccionar Actividad</h4>
+                        <div id="actividades-lista" style="margin-bottom: 20px;">
+                            <!-- Las actividades se cargarán aquí -->
+                        </div>
+                        <input type="hidden" id="actividad-seleccionada">
+                    </div>
+
+                    <!-- Paso 5: Número de participantes -->
+                    <div id="paso-participantes" class="paso-form" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Número de Participantes</h4>
+                        <div class="form-group">
+                            <label for="numero-participantes" class="form-label">Número de Personas *</label>
+                            <select id="numero-participantes" class="form-input" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="1">1 persona</option>
+                                <option value="2">2 personas</option>
+                                <option value="3">3 personas</option>
+                                <option value="4">4 personas</option>
+                                <option value="5">5 personas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Mensajes de error -->
+                    <div id="entretenimiento-errors" class="form-errors" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeReservarEntretenimientoModal()">Cerrar</button>
+                <button class="modal-btn modal-btn-confirm" id="btn-crear-reserva-entretenimiento" onclick="crearReservaEntretenimiento()" style="display: none;">
+                    <span id="btn-texto-reserva">Crear Reserva</span>
+                    <div id="btn-spinner-reserva" class="submit-spinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Reservar Habitación -->
+    <div id="nueva-reserva-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Reservar Habitación</h2>
+                <button class="modal-close" onclick="closeNuevaReservaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="reservation-form" style="padding: 20px;">
+                    <form id="nueva-reserva-form">
+                        <div class="form-group">
+                            <label for="reserva-nombre" class="form-label">Nombre *</label>
+                            <input type="text" id="reserva-nombre" name="nombre" class="form-input" required maxlength="100" placeholder="Ingrese su nombre">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reserva-apellido" class="form-label">Apellido *</label>
+                            <input type="text" id="reserva-apellido" name="apellido" class="form-input" required maxlength="100" placeholder="Ingrese su apellido">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reserva-fecha-nacimiento" class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" id="reserva-fecha-nacimiento" name="fecha_nacimiento" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reserva-numero-personas" class="form-label">Número de Personas *</label>
+                            <select id="reserva-numero-personas" name="numero_personas" class="form-input" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="1">1 persona</option>
+                                <option value="2">2 personas</option>
+                                <option value="3">3 personas</option>
+                                <option value="4">4 personas</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reserva-tipo-habitacion" class="form-label">Tipo de Habitación *</label>
+                            <select id="reserva-tipo-habitacion" name="tipo_habitacion" class="form-input" required onchange="onTipoHabitacionChange()">
+                                <option value="">Seleccionar tipo de habitación...</option>
+                                <!-- Los tipos se cargarán dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div id="habitacion-info" class="habitacion-info" style="display: none; margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h4 style="margin: 0 0 10px 0; color: #1e293b;">Habitación Asignada</h4>
+                            <div id="habitacion-details" style="color: #475569;"></div>
+                        </div>
+
+                        <div id="reserva-errors" class="form-errors" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeNuevaReservaModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitNuevaReserva()" id="submit-reserva-btn">
+                    <span id="submit-reserva-text">Reservar Habitación</span>
+                    <div id="submit-reserva-spinner" class="submit-spinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ver Reservas -->
+    <div id="ver-reservas-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Ver Reservas</h2>
+                <button class="modal-close" onclick="closeVerReservasModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="reservas-container" style="padding: 20px;">
+                    <!-- Loading spinner -->
+                    <div id="reservas-loading" class="reservas-loading" style="display: none; text-align: center; padding: 40px;">
+                        <div class="submit-spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block;"></div>
+                        <p style="margin-top: 20px; color: #64748b;">Cargando reservas...</p>
+                    </div>
+
+                    <!-- Mensajes de error -->
+                    <div id="reservas-errors" class="form-errors" style="display: none;"></div>
+
+                    <!-- Contenedor de reservas -->
+                    <div id="reservas-list" class="reservas-list" style="display: none;">
+                        <div id="reservas-header" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                            <h3 style="margin: 0; color: #1e293b;">Reservas encontradas: <span id="total-reservas">0</span></h3>
+                        </div>
+
+                        <div id="reservas-content" class="reservas-content">
+                            <!-- Las reservas se cargarán aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay reservas -->
+                    <div id="no-reservas" class="no-reservas" style="display: none; text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 48px; color: #cbd5e1; margin-bottom: 20px;">📋</div>
+                        <h3 style="color: #64748b; margin-bottom: 10px;">No hay reservas</h3>
+                        <p style="color: #94a3b8;">Aún no se han realizado reservas en este crucero.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="closeVerReservasModal()">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const SELECT_KEY = "crucero_seleccionado";
         const select = document.getElementById("crucero-selector");
 
-        function goReserva(tipo) {
-            // Usar el nombre del crucero del contexto de Django
-            const crucero = "{{ crucero.nombre|urlencode }}";
-            if (!crucero) {
-                alert("Primero selecciona un crucero.");
-                return;
-            }
-            let url = "";
-            if (tipo === "habitaciones") {
-                url = `/reservaciones/${crucero}/habitaciones/`;
-            } else if (tipo === "entretenimiento") {
-                url = `/reservaciones/${crucero}/entretenimiento/`;
-            } else if (tipo === "restaurantes") {
-                url = `/reservaciones/${crucero}/restaurantes/`;
-            } else if (tipo === "evento") {
-                url = `/reservaciones/${crucero}/evento/`;
-            } else if (tipo === "mis_reservas") {
-                url = `/reservaciones/${crucero}/mis/`;
-            }
-            window.location.href = url;
-        }
 
         // Funciones básicas para el sidebar
         function toggleSidebar() {
@@ -649,11 +1093,977 @@
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
             const toggle = document.querySelector('.mobile-menu-toggle');
-            
+
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
             toggle.classList.remove('active');
         }
+
+        // Función para abrir el modal de ver reservas
+        function openVerReservasModal() {
+            console.log('Abriendo modal de ver reservas');
+            const modal = document.getElementById('ver-reservas-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleVerReservasOutsideClick);
+                // Cargar las reservas
+                cargarReservas();
+            }
+        }
+
+        // Función para manejar click fuera del modal de ver reservas
+        function handleVerReservasOutsideClick(event) {
+            const modal = document.getElementById('ver-reservas-modal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            // Si el click fue fuera del contenido del modal, cerrar
+            if (event.target === modal && !modalContent.contains(event.target)) {
+                closeVerReservasModal();
+            }
+        }
+
+        // Función para cerrar el modal de ver reservas
+        function closeVerReservasModal() {
+            console.log('Cerrando modal de ver reservas');
+            const modal = document.getElementById('ver-reservas-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleVerReservasOutsideClick);
+                // Limpiar contenido
+                limpiarReservasModal();
+            }
+        }
+
+        // Función para limpiar el contenido del modal de reservas
+        function limpiarReservasModal() {
+            document.getElementById('reservas-loading').style.display = 'none';
+            document.getElementById('reservas-errors').style.display = 'none';
+            document.getElementById('reservas-list').style.display = 'none';
+            document.getElementById('no-reservas').style.display = 'none';
+            document.getElementById('reservas-content').innerHTML = '';
+            document.getElementById('total-reservas').textContent = '0';
+        }
+
+        // Función para cargar las reservas desde el API
+        function cargarReservas() {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            if (!crucero) {
+                showReservasErrors(['No se pudo identificar el crucero actual.']);
+                return;
+            }
+
+            // Mostrar loading
+            document.getElementById('reservas-loading').style.display = 'block';
+            document.getElementById('reservas-errors').style.display = 'none';
+
+            console.log('Cargando reservas para crucero:', crucero);
+
+            fetch(`/reservaciones/${crucero}/api/ver-reservas/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Resultado cargar reservas:', result);
+                if (result.success) {
+                    mostrarReservas(result.reservas);
+                } else {
+                    showReservasErrors([result.message || 'Error al cargar las reservas']);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar reservas:', error);
+                showReservasErrors(['Error de conexión al cargar las reservas']);
+            })
+            .finally(() => {
+                document.getElementById('reservas-loading').style.display = 'none';
+            });
+        }
+
+        // Función para mostrar las reservas en el modal
+        function mostrarReservas(reservas) {
+            const reservasContent = document.getElementById('reservas-content');
+            const totalReservas = document.getElementById('total-reservas');
+
+            totalReservas.textContent = reservas.length;
+
+            if (reservas.length === 0) {
+                document.getElementById('no-reservas').style.display = 'block';
+                document.getElementById('reservas-list').style.display = 'none';
+                return;
+            }
+
+            // Limpiar contenido anterior
+            reservasContent.innerHTML = '';
+
+            // Crear tarjetas para cada reserva
+            reservas.forEach(reserva => {
+                const reservaCard = crearTarjetaReserva(reserva);
+                reservasContent.appendChild(reservaCard);
+            });
+
+            // Mostrar la lista de reservas
+            document.getElementById('reservas-list').style.display = 'block';
+        }
+
+        // Función para crear una tarjeta de reserva
+        function crearTarjetaReserva(reserva) {
+            const card = document.createElement('div');
+            card.className = 'reserva-card';
+            card.style.cssText = `
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            `;
+
+            let contenidoAdicional = '';
+
+            // Información específica según el tipo de reserva
+            if (reserva.tipo_reserva === 'actividad_pago' || reserva.tipo_reserva === 'actividad_rutinaria') {
+                contenidoAdicional = `
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #1e293b; font-size: 16px;">📅 ${reserva.actividad.titulo}</h4>
+                        <p style="margin: 5px 0; color: #64748b; font-size: 14px;">${reserva.actividad.descripcion}</p>
+                        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 13px; color: #475569;">
+                            <span>📆 Día ${reserva.actividad.dia_crucero}</span>
+                            <span>🕐 ${reserva.actividad.hora_inicio} - ${reserva.actividad.hora_fin}</span>
+                            ${reserva.tipo_reserva === 'actividad_pago' ? `<span>💰 $${reserva.actividad.costo_unitario}</span>` : `<span>📍 ${reserva.actividad.ubicacion}</span>`}
+                        </div>
+                    </div>
+                `;
+            } else if (reserva.tipo_reserva === 'habitacion') {
+                contenidoAdicional = `
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #1e293b; font-size: 16px;">🏨 Información de Habitación</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                            <div><strong>Número:</strong> ${reserva.habitacion.numero}</div>
+                            <div><strong>Cubierta:</strong> ${reserva.habitacion.cubierta}</div>
+                            <div><strong>Lado:</strong> ${reserva.habitacion.lado}</div>
+                            <div><strong>Tipo:</strong> ${reserva.habitacion.tipo_habitacion}</div>
+                            <div><strong>Capacidad:</strong> ${reserva.habitacion.capacidad} personas</div>
+                            <div><strong>Vista al mar:</strong> ${reserva.habitacion.vista_mar ? 'Sí' : 'No'}</div>
+                        </div>
+                        <p style="margin: 10px 0 0 0; color: #64748b; font-size: 13px;">${reserva.habitacion.descripcion}</p>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: start;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <h3 style="margin: 0; color: #1e293b; font-size: 18px;">${reserva.nombre} ${reserva.apellido}</h3>
+                            <span style="background: ${reserva.estado === 'confirmada' ? '#10b981' : reserva.estado === 'pendiente' ? '#f59e0b' : '#ef4444'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                                ${reserva.estado}
+                            </span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #64748b;">🏠</span>
+                                <div>
+                                    <div style="font-weight: 600; color: #1e293b;">Habitación</div>
+                                    <div style="color: #64748b; font-size: 14px;">${reserva.numero_habitacion}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #64748b;">👥</span>
+                                <div>
+                                    <div style="font-weight: 600; color: #1e293b;">Personas</div>
+                                    <div style="color: #64748b; font-size: 14px;">${reserva.numero_personas}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #64748b;">💰</span>
+                                <div>
+                                    <div style="font-weight: 600; color: #1e293b;">Costo Total</div>
+                                    <div style="color: #64748b; font-size: 14px;">$${reserva.costo_total}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #64748b;">📅</span>
+                                <div>
+                                    <div style="font-weight: 600; color: #1e293b;">Creada</div>
+                                    <div style="color: #64748b; font-size: 14px;">${reserva.fecha_creacion}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${contenidoAdicional}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Función para mostrar errores en el modal de reservas
+        function showReservasErrors(errors) {
+            console.log('DEBUG: showReservasErrors called with:', errors);
+            const errorDiv = document.getElementById('reservas-errors');
+
+            if (!errorDiv) {
+                console.error('DEBUG: Elemento reservas-errors no encontrado');
+                return;
+            }
+
+            errorDiv.innerHTML = '';
+
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+
+            errors.forEach(error => {
+                const errorSpan = document.createElement('div');
+                errorSpan.className = 'error-message';
+                errorSpan.textContent = error;
+                errorDiv.appendChild(errorSpan);
+            });
+
+            errorDiv.style.display = 'block';
+            console.log('DEBUG: Errores mostrados en reservas');
+        }
+
+        // Función para inicializar los eventos de los botones de acción
+        function initializeActionButtons() {
+
+            const nuevaReservaBtn = document.querySelector('[data-action="nueva-reserva"]');
+            if (nuevaReservaBtn) {
+                nuevaReservaBtn.addEventListener('click', openNuevaReservaModal);
+            }
+
+            const reservarEntretenimientoBtn = document.querySelector('[data-action="reservar-entretenimiento"]');
+            if (reservarEntretenimientoBtn) {
+                reservarEntretenimientoBtn.addEventListener('click', openReservarEntretenimientoModal);
+            }
+
+            const verReservasBtn = document.querySelector('[data-action="mis-reservas"]');
+            if (verReservasBtn) {
+                verReservasBtn.addEventListener('click', openVerReservasModal);
+            }
+        }
+
+        // Función para navegar a las diferentes secciones de reservas
+        function goToReservas(tipo) {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            if (!crucero) {
+                alert("Primero selecciona un crucero.");
+                return;
+            }
+            // Función actualmente sin rutas activas
+        }
+
+
+        // Cerrar modales con la tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const nuevaReservaModal = document.getElementById('nueva-reserva-modal');
+                if (nuevaReservaModal && nuevaReservaModal.style.display === 'flex') {
+                    closeNuevaReservaModal();
+                }
+
+                const reservarEntretenimientoModal = document.getElementById('reservar-entretenimiento-modal');
+                if (reservarEntretenimientoModal && reservarEntretenimientoModal.style.display === 'flex') {
+                    closeReservarEntretenimientoModal();
+                }
+
+                const verReservasModal = document.getElementById('ver-reservas-modal');
+                if (verReservasModal && verReservasModal.style.display === 'flex') {
+                    closeVerReservasModal();
+                }
+            }
+        });
+
+        // Función para abrir el modal de nueva reserva
+        function openNuevaReservaModal() {
+            console.log('Abriendo modal de nueva reserva');
+            const modal = document.getElementById('nueva-reserva-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleNuevaReservaOutsideClick);
+                // Cargar tipos de habitación
+                loadTiposHabitacion();
+            }
+        }
+
+        // Función para abrir el modal de reservar entretenimiento
+        function openReservarEntretenimientoModal() {
+            console.log('Abriendo modal de reservar entretenimiento');
+            const modal = document.getElementById('reservar-entretenimiento-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleReservarEntretenimientoOutsideClick);
+                // Cargar actividades disponibles
+                loadActividadesDisponibles();
+            } else {
+                // Si el modal no existe, mostrar mensaje
+                console.log('Modal de reservar entretenimiento no encontrado');
+                alert('Funcionalidad de reservar entretenimiento próximamente disponible.');
+            }
+        }
+
+        // Función para manejar click fuera del modal de nueva reserva
+        function handleNuevaReservaOutsideClick(event) {
+            const modal = document.getElementById('nueva-reserva-modal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            // Si el click fue fuera del contenido del modal, cerrar
+            if (event.target === modal && !modalContent.contains(event.target)) {
+                closeNuevaReservaModal();
+            }
+        }
+
+        // Función para cerrar el modal de nueva reserva
+        function closeNuevaReservaModal() {
+            console.log('Cerrando modal de nueva reserva');
+            const modal = document.getElementById('nueva-reserva-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleNuevaReservaOutsideClick);
+                // Limpiar formulario
+                document.getElementById('nueva-reserva-form').reset();
+                document.getElementById('habitacion-info').style.display = 'none';
+                document.getElementById('reserva-errors').style.display = 'none';
+            }
+        }
+
+        // Función para manejar click fuera del modal de reservar entretenimiento
+        function handleReservarEntretenimientoOutsideClick(event) {
+            const modal = document.getElementById('reservar-entretenimiento-modal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            // Si el click fue fuera del contenido del modal, cerrar
+            if (event.target === modal && !modalContent.contains(event.target)) {
+                closeReservarEntretenimientoModal();
+            }
+        }
+
+        // Función para cerrar el modal de reservar entretenimiento
+        function closeReservarEntretenimientoModal() {
+            console.log('Cerrando modal de reservar entretenimiento');
+            const modal = document.getElementById('reservar-entretenimiento-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleReservarEntretenimientoOutsideClick);
+            }
+        }
+
+        // Función para buscar cliente por número de habitación
+        function buscarCliente() {
+            const numeroHabitacion = document.getElementById('numero-habitacion').value.trim();
+            const crucero = "{{ crucero.nombre|urlencode }}";
+
+            if (!numeroHabitacion) {
+                showEntretenimientoErrors(['Por favor, ingrese un número de habitación']);
+                return;
+            }
+
+            console.log('Buscando cliente para habitación:', numeroHabitacion);
+
+            fetch(`/reservaciones/${crucero}/api/buscar-cliente/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    numero_habitacion: numeroHabitacion
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Resultado búsqueda cliente:', result);
+                if (result.success && result.cliente) {
+                    mostrarInformacionCliente(result.cliente);
+                } else {
+                    showEntretenimientoErrors([result.message || 'Cliente no encontrado']);
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar cliente:', error);
+                showEntretenimientoErrors(['Error de conexión al buscar cliente']);
+            });
+        }
+
+        // Función para mostrar información del cliente encontrado
+        function mostrarInformacionCliente(cliente) {
+            document.getElementById('cliente-id').value = cliente.id;
+            document.getElementById('cliente-nombre').textContent = cliente.nombre || 'No disponible';
+            document.getElementById('cliente-apellido').textContent = cliente.apellido || 'No disponible';
+            document.getElementById('cliente-fecha-nacimiento').textContent = cliente.fecha_nacimiento || 'No disponible';
+            document.getElementById('cliente-habitacion').textContent = cliente.numero_habitacion;
+
+            // Ocultar paso de búsqueda y mostrar información del cliente
+            document.getElementById('paso-busqueda').style.display = 'none';
+            document.getElementById('paso-cliente').style.display = 'block';
+            document.getElementById('paso-tipo-actividad').style.display = 'block';
+
+            // Limpiar errores
+            document.getElementById('entretenimiento-errors').style.display = 'none';
+        }
+
+        // Función para seleccionar tipo de actividad
+        function seleccionarTipoActividad(tipo) {
+            console.log('Seleccionando tipo de actividad:', tipo);
+
+            // Actualizar botones visualmente
+            document.querySelectorAll('.tipo-btn').forEach(btn => {
+                btn.style.borderColor = '#e2e8f0';
+                btn.style.background = '#f8fafc';
+            });
+
+            const selectedBtn = document.querySelector(`[data-tipo="${tipo}"]`);
+            if (selectedBtn) {
+                selectedBtn.style.borderColor = '#3b82f6';
+                selectedBtn.style.background = '#eff6ff';
+            }
+
+            // Guardar selección
+            document.getElementById('tipo-actividad-seleccionado').value = tipo;
+
+            if (tipo === 'pago') {
+                // Mostrar paso de selección de actividad
+                document.getElementById('paso-actividad-pago').style.display = 'block';
+                cargarActividadesPago();
+            } else {
+                // Para actividades gratuitas, ocultar paso de actividad específica
+                document.getElementById('paso-actividad-pago').style.display = 'none';
+                document.getElementById('actividad-seleccionada').value = '';
+            }
+
+            // Mostrar paso de participantes
+            document.getElementById('paso-participantes').style.display = 'block';
+
+            // Mostrar botón de crear reserva
+            document.getElementById('btn-crear-reserva-entretenimiento').style.display = 'inline-block';
+        }
+
+        // Función para cargar actividades de pago
+        function cargarActividadesPago() {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            console.log('Cargando actividades de pago...');
+
+            fetch(`/reservaciones/${crucero}/api/actividades-pago/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Actividades de pago:', result);
+                if (result.success && result.actividades) {
+                    mostrarActividadesPago(result.actividades);
+                } else {
+                    showEntretenimientoErrors([result.message || 'Error al cargar actividades']);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar actividades:', error);
+                showEntretenimientoErrors(['Error de conexión al cargar actividades']);
+            });
+        }
+
+        // Función para mostrar actividades de pago
+        function mostrarActividadesPago(actividades) {
+            const contenedor = document.getElementById('actividades-lista');
+            contenedor.innerHTML = '';
+
+            if (actividades.length === 0) {
+                contenedor.innerHTML = '<p style="color: #64748b; text-align: center;">No hay actividades de pago disponibles</p>';
+                return;
+            }
+
+            actividades.forEach(actividad => {
+                const actividadDiv = document.createElement('div');
+                actividadDiv.className = 'actividad-item';
+                actividadDiv.style.cssText = `
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    background: #f8fafc;
+                `;
+
+                actividadDiv.onclick = () => seleccionarActividad(actividad.id_actividad, actividadDiv);
+
+                actividadDiv.innerHTML = `
+                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 5px;">${actividad.titulo}</div>
+                    <div style="color: #64748b; font-size: 14px; margin-bottom: 8px;">${actividad.descripcion}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="color: #059669; font-weight: 600;">$${actividad.coste}</div>
+                        <div style="color: #64748b; font-size: 12px;">
+                            Día ${actividad.dia_crucero} - ${actividad.hora_inicio} a ${actividad.hora_fin}
+                        </div>
+                    </div>
+                `;
+
+                contenedor.appendChild(actividadDiv);
+            });
+        }
+
+        // Función para seleccionar una actividad específica
+        function seleccionarActividad(actividadId, element) {
+            console.log('Seleccionando actividad:', actividadId);
+
+            // Limpiar selección anterior
+            document.querySelectorAll('.actividad-item').forEach(item => {
+                item.style.borderColor = '#e2e8f0';
+                item.style.background = '#f8fafc';
+            });
+
+            // Aplicar selección
+            element.style.borderColor = '#3b82f6';
+            element.style.background = '#eff6ff';
+
+            // Guardar selección
+            document.getElementById('actividad-seleccionada').value = actividadId;
+        }
+
+        // Función para crear reserva de entretenimiento
+        function crearReservaEntretenimiento() {
+            const clienteId = document.getElementById('cliente-id').value;
+            const tipoActividad = document.getElementById('tipo-actividad-seleccionado').value;
+            const numeroParticipantes = document.getElementById('numero-participantes').value;
+            const actividadSeleccionada = document.getElementById('actividad-seleccionada').value;
+            const crucero = "{{ crucero.nombre|urlencode }}";
+
+            console.log('Creando reserva de entretenimiento:', {
+                clienteId,
+                tipoActividad,
+                numeroParticipantes,
+                actividadSeleccionada
+            });
+
+            // Validar campos requeridos
+            if (!clienteId || !tipoActividad || !numeroParticipantes) {
+                showEntretenimientoErrors(['Por favor, complete todos los campos requeridos']);
+                return;
+            }
+
+            if (tipoActividad === 'pago' && !actividadSeleccionada) {
+                showEntretenimientoErrors(['Por favor, seleccione una actividad de pago']);
+                return;
+            }
+
+            // Mostrar loading
+            const btnTexto = document.getElementById('btn-texto-reserva');
+            const btnSpinner = document.getElementById('btn-spinner-reserva');
+            const btn = document.getElementById('btn-crear-reserva-entretenimiento');
+
+            btn.disabled = true;
+            btnTexto.textContent = 'Creando reserva...';
+            btnSpinner.style.display = 'inline-block';
+            document.getElementById('entretenimiento-errors').style.display = 'none';
+
+            // Preparar datos
+            const data = {
+                cliente_id: clienteId,
+                tipo_actividad: tipoActividad,
+                numero_participantes: numeroParticipantes
+            };
+
+            if (tipoActividad === 'pago') {
+                data.actividad_id = actividadSeleccionada;
+            }
+
+            // Enviar petición
+            fetch(`/reservaciones/${crucero}/api/crear-reserva-entretenimiento/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Resultado creación reserva:', result);
+                if (result.success) {
+                    // Mostrar mensaje de éxito
+                    showSuccessMessage(result.message);
+
+                    // Cerrar modal y recargar página
+                    closeReservarEntretenimientoModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showEntretenimientoErrors([result.message]);
+                }
+            })
+            .catch(error => {
+                console.error('Error al crear reserva:', error);
+                showEntretenimientoErrors(['Error de conexión al crear reserva']);
+            })
+            .finally(() => {
+                // Restaurar estado del botón
+                btn.disabled = false;
+                btnTexto.textContent = 'Crear Reserva';
+                btnSpinner.style.display = 'none';
+            });
+        }
+
+        // Función para mostrar errores en el formulario de entretenimiento
+        function showEntretenimientoErrors(errors) {
+            console.log('DEBUG: showEntretenimientoErrors called with:', errors);
+            const errorDiv = document.getElementById('entretenimiento-errors');
+
+            if (!errorDiv) {
+                console.error('DEBUG: Elemento entretenimiento-errors no encontrado');
+                return;
+            }
+
+            errorDiv.innerHTML = '';
+
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+
+            errors.forEach(error => {
+                const errorSpan = document.createElement('div');
+                errorSpan.className = 'error-message';
+                errorSpan.textContent = error;
+                errorDiv.appendChild(errorSpan);
+            });
+
+            errorDiv.style.display = 'block';
+            console.log('DEBUG: Errores de entretenimiento mostrados');
+        }
+
+        // Función para cargar tipos de habitación
+        function loadTiposHabitacion() {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            if (!crucero) {
+                showReservaErrors(['No se pudo identificar el crucero actual.']);
+                return;
+            }
+
+            fetch(`/reservaciones/${crucero}/api/tipos-habitacion/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.tipos) {
+                    populateTiposHabitacion(data.tipos);
+                } else {
+                    showReservaErrors(['Error al cargar tipos de habitación.']);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar tipos de habitación:', error);
+                showReservaErrors(['Error de conexión al cargar tipos de habitación.']);
+            });
+        }
+
+        // Función para poblar el selector de tipos de habitación
+        function populateTiposHabitacion(tipos) {
+            const select = document.getElementById('reserva-tipo-habitacion');
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">Seleccionar tipo de habitación...</option>';
+
+            tipos.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.id;
+                option.textContent = `${tipo.nombre} - Capacidad: ${tipo.capacidad} - Precio: $${tipo.precio_base}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Función que se ejecuta cuando cambia el tipo de habitación
+        function onTipoHabitacionChange() {
+            const tipoHabitacionId = document.getElementById('reserva-tipo-habitacion').value;
+            const habitacionInfo = document.getElementById('habitacion-info');
+
+            if (!tipoHabitacionId) {
+                habitacionInfo.style.display = 'none';
+                return;
+            }
+
+            // Buscar habitación disponible
+            buscarHabitacionDisponible(tipoHabitacionId);
+        }
+
+        // Función para buscar habitación disponible
+        function buscarHabitacionDisponible(tipoHabitacionId) {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            if (!crucero) {
+                showReservaErrors(['No se pudo identificar el crucero actual.']);
+                return;
+            }
+
+            fetch(`/reservaciones/${crucero}/api/habitacion-disponible/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    tipo_habitacion_id: tipoHabitacionId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.habitacion) {
+                    mostrarHabitacionAsignada(data.habitacion);
+                } else {
+                    showReservaErrors(['No hay habitaciones disponibles de este tipo.']);
+                    document.getElementById('habitacion-info').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar habitación disponible:', error);
+                showReservaErrors(['Error de conexión al buscar habitación.']);
+            });
+        }
+
+        // Función para mostrar la habitación asignada
+        function mostrarHabitacionAsignada(habitacion) {
+            const habitacionInfo = document.getElementById('habitacion-info');
+            const habitacionDetails = document.getElementById('habitacion-details');
+
+            habitacionDetails.innerHTML = `
+                <strong>Número:</strong> ${habitacion.numero}<br>
+                <strong>Cubierta:</strong> ${habitacion.cubierta}<br>
+                <strong>Lado:</strong> ${habitacion.lado}<br>
+                <strong>Tipo:</strong> ${habitacion.tipo_habitacion}<br>
+                <strong>Vista al mar:</strong> ${habitacion.vista_mar ? 'Sí' : 'No'}
+            `;
+
+            habitacionInfo.style.display = 'block';
+        }
+
+        // Función para mostrar errores en el formulario de reserva
+        function showReservaErrors(errors) {
+            console.log('DEBUG: showReservaErrors called with:', errors);
+            const reservaErrors = document.getElementById('reserva-errors');
+
+            if (!reservaErrors) {
+                console.error('DEBUG: Elemento reserva-errors no encontrado');
+                return;
+            }
+
+            reservaErrors.innerHTML = '';
+
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+
+            errors.forEach(error => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = error;
+                reservaErrors.appendChild(errorDiv);
+            });
+
+            reservaErrors.style.display = 'block';
+            console.log('DEBUG: Errores mostrados en el formulario');
+        }
+
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage(message) {
+            console.log('DEBUG: showSuccessMessage called with:', message);
+
+            // Crear un toast de éxito
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 500;
+                animation: slideInRight 0.3s ease-out;
+                max-width: 400px;
+            `;
+
+            document.body.appendChild(toast);
+
+            // Remover el toast después de 3 segundos
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+
+            console.log('DEBUG: Success message shown');
+        }
+
+        // Función para enviar el formulario de nueva reserva
+        function submitNuevaReserva() {
+            console.log('DEBUG: submitNuevaReserva called');
+            const form = document.getElementById('nueva-reserva-form');
+            const submitBtn = document.getElementById('submit-reserva-btn');
+            const submitText = document.getElementById('submit-reserva-text');
+            const submitSpinner = document.getElementById('submit-reserva-spinner');
+
+            console.log('DEBUG: Form elements found:', {
+                form: !!form,
+                submitBtn: !!submitBtn,
+                submitText: !!submitText,
+                submitSpinner: !!submitSpinner
+            });
+
+            // Validar formulario
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Mostrar loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Reservando habitación...';
+            submitSpinner.style.display = 'inline-block';
+            document.getElementById('reserva-errors').style.display = 'none';
+
+            // Obtener datos del formulario
+            const formData = new FormData(form);
+            const crucero = "{{ crucero.nombre|urlencode }}";
+
+            if (!crucero) {
+                showReservaErrors(['No se pudo identificar el crucero actual.']);
+                submitBtn.disabled = false;
+                submitText.textContent = 'Reservar Habitación';
+                submitSpinner.style.display = 'none';
+                return;
+            }
+
+            const data = {
+                nombre: formData.get('nombre'),
+                apellido: formData.get('apellido'),
+                fecha_nacimiento: formData.get('fecha_nacimiento'),
+                numero_personas: parseInt(formData.get('numero_personas')),
+                tipo_habitacion_id: formData.get('tipo_habitacion'),
+                crucero: crucero
+            };
+
+            console.log('DEBUG: Data to send:', data);
+            console.log('DEBUG: Fetch URL:', `/reservaciones/${crucero}/api/crear-reserva/`);
+
+            // Enviar datos al servidor
+            fetch(`/reservaciones/${crucero}/api/crear-reserva/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log('DEBUG: Response status:', response.status);
+                console.log('DEBUG: Response ok:', response.ok);
+                console.log('DEBUG: Response headers:', response.headers);
+
+                // Verificar si la respuesta es exitosa
+                if (!response.ok) {
+                    console.log('DEBUG: Response not ok, throwing error');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return response.json();
+            })
+            .then(result => {
+                console.log('DEBUG: Result from server:', result);
+                console.log('DEBUG: Result.success:', result.success);
+                console.log('DEBUG: Result.message:', result.message);
+
+                if (result.success) {
+                    console.log('DEBUG: Success response detected, showing success message');
+                    // Mostrar mensaje de éxito
+                    showSuccessMessage(result.message);
+                    closeNuevaReservaModal();
+                    // Opcional: recargar la página para mostrar la nueva reserva
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Mostrar errores específicos del servidor
+                    showReservaErrors([result.message]);
+                }
+            })
+            .catch(error => {
+                console.error('DEBUG: Error en reserva (catch):', error);
+                console.error('DEBUG: Error type:', error.constructor.name);
+                console.error('DEBUG: Error message:', error.message);
+
+                // Si es un error de red o parsing, mostrar mensaje específico
+                if (error.message.includes('HTTP')) {
+                    console.error('DEBUG: HTTP Error detected');
+                    showReservaErrors(['Error de comunicación con el servidor. Verifique su conexión.']);
+                } else {
+                    showReservaErrors(['Ocurrió un error al crear la reserva. Intente nuevamente.']);
+                }
+            })
+            .finally(() => {
+                // Restaurar estado del botón
+                submitBtn.disabled = false;
+                submitText.textContent = 'Reservar Habitación';
+                submitSpinner.style.display = 'none';
+            });
+        }
+
+        // Función de prueba para verificar el endpoint
+        function testEndpoint() {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            console.log('DEBUG: Testing endpoint with crucero:', crucero);
+
+            fetch(`/reservaciones/${crucero}/api/crear-reserva/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    nombre: 'Test',
+                    apellido: 'User',
+                    fecha_nacimiento: '1990-01-01',
+                    numero_personas: 1,
+                    tipo_habitacion_id: 1,
+                    crucero: crucero
+                })
+            })
+            .then(response => {
+                console.log('DEBUG TEST: Response status:', response.status);
+                console.log('DEBUG TEST: Response ok:', response.ok);
+                return response.json();
+            })
+            .then(result => {
+                console.log('DEBUG TEST: Result:', result);
+            })
+            .catch(error => {
+                console.error('DEBUG TEST: Error:', error);
+            });
+        }
+
+        // Inicializar todo cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeActionButtons();
+        });
     </script>
 </body>
 </html>
