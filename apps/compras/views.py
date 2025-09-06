@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import CompraLote
 from ..cruceros.models import Crucero
@@ -16,7 +16,6 @@ def detalle_compra_lote_view(request, crucero_id, compra_id):
         if accion == 'aceptar':
             compra.estado = 'Esperando por revision'
             from ..almacen.signals import lote_signal
-
             lote_signal.send(sender=None, compra_lote=compra)
             compra.save()
         elif accion == 'rechazar':
@@ -32,8 +31,7 @@ def detalle_compra_lote_view(request, crucero_id, compra_id):
         #     compra.estado = 'exitosa'
         #     compra.save()
         # Redirigir a la misma página para ver el cambio reflejado
-        from django.shortcuts import redirect
-        return redirect('detalle_compra_lote', crucero_id=crucero_id, compra_id=compra.id)
+        return redirect('compras:detalle_compra_lote', crucero_id=crucero_id, compra_id=compra.id)
 
     return render(request, 'detalle_compra_lote.html', {'compra': compra, 'from_param': from_param, 'crucero_id': crucero_id})
 
@@ -74,10 +72,10 @@ def compras_lote_registradas_view(request, crucero_id):
                     compra.delete()
                     print('DEBUG: Compra lote eliminada')
                     from django.shortcuts import redirect
-                    return redirect('lista_solicitudes')
+                    return redirect('compras:lista_solicitudes')
                 elif nuevo_estado in ['exitosa', 'defectuosa']:
                     from django.shortcuts import redirect
-                    return redirect('historial_compras_lote')
+                    return redirect('compras:historial_compras_lote')
             except CompraLote.DoesNotExist:
                 pass
     # Excluir las exitosas del listado de registradas
@@ -150,18 +148,16 @@ def procesar_materiales_solicitud_view(request, crucero_id, solicitud_id):
                 cantidad=cantidad or 0
             )
 
-        # Enviar signal a administración, descomentar
-        # solicitud_compra_administracion(id=solicitud.id, monto=presupuesto_lote)
-    # Importar la señal compartida para que el receiver en almacen.signals.py la reciba
-        # from ..almacen.signals import lote_signal
-        # lote_signal.send(sender=None, compra_lote=compra_lote)
+        # Enviar signal a almacen para que el receiver en almacen.signals.py la reciba
+        from ..almacen.signals import lote_signal
+        lote_signal.send(sender=None, compra_lote=compra_lote)
 
         compra_lote.estado = 'registrada'
 
         solicitud.procesada = True
         solicitud.save()
         compra_lote.save()
-        return redirect('lista_solicitudes', crucero_id=crucero_id)
+        return redirect('compras:lista_solicitudes', crucero_id=crucero_id)
     return render(request, 'procesar_materiales_solicitud.html', {
         'solicitud': solicitud,
         'materiales': materiales,
@@ -224,7 +220,7 @@ def registrar_solicitud_compra_view(request, crucero_id):
                 tipo=tipo,
                 subtipo=subtipo
             )
-        return redirect('lista_solicitudes', crucero_id=crucero_id)
+        return redirect('compras:lista_solicitudes', crucero_id=crucero_id)
     return render(request, 'solicitud_compra_form.html', {'crucero_id': crucero_id})
 
 
@@ -292,7 +288,7 @@ def proveedores_view(request, crucero_id):
                 # Guardar países
                 paises_objs = [Paises.objects.get_or_create(nombre=nombre)[0] for nombre in paises_nombres]
                 proveedor.countries.set(paises_objs)
-                return redirect('proveedores', crucero_id=crucero_id)
+                return redirect('compras:proveedores', crucero_id=crucero_id)
     else:
         form = ProveedorForm()
     proveedores = Proveedores.objects.all()
@@ -314,16 +310,16 @@ def eliminar_proveedor(request, crucero_id):
     if request.method == 'POST':
         proveedor_id = request.POST.get('proveedor_id')
         if not proveedor_id:
-            return redirect('proveedores')
+            return redirect('compras:proveedores')
         proveedor = get_object_or_404(Proveedores, id=proveedor_id)
         # Validar si el proveedor está asignado a una compra lote activa
         compras_lote = CompraLote.objects.filter(proveedor=proveedor, estado__in=['registrada', 'espera_revision'])
         if compras_lote.exists():
             messages.error(request, 'No se puede eliminar el proveedor porque está asignado a una compra registrada o en espera por revisión.')
-            return redirect('proveedores')
+            return redirect('compras:proveedores')
         proveedor.countries.clear()
         proveedor.delete()
-    return redirect('proveedores', crucero_id=crucero_id)
+    return redirect('compras:proveedores', crucero_id=crucero_id)
 
 def historial_compras_view(request, crucero_id):
     from .models import CompraLote
