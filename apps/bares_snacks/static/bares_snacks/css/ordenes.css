@@ -1,0 +1,10 @@
+/* ordenes.css - Estilos iniciales placeholder para módulo Órdenes */
+#ordenes .ordenes-placeholder {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#f1f5f9 0%,#ffffff 100%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+#ordenes .ordenes-placeholder:hover {
+  border-color: #94a3b8;
+}

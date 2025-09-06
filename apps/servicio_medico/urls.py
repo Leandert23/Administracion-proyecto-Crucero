@@ -5,7 +5,6 @@ from .views import *
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('zzz', panel_inicio, name='panel_inicio_servicio_medico'),
     path('prueba/', prueba, name='prueba_de_htmls'),
     path('', panel_servicio_medico, name='panel_personal_medico'),
