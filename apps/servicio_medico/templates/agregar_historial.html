@@ -887,6 +887,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('historialForm');
     const submitBtn = form.querySelector('button[type="submit"]');
     
+    // Configurar fecha máxima para fecha de nacimiento
+    const fechaNacimientoInput = form.querySelector('input[name="fechade_nacimiento"]');
+    if (fechaNacimientoInput) {
+        // Establecer la fecha máxima como hoy
+        const today = new Date().toISOString().split('T')[0];
+        fechaNacimientoInput.setAttribute('max', today);
+        
+        // Agregar validación adicional
+        fechaNacimientoInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            
+            if (selectedDate > today) {
+                this.classList.add('error');
+                // Crear o actualizar mensaje de error
+                let errorElement = this.parentNode.querySelector('.error-message');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'error-message';
+                    this.parentNode.appendChild(errorElement);
+                }
+                errorElement.textContent = 'La fecha de nacimiento no puede ser futura';
+                return false;
+            } else {
+                this.classList.remove('error');
+                const errorElement = this.parentNode.querySelector('.error-message');
+                if (errorElement && errorElement.textContent === 'La fecha de nacimiento no puede ser futura') {
+                    errorElement.remove();
+                }
+                return true;
+            }
+        });
+    }
+    
     // Validación en tiempo real
     const inputs = form.querySelectorAll('input, select, textarea');
     
@@ -935,6 +969,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (field.name === 'telefono' && value) {
             const phoneRegex = /^[0-9+\-\s()]+$/;
             if (!phoneRegex.test(value)) {
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        // Validación específica para fecha de nacimiento
+        if (field.name === 'fechade_nacimiento' && value) {
+            const selectedDate = new Date(value);
+            const today = new Date();
+            
+            if (selectedDate > today) {
                 field.classList.add('error');
                 return false;
             }

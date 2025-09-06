@@ -3,10 +3,13 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 import json
 import random
 from datetime import date, timedelta
 from .models import Medico, Paciente, Inventario, Solicitudmedicamento, cuarto, NotificacionUrgencia
+from apps.cruceros.models import Crucero
 from .forms import MedicoForm, PacienteForm, InventarioForm, SolicitudMedicamentoForm
 from django.shortcuts import render, redirect
 
@@ -48,16 +51,26 @@ def panel_personal_medico(request):
     return render(request, 'personal_medico_v2.html', context)
 
 def panel_servicio_medico(request,):
+    # Obtener el crucero activo (por ahora tomamos el primero)
+    crucero_activo = Crucero.objects.first()
+    
+    if crucero_activo:
+        # Generar o obtener cuartos para el crucero activo
+        cuartos = cuarto.generar_cuartos_por_crucero(crucero_activo)
+    else:
+        cuartos = []
+    
     # Datos de ejemplo, reemplazar por consultas reales
     medico = Medico.objects.first()
     pacientes = Paciente.objects.all()[:5]
     inventario = Inventario.objects.all()[:5]
-    cuartos = cuarto.objects.all().order_by('numero')
+    
     context = {
         'medico': medico or {'nombres': 'Nombre', 'apellido': 'Apellido'},
         'pacientes': pacientes,
         'inventario': inventario,
         'cuartos': cuartos,
+        'crucero_activo': crucero_activo,
     }
     return render(request, 'servicio_medico.html', context)
 
@@ -113,27 +126,75 @@ def comunicacion_mantenimiento(request):
     return render(request, 'comunicacion_mantenimiento.html')
 
 def modificar_cuartos(request):
+    # Obtener el crucero activo
+    crucero_activo = Crucero.objects.first()
+    
     if request.method == 'POST':
-        cuarto_numero = request.POST.get('cuarto_numero')
-        nuevo_estado = request.POST.get(f'estado_{cuarto_numero}')
-        paciente_id = request.POST.get(f'paciente_{cuarto_numero}')
+        cuarto_id = request.POST.get('cuarto_id')
+        nuevo_estado = request.POST.get(f'estado_{cuarto_id}')
+        paciente_id = request.POST.get(f'paciente_{cuarto_id}')
+        
         try:
-            cuarto_obj = cuarto.objects.get(numero=cuarto_numero)
+            cuarto_obj = cuarto.objects.get(id=cuarto_id)
             cuarto_obj.estado = nuevo_estado
+            
             if nuevo_estado == 'O':
                 if not paciente_id:
-                    return HttpResponse("Debe seleccionar un paciente para ocupar el cuarto.", status=400)
+                    messages.error(request, "Debe seleccionar un paciente para ocupar el cuarto.")
+                    return redirect('modificar_cuarto')
+                
+                # Verificar si el paciente ya está ocupando otro cuarto
+                cuartos_ocupados_por_paciente = cuarto.objects.filter(
+                    paciente_id=paciente_id,
+                    estado='O'
+                ).exclude(id=cuarto_id)
+                
+                if cuartos_ocupados_por_paciente.exists():
+                    cuarto_existente = cuartos_ocupados_por_paciente.first()
+                    paciente_nombre = Paciente.objects.get(id=paciente_id)
+                    messages.error(request, 
+                        f'El paciente {paciente_nombre.nombres} {paciente_nombre.primer_apellido} ya está ocupando el cuarto {cuarto_existente.numero}. '
+                        'Un paciente no puede ocupar múltiples cuartos simultáneamente.'
+                    )
+                    return redirect('modificar_cuarto')
+                
                 cuarto_obj.paciente_id = paciente_id
             else:
                 cuarto_obj.paciente = None
-            cuarto_obj.save()
-            return redirect('panel_personal_medico')
+            
+            # Intentar guardar con validaciones
+            try:
+                cuarto_obj.save()
+                messages.success(request, f'Cuarto {cuarto_obj.numero} actualizado correctamente.')
+            except ValidationError as e:
+                # Si hay errores de validación, mostrar el mensaje
+                for field, error_list in e.message_dict.items():
+                    for error in error_list:
+                        messages.error(request, error)
+                return redirect('modificar_cuarto')
+            
+            return redirect('modificar_cuarto')
+            
         except cuarto.DoesNotExist:
-            return HttpResponse("Cuarto no encontrado", status=404)
+            messages.error(request, "Cuarto no encontrado.")
+            return redirect('modificar_cuarto')
+        except Exception as e:
+            messages.error(request, f"Error al actualizar el cuarto: {str(e)}")
+            return redirect('modificar_cuarto')
     else:
-        cuartos = cuarto.objects.all().order_by('numero')
+        if crucero_activo:
+            # Generar o obtener cuartos para el crucero activo
+            cuartos = cuarto.generar_cuartos_por_crucero(crucero_activo)
+        else:
+            cuartos = []
+        
         pacientes = Paciente.objects.all()
-        return render(request, 'modificar_cuartos.html', {'cuartos': cuartos, 'pacientes': pacientes})
+        context = {
+            'cuartos': cuartos, 
+            'pacientes': pacientes,
+            'crucero_activo': crucero_activo
+        }
+        return render(request, 'modificar_cuartos.html', context)
     
 # Vista para agregar un elemento al inventario
 def agregar_inventario(request):
@@ -261,6 +322,7 @@ def api_generar_historiales_aleatorios(request):
             # Datos aleatorios para generar historiales
             nombres_masculinos = ['Carlos', 'Juan', 'Pedro', 'Luis', 'Miguel', 'Antonio', 'Francisco', 'Manuel', 'David', 'José']
             nombres_femeninos = ['María', 'Ana', 'Carmen', 'Isabel', 'Laura', 'Elena', 'Patricia', 'Sandra', 'Cristina', 'Mónica']
+            nombres_otros = ['Alex', 'Sam', 'Jordan', 'Taylor', 'Casey', 'Riley', 'Avery', 'Quinn', 'Morgan', 'Blake']
             apellidos = ['García', 'Rodríguez', 'González', 'Fernández', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín']
             
             motivos_consulta = [
@@ -323,11 +385,13 @@ def api_generar_historiales_aleatorios(request):
             
             for i in range(10):
                 # Generar datos aleatorios
-                sexo = random.choice(['M', 'F'])
+                sexo = random.choice(['M', 'F', 'O'])
                 if sexo == 'M':
                     nombre = random.choice(nombres_masculinos)
-                else:
+                elif sexo == 'F':
                     nombre = random.choice(nombres_femeninos)
+                else:  # sexo == 'O'
+                    nombre = random.choice(nombres_otros)
                 
                 primer_apellido = random.choice(apellidos)
                 segundo_apellido = random.choice(apellidos)

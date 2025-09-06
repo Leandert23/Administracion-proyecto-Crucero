@@ -1033,6 +1033,36 @@
         padding: 0.15rem 0.3rem;
     }
 }
+
+/* Animaciones para modales */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>
 
 <script>
@@ -1237,82 +1267,485 @@ function showDeleteConfirm(pacienteNombre, event) {
  * Genera 10 historiales médicos aleatorios
  */
 function generarHistorialesAleatorios() {
-    if (confirm('¿Está seguro de que desea generar 10 historiales médicos aleatorios?\n\nEsto creará nuevos registros en la base de datos.')) {
-        // Mostrar indicador de carga
-        const boton = event.target.closest('button');
-        const textoOriginal = boton.innerHTML;
-        boton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg><span>Generando...</span>';
-        boton.disabled = true;
-        
-        fetch('/servicio-medico/api/historiales/generar-aleatorios/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+    // Guardar referencia al botón original
+    const botonOriginal = event.target.closest('button');
+    
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Crear el contenido del modal
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">Generar Historiales Aleatorios</h3>
+            <p style="margin: 0 0 1rem 0; color: #6b7280; font-size: 0.875rem; line-height: 1.5;">
+                ¿Está seguro de que desea generar <strong>10 historiales médicos aleatorios</strong>?
+            </p>
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0;">
+                <p style="margin: 0; color: #1d4ed8; font-size: 0.8rem; font-weight: 600;">
+                    Esto creará nuevos registros en la base de datos con información de pacientes ficticios.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="closeGenerateModal(false)" style="
+                background: linear-gradient(135deg, #6b7280, #4b5563);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 100px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Cancelar
+            </button>
+            <button onclick="closeGenerateModal(true)" style="
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 100px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Generar
+            </button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeGenerateModal = function(result) {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`✅ ${data.mensaje}\n\nSe generaron ${data.historiales_creados.length} historiales médicos.`);
-                // Recargar la página para mostrar los nuevos historiales
-                location.reload();
-            } else {
-                alert(`❌ Error: ${data.error}`);
+            // Si el usuario confirmó, proceder con la generación
+            if (result) {
+                executeGenerateRandom(botonOriginal);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error de conexión. Verifique su conexión a internet.');
-        })
-        .finally(() => {
-            // Restaurar botón
-            boton.innerHTML = textoOriginal;
-            boton.disabled = false;
-        });
-    }
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeGenerateModal(false);
+        }
+    });
+    
+    // Cerrar con tecla Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeGenerateModal(false);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Ejecuta la generación de historiales aleatorios
+ */
+function executeGenerateRandom(botonOriginal) {
+    // Mostrar indicador de carga
+    const textoOriginal = botonOriginal.innerHTML;
+    botonOriginal.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg><span>Generando...</span>';
+    botonOriginal.disabled = true;
+    
+    fetch('/servicio-medico/api/historiales/generar-aleatorios/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessMessage(`${data.mensaje}\n\nSe generaron ${data.historiales_creados.length} historiales médicos.`);
+        } else {
+            showErrorMessage(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorMessage('Error de conexión. Verifique su conexión a internet.');
+    })
+    .finally(() => {
+        // Restaurar botón
+        botonOriginal.innerHTML = textoOriginal;
+        botonOriginal.disabled = false;
+    });
 }
 
 /**
  * Borra todos los historiales médicos
  */
 function borrarTodosHistoriales() {
-    if (confirm('⚠️ ADVERTENCIA: ¿Está completamente seguro de que desea eliminar TODOS los historiales médicos?\n\nEsta acción NO se puede deshacer y eliminará permanentemente todos los registros de pacientes.')) {
-        if (confirm('🚨 CONFIRMACIÓN FINAL: Esta acción eliminará TODOS los historiales médicos de la base de datos.\n\n¿Está absolutamente seguro?')) {
-            // Mostrar indicador de carga
-            const boton = event.target.closest('button');
-            const textoOriginal = boton.innerHTML;
-            boton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg><span>Eliminando...</span>';
-            boton.disabled = true;
-            
-            fetch('/servicio-medico/api/historiales/borrar-todos/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`✅ ${data.mensaje}\n\nSe eliminaron ${data.total_eliminados} historiales médicos.`);
-                    // Recargar la página para mostrar que no hay historiales
-                    location.reload();
-                } else {
-                    alert(`❌ Error: ${data.error}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Error de conexión. Verifique su conexión a internet.');
-            })
-            .finally(() => {
-                // Restaurar botón
-                boton.innerHTML = textoOriginal;
-                boton.disabled = false;
-            });
+    // Guardar referencia al botón original
+    const botonOriginal = event.target.closest('button');
+    
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    // Crear el contenido del modal
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">ADVERTENCIA CRÍTICA</h3>
+            <p style="margin: 0 0 1rem 0; color: #6b7280; font-size: 0.875rem; line-height: 1.5;">
+                ¿Está completamente seguro de que desea eliminar <strong>TODOS</strong> los historiales médicos?
+            </p>
+            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0;">
+                <p style="margin: 0; color: #dc2626; font-size: 0.8rem; font-weight: 600;">
+                    Esta acción NO se puede deshacer y eliminará permanentemente todos los registros de pacientes.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="closeDeleteAllModal(false)" style="
+                background: linear-gradient(135deg, #6b7280, #4b5563);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 100px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Cancelar
+            </button>
+            <button onclick="closeDeleteAllModal(true)" style="
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 100px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Eliminar Todos
+            </button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeDeleteAllModal = function(result) {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+            // Si el usuario confirmó, proceder con la eliminación
+            if (result) {
+                executeDeleteAll(botonOriginal);
+            }
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeDeleteAllModal(false);
         }
-    }
+    });
+    
+    // Cerrar con tecla Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteAllModal(false);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Ejecuta la eliminación de todos los historiales
+ */
+function executeDeleteAll(botonOriginal) {
+    // Mostrar indicador de carga
+    const textoOriginal = botonOriginal.innerHTML;
+    botonOriginal.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg><span>Eliminando...</span>';
+    botonOriginal.disabled = true;
+    
+    fetch('/servicio-medico/api/historiales/borrar-todos/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessMessage(`${data.mensaje}\n\nSe eliminaron ${data.total_eliminados} historiales médicos.`);
+        } else {
+            showErrorMessage(`Error: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorMessage('Error de conexión. Verifique su conexión a internet.');
+    })
+    .finally(() => {
+        // Restaurar botón
+        botonOriginal.innerHTML = textoOriginal;
+        botonOriginal.disabled = false;
+    });
+}
+
+/**
+ * Muestra un mensaje de éxito personalizado
+ */
+function showSuccessMessage(message) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">Operación Exitosa</h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.875rem; line-height: 1.5; white-space: pre-line;">${message}</p>
+        </div>
+        <div style="display: flex; justify-content: center;">
+            <button onclick="closeMessageModal()" style="
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 2rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Continuar
+            </button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeMessageModal = function() {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+            // Recargar la página después de mostrar el mensaje de éxito
+            location.reload();
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeMessageModal();
+        }
+    });
+    
+    // Cerrar con tecla Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeMessageModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Muestra un mensaje de error personalizado
+ */
+function showErrorMessage(message) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.3s ease-out;
+    `;
+    
+    modalContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <div style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">Error</h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.875rem; line-height: 1.5;">${message}</p>
+        </div>
+        <div style="display: flex; justify-content: center;">
+            <button onclick="closeErrorModal()" style="
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                padding: 0.75rem 2rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 120px;
+            " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                Entendido
+            </button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeErrorModal = function() {
+        modal.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    };
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeErrorModal();
+        }
+    });
+    
+    // Cerrar con tecla Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeErrorModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
 }
 
 /**
