@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario - {{ block.super }}{% endblock %}
+
+{% block page_title %}Restaurante - Inventario{% endblock %}
+
+{% block content %}
+<div class="stock-management">
+    <h2 class="section-title">
+    <i class="fas fa-boxes"></i> Inventario
+    </h2>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:12px;">
+        <button type="button" class="btn btn-success" onclick="abrirModalAgregarItem()">
+            <i class="fas fa-plus"></i>
+            Agregar Item
+        </button>
+        <button type="button" class="btn btn-primary" onclick="abrirModalSolicitudAlmacen()">
+            <i class="fas fa-warehouse"></i>
+            Solicitar a Almacén
+        </button>
+    </div>
+    
+    <div class="filters">
+        <form method="GET" class="filter-form">
+            <div class="form-group">
+                <label for="restaurant">Restaurante:</label>
+                <select name="restaurant" id="restaurant" onchange="this.form.submit()">
+                    <option value="">Todos los Restaurantes</option>
+                    {% for restaurant in restaurants %}
+                        <option value="{{ restaurant.id }}" {% if restaurant.id|stringformat:"s" == selected_restaurant %}selected{% endif %}>
+                            {{ restaurant.name }} ({{ restaurant.get_type_display }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+    
+    <div class="stock-grid">
+        {% for item in menu_items %}
+            <div class="stock-card {% if item.is_low_stock %}low-stock{% endif %}">
+                <div class="stock-header">
+                    <h4>{{ item.name }}</h4>
+                    <span class="restaurant-tag">{{ item.restaurant.name }}</span>
+                </div>
+                <div class="stock-info">
+                    <div class="stock-quantity">
+                        <span class="quantity">{{ item.quantity }}</span>
+                        <span class="unit">unidades</span>
+                        {% if item.is_low_stock %}
+                            <i class="fas fa-exclamation-triangle low-stock-icon" title="Stock bajo"></i>
+                        {% endif %}
+                    </div>
+                    <div class="stock-details">
+                        <p class="price">
+                            {% if item.included %}
+                                <span class="included">Incluido</span>
+                            {% else %}
+                                ${{ item.price }}
+                            {% endif %}
+                        </p>
+                        {% if item.description %}
+                            <p class="description">{{ item.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>No hay items en el inventario con los filtros seleccionados</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Modal Agregar Item -->
+    <div id="modalAgregarItem" class="modal-solicitud-almacen" style="display:none;">
+        <div class="overlay-modal" data-cerrar-agregar="true"></div>
+        <div class="contenedor-centrado">
+            <div class="modal-solicitud-dialog" role="dialog" aria-modal="true" tabindex="-1">
+                <button type="button" class="boton-cerrar-modal" data-cerrar-agregar="true" aria-label="Cerrar formulario">&times;</button>
+                <div class="encabezado-modal">
+                    <div class="contenido-encabezado">
+                        <h2 class="titulo-modal">Agregar Nuevo Item</h2>
+                        <small class="text-muted">Completa los datos del producto del restaurante</small>
+                    </div>
+                </div>
+                <div class="cuerpo-modal" style="background:#fff;">
+                    <form id="addItemModalForm" class="add-form">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="itemName">Nombre del Item:</label>
+                                <input type="text" id="itemName" name="name" required placeholder="Ej: Pasta Carbonara">
+                            </div>
+                            <div class="form-group">
+                                <label for="itemRestaurant">Restaurante:</label>
+                                <select id="itemRestaurant" name="restaurant_id" required>
+                                    <option value="">Seleccionar Restaurante</option>
+                                    {% for restaurant in restaurants %}
+                                        <option value="{{ restaurant.id }}">{{ restaurant.name }} ({{ restaurant.get_type_display }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="itemQuantity">Cantidad:</label>
+                                <input type="number" id="itemQuantity" name="quantity" min="0" required placeholder="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="itemPrice">Precio (si no está incluido):</label>
+                                <input type="number" id="itemPrice" name="price" min="0" step="0.01" placeholder="15.99">
+                            </div>
+                            <div class="form-group">
+                                <label for="itemIncluded">¿Incluido en el paquete?</label>
+                                <select id="itemIncluded" name="included">
+                                    <option value="true">Sí</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label for="itemDescription">Descripción:</label>
+                                <textarea id="itemDescription" name="description" rows="2" placeholder="Descripción opcional del plato"></textarea>
+                            </div>
+                        </div>
+                        <div class="acciones-formulario">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Guardar Item
+                            </button>
+                            <button type="button" class="btn btn-danger" data-cerrar-agregar="true">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'modal_solicitud_a_almacen.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Abrir / cerrar modal Agregar Item
+function abrirModalAgregarItem(){
+    document.getElementById('modalAgregarItem').style.display='';
+}
+function cerrarModalAgregarItem(){
+    document.getElementById('modalAgregarItem').style.display='none';
+}
+// Cierre por botones y overlay
+document.querySelectorAll('#modalAgregarItem [data-cerrar-agregar]').forEach(btn=>{
+    btn.addEventListener('click', cerrarModalAgregarItem);
+});
+
+// Envío del formulario del modal
+document.getElementById('addItemModalForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+    const payload = {
+        name: formData.get('name'),
+        restaurant_id: formData.get('restaurant_id'),
+        quantity: formData.get('quantity'),
+        price: formData.get('price') || 0,
+        included: formData.get('included') === 'true',
+        description: formData.get('description') || ''
+    };
+    if (!payload.name || !payload.restaurant_id || payload.quantity === null || payload.quantity === ''){
+        alert('Por favor complete todos los campos requeridos');
+        return;
+    }
+    if (parseInt(payload.quantity,10) < 0){
+        alert('La cantidad no puede ser negativa');
+        return;
+    }
+    fetch('{% url "restaurant:add_menu_item" %}',{
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json',
+            'X-CSRFToken': document.querySelector('#addItemModalForm [name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(data.success){
+            alert(data.message);
+            cerrarModalAgregarItem();
+            location.reload();
+        }else{
+            alert('Error: '+(data.message||'No se pudo guardar'))
+        }
+    })
+    .catch(err=>{
+        console.error(err);
+        alert('Error al agregar el item');
+    });
+});
+</script>
+{% endblock %}

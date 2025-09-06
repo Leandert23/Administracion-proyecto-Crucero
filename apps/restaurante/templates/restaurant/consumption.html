@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Consumo - {{ block.super }}{% endblock %}
+
+{% block page_title %}Consumo{% endblock %}
+
+{% block content %}
+<div class="consumption-management">
+    <h2 class="section-title">
+        <i class="fas fa-utensils"></i> Consumo
+    </h2>
+
+    <!-- Filtros retirados: día activo se define globalmente -->
+
+    <div class="consumption-header">
+        <div class="spacer"></div>
+        <button id="registerConsumptions" class="btn btn-primary compact">
+            <i class="fas fa-check"></i> Registrar consumos
+        </button>
+    </div>
+
+    <div id="menusContainer">
+        <div class="empty-state">
+            <i class="fas fa-list"></i>
+            <p>No hay registros de consumo con los filtros seleccionados</p>
+        </div>
+    </div>
+
+    <div id="consumptionAlerts" class="alerts-container"></div>
+    {% include 'modal_solicitud_a_almacen.html' %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para panel de consumo */
+.consumption-management{padding:0;margin-top:6px}
+.filters{margin-bottom:16px}
+.filter-form{display:flex;gap:12px}
+.filter-form .form-group{flex:1}
+.form-control{padding:10px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+.stock-grid{display:block}
+/* Bloques de menús y platos */
+.menu-block{background:#fff;border:1px solid #e9f2fb;border-radius:12px;margin-bottom:18px;overflow:hidden}
+.menu-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e9f2fb}
+.menu-title{margin:0;font-size:1.05rem;font-weight:700}
+.dish-list{display:flex;flex-direction:column}
+.dish-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px dashed #eef6fb}
+.dish-row:first-child{border-top:0}
+.dish-name{font-weight:600;color:#0f172a}
+.dish-meta{color:#64748b;font-size:.9rem}
+.qty-controls{display:inline-flex;align-items:center;gap:6px}
+.qty-controls button{width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;cursor:pointer}
+.qty{min-width:28px;text-align:center;font-weight:600}
+.ingredients{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;border:1px solid #e2e8f0;color:#1f2937;padding:6px 8px;border-radius:999px;font-size:.85rem}
+.chip .chip-btn{border:none;background:transparent;color:#374151;cursor:pointer;font-weight:700}
+.chip .chip-qty{font-weight:700}
+.chip.success{background:#dcfce7;border-color:#bbf7d0}
+.extras-actions{display:flex;gap:8px;margin-top:8px}
+.extras-actions .btn{padding:6px 10px;border-radius:8px}
+.register-actions{margin-top:16px}
+.register-actions .btn{padding:12px 18px;border-radius:12px}
+.help{color:#64748b}
+.empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:24px}
+.loading{color:#64748b}
+/* Header con botón a la derecha */
+.consumption-header{display:flex;justify-content:flex-end;align-items:center;margin:10px 0}
+.btn.compact{padding:10px 14px;border-radius:10px}
+@media(max-width:640px){.filter-form{flex-direction:column}}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Crucero activo provisto por backend (elegido a nivel global)
+const CURRENT_CRUISE_ID = '{{ current_cruise_id|default:"" }}';
+const CURRENT_DAY = '{{ current_day|default:"" }}';
+
+// DEMO: datos y estado en front para prototipo
+const DEMO_MODE = true;
+const SAMPLE_MENUS = [
+    { name: 'El Rincón Ibérico', code: 'ES', dishes: [
+        { id: 101, name: 'Paella Valenciana', included: false, price: 18.5, ingredients: [
+            { name: 'Arroz bomba', qty: 1 }, { name: 'Pollo', qty: 1 }, { name: 'Mariscos', qty: 1 }, { name: 'Azafrán', qty: 1 }
+        ] },
+        { id: 102, name: 'Tortilla Española', included: true, price: 0, ingredients: [
+            { name: 'Huevo', qty: 3 }, { name: 'Papa', qty: 2 }, { name: 'Cebolla', qty: 1 }
+        ] }
+    ]},
+    { name: 'Tesoro Arubiano', code: 'AW', dishes: [
+        { id: 201, name: 'Keshi Yena', included: false, price: 16.0, ingredients: [
+            { name: 'Queso Edam', qty: 1 }, { name: 'Pollo', qty: 1 }, { name: 'Aceitunas', qty: 1 }
+        ] },
+        { id: 202, name: 'Sopi di Pisca', included: true, price: 0, ingredients: [
+            { name: 'Pescado', qty: 1 }, { name: 'Vegetales', qty: 1 }, { name: 'Especias', qty: 1 }
+        ] }
+    ]}
+];
+
+const state = { items: new Map() };
+function ensureItemState(id){ if(!state.items.has(id)) state.items.set(id, { qty: 0, added: [], removed: [] }); return state.items.get(id); }
+function cssSafe(s){ return s.replace(/[^a-z0-9_-]/gi,'_'); }
+
+function renderMenus(menus){
+    const container = document.getElementById('menusContainer');
+    container.innerHTML = '';
+    menus.forEach(menu => {
+        const block = document.createElement('div');
+        block.className = 'menu-block';
+        block.innerHTML = `<div class="menu-header"><h4 class="menu-title">${menu.name}</h4></div><div class="dish-list"></div>`;
+        const listEl = block.querySelector('.dish-list');
+        menu.dishes.forEach(dish => {
+            const row = document.createElement('div');
+            row.className = 'dish-row';
+            const priceOrIncl = dish.included ? '<span class="chip success">Incluido</span>' : `<span class=\"chip\">$${dish.price.toFixed(2)}</span>`;
+            row.innerHTML = `
+                <div>
+                    <div class="dish-name">${dish.name}</div>
+                    <div class="dish-meta">${menu.name} · ${priceOrIncl}</div>
+                    <div class="ingredients" id="ing-${dish.id}"></div>
+                    <div class="extras-actions"><button type="button" class="btn btn-secondary" data-add-extra="${dish.id}"><i class="fas fa-plus"></i> Agregar ingrediente extra</button></div>
+                </div>
+                <div class="qty-controls" data-id="${dish.id}">
+                    <button type="button" data-dec>-</button>
+                    <span class="qty" id="qty-${dish.id}">0</span>
+                    <button type="button" data-inc>+</button>
+                </div>
+                <div></div>`;
+            listEl.appendChild(row);
+
+            const ingWrap = row.querySelector(`#ing-${dish.id}`);
+            dish.ingredients.forEach(ing => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerHTML = `<button class="chip-btn" data-ing-dec="${dish.id}::${ing.name}">−</button><span>${ing.name}</span><span class="chip-qty" id="ing-${dish.id}-${cssSafe(ing.name)}">x${ing.qty}</span><button class="chip-btn" data-ing-inc="${dish.id}::${ing.name}">+</button>`;
+                ingWrap.appendChild(chip);
+            });
+        });
+        container.appendChild(block);
+    });
+
+    // Eventos
+    container.querySelectorAll('.qty-controls').forEach(ctrl => {
+        const id = parseInt(ctrl.dataset.id, 10);
+        ctrl.addEventListener('click', (e)=>{
+            if(e.target.hasAttribute('data-inc')){ ensureItemState(id).qty++; updateQty(id); }
+            else if(e.target.hasAttribute('data-dec')){ ensureItemState(id).qty = Math.max(0, ensureItemState(id).qty-1); updateQty(id); }
+        });
+    });
+    container.querySelectorAll('[data-add-extra]').forEach(btn => btn.addEventListener('click', ()=>{
+        if(typeof window.abrirModalSolicitudAlmacen === 'function') window.abrirModalSolicitudAlmacen();
+        else alert('Abrir modal de Almacén (demo)');
+    }));
+    container.addEventListener('click', (e)=>{
+        const dec = e.target.closest('[data-ing-dec]');
+        const inc = e.target.closest('[data-ing-inc]');
+        if(dec || inc){
+            const [dishIdStr, ingName] = (dec||inc).getAttribute(dec? 'data-ing-dec':'data-ing-inc').split('::');
+            adjustIngredientQty(parseInt(dishIdStr,10), ingName, inc? +1 : -1);
+        }
+    });
+}
+
+function adjustIngredientQty(dishId, ingName, delta){
+    const qtyEl = document.getElementById(`ing-${dishId}-${cssSafe(ingName)}`);
+    if(!qtyEl) return;
+    const current = parseInt(qtyEl.textContent.replace('x','')) || 0;
+    const next = Math.max(0, current + delta);
+    qtyEl.textContent = 'x' + next;
+    const st = ensureItemState(dishId);
+    if(delta>0) st.added.push({ name: ingName, qty: 1 });
+    else if(delta<0 && current>0) st.removed.push({ name: ingName, qty: 1 });
+}
+function updateQty(id){ const el = document.getElementById(`qty-${id}`); if(el) el.textContent = ensureItemState(id).qty; }
+function getPayload(){ const items=[]; state.items.forEach((v,k)=>{ if(v.qty>0) items.push({id:k, qty:v.qty, added:v.added, removed:v.removed}); }); return { cruise_id: CURRENT_CRUISE_ID, day: CURRENT_DAY, items }; }
+
+// Cargar menús disponibles según crucero y día
+function fetchMenus(cruiseId, day){
+    const container = document.getElementById('menusContainer');
+    container.innerHTML = '<p class="loading">Cargando menús...</p>';
+    // En DEMO mostramos siempre sin depender de día/crucero
+    if(DEMO_MODE){ renderMenus(SAMPLE_MENUS); return; }
+    if(!cruiseId || !day){ container.innerHTML = '<div class="empty-state">No hay día activo del crucero seleccionado</div>'; return; }
+    // Futuro: fetch real a backend
+    renderMenus(SAMPLE_MENUS);
+}
+
+// Ya no hay cambio manual de día en esta vista.
+
+// Registrar consumos en bloque: toma todos los inputs con valor > 0
+document.getElementById('registerConsumptions').addEventListener('click', function(){
+    if(!CURRENT_CRUISE_ID || !CURRENT_DAY){ showAlert('No hay día activo del crucero seleccionado', 'error'); return; }
+    const payload = getPayload();
+    if(payload.items.length === 0){ showAlert('No hay consumos para registrar (use + en los platillos)', 'error'); return; }
+    if(DEMO_MODE){ console.log('Payload DEMO:', payload); showAlert('Demo: consumos preparados (ver consola).', 'success'); return; }
+    fetch('{% url "restaurant:register_bulk_consumption" %}', { method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': (window.CSRF_TOKEN || (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || (document.cookie.match(/csrftoken=([^;]+)/)||[])[1] || '')}, body: JSON.stringify(payload) })
+    .then(r=>r.json()).then(data=>{ if(data.success){ showAlert(data.message||'Consumos registrados','success'); state.items=new Map(); } else { showAlert(data.message||'Error al registrar consumos','error'); } })
+    .catch(err=>{ console.error(err); showAlert('Error al conectar con el servidor','error'); });
+});
+
+function showAlert(msg, type){
+    const c = document.getElementById('consumptionAlerts');
+    c.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+    setTimeout(()=> c.innerHTML = '', 5000);
+}
+
+// Si ya tenemos crucero activo y el día está preseleccionado, cargar menús
+document.addEventListener('DOMContentLoaded', ()=>{
+    if(DEMO_MODE){ fetchMenus(CURRENT_CRUISE_ID, CURRENT_DAY); return; }
+    if(CURRENT_CRUISE_ID && CURRENT_DAY){ fetchMenus(CURRENT_CRUISE_ID, CURRENT_DAY); }
+    else { document.getElementById('menusContainer').innerHTML = '<div class="empty-state">No hay día activo del crucero seleccionado</div>'; }
+});
+
+</script>
+{% endblock %}
