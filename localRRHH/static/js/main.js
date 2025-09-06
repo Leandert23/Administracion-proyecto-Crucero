@@ -54,6 +54,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnEditar = tr.querySelector('.btn-editar');
         const btnEliminar = tr.querySelector('.btn-eliminar');
 
+        if (!btnEditar || !btnEliminar) {
+            alert('Error: No se encontraron los botones necesarios');
+            return;
+        }
+
         btnEditar.textContent = 'Guardar';
         btnEditar.classList.replace('btn-editar', 'btn-guardar');
 
@@ -132,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     td.appendChild(inputText);
                     const chk = tr.cells[9].querySelector('input');
                     inputText.disabled = !chk.checked;
-                } else if (idx === 3) { 
-                    const currentVal = td.textContent.trim();
+                } else if (idx === 3) {
+                    const currentVal = td.textContent.trim().replace('$', '').replace(',', '');
                     td.innerHTML = `<input type="number" min="0" class="edit-input" value="${currentVal}">`;
                 }
             }
@@ -312,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refrescarFila(tr, data) {
-        tr.cells[3].textContent = data.salario;
+        tr.cells[3].textContent = '$' + data.salario;
         tr.cells[4].textContent = data.edad;
         tr.cells[5].textContent = data.anios_experiencia;
         tr.cells[6].textContent = data.categoria;

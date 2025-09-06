@@ -240,8 +240,8 @@
                                             <input type="text" class="amonestacion-detalle" maxlength="50" value="{% if p.amonestacion %}{{ p.amonestacion.detalle }}{% endif %}" disabled style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
                                         </td>
                                         <td>
-                                            <button class="btn btn-info" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Editar</button>
-                                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Eliminar</button>
+                                            <button class="btn-editar btn btn-info" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Editar</button>
+                                            <button class="btn-eliminar btn btn-danger" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Eliminar</button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -299,6 +299,5 @@
     </div>
 
     <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'Js/sidebar.js' %}"></script>
 </body>
 </html>
