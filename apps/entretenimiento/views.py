@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
-from ..cruceros.models import Crucero, Viaje
-from ..reservaciones.models import Reserva
+from apps.cruceros.models import Crucero, Viaje
+from apps.reservaciones.models import Reserva
 from django.db.models import Q
 from datetime import timedelta
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
