@@ -925,11 +925,20 @@
 
                     <!-- Paso 4: Selección de actividad específica (solo para pago) -->
                     <div id="paso-actividad-pago" class="paso-form" style="display: none;">
-                        <h4 style="margin-bottom: 15px; color: #1e293b;">Seleccionar Actividad</h4>
-                        <div id="actividades-lista" style="margin-bottom: 20px;">
-                            <!-- Las actividades se cargarán aquí -->
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Seleccionar Actividad de Pago</h4>
+                        <div id="actividades-pago-lista" style="margin-bottom: 20px;">
+                            <!-- Las actividades de pago se cargarán aquí -->
                         </div>
                         <input type="hidden" id="actividad-seleccionada">
+                    </div>
+
+                    <!-- Paso 4b: Selección de actividad gratuita (solo para gratuito) -->
+                    <div id="paso-actividad-gratuita" class="paso-form" style="display: none;">
+                        <h4 style="margin-bottom: 15px; color: #1e293b;">Seleccionar Actividad Gratuita</h4>
+                        <div id="actividades-gratuitas-lista" style="margin-bottom: 20px;">
+                            <!-- Las actividades gratuitas se cargarán aquí -->
+                        </div>
+                        <input type="hidden" id="actividad-gratuita-seleccionada">
                     </div>
 
                     <!-- Paso 5: Número de participantes -->
@@ -1456,7 +1465,46 @@
                 modal.style.display = 'none';
                 // Remover event listener para evitar memory leaks
                 modal.removeEventListener('click', handleReservarEntretenimientoOutsideClick);
+
+                // Limpiar formulario
+                limpiarFormularioEntretenimiento();
             }
+        }
+
+        // Función para limpiar el formulario de entretenimiento
+        function limpiarFormularioEntretenimiento() {
+            // Limpiar campos de búsqueda
+            document.getElementById('numero-habitacion').value = '';
+
+            // Ocultar pasos
+            document.getElementById('paso-cliente').style.display = 'none';
+            document.getElementById('paso-tipo-actividad').style.display = 'none';
+            document.getElementById('paso-actividad-pago').style.display = 'none';
+            document.getElementById('paso-actividad-gratuita').style.display = 'none';
+            document.getElementById('paso-participantes').style.display = 'none';
+
+            // Limpiar selecciones
+            document.getElementById('cliente-id').value = '';
+            document.getElementById('tipo-actividad-seleccionado').value = '';
+            document.getElementById('actividad-seleccionada').value = '';
+            document.getElementById('actividad-gratuita-seleccionada').value = '';
+            document.getElementById('numero-participantes').value = '';
+
+            // Limpiar botones de tipo de actividad
+            document.querySelectorAll('.tipo-btn').forEach(btn => {
+                btn.style.borderColor = '#e2e8f0';
+                btn.style.background = '#f8fafc';
+            });
+
+            // Limpiar listas de actividades
+            document.getElementById('actividades-pago-lista').innerHTML = '';
+            document.getElementById('actividades-gratuitas-lista').innerHTML = '';
+
+            // Ocultar botón de crear reserva
+            document.getElementById('btn-crear-reserva-entretenimiento').style.display = 'none';
+
+            // Limpiar errores
+            document.getElementById('entretenimiento-errors').style.display = 'none';
         }
 
         // Función para buscar cliente por número de habitación
@@ -1533,12 +1581,16 @@
             document.getElementById('tipo-actividad-seleccionado').value = tipo;
 
             if (tipo === 'pago') {
-                // Mostrar paso de selección de actividad
+                // Mostrar paso de selección de actividad de pago
                 document.getElementById('paso-actividad-pago').style.display = 'block';
+                document.getElementById('paso-actividad-gratuita').style.display = 'none';
                 cargarActividadesPago();
-            } else {
-                // Para actividades gratuitas, ocultar paso de actividad específica
+                document.getElementById('actividad-gratuita-seleccionada').value = '';
+            } else if (tipo === 'gratuito') {
+                // Mostrar paso de selección de actividad gratuita
+                document.getElementById('paso-actividad-gratuita').style.display = 'block';
                 document.getElementById('paso-actividad-pago').style.display = 'none';
+                cargarActividadesGratuitas();
                 document.getElementById('actividad-seleccionada').value = '';
             }
 
@@ -1566,18 +1618,44 @@
                 if (result.success && result.actividades) {
                     mostrarActividadesPago(result.actividades);
                 } else {
-                    showEntretenimientoErrors([result.message || 'Error al cargar actividades']);
+                    showEntretenimientoErrors([result.message || 'Error al cargar actividades de pago']);
                 }
             })
             .catch(error => {
-                console.error('Error al cargar actividades:', error);
-                showEntretenimientoErrors(['Error de conexión al cargar actividades']);
+                console.error('Error al cargar actividades de pago:', error);
+                showEntretenimientoErrors(['Error de conexión al cargar actividades de pago']);
+            });
+        }
+
+        // Función para cargar actividades gratuitas
+        function cargarActividadesGratuitas() {
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            console.log('Cargando actividades gratuitas...');
+
+            fetch(`/reservaciones/${crucero}/api/actividades-gratuitas/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Actividades gratuitas:', result);
+                if (result.success && result.actividades) {
+                    mostrarActividadesGratuitas(result.actividades);
+                } else {
+                    showEntretenimientoErrors([result.message || 'Error al cargar actividades gratuitas']);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar actividades gratuitas:', error);
+                showEntretenimientoErrors(['Error de conexión al cargar actividades gratuitas']);
             });
         }
 
         // Función para mostrar actividades de pago
         function mostrarActividadesPago(actividades) {
-            const contenedor = document.getElementById('actividades-lista');
+            const contenedor = document.getElementById('actividades-pago-lista');
             contenedor.innerHTML = '';
 
             if (actividades.length === 0) {
@@ -1587,7 +1665,7 @@
 
             actividades.forEach(actividad => {
                 const actividadDiv = document.createElement('div');
-                actividadDiv.className = 'actividad-item';
+                actividadDiv.className = 'actividad-pago-item';
                 actividadDiv.style.cssText = `
                     border: 2px solid #e2e8f0;
                     border-radius: 8px;
@@ -1598,7 +1676,7 @@
                     background: #f8fafc;
                 `;
 
-                actividadDiv.onclick = () => seleccionarActividad(actividad.id_actividad, actividadDiv);
+                actividadDiv.onclick = () => seleccionarActividadPago(actividad.id_actividad, actividadDiv);
 
                 actividadDiv.innerHTML = `
                     <div style="font-weight: 600; color: #1e293b; margin-bottom: 5px;">${actividad.titulo}</div>
@@ -1615,12 +1693,55 @@
             });
         }
 
-        // Función para seleccionar una actividad específica
-        function seleccionarActividad(actividadId, element) {
-            console.log('Seleccionando actividad:', actividadId);
+        // Función para mostrar actividades gratuitas
+        function mostrarActividadesGratuitas(actividades) {
+            const contenedor = document.getElementById('actividades-gratuitas-lista');
+            contenedor.innerHTML = '';
+
+            if (actividades.length === 0) {
+                contenedor.innerHTML = '<p style="color: #64748b; text-align: center;">No hay actividades gratuitas disponibles</p>';
+                return;
+            }
+
+            actividades.forEach(actividad => {
+                const actividadDiv = document.createElement('div');
+                actividadDiv.className = 'actividad-gratuita-item';
+                actividadDiv.style.cssText = `
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    background: #f8fafc;
+                `;
+
+                actividadDiv.onclick = () => seleccionarActividadGratuita(actividad.id_actividad, actividadDiv);
+
+                actividadDiv.innerHTML = `
+                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 5px;">${actividad.titulo}</div>
+                    <div style="color: #64748b; font-size: 14px; margin-bottom: 8px;">${actividad.descripcion}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="color: #10b981; font-weight: 600;">GRATUITA</div>
+                        <div style="color: #64748b; font-size: 12px;">
+                            Día ${actividad.dia_crucero} - ${actividad.hora_inicio} a ${actividad.hora_fin}
+                        </div>
+                    </div>
+                    <div style="color: #64748b; font-size: 12px; margin-top: 5px;">
+                        📍 ${actividad.ubicacion}
+                    </div>
+                `;
+
+                contenedor.appendChild(actividadDiv);
+            });
+        }
+
+        // Función para seleccionar una actividad de pago
+        function seleccionarActividadPago(actividadId, element) {
+            console.log('Seleccionando actividad de pago:', actividadId);
 
             // Limpiar selección anterior
-            document.querySelectorAll('.actividad-item').forEach(item => {
+            document.querySelectorAll('.actividad-pago-item').forEach(item => {
                 item.style.borderColor = '#e2e8f0';
                 item.style.background = '#f8fafc';
             });
@@ -1631,6 +1752,26 @@
 
             // Guardar selección
             document.getElementById('actividad-seleccionada').value = actividadId;
+            document.getElementById('actividad-gratuita-seleccionada').value = '';
+        }
+
+        // Función para seleccionar una actividad gratuita
+        function seleccionarActividadGratuita(actividadId, element) {
+            console.log('Seleccionando actividad gratuita:', actividadId);
+
+            // Limpiar selección anterior
+            document.querySelectorAll('.actividad-gratuita-item').forEach(item => {
+                item.style.borderColor = '#e2e8f0';
+                item.style.background = '#f8fafc';
+            });
+
+            // Aplicar selección
+            element.style.borderColor = '#10b981';
+            element.style.background = '#ecfdf5';
+
+            // Guardar selección
+            document.getElementById('actividad-gratuita-seleccionada').value = actividadId;
+            document.getElementById('actividad-seleccionada').value = '';
         }
 
         // Función para crear reserva de entretenimiento
@@ -1638,7 +1779,14 @@
             const clienteId = document.getElementById('cliente-id').value;
             const tipoActividad = document.getElementById('tipo-actividad-seleccionado').value;
             const numeroParticipantes = document.getElementById('numero-participantes').value;
-            const actividadSeleccionada = document.getElementById('actividad-seleccionada').value;
+
+            // Obtener la actividad seleccionada según el tipo
+            let actividadSeleccionada = '';
+            if (tipoActividad === 'pago') {
+                actividadSeleccionada = document.getElementById('actividad-seleccionada').value;
+            } else if (tipoActividad === 'gratuito') {
+                actividadSeleccionada = document.getElementById('actividad-gratuita-seleccionada').value;
+            }
             const crucero = "{{ crucero.nombre|urlencode }}";
 
             console.log('Creando reserva de entretenimiento:', {
@@ -1654,8 +1802,9 @@
                 return;
             }
 
-            if (tipoActividad === 'pago' && !actividadSeleccionada) {
-                showEntretenimientoErrors(['Por favor, seleccione una actividad de pago']);
+            if ((tipoActividad === 'pago' || tipoActividad === 'gratuito') && !actividadSeleccionada) {
+                const tipoTexto = tipoActividad === 'pago' ? 'de pago' : 'gratuita';
+                showEntretenimientoErrors([`Por favor, seleccione una actividad ${tipoTexto}`]);
                 return;
             }
 
@@ -1676,7 +1825,7 @@
                 numero_participantes: numeroParticipantes
             };
 
-            if (tipoActividad === 'pago') {
+            if (tipoActividad === 'pago' || tipoActividad === 'gratuito') {
                 data.actividad_id = actividadSeleccionada;
             }
 

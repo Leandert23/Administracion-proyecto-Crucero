@@ -528,6 +528,42 @@ def api_buscar_cliente_por_habitacion(request, crucero):
         })
 
 @require_http_methods(["GET"])
+def api_actividades_gratuitas_disponibles(request, crucero):
+    """API para obtener actividades gratuitas disponibles"""
+    try:
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+
+        # Obtener viaje activo del crucero
+        viaje = Viaje.objects.filter(
+            crucero=crucero_obj,
+            estado__in=['activo', 'planificacion']
+        ).first()
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'No hay viaje activo para este crucero'
+            })
+
+        # Obtener actividades gratuitas disponibles para este viaje
+        actividades = ActividadRutinaria.objects.filter(viaje=viaje).values(
+            'id_actividad', 'titulo', 'descripcion', 'dia_crucero',
+            'hora_inicio', 'hora_fin', 'maximo_actividad', 'ubicacion'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'actividades': list(actividades)
+        })
+
+    except Exception as e:
+        print(f"DEBUG: Error en api_actividades_gratuitas_disponibles: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al obtener actividades gratuitas'
+        })
+
+@require_http_methods(["GET"])
 def api_actividades_pago_disponibles(request, crucero):
     """API para obtener actividades de pago disponibles"""
     try:
@@ -573,7 +609,7 @@ def api_crear_reserva_entretenimiento(request, crucero):
 
         # Validar datos requeridos
         required_fields = ['cliente_id', 'tipo_actividad', 'numero_participantes']
-        if data['tipo_actividad'] == 'pago':
+        if data['tipo_actividad'] in ['pago', 'gratuito']:
             required_fields.append('actividad_id')
 
         for field in required_fields:
@@ -633,15 +669,18 @@ def api_crear_reserva_entretenimiento(request, crucero):
             })
 
         elif data['tipo_actividad'] == 'gratuito':
-            # Para actividades gratuitas, por ahora solo guardamos la información básica
-            # En el futuro se podría implementar selección de actividad específica
+            # Crear reserva de actividad gratuita
+            actividad_gratuita = get_object_or_404(ActividadRutinaria, id_actividad=data['actividad_id'])
+
+            # Crear nueva reserva para la actividad gratuita
             reserva_actividad = Reserva.objects.create(
                 nombre_cliente=reserva_cliente.nombre_cliente,
                 apellido_cliente=reserva_cliente.apellido_cliente,
                 fecha_nacimiento_cliente=reserva_cliente.fecha_nacimiento_cliente,
                 numero_personas=numero_participantes,
                 codigo_ubicacion_habitacion=reserva_cliente.codigo_ubicacion_habitacion,
-                costo_total=0.00,
+                actividad_rutinaria=actividad_gratuita,
+                costo_total=0.00,  # Actividades gratuitas no tienen costo
                 fecha_inicio=viaje.fecha_inicio,
                 fecha_fin=viaje.fecha_fin,
                 estado="confirmada"
@@ -650,7 +689,12 @@ def api_crear_reserva_entretenimiento(request, crucero):
             return JsonResponse({
                 'success': True,
                 'message': 'Reserva de actividad gratuita creada exitosamente.',
-                'reserva_id': reserva_actividad.id
+                'reserva_id': reserva_actividad.id,
+                'actividad': {
+                    'titulo': actividad_gratuita.titulo,
+                    'ubicacion': actividad_gratuita.ubicacion,
+                    'dia_crucero': actividad_gratuita.dia_crucero
+                }
             })
 
         else:

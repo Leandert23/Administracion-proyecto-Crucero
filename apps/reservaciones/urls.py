@@ -30,6 +30,7 @@ urlpatterns = [
     # API para reserva de entretenimiento
     path("<str:crucero>/api/buscar-cliente/", views.api_buscar_cliente_por_habitacion, name="api_buscar_cliente"),
     path("<str:crucero>/api/actividades-pago/", views.api_actividades_pago_disponibles, name="api_actividades_pago"),
+    path("<str:crucero>/api/actividades-gratuitas/", views.api_actividades_gratuitas_disponibles, name="api_actividades_gratuitas"),
     path("<str:crucero>/api/crear-reserva-entretenimiento/", views.api_crear_reserva_entretenimiento, name="api_crear_reserva_entretenimiento"),
 
     # API para ver reservas
