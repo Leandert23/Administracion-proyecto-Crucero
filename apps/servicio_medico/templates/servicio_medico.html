@@ -154,7 +154,7 @@
             <div class="card-content">
                 <h3 class="card-title">Inventario</h3>
                 <p class="card-description">Gestiona el inventario de medicamentos y suministros</p>
-                <button class="modern-btn primary" onclick="location.href='{% url 'panel_inventario' %}'">
+                <button class="modern-btn primary" onclick="abrirModalSolicitudAlmacen()">
                     <span>Ver Inventario</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -181,9 +181,30 @@
             </div>
         </div>
 
+        <!-- Panel de Urgencias Médicas -->
+        <div class="function-card urgent-card">
+            <div class="card-icon urgent-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path>
+                    <path d="M12 2v20"></path>
+                    <path d="M2 12h20"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title urgent-title">🚨 Panel de Urgencias Médicas</h3>
+                <p class="card-description">Monitorea las notificaciones de urgencia desde otros módulos del crucero</p>
+                <button class="modern-btn urgent-btn" onclick="location.href='{% url 'panel_urgencias' %}'">
+                    <span>Ver Urgencias</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
     </div>
 </main>
-
+{% include 'modal_solicitud_a_almacen.html' %}
 <style>
 /* Estilos específicos para el panel de servicio médico */
 .welcome-section {
@@ -238,6 +259,61 @@
 
 .function-card.full-width {
     grid-column: 1 / -1;
+}
+
+/* Estilos para la tarjeta de urgencias */
+.urgent-card {
+    border: 2px solid #dc3545;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.urgent-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b, #dc3545);
+    animation: urgent-pulse 2s infinite;
+}
+
+@keyframes urgent-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.urgent-icon {
+    color: #dc3545;
+    animation: urgent-heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes urgent-heartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
+}
+
+.urgent-title {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.urgent-btn {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.urgent-btn:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
 }
 
 .card-icon {

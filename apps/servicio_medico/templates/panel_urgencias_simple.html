@@ -1,0 +1,342 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Urgencias Médicas{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>🚨 Panel de Urgencias Médicas</h1>
+                <p>Monitoreo de notificaciones de urgencia desde otros módulos</p>
+            </div>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 id="contador-pendientes">{{ notificaciones_pendientes.count }}</h3>
+                        <p>Urgencias Pendientes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 id="contador-atendidas">{{ notificaciones_atendidas.count }}</h3>
+                        <p>Total Atendidas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3>{{ notificaciones_pendientes.count|add:notificaciones_atendidas.count }}</h3>
+                        <p>Total Urgencias</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificaciones Pendientes -->
+        <div class="row">
+            <div class="col-12">
+                <h4>Urgencias Pendientes (<span id="contador-titulo">{{ notificaciones_pendientes.count }}</span>)</h4>
+                
+                <button class="btn btn-info btn-sm mb-3" id="btn-probar-api">
+                    🔬 Probar API
+                </button>
+                
+                <div id="contenedor-urgencias">
+                    {% for notif in notificaciones_pendientes %}
+                    <div class="card mb-3 border-danger" id="notif-{{ notif.id }}">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>
+                                        <span class="badge bg-danger">PENDIENTE</span>
+                                        <strong>{{ notif.tipo_urgencia }}</strong>
+                                    </h5>
+                                    <p>
+                                        <strong>📍 Ubicación:</strong> {{ notif.ubicacion }}<br>
+                                        <strong>👤 Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})<br>
+                                        <strong>📝 Descripción:</strong> {{ notif.descripcion }}<br>
+                                        <strong>🕐 Hora:</strong> {{ notif.fecha_creacion|date:"d/m/Y H:i:s" }}
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button class="btn btn-success" data-notif-id="{{ notif.id }}">
+                                        ✅ Marcar Atendida
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-success">
+                        ✅ No hay urgencias pendientes
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificaciones Atendidas -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4>📋 Historial de Urgencias Atendidas (<span id="contador-atendidas-titulo">{{ notificaciones_atendidas.count }}</span>)</h4>
+                
+                <div id="contenedor-atendidas">
+                    {% if notificaciones_atendidas %}
+                        {% for notif in notificaciones_atendidas %}
+                        <div class="card mb-3 border-success">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5>
+                                            <span class="badge bg-success">ATENDIDA</span>
+                                            <strong>{{ notif.tipo_urgencia }}</strong>
+                                        </h5>
+                                        <p>
+                                            <strong>📍 Ubicación:</strong> {{ notif.ubicacion }}<br>
+                                            <strong>👤 Solicitante:</strong> {{ notif.solicitante }} ({{ notif.modulo_origen }})<br>
+                                            <strong>📝 Descripción:</strong> {{ notif.descripcion }}<br>
+                                            <strong>🕐 Reportada:</strong> {{ notif.fecha_creacion|date:"d/m/Y H:i:s" }}<br>
+                                            <strong>✅ Atendida:</strong> {{ notif.fecha_atendida|date:"d/m/Y H:i:s" }}
+                                            {% if notif.observaciones_medicas %}
+                                            <br><strong>📋 Observaciones:</strong> {{ notif.observaciones_medicas }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <small class="text-muted">
+                                            Tiempo de respuesta:<br>
+                                            {% if notif.fecha_atendida and notif.fecha_creacion %}
+                                                {% with tiempo=notif.fecha_atendida|timesince:notif.fecha_creacion %}
+                                                    {{ tiempo }}
+                                                {% endwith %}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No hay urgencias atendidas aún
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+console.log('=== PANEL DE URGENCIAS SIMPLE - CARGANDO ===');
+
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Función para marcar como atendida
+function marcarAtendida(notificacionId) {
+    console.log('=== MARCAR ATENDIDA ===');
+    console.log('ID:', notificacionId);
+    
+    if (confirm('¿Marcar esta urgencia como atendida?')) {
+        const observaciones = prompt('Observaciones médicas (opcional):');
+        
+        const csrfToken = getCookie('csrftoken');
+        const url = `/servicio-medico/api/urgencias/atendida/${notificacionId}/`;
+        
+        console.log('Enviando petición a:', url);
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                observaciones: observaciones || ''
+            })
+        })
+        .then(response => {
+            console.log('Respuesta recibida:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos:', data);
+            
+            if (data.success) {
+                // Mover la tarjeta a la sección de atendidas
+                const tarjeta = document.getElementById(`notif-${notificacionId}`);
+                if (tarjeta) {
+                    // Cambiar el estilo de la tarjeta
+                    tarjeta.classList.remove('border-danger');
+                    tarjeta.classList.add('border-success');
+                    
+                    // Cambiar el badge de estado
+                    const badge = tarjeta.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'ATENDIDA';
+                        badge.className = 'badge bg-success';
+                    }
+                    
+                    // Remover el botón de marcar atendida
+                    const boton = tarjeta.querySelector('[data-notif-id]');
+                    if (boton) {
+                        boton.remove();
+                    }
+                    
+                    // Agregar información de tiempo de respuesta
+                    const colDerecha = tarjeta.querySelector('.col-md-4');
+                    if (colDerecha) {
+                        colDerecha.innerHTML = `
+                            <small class="text-muted">
+                                ✅ Atendida ahora<br>
+                                Tiempo de respuesta:<br>
+                                <strong>Inmediato</strong>
+                            </small>
+                        `;
+                    }
+                    
+                    // Mover la tarjeta a la sección de atendidas
+                    const contenedorAtendidas = document.getElementById('contenedor-atendidas');
+                    if (contenedorAtendidas) {
+                        // Remover mensaje de "no hay urgencias atendidas" si existe
+                        const mensajeVacio = contenedorAtendidas.querySelector('.alert-info');
+                        if (mensajeVacio) {
+                            mensajeVacio.remove();
+                        }
+                        
+                        // Agregar la tarjeta al inicio de la sección de atendidas
+                        contenedorAtendidas.insertBefore(tarjeta, contenedorAtendidas.firstChild);
+                    }
+                    
+                    actualizarContadores();
+                    
+                    // Si no hay más urgencias pendientes, mostrar mensaje
+                    const urgenciasRestantes = document.querySelectorAll('[data-notif-id]');
+                    if (urgenciasRestantes.length === 0) {
+                        mostrarMensajeSinUrgencias();
+                    }
+                }
+                
+                alert('✅ Urgencia marcada como atendida correctamente');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión: ' + error.message);
+        });
+    }
+}
+
+// Función para probar API
+function probarAPI() {
+    console.log('=== PROBANDO API ===');
+    
+    const csrfToken = getCookie('csrftoken');
+    const url = '/servicio-medico/api/test/';
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('API Test response:', data);
+        alert('API Test: ' + data.mensaje);
+    })
+    .catch(error => {
+        console.error('API Test error:', error);
+        alert('Error en API Test: ' + error.message);
+    });
+}
+
+// Función para actualizar contadores
+function actualizarContadores() {
+    const urgenciasPendientes = document.querySelectorAll('[data-notif-id]');
+    const urgenciasAtendidas = document.querySelectorAll('#contenedor-atendidas .card');
+    
+    const contadorPendientes = document.getElementById('contador-pendientes');
+    const contadorTitulo = document.getElementById('contador-titulo');
+    const contadorAtendidas = document.getElementById('contador-atendidas');
+    const contadorAtendidasTitulo = document.getElementById('contador-atendidas-titulo');
+    
+    if (contadorPendientes) {
+        contadorPendientes.textContent = urgenciasPendientes.length;
+    }
+    if (contadorTitulo) {
+        contadorTitulo.textContent = urgenciasPendientes.length;
+    }
+    if (contadorAtendidas) {
+        contadorAtendidas.textContent = urgenciasAtendidas.length;
+    }
+    if (contadorAtendidasTitulo) {
+        contadorAtendidasTitulo.textContent = urgenciasAtendidas.length;
+    }
+}
+
+// Función para mostrar mensaje cuando no hay urgencias
+function mostrarMensajeSinUrgencias() {
+    const contenedor = document.getElementById('contenedor-urgencias');
+    if (contenedor) {
+        contenedor.innerHTML = `
+            <div class="alert alert-success text-center">
+                <h4>¡Excelente trabajo!</h4>
+                <p>No hay urgencias pendientes. Todas han sido atendidas.</p>
+            </div>
+        `;
+    }
+}
+
+// Configurar event listeners cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM LISTO - CONFIGURANDO EVENTOS ===');
+    
+    // Event listener para botones de marcar atendida
+    document.querySelectorAll('[data-notif-id]').forEach(button => {
+        button.addEventListener('click', function() {
+            const notifId = this.getAttribute('data-notif-id');
+            console.log('Botón clickeado, ID:', notifId);
+            marcarAtendida(notifId);
+        });
+    });
+    
+    // Event listener para botón de probar API
+    const btnProbarAPI = document.getElementById('btn-probar-api');
+    if (btnProbarAPI) {
+        btnProbarAPI.addEventListener('click', function() {
+            console.log('Botón probar API clickeado');
+            probarAPI();
+        });
+    }
+    
+    console.log('Event listeners configurados correctamente');
+});
+</script>
+{% endblock %}

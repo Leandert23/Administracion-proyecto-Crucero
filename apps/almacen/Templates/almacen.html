@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
     <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
+    <!-- Sistema de Urgencias Médicas -->
+    <link rel="stylesheet" href="{% static 'css/urgencia_medica.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
@@ -110,6 +113,13 @@
                     <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
                 </div>
                 <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <!-- Botón de urgencia médica -->
+                    <button class="btn btn-urgencia-medica" 
+                            data-modulo="Almacén" 
+                            data-solicitante="Operador de Almacén">
+                        <i class="fas fa-ambulance"></i>
+                        Urgencia Médica
+                    </button>
                 </div>
             </header>
 
@@ -171,6 +181,12 @@
     {% include 'Modals/registro_merma.html' %}
     {% include 'Modals/lotes_de_producto.html' %}
 
+    <!-- Botón flotante de urgencia médica -->
+    <button class="btn btn-urgencia-medica floating" 
+            data-modulo="Almacén" 
+            data-solicitante="Operador de Almacén">
+        <i class="fas fa-ambulance"></i>
+    </button>
 
     <script src="{% static 'Js/sidebar.js' %}"></script>
     <script src="{% static 'Js/inventario.js' %}"></script>
@@ -180,5 +196,14 @@
     <script src="{% static 'Js/modals_manager.js' %}"></script>
     <script src="{% static 'Js/busqueda_producto.js' %}"></script>
     <script src="{% static 'Js/init_almacen.js' %}"></script>
+    
+    <!-- Sistema de Urgencias Médicas -->
+    <script src="{% static 'js/urgencia_medica.js' %}"></script>
+    <script>
+        // Configurar el sistema de urgencias para el módulo de almacén
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarUrgenciaMedica('Almacén', 'Operador de Almacén', '');
+        });
+    </script>
 </body>
 </html>

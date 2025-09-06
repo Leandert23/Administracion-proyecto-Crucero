@@ -18,5 +18,16 @@ urlpatterns = [
     path('historial-medico/eliminar/<int:paciente_id>/', eliminar_paciente, name='eliminar_paciente'),
     path('inventario/agregar/', agregar_inventario, name='agregar_inventario'),
     path('inventario/editar/', agregar_inventario, name='editar_inventario'),
+    
+    
+    # URLs para sistema de urgencias
+    path('urgencias/', panel_urgencias, name='panel_urgencias'),
+    path('api/urgencias/enviar/', api_enviar_urgencia, name='api_enviar_urgencia'),
+    path('api/urgencias/atendida/<int:notificacion_id>/', api_marcar_atendida, name='api_marcar_atendida'),
+    path('api/test/', api_test_urgencia, name='api_test_urgencia'),
+    
+    # URLs para gestión de historiales médicos
+    path('api/historiales/generar-aleatorios/', api_generar_historiales_aleatorios, name='api_generar_historiales_aleatorios'),
+    path('api/historiales/borrar-todos/', api_borrar_todos_historiales, name='api_borrar_todos_historiales'),
 ]
 

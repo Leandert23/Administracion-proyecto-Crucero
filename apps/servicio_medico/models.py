@@ -167,3 +167,33 @@ class Producto(models.Model):
         "COMIDA": {"CADUCABLE", "NO_CADUCABLE", "REFRIGERADO", "NO_REFRIGERADO", "BEBIDA", "LICOR"},
         "BIENES": {"REPUESTOS", "LIMPIEZA", "MEDICOS", "ACTIVOS"},
     }
+
+class NotificacionUrgencia(models.Model):
+    """
+    Modelo para notificaciones de urgencia médica desde otros módulos
+    """
+    ESTADO_CHOICES = [
+        ('P', 'Pendiente'),
+        ('A', 'Atendida'),
+    ]
+    
+    # Información básica
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    modulo_origen = models.CharField(max_length=50, help_text="Módulo que envía la notificación")
+    solicitante = models.CharField(max_length=100, help_text="Nombre de quien solicita ayuda")
+    ubicacion = models.CharField(max_length=200, help_text="Ubicación exacta")
+    tipo_urgencia = models.CharField(max_length=100, help_text="Tipo de urgencia")
+    descripcion = models.TextField(max_length=1000, help_text="Descripción detallada")
+    estado = models.CharField(max_length=1, choices=ESTADO_CHOICES, default='P')
+    
+    # Información de respuesta
+    fecha_atendida = models.DateTimeField(blank=True, null=True)
+    observaciones_medicas = models.TextField(max_length=1000, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-fecha_creacion']
+        verbose_name = "Notificación de Urgencia"
+        verbose_name_plural = "Notificaciones de Urgencia"
+    
+    def __str__(self):
+        return f"Urgencia - {self.ubicacion} - {self.fecha_creacion.strftime('%d/%m/%Y %H:%M')}"
