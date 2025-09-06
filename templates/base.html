@@ -135,13 +135,13 @@
 
                 {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}
                 <nav class="restaurant-subnav">
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Dashboard</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Stock</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'maintenance' %}active{% endif %}" href="{% url 'restaurant:maintenance' %}">Mantenimiento</a>
+                    <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Inicio</a>
+                    <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Inventario</a>
+                    {# Enlace de Mantenimiento oculto: el reporte se realiza con el botón flotante #}
                     <!-- Finanzas eliminado -->
                     <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
-                    <a class="subnav-link {% if request.resolver_match.url_name == 'records' %}active{% endif %}" href="{% url 'restaurant:records' %}">Registros</a>
+                    <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
+                    
                 </nav>
                 {% endif %}
 
@@ -173,6 +173,16 @@
       }
     </script>
     <script src="{% static 'js/main.js' %}"></script>
+        <script>
+            // Exponer CSRF global para integraciones AJAX de otros módulos (e.g., Almacén)
+            window.CSRF_TOKEN = (function(){
+                var el = document.querySelector('[name=csrfmiddlewaretoken]');
+                return el ? el.value : '';
+            })();
+        </script>
+    {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}
+    <script src="{% static 'js/maintenance_button.js' %}"></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

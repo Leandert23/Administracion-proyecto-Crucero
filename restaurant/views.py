@@ -21,24 +21,39 @@ def dashboard(request):
 def stock_view(request):
     """Vista para gestión de stock/inventario"""
     cruceros = Crucero.objects.all()
-    restaurants = Restaurante.objects.all()
-    
+
+    # Crucero activo (definido por el módulo general); fallback por querystring opcional
+    current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise')
+    current_cruise = None
+    if current_cruise_id:
+        try:
+            current_cruise = Crucero.objects.get(id=current_cruise_id)
+        except Crucero.DoesNotExist:
+            current_cruise_id = None
+
     # Filtros
-    selected_cruise = request.GET.get('cruise', '')
     selected_restaurant = request.GET.get('restaurant', '')
-    
+
+    # Filtrar restaurantes por crucero activo
+    restaurants = Restaurante.objects.all()
+    if current_cruise_id:
+        restaurants = restaurants.filter(crucero_id=current_cruise_id)
+
+    # Items del menú filtrados por crucero activo y, opcionalmente, por restaurante
     menu_items = MenuItem.objects.all()
-    if selected_cruise:
-        menu_items = menu_items.filter(restaurant__crucero_id=selected_cruise)
+    if current_cruise_id:
+        menu_items = menu_items.filter(restaurant__crucero_id=current_cruise_id)
     if selected_restaurant:
         menu_items = menu_items.filter(restaurant_id=selected_restaurant)
-    
+
     context = {
-        'cruceros': cruceros,
+        'cruceros': cruceros,  # compatibilidad
         'restaurants': restaurants,
         'menu_items': menu_items,
-        'selected_cruise': selected_cruise,
+        'selected_cruise': current_cruise_id,  # compatibilidad con plantillas previas
         'selected_restaurant': selected_restaurant,
+        'current_cruise_id': current_cruise_id,
+        'current_cruise': current_cruise,
     }
     return render(request, 'restaurant/stock.html', context)
 
@@ -68,10 +83,21 @@ def consumption_view(request):
     """Vista para registro de consumo"""
     cruceros = Crucero.objects.all()
     restaurants = Restaurante.objects.all()
-    
+
+    # Obtener crucero activo (definido por el módulo general). Fallback: None.
+    current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise')
+    current_cruise = None
+    if current_cruise_id:
+        try:
+            current_cruise = Crucero.objects.get(id=current_cruise_id)
+        except Crucero.DoesNotExist:
+            current_cruise_id = None
+
     context = {
-        'cruceros': cruceros,
+        'cruceros': cruceros,  # se mantiene por compatibilidad aunque ya no se muestra
         'restaurants': restaurants,
+        'current_cruise_id': current_cruise_id,
+        'current_cruise': current_cruise,
     }
     return render(request, 'restaurant/consumption.html', context)
 
@@ -91,6 +117,20 @@ def records_view(request):
         'selected_cruise': selected_cruise,
     }
     return render(request, 'restaurant/records.html', context)
+
+def get_restaurants(request):
+    """Devuelve lista mínima de restaurantes para selects (AJAX GET)"""
+    restaurants = Restaurante.objects.all().values('id', 'name', 'type')
+    # Mapear display de type
+    items = []
+    for r in restaurants:
+        obj = Restaurante(id=r['id'], name=r['name'], type=r['type'])
+        items.append({
+            'id': r['id'],
+            'name': r['name'],
+            'type_display': obj.get_type_display()
+        })
+    return JsonResponse({'restaurants': items})
 
 # AJAX Views
 @csrf_exempt

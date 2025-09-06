@@ -1,87 +1,58 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - {{ block.super }}{% endblock %}
+{% block title %}Inicio - {{ block.super }}{% endblock %}
 
-{% block page_title %}Dashboard del Restaurante{% endblock %}
+{% block page_title %}Inicio del Módulo Restaurante{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <h2 class="section-title">
-        <i class="fas fa-tachometer-alt"></i> Dashboard del Restaurante
-    </h2>
-    
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-ship"></i>
+<section class="restaurant-home">
+    <header class="home-header">
+        <h2>¿Qué quieres gestionar hoy?</h2>
+        <p>Accede a las secciones principales del restaurante.</p>
+    </header>
+
+    <div class="menu-grid">
+        <a class="menu-card inv" href="{% url 'restaurant:stock' %}">
+            <div class="icon-wrap inv"><i class="fas fa-boxes"></i></div>
+            <div class="card-body">
+                <h3>Inventario</h3>
+                <p>Gestiona items, existencias y precios.</p>
             </div>
-            <div class="stat-info">
-                <h3>{{ total_cruceros }}</h3>
-                <p>Cruceros Activos</p>
+        </a>
+
+        <a class="menu-card cons" href="{% url 'restaurant:consumption' %}">
+            <div class="icon-wrap cons"><i class="fas fa-utensils"></i></div>
+            <div class="card-body">
+                <h3>Consumo</h3>
+                <p>Registra y controla consumos por día.</p>
             </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-store"></i>
+        </a>
+
+        <a class="menu-card emp" href="{% url 'restaurant:employees' %}">
+            <div class="icon-wrap emp"><i class="fas fa-user-group"></i></div>
+            <div class="card-body">
+                <h3>Empleados</h3>
+                <p>Altas rápidas y gestión de personal.</p>
             </div>
-            <div class="stat-info">
-                <h3>{{ total_restaurants }}</h3>
-                <p>Restaurantes</p>
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ total_employees }}</h3>
-                <p>Empleados Activos</p>
-            </div>
-        </div>
-        
-        <div class="stat-card alert-card">
-            <div class="stat-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ low_stock_items }}</h3>
-                <p>Items con Stock Bajo</p>
-            </div>
-        </div>
-        
-        <div class="stat-card maintenance-card">
-            <div class="stat-icon">
-                <i class="fas fa-tools"></i>
-            </div>
-            <div class="stat-info">
-                <h3>{{ pending_maintenance }}</h3>
-                <p>Mantenimientos Pendientes</p>
-            </div>
-        </div>
+        </a>
     </div>
-    
-    <div class="quick-actions">
-        <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
-        <div class="actions-grid">
-            <a href="{% url 'restaurant:stock' %}" class="action-btn">
-                <i class="fas fa-boxes"></i>
-                <span>Gestionar Stock</span>
-            </a>
-            <a href="{% url 'restaurant:consumption' %}" class="action-btn">
-                <i class="fas fa-utensils"></i>
-                <span>Registrar Consumo</span>
-            </a>
-            <a href="{% url 'restaurant:employees' %}" class="action-btn">
-                <i class="fas fa-user-plus"></i>
-                <span>Agregar Empleado</span>
-            </a>
-            <a href="{% url 'restaurant:maintenance' %}" class="action-btn">
-                <i class="fas fa-wrench"></i>
-                <span>Reportar Problema</span>
-            </a>
-        </div>
-    </div>
-</div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.home-header{margin-bottom:14px}
+.home-header h2{margin:0 0 4px;font-size:22px}
+.home-header p{margin:0;color:#64748b}
+
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.menu-card{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;text-decoration:none;color:#111827;box-shadow:0 6px 20px rgba(2,132,199,.06);transition:transform .16s ease, box-shadow .16s ease}
+.menu-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(2,132,199,.14)}
+.icon-wrap{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.icon-wrap.inv{background:rgba(14,165,233,.12);color:#0ea5e9}
+.icon-wrap.cons{background:rgba(16,185,129,.12);color:#10b981}
+.icon-wrap.emp{background:rgba(139,92,246,.12);color:#8b5cf6}
+.card-body h3{margin:0 0 4px;font-size:18px}
+.card-body p{margin:0;color:#6b7280}
+</style>
 {% endblock %}

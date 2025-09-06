@@ -13,17 +13,6 @@
     <div class="filters">
         <form class="filter-form" onsubmit="return false;">
             <div class="form-group">
-                <label for="cruiseSelect">Crucero:</label>
-                <select id="cruiseSelect" class="form-control">
-                    <option value="">Todos los Cruceros</option>
-                    {% if cruceros %}
-                        {% for c in cruceros %}
-                            <option value="{{ c.id }}">{{ c.name }}</option>
-                        {% endfor %}
-                    {% endif %}
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="daySelect">Día del crucero:</label>
                 <select id="daySelect" class="form-control">
                     <option value="">Día</option>
@@ -81,12 +70,15 @@
 
 {% block extra_js %}
 <script>
+// Crucero activo provisto por backend (elegido a nivel global)
+const CURRENT_CRUISE_ID = '{{ current_cruise_id|default:"" }}';
+
 // Cargar menús disponibles según crucero y día
 function fetchMenus(cruiseId, day){
     const container = document.getElementById('menusContainer');
     container.innerHTML = '<p class="loading">Cargando menús...</p>';
     if(!cruiseId || !day){
-        container.innerHTML = '<p class="help">Seleccione crucero y día para ver los menús disponibles ese día.</p>';
+        container.innerHTML = '<p class="help">Seleccione el día del crucero para ver los menús disponibles.</p>';
         return;
     }
 
@@ -151,24 +143,17 @@ function fetchMenus(cruiseId, day){
         });
 }
 
-document.getElementById('cruiseSelect').addEventListener('change', function(){
-    const cruiseId = this.value;
-    const day = document.getElementById('daySelect').value;
-    fetchMenus(cruiseId, day);
-});
-
 document.getElementById('daySelect').addEventListener('change', function(){
     const day = this.value;
-    const cruiseId = document.getElementById('cruiseSelect').value;
-    fetchMenus(cruiseId, day);
+    fetchMenus(CURRENT_CRUISE_ID, day);
 });
 
 // Registrar consumos en bloque: toma todos los inputs con valor > 0
 document.getElementById('registerConsumptions').addEventListener('click', function(){
-    const cruiseId = document.getElementById('cruiseSelect').value;
+    const cruiseId = CURRENT_CRUISE_ID;
     const day = document.getElementById('daySelect').value;
     if(!cruiseId || !day){
-        showAlert('Seleccione crucero y día antes de registrar consumos', 'error');
+        showAlert('Seleccione el día del crucero antes de registrar consumos', 'error');
         return;
     }
 
@@ -186,7 +171,7 @@ document.getElementById('registerConsumptions').addEventListener('click', functi
 
     fetch('{% url "restaurant:register_bulk_consumption" %}', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value},
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': (window.CSRF_TOKEN || (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || (document.cookie.match(/csrftoken=([^;]+)/)||[])[1] || '')},
         body: JSON.stringify(payload)
     })
     .then(r => r.json())
@@ -210,6 +195,14 @@ function showAlert(msg, type){
     c.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
     setTimeout(()=> c.innerHTML = '', 5000);
 }
+
+// Si ya tenemos crucero activo y el día está preseleccionado, cargar menús
+document.addEventListener('DOMContentLoaded', ()=>{
+    const day = document.getElementById('daySelect').value;
+    if(CURRENT_CRUISE_ID && day){
+        fetchMenus(CURRENT_CRUISE_ID, day);
+    }
+});
 
 </script>
 {% endblock %}
