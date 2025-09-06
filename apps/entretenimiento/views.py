@@ -303,3 +303,83 @@ def registro_view(request):
             'success': False,
             'message': 'Ocurrió un error interno del servidor. Por favor, contacte al administrador.'
         })
+
+
+@csrf_exempt
+@require_POST
+def eliminar_actividades_rutinarias(request):
+    """Vista para eliminar todos los registros de actividades rutinarias"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Contar registros antes de eliminar
+        registros_antes = ActividadRutinaria.objects.count()
+
+        # Eliminar todos los registros de actividades rutinarias
+        ActividadRutinaria.objects.all().delete()
+
+        # Contar registros después de eliminar
+        registros_despues = ActividadRutinaria.objects.count()
+        registros_eliminados = registros_antes - registros_despues
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Se eliminaron {registros_eliminados} actividades rutinarias exitosamente.',
+            'registros_eliminados': registros_eliminados
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividades rutinarias: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar las actividades rutinarias.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def eliminar_actividades_pago(request):
+    """Vista para eliminar todos los registros de actividades de pago"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Contar registros antes de eliminar
+        registros_antes = Actividad.objects.count()
+
+        # Eliminar todos los registros de actividades de pago
+        Actividad.objects.all().delete()
+
+        # Contar registros después de eliminar
+        registros_despues = Actividad.objects.count()
+        registros_eliminados = registros_antes - registros_despues
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Se eliminaron {registros_eliminados} actividades de pago exitosamente.',
+            'registros_eliminados': registros_eliminados
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividades de pago: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar las actividades de pago.'
+        })

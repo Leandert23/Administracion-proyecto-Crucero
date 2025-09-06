@@ -145,6 +145,129 @@
                 color: white;
                 border-color: #dc2626;
             }
+
+        /* ===== ESTILOS PARA EL MODAL DE ELIMINAR ACTIVIDADES v2.1 ===== */
+        .activity-type-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        #delete-activities-modal .activity-type-btn {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+            padding: 24px !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            text-align: left !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        #delete-activities-modal .activity-type-btn::before {
+            content: '' !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: -100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent) !important;
+            transition: left 0.5s ease !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:hover::before {
+            left: 100% !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+            border-color: #3b82f6 !important;
+            transform: translateY(-4px) scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            border-color: #3b82f6 !important;
+            color: white !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3) !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:active {
+            transform: translateY(-1px) scale(0.98) !important;
+            transition: all 0.1s ease !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected .type-description {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        #delete-activities-modal .type-title {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            margin-bottom: 6px !important;
+            letter-spacing: -0.025em !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected .type-title {
+            color: white !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        #delete-activities-modal .type-description {
+            font-size: 14px !important;
+            color: #64748b !important;
+            line-height: 1.5 !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        /* Estilos responsivos para el modal */
+        @media (max-width: 768px) {
+            .activity-type-selection {
+                gap: 12px;
+            }
+
+            .activity-type-btn {
+                padding: 20px;
+                gap: 8px;
+                border-radius: 14px;
+            }
+
+            .type-title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .type-description {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .activity-type-btn {
+                padding: 18px;
+                gap: 6px;
+            }
+
+            .type-title {
+                font-size: 15px;
+            }
+
+            .type-description {
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -403,6 +526,31 @@
             <div class="modal-footer">
                 <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Rechazar</button>
                 <button class="modal-btn modal-btn-confirm" onclick="openNextModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Eliminar Registro de Actividades -->
+    <div id="delete-activities-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Eliminar Registro de Actividades</h2>
+                <button class="modal-close" onclick="closeDeleteActivitiesModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Seleccione el tipo de actividades que desea eliminar:</p>
+                <div class="activity-type-selection">
+                    <button class="activity-type-btn" data-type="rutinaria" onclick="selectActivityType('rutinaria')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades Rutinarias</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Actividades diarias y gratuitas del crucero</div>
+                    </button>
+                    <button class="activity-type-btn" data-type="pago" onclick="selectActivityType('pago')"
+                            style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                        <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades de Pago</div>
+                        <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Actividades especiales con costo adicional</div>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -671,12 +819,16 @@
         function closeAllModals() {
             const confirmationModal = document.getElementById('confirmation-modal');
             const processingModal = document.getElementById('processing-modal');
+            const deleteActivitiesModal = document.getElementById('delete-activities-modal');
 
             confirmationModal.style.display = 'none';
             confirmationModal.classList.remove('active');
 
             processingModal.style.display = 'none';
             processingModal.classList.remove('active');
+
+            deleteActivitiesModal.style.display = 'none';
+            deleteActivitiesModal.classList.remove('active');
 
             document.body.style.overflow = 'auto';
         }
@@ -724,6 +876,7 @@
         document.addEventListener('click', function(event) {
             const confirmationModal = document.getElementById('confirmation-modal');
             const processingModal = document.getElementById('processing-modal');
+            const deleteActivitiesModal = document.getElementById('delete-activities-modal');
 
             if (event.target === confirmationModal) {
                 closeModal();
@@ -731,6 +884,10 @@
 
             if (event.target === processingModal) {
                 closeAllModals();
+            }
+
+            if (event.target === deleteActivitiesModal) {
+                closeDeleteActivitiesModal();
             }
         });
 
@@ -919,9 +1076,177 @@
         // Cerrar modales con la tecla Escape
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                closeAllModals();
+                const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+                if (deleteActivitiesModal.style.display === 'flex') {
+                    closeDeleteActivitiesModal();
+                } else {
+                    closeAllModals();
+                }
             }
         });
+
+        // Función para abrir el modal de eliminar actividades
+        function openDeleteActivitiesModal() {
+            const modal = document.getElementById('delete-activities-modal');
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Limpiar selección previa
+            document.querySelectorAll('.activity-type-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+        }
+
+        // Función para cerrar el modal de eliminar actividades
+        function closeDeleteActivitiesModal() {
+            const modal = document.getElementById('delete-activities-modal');
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Función para seleccionar tipo de actividad
+        function selectActivityType(type) {
+            // Remover selección previa
+            document.querySelectorAll('.activity-type-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                // Resetear estilos
+                btn.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+                btn.style.borderColor = '#e2e8f0';
+                btn.style.color = '';
+                btn.style.transform = 'translateY(0) scale(1)';
+                btn.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+
+                // Resetear estilos de texto
+                const title = btn.querySelector('.type-title');
+                const description = btn.querySelector('.type-description');
+                if (title) {
+                    title.style.color = '#1e293b';
+                }
+                if (description) {
+                    description.style.color = '#64748b';
+                }
+            });
+
+            // Agregar selección al botón clickeado
+            const selectedBtn = document.querySelector(`[data-type="${type}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('selected');
+                // Aplicar estilos de selección
+                selectedBtn.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                selectedBtn.style.borderColor = '#3b82f6';
+                selectedBtn.style.color = 'white';
+                selectedBtn.style.transform = 'translateY(-2px)';
+                selectedBtn.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.3)';
+
+                // Aplicar estilos a los textos
+                const title = selectedBtn.querySelector('.type-title');
+                const description = selectedBtn.querySelector('.type-description');
+                if (title) {
+                    title.style.color = 'white';
+                }
+                if (description) {
+                    description.style.color = 'rgba(255, 255, 255, 0.8)';
+                }
+            }
+
+            // Aquí puedes agregar la lógica para procesar la selección
+            console.log('Tipo de actividad seleccionada:', type);
+
+            // Ejecutar la eliminación según el tipo seleccionado
+            if (type === 'rutinaria') {
+                // Hacer petición AJAX para eliminar actividades rutinarias
+                fetch('/entretenimiento/eliminar-actividades-rutinarias/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Actividades rutinarias eliminadas:', data.message);
+                        // Mostrar mensaje de éxito temporal
+                        showSuccessMessage(data.message);
+                        // Refrescar la página después de 250ms
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 250);
+                    } else {
+                        console.error('Error al eliminar actividades:', data.message);
+                        showFormErrors([data.message]);
+                        closeDeleteActivitiesModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en la petición:', error);
+                    showFormErrors(['Error de conexión al eliminar actividades']);
+                    closeDeleteActivitiesModal();
+                });
+            } else if (type === 'pago') {
+                // Hacer petición AJAX para eliminar actividades de pago
+                fetch('/entretenimiento/eliminar-actividades-pago/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Actividades de pago eliminadas:', data.message);
+                        // Mostrar mensaje de éxito temporal
+                        showSuccessMessage(data.message);
+                        // Refrescar la página después de 250ms
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 250);
+                    } else {
+                        console.error('Error al eliminar actividades:', data.message);
+                        showFormErrors([data.message]);
+                        closeDeleteActivitiesModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en la petición:', error);
+                    showFormErrors(['Error de conexión al eliminar actividades']);
+                    closeDeleteActivitiesModal();
+                });
+            }
+        }
+
+        // Función para inicializar los eventos de los botones de acción
+        function initializeActionButtons() {
+            const deleteBtn = document.querySelector('[data-action="eliminar-registro"]');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', openDeleteActivitiesModal);
+            }
+
+            // Agregar eventos de hover a los botones del modal
+            const activityButtons = document.querySelectorAll('.activity-type-btn');
+            activityButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.background = 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)';
+                    this.style.borderColor = '#3b82f6';
+                    this.style.transform = 'translateY(-4px) scale(1.02)';
+                    this.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
+                });
+
+                button.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+                        this.style.borderColor = '#e2e8f0';
+                        this.style.transform = 'translateY(0) scale(1)';
+                        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                    }
+                });
+            });
+        }
 
         // Actualizar la fecha cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -929,6 +1254,7 @@
             addSelectorStyles();
             addFilterButtonHoverEffects();
             initializeCardClicks(); // Inicializar los clicks de las cards
+            initializeActionButtons(); // Inicializar los clicks de los botones de acción
         });
     </script>
 </body>
