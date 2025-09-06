@@ -1,12 +1,41 @@
 from django.shortcuts import get_object_or_404
 from .models import CompraLote
 from ..cruceros.models import Crucero
+from django.dispatch import Signal
 
 # Vista para ver detalles de una compra por lote
 def detalle_compra_lote_view(request, crucero_id, compra_id):
     compra = get_object_or_404(CompraLote, id=compra_id, crucero_id=crucero_id)
+
     from_param = request.GET.get('from', '')
+
+    # Manejo de acciones POST
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        if accion == 'aceptar':
+            compra.estado = 'Esperando por revision'
+            lote_signal = Signal()
+            lote_signal.send(sender=None, compra_lote=compra)
+            compra.save()
+        elif accion == 'rechazar':
+            mensaje = request.POST.get('mensaje', '')
+            compra.estado = 'cancelada'
+            solicitud = compra.solicitud
+            if solicitud and solicitud.procesada:
+                compra.notas_compra = mensaje
+                solicitud.procesada = False
+                solicitud.save()
+            compra.save()
+        # elif accion == 'finalizar':
+        #     compra.estado = 'exitosa'
+        #     compra.save()
+        # Redirigir a la misma página para ver el cambio reflejado
+        from django.shortcuts import redirect
+        return redirect('detalle_compra_lote', crucero_id=crucero_id, compra_id=compra.id)
+
     return render(request, 'detalle_compra_lote.html', {'compra': compra, 'from_param': from_param, 'crucero_id': crucero_id})
+
+
 # Vista para listar compras por lote registradas
 def compras_lote_registradas_view(request, crucero_id):
     from .models import CompraLote
@@ -118,12 +147,15 @@ def procesar_materiales_solicitud_view(request, crucero_id, solicitud_id):
                 medida=item.medida,
                 cantidad=cantidad or 0
             )
+
         # Enviar signal a administración, descomentar
         # solicitud_compra_administracion(id=solicitud.id, monto=presupuesto_lote)
     # Importar la señal compartida para que el receiver en almacen.signals.py la reciba
-        from ..almacen.signals import lote_signal
-        compra_lote.estado = 'En espera por revisión'
-        lote_signal.send(sender=None, compra_lote=compra_lote)
+        # from ..almacen.signals import lote_signal
+        # lote_signal.send(sender=None, compra_lote=compra_lote)
+
+        compra_lote.estado = 'registrada'
+
         solicitud.procesada = True
         solicitud.save()
         compra_lote.save()
