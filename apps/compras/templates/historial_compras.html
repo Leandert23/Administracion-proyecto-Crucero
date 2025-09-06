@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Compras</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/historial_compras.css' %}">
+</head>
+
+<!-- si se usa -->
+<body>
+    <div class="container">
+
+        <h1>Historial de Compras por Lote</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <!-- <th>Fecha</th> -->
+                    <th>Empresa</th>
+                    <th>Contacto</th>
+                    <th>Ubicación</th>
+                    <th>Proveedor</th>
+                    <th>Puerto Entrega</th>
+                    <th>Presupuesto</th>
+                    <th>Estado</th>
+                    <th>Artículos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for compra in compras_lote %}
+                <tr class="{% if compra.get_estado_display|lower == 'exitosa' %}estado-exitosa{% elif compra.get_estado_display|lower == 'defectuosa' %}estado-defectuosa{% elif compra.get_estado_display|lower == 'cancelada' %}estado-cancelada{% endif %}">
+                    <!-- <td>{{ compra.fecha|date:"Y-m-d H:i" }}</td> -->
+                    <td>{{ compra.empresa_nombre }}</td>
+                    <td>{{ compra.empresa_contacto }}</td>
+                    <td>{{ compra.empresa_ubicacion }}</td>
+                    <td>{{ compra.proveedor.name }}</td>
+                    <td>{{ compra.puerto_entrega }}</td>
+                    <td>${{ compra.presupuesto_lote }}</td>
+                    <td>{{ compra.get_estado_display }}</td>
+                    <td>
+                        <a href="{% url 'detalle_compra_lote' compra.id %}?from=historial"><button>Ver detalles</button></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10">No hay compras por lote procesadas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    <a href="{% url 'dashboard' %}"><button>Volver</button></a>
+    </div>
+</body>
+</html>

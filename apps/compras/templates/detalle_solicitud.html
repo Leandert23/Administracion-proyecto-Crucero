@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de Solicitud de Compra</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/lista_solicitudes.css' %}">
+</head>
+<body>
+    <a href="{% url 'lista_solicitudes' %}"><button class="volver">Volver</button></a>
+    <div style="text-align: center;">
+        <h2>Detalle de Solicitud de Compra #{{ solicitud.id }}</h2>
+        <p><strong>ID Solicitud:</strong> {{ solicitud.id }}</p>
+        <p><strong>Procesada:</strong> {% if solicitud.procesada %}Sí{% else %}No{% endif %}</p>
+        <p><strong>Tipo:</strong> {{ tipo }}</p>
+        <p><strong>Subtipo:</strong> {{ subtipo }}</p>
+        <h3>Productos a Comprar</h3>
+        <table border=1 style="margin: 0 auto;">
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Nombre</th>
+                    <th>Cantidad a Comprar</th>
+                    <th>Medida</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.producto_id }}</td>
+                    <td>{{ item.nombre }}</td>
+                    <td>{{ item.cantidad_a_comprar }}</td>
+                    <td>{{ item.medida }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">No hay productos</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Solicitudes de Compra</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/lista_solicitudes.css' %}">
+</head>
+<body>
+    <a href="{% url 'dashboard' %}"><button class="volver">Volver</button></a>
+    <div style="display: flex; flex-direction: row; justify-content: space-around;">
+        <div class="solicitudes">
+            <h2>Lista de Solicitudes de Compra</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>ID Solicitud</th>
+                        <th>Tipo</th>
+                        <th>Subtipo</th>
+                        <!-- <th>Procesada</th> -->
+                        <th style="min-width: 250px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes %}
+                    <tr>
+                        <td>{{ solicitud.id }}</td>
+                        <td>{{ solicitud.tipo }}</td>
+                        <td>{{ solicitud.subtipo }}</td>
+                        <!-- <td>{% if solicitud.procesada %}Sí{% else %}No{% endif %}</td> -->
+                        <td>
+                            <a href="{% url 'detalle_solicitud' solicitud.id %}"><button>Ver detalles</button></a>
+                            <a href="{% url 'procesar_materiales_solicitud' solicitud.id %}"><button {% if solicitud.procesada %}disabled{% endif %}>Procesar</button></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No hay solicitudes registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="compras">
+            <h2>Compras por Lote Registradas</h2>
+            <table border="1">
+                <tr>
+                    <!-- <th>Fecha</th> -->
+                    <th>Proveedor</th>
+                    <th>Presupuesto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                {% for compra in compras_lote %}
+                <tr>
+                    <!-- <td>{{ compra.fecha|date:"Y-m-d H:i" }}</td> -->
+                    <td>{{ compra.proveedor.name }}</td>
+                    <td>${{ compra.presupuesto_lote }}</td>
+                    <td>
+                        {{ compra.get_estado_display }}
+                    </td>
+                    <td>
+                        <a href="{% url 'detalle_compra_lote' compra.id %}"><button>Ver detalles</button></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No hay compras registradas.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>

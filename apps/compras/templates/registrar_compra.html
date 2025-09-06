@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Compra</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Compra</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <label for="proveedor">Proveedor:</label>
+                <select name="proveedor" id="proveedor-select" required>
+                    <option value="">Seleccione un proveedor</option>
+                    {% for proveedor in proveedores %}
+                        <option value="{{ proveedor.id }}">{{ proveedor.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="pais_entrega">País de entrega:</label>
+                <select name="pais_entrega" id="pais-entrega-select" required>
+                    <option value="">Seleccione un país</option>
+                </select>
+            </div>
+            <div>
+                <label for="sitio_llegada">Sitio de llegada:</label>
+                <input type="text" name="sitio_llegada" id="sitio_llegada" required>
+            </div>
+            <hr>
+            <h3>Materiales/Productos</h3>
+            <div id="materiales-container"></div>
+            <button type="button" onclick="agregarMaterial()">Agregar material</button>
+            <br><br>
+            <button type="submit">Registrar Compra</button>
+        </form>
+        <button onclick="window.location.href='/'">Volver al Dashboard</button>
+    </div>
+    <script>
+        // Diccionario de materiales por proveedor y sus precios
+    const proveedorMateriales = {{ proveedor_materiales_json|safe }};
+    const proveedorPaises = {{ proveedor_paises_json|safe }};
+    const proveedorSelect = document.getElementById('proveedor-select');
+    const paisEntregaSelect = document.getElementById('pais-entrega-select');
+    const materialesContainer = document.getElementById('materiales-container');
+    let materialIndex = 0;
+        proveedorSelect.addEventListener('change', function() {
+            // Actualizar países según proveedor
+            const proveedorId = this.value;
+            paisEntregaSelect.innerHTML = '<option value="">Seleccione un país</option>';
+            if (proveedorPaises[proveedorId]) {
+                proveedorPaises[proveedorId].forEach(function(pais) {
+                    const option = document.createElement('option');
+                    option.value = pais.id;
+                    option.textContent = pais.nombre;
+                    paisEntregaSelect.appendChild(option);
+                });
+            }
+        });
+
+        function agregarMaterial() {
+            const proveedorId = proveedorSelect.value;
+            if (!proveedorId) {
+                alert('Seleccione un proveedor primero.');
+                return;
+            }
+            const materiales = proveedorMateriales[proveedorId] || [];
+            const div = document.createElement('div');
+            div.className = 'material-item';
+            div.innerHTML = `
+                <label>Material:</label>
+                <select name="material_${materialIndex}" class="material-select" required>
+                    <option value="">Seleccione un material</option>
+                    ${materiales.map(mat => `<option value="${mat.id}" data-precio="${mat.costo}">${mat.nombre}</option>`).join('')}
+                </select>
+                <label>Unidad:</label>
+                <select name="unidad_${materialIndex}" required>
+                    <option value="kg">Kg</option>
+                    <option value="und">Unidad</option>
+                    <option value="l">Litro</option>
+                </select>
+                <label>Cantidad:</label>
+                <input type="number" name="cantidad_${materialIndex}" min="1" step="0.01" required>
+                <label>Precio unitario:</label>
+                <input type="number" name="precio_unitario_${materialIndex}" min="0" step="0.01" required readonly>
+                <label>Total:</label>
+                <input type="number" name="total_${materialIndex}" min="0" step="0.01" readonly>
+                <button type="button" onclick="this.parentElement.remove()">Eliminar</button>
+                <br><br>
+            `;
+            materialesContainer.appendChild(div);
+            const materialSelect = div.querySelector('.material-select');
+            const precioUnitarioInput = div.querySelector(`[name^='precio_unitario_']`);
+            const cantidadInput = div.querySelector(`[name^='cantidad_']`);
+            const totalInput = div.querySelector(`[name^='total_']`);
+            materialSelect.addEventListener('change', function() {
+                const selected = this.options[this.selectedIndex];
+                const precio = selected.getAttribute('data-precio');
+                precioUnitarioInput.value = precio || '';
+                calcularTotal();
+            });
+            cantidadInput.addEventListener('input', calcularTotal);
+            function calcularTotal() {
+                const cantidad = parseFloat(cantidadInput.value) || 0;
+                const precio = parseFloat(precioUnitarioInput.value) || 0;
+                totalInput.value = (cantidad * precio).toFixed(2);
+            }
+            materialIndex++;
+        }
+    </script>
+</body>
+</html>

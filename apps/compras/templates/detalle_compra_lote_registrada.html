@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de Compra por Lote</title>
+</head>
+<body>
+    <h2>Detalle de Compra por Lote</h2>
+    <a href="{% url 'compras_lote_registradas' %}"><button>Volver</button></a>
+    <fieldset style="margin-bottom:20px;">
+        <legend><b>Datos de la Empresa</b></legend>
+        <label>Nombre de la empresa:</label>
+        <input type="text" value="{{ compra.empresa_nombre }}" readonly><br>
+        <label>Contacto:</label>
+        <input type="text" value="{{ compra.empresa_contacto }}" readonly><br>
+        <label>Ubicación:</label>
+        <input type="text" value="{{ compra.empresa_ubicacion }}" readonly><br>
+    </fieldset>
+    <fieldset style="margin-bottom:20px;">
+        <legend><b>Datos del Proveedor</b></legend>
+        <label>Proveedor:</label>
+        <input type="text" value="{{ compra.proveedor.name }} ({{ compra.proveedor.contact }})" readonly><br>
+        <label>Puerto de entrega:</label>
+        <input type="text" value="{{ compra.puerto_entrega }}" readonly><br>
+    </fieldset>
+    <fieldset>
+        <legend><b>Materiales procesados</b></legend>
+        <table border="1">
+            <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Medida</th>
+                <th>Cantidad</th>
+            </tr>
+            {% for item in compra.items.all %}
+            <tr>
+                <td>{{ item.producto_id }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.medida }}</td>
+                <td>{{ item.cantidad }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </fieldset>
+    <fieldset style="margin-bottom:20px;">
+        <legend><b>Notas y Presupuesto</b></legend>
+        <label>Notas de compra:</label>
+        <textarea readonly>{{ compra.notas_compra }}</textarea><br>
+        <label>Presupuesto por lote:</label>
+        <input type="text" value="${{ compra.presupuesto_lote }}" readonly><br>
+        <label>Estado:</label>
+        <input type="text" value="{{ compra.get_estado_display }}" readonly><br>
+    </fieldset>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Compras Registradas</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Compras Registradas</h1>
+    <button onclick="window.location.href='{% url 'registrar_compra' %}'" style="margin-bottom: 16px;">Registrar Nueva Compra</button>
+    <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Proveedor</th>
+                    <th>País Entrega</th>
+                    <th>Sitio Llegada</th>
+                    <th>Material</th>
+                    <th>Descripción</th>
+                    <th>Unidad</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for compra in compras %}
+                    {% for detalle in compra.detalles.all %}
+                        {% for producto in detalle.compraporproveedormaterial_set.all %}
+                        <tr>
+                            {% if forloop.first %}
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">{{ compra.fecha|date:"Y-m-d H:i" }}</td>
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">
+                                    <form method="post" action="" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="compra_id" value="{{ compra.id }}">
+                                        <select name="nuevo_estado" onchange="this.form.submit()">
+                                            {% for key, value in compra.ESTADO_CHOICES %}
+                                                <option value="{{ key }}" {% if compra.estado == key %}selected{% endif %}>{{ value }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </form>
+                                </td>
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">{{ detalle.proveedor.name }}</td>
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">
+                                    {% if compra.pais_entrega %}{{ compra.pais_entrega.nombre }}{% endif %}
+                                </td>
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">{{ compra.sitio_llegada }}</td>
+                                <td>{{ producto.material.nombre }}</td>
+                                <td rowspan="{{ detalle.compraporproveedormaterial_set.count }}">{{ detalle.descripcion }}</td>
+                                <td>{{ producto.get_unidad_display }}</td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>${{ producto.precio_unitario }}</td>
+                                <td>${{ producto.total }}</td>
+                            {% else %}
+                                <td style="display:none"></td>
+                                <td style="display:none"></td>
+                                <td style="display:none"></td>
+                                <td style="display:none"></td>
+                                <td style="display:none"></td>
+                                <td>{{ producto.material.nombre }}</td>
+                                <td style="display:none"></td>
+                                <td>{{ producto.get_unidad_display }}</td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>${{ producto.precio_unitario }}</td>
+                                <td>${{ producto.total }}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                {% empty %}
+                    <tr><td colspan="10">No hay compras registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 20px; ">
+            <strong>Total general de compras: $<span id="total-general"></span></strong>
+            <button id="enviar-btn">Enviar</button>
+        </div>
+        <button onclick="window.location.href='/'">Volver al Dashboard</button>
+        <script>
+            // Sumar todos los totales de la tabla
+            function sumarTotales() {
+                let total = 0;
+                document.querySelectorAll('td:last-child').forEach(function(td) {
+                    let valor = td.textContent.replace('$','').replace(',','').trim();
+                    if (!isNaN(parseFloat(valor))) {
+                        total += parseFloat(valor);
+                    }
+                });
+                document.getElementById('total-general').textContent = total.toFixed(2);
+            }
+            window.onload = sumarTotales;
+        </script>
+    </div>
+</body>
+</html>

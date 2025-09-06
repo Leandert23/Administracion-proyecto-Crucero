@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entretenimiento - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'styles/entretenimiento.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="preview.html" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" id="entretenimiento-nav-item">
+                        <a href="#" class="nav-link" onclick="mostrarEntretenimiento(); return false;">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" id="compras-nav-item">
+                        <a href="#" class="nav-link" onclick="mostrarCompras(event)">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="header-content">
+                        <h1 class="page-title">Compras</h1>
+                        <p class="page-subtitle">Gestión de compras, proveedores y solicitudes</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content" id="entretenimiento-content" style="display:none;">
+                <!-- Date Display -->
+                <div class="date-container">
+                    <div class="date-display">
+                        <span class="date-text" id="current-date">Hoy, 12 de Agosto de 2025</span>
+                    </div>
+                    <button class="select-day-btn" onclick="selectDay()">
+                        Seleccionar Día
+                    </button>
+                </div>
+
+                <!-- Content Cards Grid -->
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 2</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="image-placeholder">
+                            <span class="placeholder-text">1920 x 1080</span>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Titulo 1</h3>
+                            <p class="card-description">Descripción</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Contenido de Compras oculto por defecto -->
+            <div class="dashboard-content" id="compras-content" style="display:block">
+                <script>
+                // Cambiar título y subtítulo al mostrar compras
+                document.addEventListener('DOMContentLoaded', function() {
+                    const comprasContent = document.getElementById('compras-content');
+                    if (comprasContent && comprasContent.style.display !== 'none') {
+                        document.querySelector('.page-title').textContent = 'Compras';
+                        document.querySelector('.page-subtitle').textContent = 'Gestión de compras, proveedores y solicitudes';
+                    }
+                });
+                </script>
+                <div class="quick-actions-section">
+                    <div class="quick-actions-grid">
+                        <!-- Primer botón de 'comprar' eliminado por solicitud -->
+                        <a href="/solicitudes/" class="quick-action-card">
+                            <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
+                                <img src="{% static 'img/Solicitud.jpg' %}" alt="Icono Solicitudes" class="action-icon-img" style="width:40px;height:40px;">
+                            </div>
+                            <h3>Solicitudes</h3>
+                            <p>Ver y gestionar solicitudes de compra</p>
+                        </a>
+                         <a href="/proveedores/" class="quick-action-card">
+                            <div class="action-icon">
+                                <img src="{% static 'img/Red-Proveedores.jpg' %}" alt="Proveedores" class="action-icon-img">
+                            </div>
+                            <h3>Red de Proveedores</h3>
+                            <p>Gestionar proveedores registrados</p>
+                        </a>
+                        <a href="{% url 'historial_compras' %}" class="quick-action-card">
+                            <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
+                                <img src="{% static 'img/Historial.jpg' %}" alt="Icono Historial" class="action-icon-img" style="width:40px;height:40px;">
+                            </div>
+                            <h3>Historial de Compras</h3>
+                            <p>Ver el historial y resumen de compras</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Sección de resumen de compras recientes eliminada -->
+            </div>
+
+
+
+            <!-- Apartado de Nueva Compra oculto por defecto -->
+            <div class="dashboard-content" id="nueva-compra-content" style="display:none">
+                <button type="button" onclick="devolverAComprasDashboard()" style="margin-bottom: 16px;">Devolver</button>
+                <h1>Registrar Nueva Compra</h1>
+                <p>Aquí irá el formulario para registrar una nueva compra.</p>
+                <!-- El formulario se agregará aquí más tarde -->
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        // Mostrar sección de compras y ocultar entretenimiento
+        function mostrarCompras(event) {
+            event.preventDefault();
+            document.getElementById('entretenimiento-content').style.display = 'none';
+            document.getElementById('compras-content').style.display = 'block';
+            if(document.getElementById('proveedores-content')) {
+                document.getElementById('proveedores-content').style.display = 'none';
+            }
+            document.querySelector('.page-title').textContent = 'Compras';
+            document.querySelector('.page-subtitle').textContent = 'Gestión de compras, proveedores y solicitudes';
+            document.querySelectorAll('.nav-item').forEach(function(item){
+                item.classList.remove('active');
+            });
+            document.getElementById('compras-nav-item').classList.add('active');
+        }
+        function mostrarProveedores(event) {
+            event.preventDefault();
+            document.getElementById('entretenimiento-content').style.display = 'none';
+            document.getElementById('compras-content').style.display = 'none';
+            document.getElementById('proveedores-content').style.display = 'block';
+            document.querySelector('.page-title').textContent = 'Red de Proveedores';
+            document.querySelector('.page-subtitle').textContent = 'Registrar y consultar proveedores';
+            document.querySelectorAll('.nav-item').forEach(function(item){
+                item.classList.remove('active');
+            });
+        }
+        function mostrarEntretenimiento() {
+            document.getElementById('compras-content').style.display = 'none';
+            if(document.getElementById('proveedores-content')) {
+                document.getElementById('proveedores-content').style.display = 'none';
+            }
+            document.getElementById('entretenimiento-content').style.display = 'block';
+            document.querySelector('.page-title').textContent = 'Entretenimiento';
+            document.querySelector('.page-subtitle').textContent = 'Gestión de actividades y eventos de entretenimiento';
+            document.querySelectorAll('.nav-item').forEach(function(item){
+                item.classList.remove('active');
+            });
+            document.getElementById('entretenimiento-nav-item').classList.add('active');
+        }
+
+        function mostrarNuevaCompra(event) {
+            event.preventDefault();
+            document.getElementById('compras-content').style.display = 'none';
+            document.getElementById('proveedores-content').style.display = 'none';
+            document.getElementById('nueva-compra-content').style.display = 'block';
+            document.querySelector('.page-title').textContent = 'Registrar Compra';
+            document.querySelector('.page-subtitle').textContent = 'Rellene los campos para registrar una nueva compra';
+        }
+
+        function devolverAComprasDashboard() {
+            document.getElementById('nueva-compra-content').style.display = 'none';
+            document.getElementById('proveedores-content').style.display = 'none';
+            document.getElementById('compras-content').style.display = 'block';
+            document.querySelector('.page-title').textContent = 'Compras';
+            document.querySelector('.page-subtitle').textContent = 'Gestión de compras, proveedores y solicitudes';
+        }
+        
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // Función para actualizar la fecha automáticamente
+        function updateDate() {
+            const dateElement = document.getElementById('current-date');
+            const now = new Date();
+            
+            // Array con los nombres de los meses en español
+            const months = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            // Obtener día, mes y año
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            // Formatear la fecha
+            const formattedDate = `Hoy, ${day} de ${month} de ${year}`;
+            
+            // Actualizar el elemento
+            dateElement.textContent = formattedDate;
+        }
+
+        // Función para seleccionar día
+        function selectDay() {
+            // Crear un input de tipo date
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.style.position = 'absolute';
+            dateInput.style.opacity = '0';
+            dateInput.style.pointerEvents = 'none';
+            
+            // Agregar al DOM
+            document.body.appendChild(dateInput);
+            
+            // Simular clic en el input
+            dateInput.click();
+            
+            // Escuchar cambios en la fecha seleccionada
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                
+                // Array con los nombres de los meses en español
+                const months = [
+                    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                
+                // Formatear la fecha seleccionada
+                const day = selectedDate.getDate();
+                const month = months[selectedDate.getMonth()];
+                const year = selectedDate.getFullYear();
+                
+                // Actualizar el elemento de fecha
+                const dateElement = document.getElementById('current-date');
+                dateElement.textContent = `${day} de ${month} de ${year}`;
+                
+                // Remover el input temporal
+                document.body.removeChild(dateInput);
+            });
+            
+            // Si el usuario cancela, remover el input
+            dateInput.addEventListener('cancel', function() {
+                document.body.removeChild(dateInput);
+            });
+        }
+
+        // Actualizar la fecha cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDate();
+            
+        });
+    </script>
+</body>
+</html>

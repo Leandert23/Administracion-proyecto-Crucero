@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Procesar materiales de la solicitud #{{ solicitud.id }}</title>
+    <link rel="stylesheet" href="{% static 'styles/procesar_materiales_solicitud.css' %}">
+</head>
+<body>
+    <h2>Procesar materiales de la solicitud #{{ solicitud.id }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <fieldset style="margin-bottom:20px;">
+            <legend><b>Datos de la Empresa</b></legend>
+            <label>Nombre de la empresa:</label>
+            <input type="text" name="empresa_nombre" required><br>
+            <label>Contacto:</label>
+            <input type="text" name="empresa_contacto" required><br>
+            <label>Ubicación:</label>
+            <input type="text" name="empresa_ubicacion" required><br>
+        </fieldset>
+        <fieldset style="margin-bottom:20px;">
+            <legend><b>Datos del Proveedor</b></legend>
+            <label>Proveedor:</label>
+            <select name="proveedor_id" id="proveedor_id_select" required>
+                <option value="">Seleccione un proveedor</option>
+                {% for proveedor in proveedores %}
+                    <option value="{{ proveedor.id }}" {% if proveedor_id == proveedor.id|stringformat:'s' %}selected{% endif %}>{{ proveedor.name }} ({{ proveedor.contact }})</option>
+                {% empty %}
+                    <option value="">No hay proveedores registrados para este tipo y subtipo</option>
+                {% endfor %}
+            </select><br>
+            <label>Puerto de entrega:</label>
+            <select name="puerto_entrega" id="puerto_entrega_select" required>
+                <option value="">Seleccione un puerto</option>
+                {% for puerto in puertos_disponibles %}
+                    <option value="{{ puerto }}">{{ puerto }}</option>
+                {% endfor %}
+            </select><br>
+            <script>
+            // Diccionario de puertos por proveedor (inyectado desde la vista)
+            const puertosPorProveedor = {{ puertos_por_proveedor_json|safe }};
+            const proveedorSelect = document.getElementById('proveedor_id_select');
+            const puertoSelect = document.getElementById('puerto_entrega_select');
+            proveedorSelect.addEventListener('change', function() {
+                const proveedorId = this.value;
+                puertoSelect.innerHTML = '<option value="">Seleccione un puerto</option>';
+                if (puertosPorProveedor[proveedorId]) {
+                    puertosPorProveedor[proveedorId].forEach(function(puerto) {
+                        const option = document.createElement('option');
+                        option.value = puerto;
+                        option.textContent = puerto;
+                        puertoSelect.appendChild(option);
+                    });
+                }
+            });
+            </script>
+        </fieldset>
+        <fieldset>
+            <legend><b>Materiales a procesar</b></legend>
+            <table border="1">
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Medida</th>
+                    <th>Cantidad</th>
+                </tr>
+                {% for item in materiales %}
+                <tr>
+                    <td>{{ item.producto_id }}</td>
+                    <td>{{ item.nombre }}</td>
+                    <td>{{ item.medida }}</td>
+                    <td style="position:relative;">
+                        <input type="number" name="cantidad_{{ item.id }}" id="cantidad_{{ item.id }}" value="{{ item.cantidad_comprada|default:item.cantidad_a_comprar }}" min="0" data-solicitada="{{ item.cantidad_a_comprar }}" onchange="verificarCantidad(this)" style="width:60px;">
+                        <span id="estado_{{ item.id }}" style="margin-left:8px; font-size:0.95em; position:absolute;"></span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </fieldset>
+        <script>
+        function verificarCantidad(input) {
+            var solicitada = parseFloat(input.getAttribute('data-solicitada'));
+            var valor = parseFloat(input.value);
+            var estado = document.getElementById('estado_' + input.name.split('_')[1]);
+            if (valor > solicitada) {
+                estado.textContent = '¡Cantidad mayor a la solicitada!';
+                estado.style.color = 'orange';
+            } else if (valor < solicitada) {
+                estado.textContent = 'Cantidad menor a la solicitada';
+                estado.style.color = 'red';
+            } else {
+                estado.textContent = '';
+            }
+        }
+        </script>
+        <fieldset style="margin-top:20px;">
+            <legend><b>Notas de compra</b></legend>
+            <textarea name="notas_compra" rows="3" cols="60" placeholder="Ingrese notas adicionales sobre la compra..."></textarea>
+        </fieldset>
+        <fieldset style="margin-top:20px;">
+            <legend><b>Presupuesto por lote</b></legend>
+            <input type="number" name="presupuesto_lote" min="0" step="0.01" placeholder="Monto del presupuesto en USD">
+        </fieldset>
+    <button type="submit">Procesar compra</button>
+    <button type="button" onclick="window.location.href='{% url 'lista_solicitudes' %}'">Cancelar</button>
+    </form>
+</body>
+</html>

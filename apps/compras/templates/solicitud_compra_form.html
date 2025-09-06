@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Solicitud de Compra</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+</head>
+<body>
+    <h2>Registrar Solicitud de Compra</h2>
+    <form method="post">
+        {% csrf_token %}
+        <h3>Artículos</h3>
+        <div id="items-container">
+            <div class="item-row">
+                <input type="text" name="nombre[]" placeholder="Nombre" required>
+                <input type="number" name="cantidad[]" placeholder="Cantidad" required>
+                <input type="text" name="medida[]" placeholder="Medida" required>
+            </div>
+        </div>
+        <button type="button" onclick="agregarItem()">Agregar otro artículo</button><br>
+        <button type="submit">Registrar Solicitud</button>
+    </form>
+    <a href="{% url 'dashboard' %}"><button>Volver</button></a>
+    <script>
+    function agregarItem() {
+        var container = document.getElementById('items-container');
+        var row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `<input type="text" name="nombre[]" placeholder="Nombre" required>
+                         <input type="number" name="cantidad[]" placeholder="Cantidad" required>
+                         <input type="text" name="medida[]" placeholder="Medida" required>`;
+        container.appendChild(row);
+    }
+    </script>
+</body>
+</html>
