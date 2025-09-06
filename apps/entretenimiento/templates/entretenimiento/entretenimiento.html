@@ -567,6 +567,230 @@
             transform: none;
         }
 
+        /* Estilos modernos para el modal de ayuda */
+        .help-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .help-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .help-content::-webkit-scrollbar-track {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 10px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 10px;
+            border: 2px solid #f8fafc;
+        }
+
+        .help-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        .help-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .help-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .help-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 2px;
+        }
+
+        .help-description {
+            color: #64748b;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .help-item {
+            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .help-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .help-item:hover::before {
+            opacity: 1;
+        }
+
+        .help-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .help-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-item-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .help-item-description {
+            color: #64748b;
+            line-height: 1.7;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .help-item-description strong {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .limitations-list, .tips-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .limitation-item {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fef3f2 100%);
+            border: 1px solid rgba(252, 165, 165, 0.3);
+            border-radius: 10px;
+            color: #dc2626;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .limitation-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.1);
+        }
+
+        .limitation-item strong {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .tip-item {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f7fefa 100%);
+            border: 1px solid rgba(187, 247, 208, 0.3);
+            border-radius: 10px;
+            color: #16a34a;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tip-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.1);
+        }
+
+        .tip-item strong {
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .controls-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .control-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .control-item kbd {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-item span {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         /* Responsive para el modal de eliminar */
         @media (max-width: 768px) {
             .activities-grid {
@@ -583,6 +807,14 @@
                 font-size: 13px;
                 padding: 10px 16px;
                 letter-spacing: 0.3px;
+            }
+
+            .help-content {
+                max-height: 60vh;
+            }
+
+            .help-item {
+                padding: 15px;
             }
         }
     </style>
@@ -743,25 +975,13 @@
                             <button class="action-btn" data-action="eliminar-actividad">
                                 <span class="action-text">Eliminar Actividad</span>
                             </button>
-                            <button class="action-btn" data-action="calendario">
-                                <span class="action-text">Calendario</span>
-                            </button>
                         </div>
                         <div class="action-buttons-row">
-                            <button class="action-btn" data-action="configuracion">
-                                <span class="action-text">Configuración</span>
-                            </button>
-                            <button class="action-btn" data-action="reportes">
-                                <span class="action-text">Reportes</span>
-                            </button>
                             <button class="action-btn" data-action="ayuda">
                                 <span class="action-text">Ayuda</span>
                             </button>
                         </div>
                         <div class="action-buttons-row">
-                            <button class="action-btn" data-action="notificaciones">
-                                <span class="action-text">Notificaciones</span>
-                            </button>
                             <button class="action-btn" data-action="cargar-datos-precargados">
                                 <span class="action-text">Cargar datos precargados</span>
                             </button>
@@ -1002,6 +1222,135 @@
             </div>
             <div class="modal-footer">
                 <button class="modal-btn modal-btn-cancel" onclick="closeDeleteActivityModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Ayuda - Modulo de Entretenimiento</h2>
+                <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-content">
+
+                    <!-- Introducción -->
+                    <section class="help-section">
+                        <h3 class="help-section-title">Acerca del Modulo de Entretenimiento</h3>
+                        <p class="help-description">
+                            Este módulo te permite gestionar todas las actividades de entretenimiento disponibles en el crucero.
+                            Puedes crear nuevas actividades, eliminar las existentes y gestionar los datos del sistema.
+                        </p>
+                    </section>
+
+                    <!-- Botones principales -->
+                    <section class="help-section">
+                        <h3 class="help-section-title">Funciones Disponibles</h3>
+
+                        <div class="help-item">
+                            <h4 class="help-item-title">Nueva Actividad</h4>
+                            <p class="help-item-description">
+                                <strong>¿Qué hace?</strong> Te permite crear nuevas actividades de entretenimiento para el crucero.<br>
+                                <strong>Actividades soportadas:</strong> Rutinarias (gratuitas) y de Pago<br>
+                                <strong>Información requerida:</strong> Título, descripción, día, horario, ubicación/coste, imagen<br>
+                                <strong>Validaciones:</strong> Horarios lógicos, imágenes válidas, campos completos
+                            </p>
+                        </div>
+
+                        <div class="help-item">
+                            <h4 class="help-item-title">Eliminar Actividad</h4>
+                            <p class="help-item-description">
+                                <strong>¿Qué hace?</strong> Muestra todas las actividades existentes para que puedas eliminarlas individualmente.<br>
+                                <strong>Actividades mostradas:</strong> Tanto rutinarias como de pago<br>
+                                <strong>Confirmación:</strong> Requiere confirmación antes de eliminar<br>
+                                <strong>Irreversible:</strong> La eliminación no se puede deshacer
+                            </p>
+                        </div>
+
+                        <div class="help-item">
+                            <h4 class="help-item-title">Cargar Datos Precargados</h4>
+                            <p class="help-item-description">
+                                <strong>¿Qué hace?</strong> Carga automáticamente actividades prediseñadas según el tipo de crucero.<br>
+                                <strong>Tipos soportados:</strong> Crucero pequeño, mediano y grande<br>
+                                <strong>Actividades incluidas:</strong> Actividades rutinarias predefinidas<br>
+                                <strong>Proceso:</strong> Automático, no requiere intervención manual
+                            </p>
+                        </div>
+
+                        <div class="help-item">
+                            <h4 class="help-item-title">Eliminar Registro de Actividades</h4>
+                            <p class="help-item-description">
+                                <strong>¿Qué hace?</strong> Elimina todos los registros de actividades de manera masiva.<br>
+                                <strong>Opciones:</strong> Eliminar solo actividades rutinarias o solo actividades de pago<br>
+                                <strong>Confirmación:</strong> Requiere confirmación múltiple<br>
+                                <strong>Irreversible:</strong> Elimina todos los datos del tipo seleccionado
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- Limitaciones -->
+                    <section class="help-section">
+                        <h3 class="help-section-title">Lo Que NO Puedes Hacer</h3>
+                        <div class="limitations-list">
+                            <div class="limitation-item">
+                                <strong>Modificar actividades existentes:</strong> Solo puedes crear o eliminar
+                            </div>
+                            <div class="limitation-item">
+                                <strong>Ver actividades de otros cruceros:</strong> Solo del crucero actual
+                            </div>
+                            <div class="limitation-item">
+                                <strong>Recuperar actividades eliminadas:</strong> La eliminación es permanente
+                            </div>
+                            <div class="limitation-item">
+                                <strong>Subir imágenes de otros formatos:</strong> Solo JPG permitido
+                            </div>
+                            <div class="limitation-item">
+                                <strong>Crear actividades sin horario válido:</strong> Debe ser al menos 30 minutos
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Consejos -->
+                    <section class="help-section">
+                        <h3 class="help-section-title">Consejos Utiles</h3>
+                        <div class="tips-list">
+                            <div class="tip-item">
+                                <strong>Planifica con anticipacion:</strong> Crea actividades con tiempo suficiente
+                            </div>
+                            <div class="tip-item">
+                                <strong>Usa imagenes descriptivas:</strong> JPG de maximo 500KB
+                            </div>
+                            <div class="tip-item">
+                                <strong>Verifica horarios:</strong> Asegurate de que no se superpongan
+                            </div>
+                            <div class="tip-item">
+                                <strong>Revisa antes de eliminar:</strong> La eliminacion es irreversible
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Controles -->
+                    <section class="help-section">
+                        <h3 class="help-section-title">Controles de la Interfaz</h3>
+                        <div class="controls-list">
+                            <div class="control-item">
+                                <kbd>ESC</kbd> <span>Cierra cualquier ventana modal</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Click fuera</kbd> <span>Cierra la ventana actual</span>
+                            </div>
+                            <div class="control-item">
+                                <kbd>Botón X</kbd> <span>Cierra la ventana actual</span>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="closeHelpModal()">Entendido</button>
             </div>
         </div>
     </div>
@@ -1492,6 +1841,7 @@
             if (event.key === 'Escape') {
                 const deleteActivitiesModal = document.getElementById('delete-activities-modal');
                 const deleteActivityModal = document.getElementById('delete-activity-modal');
+                const helpModal = document.getElementById('help-modal');
                 const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
                 const newActivityModal = document.getElementById('new-activity-modal');
 
@@ -1503,8 +1853,10 @@
                     closeDeleteActivitiesModal();
                 } else if (deleteActivityModal.style.display === 'flex') {
                     closeDeleteActivityModal();
+                } else if (helpModal.style.display === 'flex') {
+                    closeHelpModal();
                 } else {
-                    closeAllModals();
+                closeAllModals();
                 }
             }
         });
@@ -1737,6 +2089,35 @@
             window.location.href = redirectUrl;
         }
 
+        // Funciones para el modal de ayuda
+        function openHelpModal() {
+            console.log('Abriendo modal de ayuda');
+            const modal = document.getElementById('help-modal');
+            modal.style.display = 'flex';
+
+            // Agregar event listener para cerrar al hacer click fuera
+            modal.addEventListener('click', handleHelpOutsideClick);
+        }
+
+        function closeHelpModal() {
+            console.log('Cerrando modal de ayuda');
+            const modal = document.getElementById('help-modal');
+            modal.style.display = 'none';
+
+            // Remover event listener para evitar memory leaks
+            modal.removeEventListener('click', handleHelpOutsideClick);
+        }
+
+        function handleHelpOutsideClick(event) {
+            const modal = document.getElementById('help-modal');
+            const modalContent = modal.querySelector('.modal-content');
+
+            // Si el click fue fuera del contenido del modal, cerrar
+            if (event.target === modal && !modalContent.contains(event.target)) {
+                closeHelpModal();
+            }
+        }
+
         // Función para inicializar los eventos de los botones de acción
         function initializeActionButtons() {
             const deleteBtn = document.querySelector('[data-action="eliminar-registro"]');
@@ -1759,6 +2140,11 @@
             const deleteActivityBtn = document.querySelector('[data-action="eliminar-actividad"]');
             if (deleteActivityBtn) {
                 deleteActivityBtn.addEventListener('click', openDeleteActivityModal);
+            }
+
+            const helpBtn = document.querySelector('[data-action="ayuda"]');
+            if (helpBtn) {
+                helpBtn.addEventListener('click', openHelpModal);
             }
 
             // Agregar eventos de hover a los botones del modal
