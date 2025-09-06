@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}Mantenimiento - {{ block.super }}{% endblock %}
+
+{% block page_title %}Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="maintenance-management">
+    <h2 class="section-title">
+        <i class="fas fa-tools"></i> Gestión de Mantenimiento
+    </h2>
+    
+    <div class="maintenance-grid">
+        {% for item in maintenance_items %}
+            <div class="maintenance-card priority-{{ item.priority }}">
+                <div class="maintenance-header">
+                    <h4><i class="fas fa-wrench"></i> {{ item.get_area_display }}</h4>
+                    <span class="priority-tag priority-{{ item.priority }}">{{ item.get_priority_display }}</span>
+                </div>
+                <div class="maintenance-info">
+                    <p class="description">{{ item.description }}</p>
+                    <div class="maintenance-details">
+                        <p><strong><i class="fas fa-store"></i> Restaurante:</strong> {{ item.restaurant.name }}</p>
+                        <p><strong><i class="fas fa-user"></i> Reportado por:</strong> {{ item.reported_by }}</p>
+                        <p><strong><i class="fas fa-calendar"></i> Fecha:</strong> {{ item.created_at|date:"d/m/Y H:i" }}</p>
+                        <p><strong><i class="fas fa-info-circle"></i> Estado:</strong> 
+                            <span class="status-tag status-{{ item.status }}">{{ item.get_status_display }}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="maintenance-actions">
+                    {% if item.status == 'pendiente' %}
+                        <button class="btn btn-primary btn-sm btn-maint-start" data-maint-id="{{ item.id }}" data-next="en_progreso">
+                            <i class="fas fa-play"></i> Iniciar
+                        </button>
+                    {% elif item.status == 'en_progreso' %}
+                        <button class="btn btn-success btn-sm btn-maint-complete" data-maint-id="{{ item.id }}" data-next="completado">
+                            <i class="fas fa-check"></i> Completar
+                        </button>
+                    {% endif %}
+                    <button class="btn btn-danger btn-sm btn-maint-delete" data-maint-id="{{ item.id }}">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-tools"></i>
+                <p>No hay problemas de mantenimiento reportados</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="add-maintenance-section">
+        <h3><i class="fas fa-plus"></i> Reportar Problema de Mantenimiento</h3>
+        <form id="addMaintenanceForm" class="add-form">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="maintenanceArea">Área:</label>
+                    <select id="maintenanceArea" name="area" required>
+                        <option value="">Seleccionar Área</option>
+                        <option value="cocina">Cocina</option>
+                        <option value="comedor">Comedor</option>
+                        <option value="bar">Bar</option>
+                        <option value="almacen">Almacén</option>
+                        <option value="equipos">Equipos</option>
+                        <option value="refrigeracion">Refrigeración</option>
+                        <option value="limpieza">Limpieza</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maintenanceRestaurant">Restaurante:</label>
+                    <select id="maintenanceRestaurant" name="restaurant_id" required>
+                        <option value="">Seleccionar Restaurante</option>
+                        {% for restaurant in restaurants %}
+                            <option value="{{ restaurant.id }}">{{ restaurant.name }} ({{ restaurant.get_type_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="maintenancePriority">Prioridad:</label>
+                    <select id="maintenancePriority" name="priority" required>
+                        <option value="">Seleccionar Prioridad</option>
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                        <option value="critica">Crítica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportedBy">Reportado por:</label>
+                    <input type="text" id="reportedBy" name="reported_by" placeholder="Nombre del reportante">
+                </div>
+                <div class="form-group full-width">
+                    <label for="maintenanceDescription">Descripción del Problema:</label>
+                    <textarea id="maintenanceDescription" name="description" rows="3" required placeholder="Describa detalladamente el problema"></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Reportar Problema
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.maintenance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.maintenance-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #f39c12;
+    transition: transform 0.3s ease;
+}
+
+.maintenance-card:hover {
+    transform: translateY(-3px);
+}
+
+.maintenance-card.priority-critica {
+    border-left-color: #e74c3c;
+}
+
+.maintenance-card.priority-alta {
+    border-left-color: #e67e22;
+}
+
+.maintenance-card.priority-media {
+    border-left-color: #f39c12;
+}
+
+.maintenance-card.priority-baja {
+    border-left-color: #27ae60;
+}
+
+.maintenance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.maintenance-header h4 {
+    color: #2c3e50;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.priority-tag {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: white;
+}
+
+.priority-tag.priority-critica {
+    background: #e74c3c;
+}
+
+.priority-tag.priority-alta {
+    background: #e67e22;
+}
+
+.priority-tag.priority-media {
+    background: #f39c12;
+}
+
+.priority-tag.priority-baja {
+    background: #27ae60;
+}
+
+.status-tag {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.status-tag.status-pendiente {
+    background: #ffeaa7;
+    color: #2d3436;
+}
+
+.status-tag.status-en_progreso {
+    background: #74b9ff;
+    color: white;
+}
+
+.status-tag.status-completado {
+    background: #00b894;
+    color: white;
+}
+
+.description {
+    font-style: italic;
+    color: #7f8c8d;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.maintenance-details p {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.maintenance-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Delegación de eventos para acciones de mantenimiento
+document.addEventListener('click', function(e){
+    const startBtn = e.target.closest('.btn-maint-start, .btn-maint-complete');
+    if(startBtn){
+        const id = startBtn.getAttribute('data-maint-id');
+        const next = startBtn.getAttribute('data-next');
+        if(window.updateMaintenanceStatus){
+            updateMaintenanceStatus(id, next);
+        } else {
+            alert('Actualización de estado no implementada en el backend');
+        }
+        return;
+    }
+    const delBtn = e.target.closest('.btn-maint-delete');
+    if(delBtn){
+        const id = delBtn.getAttribute('data-maint-id');
+        if(window.deleteMaintenanceItem){
+            deleteMaintenanceItem(id);
+        } else {
+            alert('Eliminación no implementada en el backend');
+        }
+    }
+});
+</script>
+{% endblock %}
+*** End Patch

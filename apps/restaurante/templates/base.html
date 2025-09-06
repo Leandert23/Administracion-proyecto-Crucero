@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Control - Crucero{% endblock %}</title>
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/previewStyle.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    {% block head %}{% endblock %}
+    <style>
+      /* estilos mínimos para mensajes/alertas reutilizados */
+      .messages{padding:16px}.alert{background:#e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px}
+      .btn{display:inline-flex;align-items:center;gap:8px;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer}
+      .btn.btn-danger{background:#ef4444}
+      .btn.btn-success{background:#10b981}
+      .btn.btn-primary{background:#3b82f6}
+      .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+      .add-form{background:#fff;padding:16px;border:1px solid #e2e8f0;border-radius:10px}
+      .form-group{display:flex;flex-direction:column;gap:6px}
+      .form-group input,.form-group select,.form-group textarea{padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+      .empty-state{display:flex;flex-direction:column;align-items:center;gap:8px;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:24px}
+      
+      /* Estilos para la navegación del restaurante con botón de mantenimiento integrado */
+      .restaurant-subnav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0;
+        width: 100%;
+      }
+      
+      .subnav-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      
+      .maintenance-nav-button {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        white-space: nowrap;
+      }
+      
+      .maintenance-nav-button:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+      
+      .maintenance-nav-button i {
+        font-size: 14px;
+      }
+      
+      /* Responsive para el botón de mantenimiento en navegación */
+      @media (max-width: 768px) {
+        .restaurant-subnav {
+          flex-direction: column;
+          gap: 12px;
+          align-items: stretch;
+        }
+        
+        .subnav-links {
+          justify-content: center;
+        }
+        
+        .maintenance-nav-button {
+          align-self: center;
+          max-width: 200px;
+        }
+      }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="https://svgshare.com/i/14ZP.svg" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}active{% endif %}">
+                        <a href="{% url 'restaurant:dashboard' %}" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer"></div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" id="mobileToggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Restaurante</h1>
+                        <p class="page-subtitle">Panel de control para gestionar restaurantes, menús y consumos</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}
+                <nav class="restaurant-subnav">
+                    <div class="subnav-links">
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Inicio</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'records' %}active{% endif %}" href="{% url 'restaurant:records' %}">Registro</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
+                    </div>
+                    <button id="maintenance-nav-btn" class="maintenance-nav-button" type="button">
+                        <i class="fas fa-tools"></i> Reportar Mantenimiento
+                    </button>
+                </nav>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+      function toggleSidebar(){
+        const s=document.getElementById('sidebar');
+        s.classList.toggle('collapsed');
+      }
+      function toggleMobileSidebar(){
+        const s=document.getElementById('sidebar');
+        const o=document.getElementById('sidebarOverlay');
+        const t=document.getElementById('mobileToggle');
+        s.classList.toggle('open');
+        o.classList.toggle('active');
+        t.classList.toggle('active');
+      }
+      function closeMobileSidebar(){
+        const s=document.getElementById('sidebar');
+        const o=document.getElementById('sidebarOverlay');
+        const t=document.getElementById('mobileToggle');
+        s.classList.remove('open');
+        o.classList.remove('active');
+        t.classList.remove('active');
+      }
+    </script>
+    <script src="{% static 'js/main.js' %}"></script>
+        <script>
+            // Exponer CSRF global para integraciones AJAX de otros módulos (e.g., Almacén)
+            window.CSRF_TOKEN = (function(){
+                var el = document.querySelector('[name=csrfmiddlewaretoken]');
+                return el ? el.value : '';
+            })();
+        </script>
+    {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}
+    <script src="{% static 'js/maintenance_button.js' %}"></script>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

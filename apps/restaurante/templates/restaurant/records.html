@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro - {{ block.super }}{% endblock %}
+
+{% block page_title %}Registro{% endblock %}
+
+{% block content %}
+<div class="records-management">
+    <h2 class="section-title">
+        <i class="fas fa-chart-bar"></i> Registro
+    </h2>
+
+    <div class="accordion-days">
+        {% for day in days_list %}
+        <details class="day-accordion" {% if forloop.first %}open{% endif %}>
+            <summary>
+                <span class="arrow">▸</span>
+                Día {{ day.day }}
+                <span class="day-total">Total: ${{ day.total|default:0|floatformat:2 }}</span>
+            </summary>
+            <div class="day-content">
+                {% if day.items and day.items|length > 0 %}
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Restaurante</th>
+                            <th class="right">Cant.</th>
+                            <th class="right">Precio</th>
+                            <th class="right">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for it in day.items %}
+                        <tr>
+                            <td>{{ it.name }}</td>
+                            <td>{{ it.restaurant }}</td>
+                            <td class="right">{{ it.qty }}</td>
+                            <td class="right">{% if it.included %}<span class="included">Incluido</span>{% else %}${{ it.unit_price|floatformat:2 }}{% endif %}</td>
+                            <td class="right">{% if it.included %}<span class="included">—</span>{% else %}${{ it.line_total|floatformat:2 }}{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="right">Total del día</td>
+                            <td class="right"><strong>${{ day.total|default:0|floatformat:2 }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% else %}
+                <div class="empty-state small">
+                    <i class="fas fa-list"></i>
+                    <p>Sin consumos registrados para este día.</p>
+                </div>
+                {% endif %}
+            </div>
+        </details>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Acordeón por días */
+.accordion-days{display:flex;flex-direction:column;gap:12px}
+.day-accordion{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(2,132,199,.06)}
+.day-accordion>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none;font-weight:600}
+.day-accordion[open]>summary{background:#f8fafc}
+.day-accordion summary::-webkit-details-marker{display:none}
+.day-accordion .arrow{margin-right:8px;opacity:.55}
+.day-accordion[open] .arrow{transform:rotate(90deg)}
+.day-total{margin-left:auto;color:#111827;background:#eef2ff;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px;font-weight:700}
+.day-content{padding:12px 16px 16px}
+
+.records-table{width:100%;border-collapse:separate;border-spacing:0 8px}
+.records-table th,.records-table td{padding:10px 12px;text-align:left;background:#fff}
+.records-table th{color:#475569;font-weight:600;border-bottom:1px solid #e2e8f0}
+.records-table td{border:1px solid #e2e8f0;border-left:none;border-right:none}
+.records-table .right{text-align:right}
+.included{color:#10b981;font-weight:600}
+.empty-state.small{padding:16px}
+
+@media(max-width:640px){
+    .day-accordion>summary{flex-wrap:wrap}
+    .day-total{width:100%;margin:8px 0 0 0;text-align:center}
+}
+</style>
+{% endblock %}

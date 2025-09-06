@@ -15,7 +15,8 @@ def detalle_compra_lote_view(request, crucero_id, compra_id):
         accion = request.POST.get('accion')
         if accion == 'aceptar':
             compra.estado = 'Esperando por revision'
-            lote_signal = Signal()
+            from ..almacen.signals import lote_signal
+
             lote_signal.send(sender=None, compra_lote=compra)
             compra.save()
         elif accion == 'rechazar':
