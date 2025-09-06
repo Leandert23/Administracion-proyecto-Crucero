@@ -65,7 +65,7 @@
             <button type="submit" name="action" value="Registrar">Registrar</button>
         </form>
         <div style="display: flex; justify-content: flex-end; margin-bottom: 0;">
-            <button type="button" onclick="window.location.href='{% url 'dashboard' crucero_id %}'" class="btn-devolver">Devolver</button>
+            <button type="button" onclick="window.location.href='{% url 'compras:compras' crucero_id %}'" class="btn-devolver">Devolver</button>
         </div>
     </div>
     <script>
@@ -139,7 +139,7 @@
                 <td>{{ proveedor.get_tipo_display }}</td>
                 <td>{{ proveedor.get_subtipo_display }}</td>
                 <td>
-                    <form method="post" action="{% url 'eliminar_proveedor' crucero_id%}" style="display:inline;">
+                    <form method="post" action="{% url 'compras:eliminar_proveedor' crucero_id%}" style="display:inline;">
                         {% csrf_token %}
                         <input type="hidden" name="proveedor_id" value="{{ proveedor.id }}">
                         <button type="submit" {% if proveedor.id in proveedores_bloqueados %}disabled style="opacity:0.5;cursor:not-allowed;" title="No se puede eliminar: asignado a una orden de compra"{% endif %}>Eliminar</button>

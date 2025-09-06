@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'styles/lista_solicitudes.css' %}">
 </head>
 <body>
-    <a href="{% url 'lista_solicitudes' crucero_id%}"><button class="volver">Volver</button></a>
+    <a href="{% url 'compras:lista_solicitudes' crucero_id%}"><button class="volver">Volver</button></a>
     <div style="text-align: center;">
         <h2>Detalle de Solicitud de Compra #{{ solicitud.id }}</h2>
         <p><strong>ID Solicitud:</strong> {{ solicitud.id }}</p>

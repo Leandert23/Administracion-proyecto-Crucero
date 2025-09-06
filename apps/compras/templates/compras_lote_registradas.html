@@ -5,7 +5,7 @@
     <title>Compras por Lote Registradas</title>
 </head>
 <body>
-    <a href="{% url 'dashboard' %}"><button>Volver</button></a>
+    <a href="{% url 'compras:compras' crucero_id %}"><button>Volver</button></a>
     <h2>Compras por Lote Registradas</h2>
     <table border="1" style="width:100%;">
         <tr>
@@ -22,7 +22,7 @@
             <td>${{ compra.presupuesto_lote }}</td>
             <td>{{ compra.get_estado_display }}</td>
             <td>
-                <a href="{% url 'detalle_compra_lote_registrada' compra.id %}"><button>Ver detalles</button></a>
+                <a href="{% url 'compras:detalle_compra_lote' crucero_id compra.id %}"><button>Ver detalles</button></a>
             </td>
         </tr>
         {% empty %}

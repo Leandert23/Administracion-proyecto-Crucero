@@ -39,7 +39,7 @@
                     <td>${{ compra.presupuesto_lote }}</td>
                     <td>{{ compra.get_estado_display }}</td>
                     <td>
-                        <a href="{% url 'detalle_compra_lote' compra.id %}?from=historial"><button>Ver detalles</button></a>
+                        <a href="{% url 'compras:detalle_compra_lote' compra.id %}?from=historial"><button>Ver detalles</button></a>
                     </td>
                 </tr>
                 {% empty %}
@@ -48,7 +48,7 @@
             </tbody>
         </table>
 
-    <a href="{% url 'dashboard' crucero_id %}"><button>Volver</button></a>
+    <a href="{% url 'compras:compras' crucero_id %}"><button>Volver</button></a>
     </div>
 </body>
 </html>

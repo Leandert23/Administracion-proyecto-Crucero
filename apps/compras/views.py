@@ -251,7 +251,7 @@ def lista_solicitudes_view(request, crucero_id):
 @csrf_protect
 def dashboard_view(request, crucero_id):
     crucero = Crucero.objects.get(pk=crucero_id)
-    return render(request, 'index.html', {'crucero': crucero, "crucero_id":crucero_id})
+    return render(request, 'compras.html', {'crucero': crucero, "crucero_id":crucero_id})
 
 @csrf_protect
 def proveedores_view(request, crucero_id):
