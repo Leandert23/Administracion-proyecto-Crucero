@@ -23,21 +23,7 @@
 <div class="employees-management">
     <h2 class="section-title"><i class="fas fa-users"></i> Empleados</h2>
 
-    <div class="filters">
-        <form class="filter-form" onsubmit="return false;">
-            <div class="form-group">
-                <label for="cruiseSelect">Crucero:</label>
-                <select id="cruiseSelect">
-                    <option value="">Todos los Cruceros</option>
-                    {% if cruises %}
-                        {% for cruise in cruises %}
-                            <option value="{{ cruise.id }}">{{ cruise.name }}</option>
-                        {% endfor %}
-                    {% endif %}
-                </select>
-            </div>
-        </form>
-    </div>
+    <!-- Filtros retirados: el crucero activo se define globalmente -->
 
     <div class="employees-grid">
         {% if employees %}

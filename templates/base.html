@@ -198,8 +198,8 @@
                 <nav class="restaurant-subnav">
                     <div class="subnav-links">
                         <a class="subnav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'restaurant:dashboard' %}">Inicio</a>
-                        <a class="subnav-link {% if request.resolver_match.url_name == 'stock' %}active{% endif %}" href="{% url 'restaurant:stock' %}">Inventario</a>
                         <a class="subnav-link {% if request.resolver_match.url_name == 'consumption' %}active{% endif %}" href="{% url 'restaurant:consumption' %}">Consumo</a>
+                        <a class="subnav-link {% if request.resolver_match.url_name == 'records' %}active{% endif %}" href="{% url 'restaurant:records' %}">Registro</a>
                         <a class="subnav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}" href="{% url 'restaurant:employees' %}">Empleados</a>
                     </div>
                     <button id="maintenance-nav-btn" class="maintenance-nav-button" type="button">

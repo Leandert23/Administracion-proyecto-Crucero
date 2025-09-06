@@ -59,12 +59,24 @@ def stock_view(request):
 
 def employees_view(request):
     """Vista para gestión de empleados"""
+    # Filtrar por crucero activo desde sesión
+    current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise')
     employees = Employee.objects.filter(active=True).select_related('restaurant')
+    if current_cruise_id:
+        employees = employees.filter(restaurant__crucero_id=current_cruise_id)
     restaurants = Restaurante.objects.all()
+    current_cruise = None
+    if current_cruise_id:
+        try:
+            current_cruise = Crucero.objects.get(id=current_cruise_id)
+        except Crucero.DoesNotExist:
+            current_cruise = None
     
     context = {
         'employees': employees,
         'restaurants': restaurants,
+        'current_cruise_id': current_cruise_id,
+        'current_cruise': current_cruise,
     }
     return render(request, 'restaurant/employees.html', context)
 
@@ -93,28 +105,84 @@ def consumption_view(request):
         except Crucero.DoesNotExist:
             current_cruise_id = None
 
+    # Obtener día actual del crucero desde sesión (controlado desde Inicio); fallback por query
+    current_day = request.session.get('current_cruise_day') or request.GET.get('day')
+
     context = {
         'cruceros': cruceros,  # se mantiene por compatibilidad aunque ya no se muestra
         'restaurants': restaurants,
         'current_cruise_id': current_cruise_id,
         'current_cruise': current_cruise,
+        'current_day': current_day,
     }
     return render(request, 'restaurant/consumption.html', context)
 
+def buffet_view(request):
+    """Vista específica para el restaurante Buffet"""
+    return render(request, 'restaurant/buffet.html')
+
+def main_dining_room_view(request):
+    """Vista específica para el Main Dining Room"""
+    return render(request, 'restaurant/main_dining_room.html')
+
+def especialidades_view(request):
+    """Vista específica para el restaurante de Especialidades"""
+    return render(request, 'restaurant/especialidades.html')
+
 def records_view(request):
     """Vista para registros de consumo"""
-    selected_cruise = request.GET.get('cruise', '')
-    
-    consumption_records = ConsumptionRecord.objects.all().select_related('menu_item__restaurant')
-    if selected_cruise:
-        consumption_records = consumption_records.filter(menu_item__restaurant__crucero_id=selected_cruise)
-    
-    cruceros = Crucero.objects.all()
-    
+    # Usar crucero activo desde sesión o query como fallback
+    current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise', '')
+    consumption_records = ConsumptionRecord.objects.all().select_related('menu_item', 'menu_item__restaurant')
+    if current_cruise_id:
+        consumption_records = consumption_records.filter(menu_item__restaurant__crucero_id=current_cruise_id)
+
+    cruceros = Crucero.objects.all()  # compatibilidad
+
+    # Obtener objeto de crucero activo
+    current_cruise = None
+    if current_cruise_id:
+        try:
+            current_cruise = Crucero.objects.get(id=current_cruise_id)
+        except Crucero.DoesNotExist:
+            current_cruise = None
+
+    # Construir datos por día (1..8)
+    days_range = list(range(1, 9))
+    days = {d: {'items': [], 'total': 0.0} for d in days_range}
+    for rec in consumption_records:
+        day = getattr(rec, 'cruise_day', None)
+        if day not in days:
+            continue
+        mi = rec.menu_item
+        unit_price = float(getattr(mi, 'price', 0) or 0)
+        included = bool(getattr(mi, 'included', False))
+        line_total = 0.0 if included else unit_price * int(getattr(rec, 'quantity', 0) or 0)
+        days[day]['items'].append({
+            'name': mi.name,
+            'restaurant': getattr(mi.restaurant, 'name', ''),
+            'qty': int(getattr(rec, 'quantity', 0) or 0),
+            'included': included,
+            'unit_price': unit_price,
+            'line_total': line_total,
+        })
+        days[day]['total'] += line_total
+
+    # Lista auxiliar para plantillas (evitar lookup por clave variable)
+    days_list = [
+        {'day': d, 'items': days[d]['items'], 'total': days[d]['total']}
+        for d in days_range
+    ]
+
     context = {
         'consumption_records': consumption_records,
         'cruceros': cruceros,
-        'selected_cruise': selected_cruise,
+        'selected_cruise': current_cruise_id,
+        'current_cruise_id': current_cruise_id,
+        'current_cruise': current_cruise,
+        'days': days,
+        'days_range': days_range,
+    'days_list': days_list,
     }
     return render(request, 'restaurant/records.html', context)
 

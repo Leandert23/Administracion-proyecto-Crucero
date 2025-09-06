@@ -10,9 +10,14 @@ urlpatterns = [
     path('employees/', views.employees_view, name='employees'),
     path('maintenance/', views.maintenance_view, name='maintenance'),
     path('consumption/', views.consumption_view, name='consumption'),
-    # Compatibilidad: redirigir 'records' a 'consumption'
-    path('records/', views.consumption_view, name='records'),
-    
+    # Registros de consumo
+    path('records/', views.records_view, name='records'),
+
+    # Vistas específicas para restaurantes
+    path('buffet/', views.buffet_view, name='buffet'),
+    path('main-dining-room/', views.main_dining_room_view, name='main_dining_room'),
+    path('especialidades/', views.especialidades_view, name='especialidades'),
+
     # AJAX endpoints
     path('ajax/add-item/', views.add_menu_item, name='add_menu_item'),
     path('ajax/add-employee/', views.add_employee, name='add_employee'),

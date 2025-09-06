@@ -12,19 +12,19 @@
     </header>
 
     <div class="menu-grid">
-        <a class="menu-card inv" href="{% url 'restaurant:stock' %}">
-            <div class="icon-wrap inv"><i class="fas fa-boxes"></i></div>
-            <div class="card-body">
-                <h3>Inventario</h3>
-                <p>Gestiona items, existencias y precios.</p>
-            </div>
-        </a>
-
         <a class="menu-card cons" href="{% url 'restaurant:consumption' %}">
             <div class="icon-wrap cons"><i class="fas fa-utensils"></i></div>
             <div class="card-body">
                 <h3>Consumo</h3>
                 <p>Registra y controla consumos por día.</p>
+            </div>
+        </a>
+
+        <a class="menu-card inv" href="{% url 'restaurant:records' %}">
+            <div class="icon-wrap inv"><i class="fas fa-chart-bar"></i></div>
+            <div class="card-body">
+                <h3>Registro</h3>
+                <p>Consulta y analiza registros de consumo.</p>
             </div>
         </a>
 
