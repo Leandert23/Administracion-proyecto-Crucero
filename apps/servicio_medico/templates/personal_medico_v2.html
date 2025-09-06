@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Personal Médico</title>
+    <link rel="stylesheet" href="{% static 'serviciomedicostyle.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .sketch-box { border: 2px solid #3b5bdb; border-radius: 8px; margin-bottom: 16px; padding: 8px; }
+        .sketch-title { color: #3b5bdb; font-weight: bold; font-size: 1.2em; margin-bottom: 8px; }
+        .sketch-btn { border: 2px solid #3b5bdb; border-radius: 8px; background: none; color: #3b5bdb; padding: 4px 16px; font-size: 1em; margin-top: 4px; cursor: pointer; }
+        .sketch-btn:hover { background: #e0e7ff; }
+        .sketch-list { list-style: none; padding: 0; }
+        .sketch-list li { border-bottom: 1px solid #b6c3e6; padding: 4px 0; display: flex; align-items: center; }
+        .sketch-list li:last-child { border-bottom: none; }
+        .sketch-checkbox { margin-left: 8px; }
+        .sketch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .sketch-header .sketch-title { margin: 0; }
+        .sketch-header .sketch-user { font-weight: bold; }
+        .sketch-main { display: flex; gap: 24px; }
+        .sketch-left { flex: 1; }
+        .sketch-center { flex: 1.2; }
+        .sketch-right { flex: 1.5; }
+        .sketch-footer-btn { display: block; margin: 24px auto 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="sketch-header">
+        <div>
+            <span class="sketch-title">Servicio medico</span>
+        </div>
+        <div>solo acceso al personal medico</div>
+        <div>
+            <span class="sketch-user">{{ medico.nombres }} {{ medico.apellido }}</span>
+            <button class="sketch-btn">logout</button>
+        </div>
+    </div>
+    <div class="sketch-main">
+        <div class="sketch-left">
+            <div class="sketch-box">
+                <div>Crear Historial medico</div>
+                <button class="sketch-btn">crear</button>
+            </div>
+            <div class="sketch-box">
+                <div>ver historiales medicos</div>
+                <button class="sketch-btn">ver</button>
+            </div>
+            <div class="sketch-box">
+                <div>avisar fallo de instrumental</div>
+                <button class="sketch-btn">crear</button>
+            </div>
+        </div>
+        <div class="sketch-center">
+            <div class="sketch-box">
+                <div class="sketch-title">pacientes</div>
+                <ul class="sketch-list">
+                    {% for paciente in pacientes %}
+                        <li>{{ forloop.counter }}. {{ paciente.nombres }} {{ paciente.apellido }} <input type="checkbox" class="sketch-checkbox"></li>
+                    {% empty %}
+                        <li>No hay pacientes</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="sketch-right">
+            <div class="sketch-box">
+                <div class="sketch-title">inventario</div>
+                <ul class="sketch-list">
+                    {% for item in inventario %}
+                        <li>&#9675; {{ item.insumo.nombre }}: {{ item.cantidad }}</li>
+                    {% empty %}
+                        <li>No hay insumos</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <button class="sketch-btn sketch-footer-btn">necesidad</button>
+        </div>
+    </div>
+</body>
+</html>
