@@ -15,7 +15,6 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">
                     <span class="logo-text">Panel de Control</span>
                 </div>
             </div>
@@ -28,12 +27,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                        <a href="{% url 'gestion_crucero' crucero_id %}" class="nav-link">
                             <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero_id %}" class="nav-link">
                             <span class="nav-text">Entretenimiento</span>
                         </a>
                     </li>
@@ -43,7 +42,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
+                        <a href="{% url 'reservas' crucero_id %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
                         </a>
                     </li>
@@ -58,12 +57,12 @@
                         </a>
                     </li>
                     <li class="nav-item active">
-                        <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
+                        <a href="{% url 'compras:compras' crucero_id %}" class="nav-link">
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
+                        <a href="{% url 'vista_almacen' crucero_id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
                     </li>
@@ -180,21 +179,21 @@
                 <div class="quick-actions-section">
                     <div class="quick-actions-grid">
                         <!-- Primer botón de 'comprar' eliminado por solicitud -->
-                        <a href="{% url 'lista_solicitudes' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:lista_solicitudes' crucero_id %}" class="quick-action-card">
                             <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
                                 <img src="{% static 'img/Solicitud.jpg' %}" alt="Icono Solicitudes" class="action-icon-img" style="width:40px;height:40px;">
                             </div>
                             <h3>Solicitudes</h3>
                             <p>Ver y gestionar solicitudes de compra</p>
                         </a>
-                        <a href="{% url 'proveedores' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:proveedores' crucero_id %}" class="quick-action-card">
                             <div class="action-icon">
                                 <img src="{% static 'img/Red-Proveedores.jpg' %}" alt="Proveedores" class="action-icon-img">
                             </div>
                             <h3>Red de Proveedores</h3>
                             <p>Gestionar proveedores registrados</p>
                         </a>
-                        <a href="{% url 'historial_compras' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:historial_compras' crucero_id %}" class="quick-action-card">
                             <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
                                 <img src="{% static 'img/Historial.jpg' %}" alt="Icono Historial" class="action-icon-img" style="width:40px;height:40px;">
                             </div>
