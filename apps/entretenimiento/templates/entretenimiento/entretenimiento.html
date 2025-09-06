@@ -1691,7 +1691,7 @@
             const activityDetails = document.getElementById('form-activity-details');
 
             activityTitle.textContent = selectedActivity.title;
-            activityDetails.textContent = `Día ${selectedActivity.dia} - ${selectedActivity.hora_inicio} a ${selectedActivity.hora_fin}${selectedActivity.ubicacion ? ' - ' + selectedActivity.ubicacion : ''}${selectedActivity.coste ? ' - ' + selectedActivity.coste + '€' : ''}`;
+            activityDetails.textContent = `Día ${selectedActivity.dia} - ${selectedActivity.hora_inicio} a ${selectedActivity.hora_fin}${selectedActivity.ubicacion ? ' - ' + selectedActivity.ubicacion : ''}${selectedActivity.coste ? ' - ' + selectedActivity.coste + '$' : ''}`;
         }
 
         // Función para cerrar todos los modales
@@ -1752,7 +1752,7 @@
                         dia: dia,
                         hora_inicio: hora_inicio,
                         hora_fin: hora_fin,
-                        coste: activityCost ? activityCost.replace('Precio: ', '').replace('€', '') : null,
+                        coste: activityCost ? activityCost.replace('Precio: ', '').replace('$', '') : null,
                         ubicacion: activityLocation ? activityLocation.replace('Ubicación: ', '') : null,
                         tipo: activityType
                     };
@@ -2443,7 +2443,7 @@
                         ${reserva.coste ? `
                         <div class="reserva-info-item">
                             <span class="reserva-info-icon"></span>
-                            <span>Costo: ${reserva.coste}€</span>
+                            <span>Costo: ${reserva.coste}$</span>
                         </div>
                         ` : ''}
                         ${reserva.ubicacion ? `
@@ -2564,7 +2564,7 @@
                     <h3 class="card-title">${activity.titulo}</h3>
                     <p class="card-description">${activity.descripcion}</p>
                     ${activity.type === 'pago' ? `
-                    <p class="card-price">Precio: ${activity.coste}€</p>
+                    <p class="card-price">Precio: ${activity.coste}$</p>
                     ` : `
                     <p class="card-location">Ubicación: ${activity.ubicacion}</p>
                     `}
