@@ -5,91 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recursos Humanos - Odyssey</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <link rel="stylesheet" href="{% static 'css/popover.css' %}">
+    <link rel="stylesheet" href="{% static 'css/recursos_humanos.css' %}">
 </head>
 <body>
     <div id="recursos-humanos-root" class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <span class="logo-text">Panel de Control</span>
-                </div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="/" class="nav-link">
-                            <span class="nav-text">Inicio</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Gestión Crucero</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <!-- Footer del sidebar -->
-            </div>
-        </aside>
-
-        <!-- Overlay para móviles -->
-        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+        {% include "sidebar.html" with active_module="recursos_humanos" %}
 
         <!-- Main Content -->
         <main class="main-content">

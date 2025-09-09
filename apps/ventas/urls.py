@@ -6,7 +6,7 @@ app_name = 'ventas'
 
 urlpatterns = [
     # Vista principal con crucero_id 
-    path('<int:crucero_id>/', views.dashboard_ventas, name='dashboard'),
+    path('<int:crucero_id>/', views.dashboard_ventas, name='ventas'),
     
     # Ventas con crucero_id
     path('<int:crucero_id>/ventas/', views.lista_ventas, name='lista_ventas'),

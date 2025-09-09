@@ -3,6 +3,7 @@ from django.urls import path
 from django.conf.urls.static import static
 from . import views
 
+app_name = 'bares_snacks'
 
 urlpatterns = [
     path('<int:crucero_id>/', views.bares_view, name='bares'),

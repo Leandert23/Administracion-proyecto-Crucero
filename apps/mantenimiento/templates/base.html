@@ -26,97 +26,9 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <img src="https://via.placeholder.com/32x32/ffffff/1e293b?text=🚢" alt="Logo" class="logo-icon">
-                    <span class="logo-text">Mantenimiento</span>
-                </div>
-            </div>
 
 
-
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="/" class="nav-link">
-                            <span class="nav-text">Inicio</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'administracion:dashboard' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Gestión Crucero</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id%}" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'ventas:dashboard' crucero.id%}" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'panel_personal_medico' %}" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="sidebar-footer">
-                <small class="text-white-50">
-                    <i class="fas fa-cogs me-1"></i>
-                    Sistema de Mantenimiento
-                </small>
-            </div>
-        </aside>
-
-        <!-- Overlay para móviles -->
-        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+            {% include "sidebar.html" with active_module="mantenimiento" %}
 
         <!-- Main Content -->
         <main class="main-content">
@@ -177,32 +89,6 @@
     
     <!-- Custom JavaScript -->
     <script>
-        // Funciones del sidebar moderno
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('collapsed');
-        }
-
-        function toggleMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            toggle.classList.toggle('active');
-        }
-
-        function closeMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            toggle.classList.remove('active');
-        }
-
         // Inicializar funcionalidades al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-hide alerts after 5 seconds

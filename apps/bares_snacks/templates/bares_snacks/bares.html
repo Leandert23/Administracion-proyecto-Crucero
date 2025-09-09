@@ -33,86 +33,7 @@
   <body>
     <div class="dashboard-container">
       <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          <div class="logo" onclick="toggleSidebar()" style="cursor: pointer">
-            <img
-              src="{% static 'svg/logo/logo_Blanco.svg' %}"
-              alt="Logo"
-              class="logo-icon"
-            />
-          </div>
-        </div>
-
-        <nav class="sidebar-nav">
-          <ul class="nav-list">
-            <li class="nav-item">
-              <a href="/" class="nav-link">
-                <span class="nav-text">Inicio</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
-                <span class="nav-text">Dashboard</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Ventas</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Reservas</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Restaurante</span>
-              </a>
-            </li>
-            <li class="nav-item active">
-              <a href="{% url 'bares_snacks:bares' crucero.id %}" class="nav-link">
-                <span class="nav-text">Bares</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
-                <span class="nav-text">Entretenimiento</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Compras</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
-                <span class="nav-text">Almacen</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Recursos Humanos</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Servicios Medicos</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <span class="nav-text">Mantenimiento</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="sidebar-footer">
-          <!-- Footer del sidebar -->
-        </div>
-      </aside>
+      {% include "sidebar.html" with active_module="bares" %}
 
       <!-- Main Content -->
       <main class="main-content">
@@ -144,27 +65,27 @@
           <ul>
             <li>
               <a href="#ordenes" class="mini-menu-icon active" title="Órdenes">
-                <img src="{% static 'svg/dashboard/orden.svg' %}" alt="🍹" />
+                <img src="{% static 'bares_snacks/svg/dashboard/orden.svg' %}" alt="🍹" />
               </a>
             </li>
             <li>
               <a href="#pedidos" class="mini-menu-icon" title="Pedidos">
-                <img src="{% static 'svg/dashboard/pedido.svg' %}" alt="🚲" />
+                <img src="{% static 'bares_snacks/svg/dashboard/pedido.svg' %}" alt="🚲" />
               </a>
             </li>
             <li>
               <a href="#productos" class="mini-menu-icon" title="Menú">
-                <img src="{% static 'svg/dashboard/menu.svg' %}" alt="🍆" />
+                <img src="{% static 'bares_snacks/svg/dashboard/menu.svg' %}" alt="🍆" />
               </a>
             </li>
             <li>
               <a href="#promociones" class="mini-menu-icon" title="Promociones">
-                <img src="{% static 'svg/dashboard/promos.svg' %}" alt="➗" />
+                <img src="{% static 'bares_snacks/svg/dashboard/promos.svg' %}" alt="➗" />
               </a>
             </li>
             <li>
               <a href="#analisis" class="mini-menu-icon" title="Análisis">
-                <img src="{% static 'svg/dashboard/analisis.svg' %}" alt="📚" />
+                <img src="{% static 'bares_snacks/svg/dashboard/analisis.svg' %}" alt="📚" />
               </a>
             </li>
           </ul>
@@ -331,18 +252,18 @@
               {% load static %}
               <script>
                 const promoImages = {
-                  "2x1 en Cervezas": "{% static 'svg/promos/two-mugs.svg' %}",
-                  "Martes de Tacos": "{% static 'svg/promos/taco.svg' %}",
+                  "2x1 en Cervezas": "{% static 'bares_snacks/svg/promos/two-mugs.svg' %}",
+                  "Martes de Tacos": "{% static 'bares_snacks/svg/promos/taco.svg' %}",
                   "Jarra de Cerveza a Precio Especial":
-                    "{% static 'svg/promos/beer.svg' %}",
+                    "{% static 'bares_snacks/svg/promos/beer.svg' %}",
                   "Cócteles a Precio de Happy Hour toda la noche":
-                    "{% static 'svg/promos/cocktail-glass.svg' %}",
+                    "{% static 'bares_snacks/svg/promos/cocktail-glass.svg' %}",
                   "Brunch con Mimosa o Bloody Mary incluido":
-                    "{% static 'svg/promos/tropical-drinks.svg' %}",
-                  "Lunes de Trabajo": "{% static 'svg/promos/coffee.svg' %}",
-                  "Miércoles de Dulce": "{% static 'svg/promos/bagel.svg' %}",
+                    "{% static 'bares_snacks/svg/promos/tropical-drinks.svg' %}",
+                  "Lunes de Trabajo": "{% static 'bares_snacks/svg/promos/coffee.svg' %}",
+                  "Miércoles de Dulce": "{% static 'bares_snacks/svg/promos/bagel.svg' %}",
                   "Viernes de Tarde":
-                    "{% static 'svg/promos/bubble-tea.svg' %}",
+                    "{% static 'bares_snacks/svg/promos/bubble-tea.svg' %}",
                 };
               </script>
               <div class="promociones-lista">

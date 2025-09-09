@@ -4,93 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entretenimiento - Dashboard</title>
+    <title>Compras - Dashboard</title>
     <link rel="stylesheet" href="{% static 'styles/entretenimiento.css' %}">
     <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <span class="logo-text">Panel de Control</span>
-                </div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="/" class="nav-link">
-                            <span class="nav-text">Inicio</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'gestion_crucero' crucero_id %}" class="nav-link">
-                            <span class="nav-text">Gestión Crucero</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'entretenimiento:entretenimiento' crucero_id %}" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'reservas' crucero_id %}" class="nav-link">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="{% url 'compras:compras' crucero_id %}" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vista_almacen' crucero_id %}" class="nav-link">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <!-- Footer del sidebar -->
-            </div>
-        </aside>
-
-        <!-- Overlay para móviles -->
-        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+        {% include "sidebar.html" with active_module="compras" %}
 
         <!-- Main Content -->
         <main class="main-content">
@@ -275,32 +196,6 @@
             document.getElementById('compras-content').style.display = 'block';
             document.querySelector('.page-title').textContent = 'Compras';
             document.querySelector('.page-subtitle').textContent = 'Gestión de compras, proveedores y solicitudes';
-        }
-        
-        // Funciones básicas para el sidebar
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('collapsed');
-        }
-
-        function toggleMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-            
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            toggle.classList.toggle('active');
-        }
-
-        function closeMobileSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-            
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            toggle.classList.remove('active');
         }
 
         // Función para actualizar la fecha automáticamente

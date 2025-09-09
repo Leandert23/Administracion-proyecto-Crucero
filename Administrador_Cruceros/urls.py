@@ -25,9 +25,10 @@ from apps.administracion.views import LoginPersonalizado,logout_usuario, registr
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.cruceros.urls')),
+    path("administracion/", include("apps.administracion.urls")),
     path('almacen/', include('apps.almacen.urls')),
     path('entretenimiento/', include('apps.entretenimiento.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),
+    path('mantenimiento/', include('apps.mantenimiento.urls')),
     path('reservaciones/', include('apps.reservaciones.urls')),
     path('ventas/', include('apps.ventas.urls')),
     path("compras/", include(("apps.compras.urls", "compras"), namespace="compras")),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('servicio-medico/', include('apps.servicio_medico.urls')),
     path('bares-snacks/', include(('apps.bares_snacks.urls', 'bares_snacks'), namespace='bares_snacks')),
     path('recursos-humanos/', include(('apps.recursos_humanos.urls', 'recursos_humanos'), namespace='recursos_humanos')),
+    path("restaurantes/", include(("apps.restaurante.urls", "restaurantes"), namespace="restaurantes"))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
