@@ -23,7 +23,27 @@
 <div class="employees-management">
     <h2 class="section-title"><i class="fas fa-users"></i> Empleados</h2>
 
-    <!-- Filtros retirados: el crucero activo se define globalmente -->
+    <!-- Filtros -->
+    <div class="filters-section" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <div>
+            <label for="categoria-filter" style="display: block; margin-bottom: 5px; font-weight: 500;">Categoría:</label>
+            <select id="categoria-filter" class="location-select" onchange="filterEmployees()">
+                <option value="">Todas las categorías</option>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria }}" {% if categoria_filter == categoria %}selected{% endif %}>{{ categoria }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="estado-filter" style="display: block; margin-bottom: 5px; font-weight: 500;">Estado:</label>
+            <select id="estado-filter" class="location-select" onchange="filterEmployees()">
+                <option value="">Todos los estados</option>
+                <option value="1" {% if estado_filter == "1" %}selected{% endif %}>Activo</option>
+                <option value="2" {% if estado_filter == "2" %}selected{% endif %}>Inactivo</option>
+                <option value="3" {% if estado_filter == "3" %}selected{% endif %}>Suspendido</option>
+            </select>
+        </div>
+    </div>
 
     <div class="employees-grid">
         {% if employees %}
@@ -31,13 +51,26 @@
                 <div class="employee-card">
                     <div class="header">
                         <div>
-                            <div class="employee-name">{{ employee.name }}</div>
-                            <div class="employee-meta">{{ employee.get_position_display }} • {{ employee.get_shift_display }}</div>
+                            <div class="employee-name">{{ employee.nombre_completo }}</div>
+                            <div class="employee-meta">{{ employee.puesto }} • {{ employee.categoria }}</div>
+                            <div class="employee-details" style="font-size: 0.9rem; color: #64748b; margin-top: 5px;">
+                                <div>Edad: {{ employee.edad }} años</div>
+                                <div>Experiencia: {{ employee.anios_experiencia }} años</div>
+                                <div>Salario: ${{ employee.salario }}</div>
+                            </div>
                         </div>
                         <div>
-                            <select class="location-select" disabled aria-label="Restaurante">
-                                <option selected>{{ employee.restaurant.name }}</option>
-                            </select>
+                            <div class="status-badge" style="
+                                padding: 4px 8px; 
+                                border-radius: 12px; 
+                                font-size: 0.8rem; 
+                                font-weight: 500;
+                                {% if employee.pStatus == 1 %}background: #dcfce7; color: #166534;{% endif %}
+                                {% if employee.pStatus == 2 %}background: #fef3c7; color: #92400e;{% endif %}
+                                {% if employee.pStatus == 3 %}background: #fee2e2; color: #991b1b;{% endif %}
+                            ">
+                                {{ employee.get_pStatus_display }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -47,4 +80,17 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+function filterEmployees() {
+    const categoria = document.getElementById('categoria-filter').value;
+    const estado = document.getElementById('estado-filter').value;
+    
+    const params = new URLSearchParams();
+    if (categoria) params.append('categoria', categoria);
+    if (estado) params.append('estado', estado);
+    
+    window.location.href = '?' + params.toString();
+}
+</script>
 {% endblock %}

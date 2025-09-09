@@ -105,6 +105,50 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.name} - {self.get_position_display()}"
 
+class PersonalRRHH(models.Model):
+    """Modelo para la tabla localRRHH_personal_PruebaABorrar"""
+    
+    CATEGORIAS = [
+        ('Mantenimiento', 'Mantenimiento'),
+        ('Culinario', 'Culinario'),
+        ('Entretenimiento', 'Entretenimiento'),
+        ('Administrativo', 'Administrativo'),
+        ('Seguridad', 'Seguridad'),
+        ('Limpieza', 'Limpieza'),
+    ]
+    
+    STATUS_CHOICES = [
+        (1, 'Activo'),
+        (2, 'Inactivo'),
+        (3, 'Suspendido'),
+    ]
+    
+    nombre = models.CharField(max_length=10, verbose_name="Nombre")
+    apellido = models.CharField(max_length=10, verbose_name="Apellido")
+    salario = models.PositiveIntegerField(verbose_name="Salario")
+    edad = models.PositiveIntegerField(verbose_name="Edad")
+    anios_experiencia = models.PositiveIntegerField(verbose_name="Años de Experiencia")
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS, verbose_name="Categoría")
+    puesto = models.CharField(max_length=30, verbose_name="Puesto")
+    pStatus = models.IntegerField(choices=STATUS_CHOICES, verbose_name="Estado")
+    
+    class Meta:
+        db_table = 'localRRHH_personal_PruebaABorrar'
+        verbose_name = "Personal RRHH"
+        verbose_name_plural = "Personal RRHH"
+        ordering = ['categoria', 'puesto', 'apellido']
+    
+    def __str__(self):
+        return f"{self.nombre} {self.apellido} - {self.puesto}"
+    
+    @property
+    def nombre_completo(self):
+        return f"{self.nombre} {self.apellido}"
+    
+    @property
+    def is_active(self):
+        return self.pStatus == 1
+
 class MaintenanceItem(models.Model):
     AREAS = [
         ('cocina', 'Cocina'),

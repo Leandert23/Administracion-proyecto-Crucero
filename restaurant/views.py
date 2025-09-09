@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
-from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo
+from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo, PersonalRRHH
 
 def dashboard(request):
     """Vista principal del dashboard del restaurante"""
@@ -58,25 +58,28 @@ def stock_view(request):
     return render(request, 'restaurant/stock.html', context)
 
 def employees_view(request):
-    """Vista para gestión de empleados"""
-    # Filtrar por crucero activo desde sesión
-    current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise')
-    employees = Employee.objects.filter(active=True).select_related('restaurant')
-    if current_cruise_id:
-        employees = employees.filter(restaurant__crucero_id=current_cruise_id)
-    restaurants = Restaurante.objects.all()
-    current_cruise = None
-    if current_cruise_id:
-        try:
-            current_cruise = Crucero.objects.get(id=current_cruise_id)
-        except Crucero.DoesNotExist:
-            current_cruise = None
+    """Vista para gestión de empleados - muestra datos de la tabla localRRHH_personal_PruebaABorrar"""
+    # Obtener todos los empleados de la tabla localRRHH_personal_PruebaABorrar
+    personal_rrhh = PersonalRRHH.objects.all()
+    
+    # Filtrar por categoría si se especifica
+    categoria_filter = request.GET.get('categoria', '')
+    if categoria_filter:
+        personal_rrhh = personal_rrhh.filter(categoria=categoria_filter)
+    
+    # Filtrar por estado si se especifica
+    estado_filter = request.GET.get('estado', '')
+    if estado_filter:
+        personal_rrhh = personal_rrhh.filter(pStatus=estado_filter)
+    
+    # Obtener categorías únicas para el filtro
+    categorias = PersonalRRHH.objects.values_list('categoria', flat=True).distinct()
     
     context = {
-        'employees': employees,
-        'restaurants': restaurants,
-        'current_cruise_id': current_cruise_id,
-        'current_cruise': current_cruise,
+        'employees': personal_rrhh,
+        'categorias': categorias,
+        'categoria_filter': categoria_filter,
+        'estado_filter': estado_filter,
     }
     return render(request, 'restaurant/employees.html', context)
 
