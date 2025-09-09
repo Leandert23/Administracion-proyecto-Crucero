@@ -1,82 +1,17 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth import login, logout
 from django.contrib import messages
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.models import User
-import json
 from apps.cruceros.models import Crucero
-from .models import Administracion, Alerta, Modulo, Rol, UsuarioRol, SolicitudCompra
-from .utils import requerir_administrador_modulo, usuario_tiene_rol, obtener_roles_usuario
-from .forms import RegistroUsuarioForm
+from .models import Dashboard, Alerta
+from .forms import SolicitudMantenimientoHabitacionForm
+from django.db.models import Count
 
-@login_required
-@requerir_administrador_modulo('administracion')
-def cruceros_dashboard_data(request):
-    """API endpoint para obtener datos del dashboard de cruceros - Solo administradores"""
-    cruceros = Crucero.objects.all()
-    data = []
-    for c in cruceros:
-        data.append({
-            "id": c.id,
-            "name": c.nombre,
-            "status": c.estado_operativo,
-            "passengers": c.capacidad_pasajeros,
-            "employees": c.capacidad_tripulacion,
-            "location": c.puerto_base,
-            "days": getattr(c, "dia_actual_de_viaje", 0) if hasattr(c, "dia_actual_de_viaje") else 0,
-            "distance": 0,
-            "budget": 0,
-            "costs": {
-                "total": 0,
-                "categories": {}
-            },
-            "earnings": {
-                "total": 0,
-                "real": 0,
-                "categories": {}
-            },
-            "alerts": []
-        })
-    # Agregar datos de solicitudes de compra
-    purchase_requests = []
-    for solicitud in SolicitudCompra.objects.all():
-        purchase_requests.append({
-            "id": solicitud.id,
-            "ship_name": solicitud.crucero.nombre,
-            "amount": float(solicitud.monto),
-            "description": solicitud.descripcion,
-            "status": solicitud.estado,
-            "rejection_reason": solicitud.razon_rechazo,
-            "created_at": solicitud.fecha_creacion.strftime("%Y-%m-%d"),
-        })
-    
-    return JsonResponse({
-        "ships": data,
-        "purchase_requests": purchase_requests
-    })
-
-@login_required
-def dashboard_empresa(request, crucero_id=None):
-    """Dashboard principal de administración"""
-    # Verificación simplificada de permisos
-    # Permitir acceso si es superusuario O si tiene rol de administrador
-    es_administrador = request.user.is_superuser or usuario_tiene_rol(request.user, 'administracion', 'Administrador General')
-    
-    if not es_administrador:
-        # Para usuarios sin permisos, mostrar mensaje informativo
-        from django.contrib import messages
-        messages.warning(request, 'No tienes permisos de administrador. Contacta al administrador del sistema.')
-        return render(request, 'administracion/sin_permisos.html', {
-            'usuario_roles': obtener_roles_usuario(request.user),
-            'es_administrador': False,
-        })
-    
-    # Obtener el crucero si se proporciona el ID
-    crucero = None
+#Obtener la distancia del recorrido de un crucero en particular
+#Obtener las solicitudes de compra de un crucero en particualar
+def cruceros_dashboard_data(request, crucero_id):
+    """API endpoint para obtener datos del dashboard de un crucero en particular"""
     if crucero_id:
         try:
             crucero = Crucero.objects.get(id=crucero_id)
@@ -86,56 +21,127 @@ def dashboard_empresa(request, crucero_id=None):
     else:
         # Si no se proporciona ID, usar el primero disponible
         crucero = Crucero.objects.first()
-    
-    admin = Administracion.objects.first()
-    contexto = {
-        'crucero': crucero,
-        'presupuesto': admin.presupuesto_estimado if admin else 0,
-        'costos': admin.costos_totales if admin else 0,
-        'ganancias': admin.ganancias_totales if admin else 0,
-        'alertas': Alerta.objects.filter(leida=False) if admin else [],
-        'usuario_roles': obtener_roles_usuario(request.user),
-        'es_administrador': es_administrador,
-    }
-    return render(request, 'index.html', contexto)
+    alertas = Alerta.objects.get(id=crucero_id)
+    data = []
 
-# Vistas para gestión de roles
-@login_required
-@requerir_administrador_modulo('administracion')
-def gestion_roles(request):
-    """Vista para gestionar roles de usuarios - Solo administradores"""
+    # Obtener el objeto Dashboard para este crucero
+    try:
+        dashboard = Dashboard.objects.get(crucero=crucero)
+        passengers = dashboard.num_pasajeros_actual
+        employees = dashboard.num_empleados_actual
+        budget = dashboard.presupuesto_estimado
+        costs_total = dashboard.costos_totales
+        earnings_total = dashboard.ganancias_totales
+    except Dashboard.DoesNotExist:
+        # Si no existe el dashboard para este crucero, usar valores por defecto
+        passengers = 0
+        employees = 0
+        budget = 0
+        costs_total = 0
+        earnings_total = 0
+        
+    data.append({
+        "name": crucero.nombre,
+        "status": crucero.estado_operativo,
+        "passengers": passengers,
+        "employees": employees,
+        "location": crucero.puerto_base,
+        "days": getattr(crucero, "dia_actual_de_viaje", 0) if hasattr(crucero, "dia_actual_de_viaje") else 0,
+        "distance": 0,
+        "budget": budget,
+        "costs": {
+            "total": costs_total,
+            "categories": {}
+        },
+        "earnings": {
+            "total": earnings_total,
+            "real": earnings_total - costs_total,
+            "categories": {}
+        },
+        "alerts": [alertas.mensaje, alertas.fecha]
+    })
+
+    # Agregar datos de solicitudes de compra del modulo Compras
+    purchase_requests = []
+    
+    return JsonResponse({
+        "ships": data,
+        "purchase_requests": purchase_requests
+    })
+
+#Obtener de alguna forma la ubicación actual de los barcos y no solo su puerto base 
+def dashboard_empresa(request):
+    """Dashboard principal de administración"""    
+    dashboards = Dashboard.objects.select_related('crucero').all()
+    cruceros_qs = Crucero.objects.all()
+
+    total_costos = sum((d.costos_totales or 0) for d in dashboards)
+    total_ganancias = sum((d.ganancias_totales or 0) for d in dashboards)
+
+    ubicaciones = list(
+        cruceros_qs.values('id', 'nombre', 'puerto_base', 'estado_operativo')
+    )
+
+    alertas = list(
+        Alerta.objects.select_related('crucero')
+        .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__nombre')
+    )
+
+    estados_counts = {
+        'activo': 0,
+        'inactivo': 0,
+        'mantenimiento': 0,
+        'viaje': 0,
+    }
+    for row in cruceros_qs.values('estado_operativo').annotate(cantidad=Count('id')):
+        estado = row['estado_operativo']
+        if estado in estados_counts:
+            estados_counts[estado] = row['cantidad'] or 0
+
+    contexto = {
+        'total_costos': total_costos,
+        'total_ganancias': total_ganancias,
+        'ubicaciones_cruceros': ubicaciones,
+        'alertas': alertas,
+        'conteo_cruceros_por_estado': estados_counts,
+    }
+    return render(request, 'dashboard_principal.html', contexto)
+
+
+def solicitar_mantenimiento_habitacion(request):
+    """Vista para crear una TareaMantenimiento desde administración para una habitación."""
+    habitacion_id = request.GET.get('habitacion')
+    form_kwargs = {}
+    if habitacion_id:
+        form_kwargs['habitacion'] = habitacion_id
     if request.method == 'POST':
-        # Aquí se manejarían las acciones de gestión de roles
-        pass
-    
-    modulos = Modulo.objects.filter(activo=True)
-    roles = Rol.objects.filter(activo=True).select_related('modulo')
-    usuarios_roles = UsuarioRol.objects.filter(activo=True).select_related('usuario', 'rol', 'rol__modulo')
-    usuarios = User.objects.filter(is_active=True).order_by('first_name', 'last_name', 'username')
+        form = SolicitudMantenimientoHabitacionForm(request.POST, **form_kwargs)
+        if form.is_valid():
+            tarea = form.save(usuario=request.user)
+            messages.success(request, 'Solicitud de mantenimiento creada correctamente.')
+            try:
+                crucero_id = tarea.crucero.id if tarea.crucero else None
+                if crucero_id:
+                    return redirect('dashboard', crucero_id=crucero_id)
+            except Exception:
+                pass
+            return redirect('dashboard', crucero_id=1)
+    else:
+        form = SolicitudMantenimientoHabitacionForm(**form_kwargs)
 
     contexto = {
-        'modulos': modulos,
-        'roles': roles,
-        'usuarios_roles': usuarios_roles,
-        'usuarios': usuarios,
+        'form': form,
+        'titulo': 'Solicitar mantenimiento de habitación'
     }
-    return render(request, 'administracion/gestion_roles.html', contexto)
-
-@login_required
-def mi_perfil_roles(request):
-    """Vista para que el usuario vea sus propios roles"""
-    roles_usuario = obtener_roles_usuario(request.user)
-    
-    contexto = {
-        'roles_usuario': roles_usuario,
-        'modulos_disponibles': Modulo.objects.filter(activo=True),
-    }
-    return render(request, 'administracion/mi_perfil_roles.html', contexto)
+    return render(request, 'administracion/solicitar_mantenimiento_habitacion.html', contexto)
 
 # Agregar vistas para manejar solicitudes de compra
 @csrf_exempt
 @require_http_methods(["POST"])
 def approve_purchase_request(request, request_id):
+    # Agregar datos de solicitudes de compra del modulo Compras
+    pass
+    '''''''''
     try:
         solicitud = SolicitudCompra.objects.get(id=request_id)
         solicitud.estado = 'approved'
@@ -144,10 +150,14 @@ def approve_purchase_request(request, request_id):
         return JsonResponse({"status": "success"})
     except SolicitudCompra.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Solicitud no encontrada"}, status=404)
-
+    '''''''''
+        
 @csrf_exempt
 @require_http_methods(["POST"])
 def reject_purchase_request(request, request_id):
+    # Agregar datos de solicitudes de compra del modulo Compras
+    pass
+'''''''''
     try:
         data = json.loads(request.body)
         reason = data.get('reason', '')
@@ -161,57 +171,4 @@ def reject_purchase_request(request, request_id):
         return JsonResponse({"status": "error", "message": "Solicitud no encontrada"}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({"status": "error", "message": "Datos inválidos"}, status=400)
-    
-# Vistas de autenticación
-def registro_usuario(request):
-    """Vista para registro de nuevos usuarios"""
-    if request.user.is_authenticated:
-        # Redirigir al dashboard del primer crucero disponible
-        crucero = Crucero.objects.first()
-        if crucero:
-            return redirect('dashboard', crucero_id=crucero.id)
-        return redirect('dashboard', crucero_id=1)
-    
-    if request.method == 'POST':
-        form = RegistroUsuarioForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            # Iniciar sesión automáticamente después del registro
-            login(request, user)
-            messages.success(request, f'¡Bienvenido {user.first_name}! Tu cuenta ha sido creada exitosamente.')
-            # Redirigir al dashboard del primer crucero disponible
-            crucero = Crucero.objects.first()
-            if crucero:
-                return redirect('dashboard', crucero_id=crucero.id)
-            return redirect('dashboard', crucero_id=1)
-    else:
-        form = RegistroUsuarioForm()
-    
-    contexto = {
-        'form': form,
-        'titulo': 'Registro de Usuario'
-    }
-    return render(request, 'administracion/registro.html', contexto)
-
-class LoginPersonalizado(LoginView):
-    """Vista personalizada de login"""
-    template_name = 'administracion/login.html'
-    redirect_authenticated_user = True
-    
-    def get_success_url(self):
-        # Redirigir al dashboard del primer crucero disponible
-        crucero = Crucero.objects.first()
-        if crucero:
-            return f'/dashboard/{crucero.id}'
-        return '/dashboard/1'
-    
-    def form_valid(self, form):
-        messages.success(self.request, f'¡Bienvenido de vuelta, {form.get_user().first_name}!')
-        return super().form_valid(form)
-
-def logout_usuario(request):
-    """Vista personalizada de logout que maneja peticiones GET"""
-    if request.user.is_authenticated:
-        logout(request)
-        messages.success(request, 'Has cerrado sesión exitosamente.')
-    return redirect('login')
+'''''''''
