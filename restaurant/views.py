@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
-from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord
+from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo
 
 def dashboard(request):
     """Vista principal del dashboard del restaurante"""
@@ -408,3 +408,230 @@ def register_bulk_consumption(request):
         return JsonResponse({'success': True, 'message': 'Consumos registrados', 'created': created})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+# Nuevas vistas para la sección de Gestión
+def gestion_view(request):
+    """Vista principal de la sección de Gestión"""
+    # Usar valores por defecto por ahora para evitar errores de migración
+    context = {
+        'total_menus': 0,
+        'total_platillos': 0,
+        'total_ingredientes': 0,
+        'total_restaurantes': 0,
+    }
+    return render(request, 'restaurant/gestion.html', context)
+
+# AJAX Views para Gestión
+@csrf_exempt
+@require_POST
+def create_menu(request):
+    """Crear nuevo menú"""
+    try:
+        data = json.loads(request.body)
+        restaurante = Restaurante.objects.get(id=data['restaurante_id'])
+        
+        menu = Menu.objects.create(
+            nombre=data['nombre'],
+            tipo=data['tipo'],
+            descripcion=data.get('descripcion', ''),
+            restaurante=restaurante
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Menú creado exitosamente',
+            'menu': {
+                'id': menu.id,
+                'nombre': menu.nombre,
+                'tipo': menu.get_tipo_display(),
+                'restaurante': menu.restaurante.name
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+@require_POST
+def create_platillo(request):
+    """Crear nuevo platillo"""
+    try:
+        data = json.loads(request.body)
+        menu = Menu.objects.get(id=data['menu_id'])
+        
+        platillo = Platillo.objects.create(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            categoria=data['categoria'],
+            precio=float(data['precio']),
+            tiempo_preparacion=int(data.get('tiempo_preparacion', 0)),
+            porciones=int(data.get('porciones', 1)),
+            menu=menu
+        )
+        
+        # Actualizar precio total del menú
+        menu.calcular_precio_total()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Platillo creado exitosamente',
+            'platillo': {
+                'id': platillo.id,
+                'nombre': platillo.nombre,
+                'categoria': platillo.get_categoria_display(),
+                'precio': float(platillo.precio),
+                'menu': platillo.menu.nombre
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+@require_POST
+def create_ingrediente(request):
+    """Crear nuevo ingrediente"""
+    try:
+        data = json.loads(request.body)
+        
+        ingrediente = Ingrediente.objects.create(
+            nombre=data['nombre'],
+            precio=float(data['precio']),
+            unidad=data['unidad'],
+            descripcion=data.get('descripcion', ''),
+            stock_disponible=float(data.get('stock_disponible', 0)),
+            stock_minimo=float(data.get('stock_minimo', 0))
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Ingrediente creado exitosamente',
+            'ingrediente': {
+                'id': ingrediente.id,
+                'nombre': ingrediente.nombre,
+                'precio': float(ingrediente.precio),
+                'unidad': ingrediente.get_unidad_display(),
+                'stock_disponible': float(ingrediente.stock_disponible)
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+@require_POST
+def create_restaurante(request):
+    """Crear nuevo restaurante"""
+    try:
+        data = json.loads(request.body)
+        crucero = Crucero.objects.get(id=data['crucero_id'])
+        
+        restaurante = Restaurante.objects.create(
+            name=data['nombre'],
+            type=data['tipo'],
+            crucero=crucero,
+            capacity=int(data['capacity']),
+            largo=float(data.get('largo', 0)) if data.get('largo') else None,
+            ancho=float(data.get('ancho', 0)) if data.get('ancho') else None,
+            ubicacion=data.get('ubicacion', ''),
+            descripcion=data.get('descripcion', ''),
+            horario_apertura=data.get('horario_apertura') if data.get('horario_apertura') else None,
+            horario_cierre=data.get('horario_cierre') if data.get('horario_cierre') else None
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Restaurante creado exitosamente',
+            'restaurante': {
+                'id': restaurante.id,
+                'nombre': restaurante.name,
+                'tipo': restaurante.get_type_display(),
+                'capacidad': restaurante.capacity,
+                'area_total': float(restaurante.area_total) if restaurante.area_total else None
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+@require_POST
+def add_ingrediente_to_platillo(request):
+    """Agregar ingrediente a un platillo"""
+    try:
+        data = json.loads(request.body)
+        platillo = Platillo.objects.get(id=data['platillo_id'])
+        ingrediente = Ingrediente.objects.get(id=data['ingrediente_id'])
+        
+        ingrediente_platillo, created = IngredientePlatillo.objects.get_or_create(
+            platillo=platillo,
+            ingrediente=ingrediente,
+            defaults={
+                'cantidad': float(data['cantidad']),
+                'unidad': data['unidad']
+            }
+        )
+        
+        if not created:
+            ingrediente_platillo.cantidad = float(data['cantidad'])
+            ingrediente_platillo.unidad = data['unidad']
+            ingrediente_platillo.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Ingrediente agregado al platillo exitosamente',
+            'ingrediente_platillo': {
+                'id': ingrediente_platillo.id,
+                'ingrediente': ingrediente_platillo.ingrediente.nombre,
+                'cantidad': float(ingrediente_platillo.cantidad),
+                'unidad': ingrediente_platillo.get_unidad_display()
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+def get_menus(request):
+    """Obtener menús por restaurante"""
+    restaurante_id = request.GET.get('restaurante_id')
+    if restaurante_id:
+        menus = Menu.objects.filter(restaurante_id=restaurante_id, activo=True)
+        menus_data = [
+            {
+                'id': menu.id,
+                'nombre': menu.nombre,
+                'tipo': menu.get_tipo_display(),
+                'precio_total': float(menu.precio_total)
+            }
+            for menu in menus
+        ]
+        return JsonResponse({'menus': menus_data})
+    return JsonResponse({'menus': []})
+
+def get_platillos(request):
+    """Obtener platillos por menú"""
+    menu_id = request.GET.get('menu_id')
+    if menu_id:
+        platillos = Platillo.objects.filter(menu_id=menu_id, activo=True)
+        platillos_data = [
+            {
+                'id': platillo.id,
+                'nombre': platillo.nombre,
+                'categoria': platillo.get_categoria_display(),
+                'precio': float(platillo.precio),
+                'tiempo_preparacion': platillo.tiempo_preparacion
+            }
+            for platillo in platillos
+        ]
+        return JsonResponse({'platillos': platillos_data})
+    return JsonResponse({'platillos': []})
+
+def get_ingredientes(request):
+    """Obtener todos los ingredientes"""
+    ingredientes = Ingrediente.objects.all()
+    ingredientes_data = [
+        {
+            'id': ingrediente.id,
+            'nombre': ingrediente.nombre,
+            'precio': float(ingrediente.precio),
+            'unidad': ingrediente.get_unidad_display(),
+            'stock_disponible': float(ingrediente.stock_disponible)
+        }
+        for ingrediente in ingredientes
+    ]
+    return JsonResponse({'ingredientes': ingredientes_data})

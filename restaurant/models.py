@@ -25,6 +25,15 @@ class Restaurante(models.Model):
     type = models.CharField(max_length=20, choices=RESTAURANT_TYPES, verbose_name="Tipo")
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, verbose_name="Crucero")
     capacity = models.IntegerField(default=100, verbose_name="Capacidad")
+    # Nuevos campos para dimensiones y características
+    largo = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name="Largo (metros)")
+    ancho = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name="Ancho (metros)")
+    area_total = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name="Área Total (m²)")
+    ubicacion = models.CharField(max_length=200, blank=True, verbose_name="Ubicación en el Crucero")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción del Restaurante")
+    horario_apertura = models.TimeField(null=True, blank=True, verbose_name="Horario de Apertura")
+    horario_cierre = models.TimeField(null=True, blank=True, verbose_name="Horario de Cierre")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -33,6 +42,12 @@ class Restaurante(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.crucero.name}"
+    
+    def save(self, *args, **kwargs):
+        # Calcular área total si se proporcionan largo y ancho
+        if self.largo and self.ancho:
+            self.area_total = self.largo * self.ancho
+        super().save(*args, **kwargs)
 
 class MenuItem(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre del Plato")
@@ -157,3 +172,111 @@ class ConsumptionRecord(models.Model):
         self.total_price = self.unit_price * self.quantity if not self.is_included else 0
         self.is_included = self.menu_item.included
         super().save(*args, **kwargs)
+
+# Nuevos modelos para la sección de Gestión
+class Ingrediente(models.Model):
+    UNIDADES = [
+        ('kg', 'Kilogramo'),
+        ('g', 'Gramo'),
+        ('l', 'Litro'),
+        ('ml', 'Mililitro'),
+        ('unidad', 'Unidad'),
+        ('taza', 'Taza'),
+        ('cucharada', 'Cucharada'),
+        ('cucharadita', 'Cucharadita'),
+    ]
+    
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Ingrediente")
+    precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio por Unidad")
+    unidad = models.CharField(max_length=20, choices=UNIDADES, verbose_name="Unidad de Medida")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    stock_disponible = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Stock Disponible")
+    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Stock Mínimo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    
+    class Meta:
+        verbose_name = "Ingrediente"
+        verbose_name_plural = "Ingredientes"
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return f"{self.nombre} ({self.get_unidad_display()})"
+    
+    @property
+    def is_low_stock(self):
+        return self.stock_disponible < self.stock_minimo
+
+class Menu(models.Model):
+    TIPOS_MENU = [
+        ('desayuno', 'Desayuno'),
+        ('almuerzo', 'Almuerzo'),
+        ('cena', 'Cena'),
+        ('snack', 'Snack'),
+        ('especial', 'Especial'),
+    ]
+    
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Menú")
+    tipo = models.CharField(max_length=20, choices=TIPOS_MENU, verbose_name="Tipo de Menú")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, verbose_name="Restaurante")
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Precio Total")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    
+    class Meta:
+        verbose_name = "Menú"
+        verbose_name_plural = "Menús"
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.restaurante.name}"
+    
+    def calcular_precio_total(self):
+        """Calcula el precio total del menú basado en sus platillos"""
+        total = sum(platillo.precio for platillo in self.platillos.all())
+        self.precio_total = total
+        self.save()
+        return total
+
+class Platillo(models.Model):
+    CATEGORIAS = [
+        ('entrada', 'Entrada'),
+        ('sopa', 'Sopa'),
+        ('ensalada', 'Ensalada'),
+        ('plato_principal', 'Plato Principal'),
+        ('postre', 'Postre'),
+        ('bebida', 'Bebida'),
+        ('acompanamiento', 'Acompañamiento'),
+    ]
+    
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Platillo")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS, verbose_name="Categoría")
+    precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
+    tiempo_preparacion = models.IntegerField(default=0, verbose_name="Tiempo de Preparación (minutos)")
+    porciones = models.IntegerField(default=1, verbose_name="Número de Porciones")
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='platillos', verbose_name="Menú")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    
+    class Meta:
+        verbose_name = "Platillo"
+        verbose_name_plural = "Platillos"
+        ordering = ['categoria', 'nombre']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.get_categoria_display()}"
+
+class IngredientePlatillo(models.Model):
+    platillo = models.ForeignKey(Platillo, on_delete=models.CASCADE, related_name='ingredientes', verbose_name="Platillo")
+    ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE, verbose_name="Ingrediente")
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cantidad")
+    unidad = models.CharField(max_length=20, choices=Ingrediente.UNIDADES, verbose_name="Unidad")
+    
+    class Meta:
+        verbose_name = "Ingrediente del Platillo"
+        verbose_name_plural = "Ingredientes de Platillos"
+        unique_together = ['platillo', 'ingrediente']
+    
+    def __str__(self):
+        return f"{self.platillo.nombre} - {self.ingrediente.nombre} ({self.cantidad} {self.get_unidad_display()})"

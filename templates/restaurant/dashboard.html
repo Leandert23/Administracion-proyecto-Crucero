@@ -35,6 +35,16 @@
                 <p>Altas rápidas y gestión de personal.</p>
             </div>
         </a>
+
+        <a class="menu-card gest" href="{% url 'restaurant:gestion' %}">
+            <div class="icon-wrap gest">
+                <img src="/imagenes/Menus.png" alt="Gestión" class="menu-image">
+            </div>
+            <div class="card-body">
+                <h3>Gestión</h3>
+                <p>Administra menús, platillos e ingredientes.</p>
+            </div>
+        </a>
     </div>
 
     <!-- Imágenes de restaurantes -->
@@ -78,10 +88,12 @@ html, body {
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
 .menu-card{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;text-decoration:none;color:#111827;box-shadow:0 6px 20px rgba(2,132,199,.06);transition:transform .16s ease, box-shadow .16s ease}
 .menu-card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(2,132,199,.14)}
-.icon-wrap{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.icon-wrap{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden}
 .icon-wrap.inv{background:rgba(14,165,233,.12);color:#0ea5e9}
 .icon-wrap.cons{background:rgba(16,185,129,.12);color:#10b981}
 .icon-wrap.emp{background:rgba(139,92,246,.12);color:#8b5cf6}
+.icon-wrap.gest{background:rgba(245,158,11,.12);color:#f59e0b}
+.menu-image{width:100%;height:100%;object-fit:cover;border-radius:12px}
 .card-body h3{margin:0 0 4px;font-size:18px}
 .card-body p{margin:0;color:#6b7280}
 
