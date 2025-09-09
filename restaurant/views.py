@@ -58,27 +58,17 @@ def stock_view(request):
     return render(request, 'restaurant/stock.html', context)
 
 def employees_view(request):
-    """Vista para gestión de empleados - muestra datos de la tabla localRRHH_personal_PruebaABorrar"""
-    # Obtener todos los empleados de la tabla localRRHH_personal_PruebaABorrar
-    personal_rrhh = PersonalRRHH.objects.all()
-    
-    # Filtrar por categoría si se especifica
-    categoria_filter = request.GET.get('categoria', '')
-    if categoria_filter:
-        personal_rrhh = personal_rrhh.filter(categoria=categoria_filter)
+    """Vista para gestión de empleados - muestra únicamente empleados de la categoría Culinario"""
+    # Obtener únicamente empleados de la categoría "Culinario"
+    personal_rrhh = PersonalRRHH.objects.filter(categoria='Culinario')
     
     # Filtrar por estado si se especifica
     estado_filter = request.GET.get('estado', '')
     if estado_filter:
         personal_rrhh = personal_rrhh.filter(pStatus=estado_filter)
     
-    # Obtener categorías únicas para el filtro
-    categorias = PersonalRRHH.objects.values_list('categoria', flat=True).distinct()
-    
     context = {
         'employees': personal_rrhh,
-        'categorias': categorias,
-        'categoria_filter': categoria_filter,
         'estado_filter': estado_filter,
     }
     return render(request, 'restaurant/employees.html', context)

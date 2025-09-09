@@ -26,15 +26,6 @@
     <!-- Filtros -->
     <div class="filters-section" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
         <div>
-            <label for="categoria-filter" style="display: block; margin-bottom: 5px; font-weight: 500;">Categoría:</label>
-            <select id="categoria-filter" class="location-select" onchange="filterEmployees()">
-                <option value="">Todas las categorías</option>
-                {% for categoria in categorias %}
-                    <option value="{{ categoria }}" {% if categoria_filter == categoria %}selected{% endif %}>{{ categoria }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
             <label for="estado-filter" style="display: block; margin-bottom: 5px; font-weight: 500;">Estado:</label>
             <select id="estado-filter" class="location-select" onchange="filterEmployees()">
                 <option value="">Todos los estados</option>
@@ -42,6 +33,18 @@
                 <option value="2" {% if estado_filter == "2" %}selected{% endif %}>Inactivo</option>
                 <option value="3" {% if estado_filter == "3" %}selected{% endif %}>Suspendido</option>
             </select>
+        </div>
+        <div style="display: flex; align-items: end;">
+            <div style="
+                padding: 8px 12px; 
+                background: #e0f2fe; 
+                color: #0277bd; 
+                border-radius: 8px; 
+                font-weight: 500;
+                font-size: 0.9rem;
+            ">
+                <i class="fas fa-utensils"></i> Personal Culinario
+            </div>
         </div>
     </div>
 
@@ -83,11 +86,9 @@
 
 <script>
 function filterEmployees() {
-    const categoria = document.getElementById('categoria-filter').value;
     const estado = document.getElementById('estado-filter').value;
     
     const params = new URLSearchParams();
-    if (categoria) params.append('categoria', categoria);
     if (estado) params.append('estado', estado);
     
     window.location.href = '?' + params.toString();
