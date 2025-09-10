@@ -39,4 +39,9 @@ urlpatterns = [
     path('ajax/get-menus/', views.get_menus, name='get_menus'),
     path('ajax/get-platillos/', views.get_platillos, name='get_platillos'),
     path('ajax/get-ingredientes/', views.get_ingredientes, name='get_ingredientes'),
+
+    # URLs para pruebas con comidasPreviu
+    path('ajax/get-ingredientes-previa/', views.get_ingredientes_previa, name='get_ingredientes_previa'),
+    path('test-ingredientes-previa/', views.test_ingredientes_previa, name='test_ingredientes_previa'),
+    path('diagnostico-ingredientes/', views.diagnostico_ingredientes, name='diagnostico_ingredientes'),
 ]

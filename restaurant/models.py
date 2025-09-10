@@ -218,6 +218,27 @@ class ConsumptionRecord(models.Model):
         super().save(*args, **kwargs)
 
 # Nuevos modelos para la sección de Gestión
+class ComidasPreviu(models.Model):
+    """Modelo que apunta a la tabla comidasPreviu existente con estructura real"""
+    # Estructura real de la tabla comidasPreviu
+    ingredientes = models.CharField(max_length=200, verbose_name="Ingredientes", blank=True, null=True)
+    tipo = models.CharField(max_length=100, verbose_name="Tipo", blank=True, null=True)
+    subtipo = models.CharField(max_length=100, verbose_name="Subtipo", blank=True, null=True)
+    clase_alimenticia = models.CharField(max_length=100, verbose_name="Clase Alimenticia", blank=True, null=True)
+    detalle = models.TextField(verbose_name="Detalle", blank=True, null=True)
+    platos = models.CharField(max_length=200, verbose_name="Platos", blank=True, null=True)
+    origen = models.CharField(max_length=100, verbose_name="Origen", blank=True, null=True)
+    fuente = models.CharField(max_length=100, verbose_name="Fuente", blank=True, null=True)
+
+    class Meta:
+        db_table = 'comidasPreviu'
+        verbose_name = "Ingrediente Previu"
+        verbose_name_plural = "Ingredientes Previu"
+        managed = False  # No crear migraciones para esta tabla
+
+    def __str__(self):
+        return self.ingredientes or f"Ingrediente {self.pk}"
+
 class Ingrediente(models.Model):
     UNIDADES = [
         ('kg', 'Kilogramo'),
