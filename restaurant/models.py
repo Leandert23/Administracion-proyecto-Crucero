@@ -283,33 +283,21 @@ class Menu(models.Model):
         return total
 
 class Platillo(models.Model):
-    CATEGORIAS = [
-        ('entrada', 'Entrada'),
-        ('sopa', 'Sopa'),
-        ('ensalada', 'Ensalada'),
-        ('plato_principal', 'Plato Principal'),
-        ('postre', 'Postre'),
-        ('bebida', 'Bebida'),
-        ('acompanamiento', 'Acompañamiento'),
-    ]
-    
     nombre = models.CharField(max_length=100, verbose_name="Nombre del Platillo")
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
-    categoria = models.CharField(max_length=20, choices=CATEGORIAS, verbose_name="Categoría")
     precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
-    tiempo_preparacion = models.IntegerField(default=0, verbose_name="Tiempo de Preparación (minutos)")
-    porciones = models.IntegerField(default=1, verbose_name="Número de Porciones")
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='platillos', verbose_name="Menú")
+    restaurantes = models.ManyToManyField(Restaurante, related_name='platillos', verbose_name="Restaurantes", blank=True)
     activo = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    
+
     class Meta:
         verbose_name = "Platillo"
         verbose_name_plural = "Platillos"
-        ordering = ['categoria', 'nombre']
-    
+        ordering = ['nombre']
+
     def __str__(self):
-        return f"{self.nombre} - {self.get_categoria_display()}"
+        return self.nombre
 
 class IngredientePlatillo(models.Model):
     platillo = models.ForeignKey(Platillo, on_delete=models.CASCADE, related_name='ingredientes', verbose_name="Platillo")

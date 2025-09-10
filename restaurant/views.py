@@ -450,29 +450,60 @@ def create_platillo(request):
     try:
         data = json.loads(request.body)
         menu = Menu.objects.get(id=data['menu_id'])
-        
+
+        # Crear el platillo
         platillo = Platillo.objects.create(
             nombre=data['nombre'],
             descripcion=data.get('descripcion', ''),
-            categoria=data['categoria'],
             precio=float(data['precio']),
-            tiempo_preparacion=int(data.get('tiempo_preparacion', 0)),
-            porciones=int(data.get('porciones', 1)),
             menu=menu
         )
-        
+
+        # Asignar restaurantes al platillo
+        if 'restaurantes' in data and data['restaurantes']:
+            restaurantes_ids = data['restaurantes']
+            if isinstance(restaurantes_ids, list):
+                restaurantes = Restaurante.objects.filter(id__in=restaurantes_ids)
+                platillo.restaurantes.set(restaurantes)
+            else:
+                # Si es un solo restaurante (compatibilidad con versiones anteriores)
+                restaurante = Restaurante.objects.get(id=restaurantes_ids)
+                platillo.restaurantes.add(restaurante)
+
+        # Agregar ingredientes al platillo
+        if 'ingredientes' in data and data['ingredientes']:
+            ingredientes = data['ingredientes']
+            cantidades = data.get('cantidades', [])
+            unidades = data.get('unidades', [])
+
+            for i, ingrediente_id in enumerate(ingredientes):
+                try:
+                    ingrediente = Ingrediente.objects.get(id=ingrediente_id)
+                    cantidad = float(cantidades[i]) if i < len(cantidades) else 0
+                    unidad = unidades[i] if i < len(unidades) else 'unidad'
+
+                    IngredientePlatillo.objects.create(
+                        platillo=platillo,
+                        ingrediente=ingrediente,
+                        cantidad=cantidad,
+                        unidad=unidad
+                    )
+                except Ingrediente.DoesNotExist:
+                    continue  # Si el ingrediente no existe, continuar con el siguiente
+
         # Actualizar precio total del menú
         menu.calcular_precio_total()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Platillo creado exitosamente',
             'platillo': {
                 'id': platillo.id,
                 'nombre': platillo.nombre,
-                'categoria': platillo.get_categoria_display(),
                 'precio': float(platillo.precio),
-                'menu': platillo.menu.nombre
+                'menu': platillo.menu.nombre,
+                'restaurantes': [r.name for r in platillo.restaurantes.all()],
+                'num_ingredientes': platillo.ingredientes.count()
             }
         })
     except Exception as e:
@@ -605,9 +636,7 @@ def get_platillos(request):
             {
                 'id': platillo.id,
                 'nombre': platillo.nombre,
-                'categoria': platillo.get_categoria_display(),
-                'precio': float(platillo.precio),
-                'tiempo_preparacion': platillo.tiempo_preparacion
+                'precio': float(platillo.precio)
             }
             for platillo in platillos
         ]

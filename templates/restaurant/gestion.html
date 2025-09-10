@@ -105,17 +105,6 @@
                     <input type="text" id="menuNombre" name="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label for="menuTipo">Tipo de Menú</label>
-                    <select id="menuTipo" name="tipo" required>
-                        <option value="">Seleccionar tipo</option>
-                        <option value="desayuno">Desayuno</option>
-                        <option value="almuerzo">Almuerzo</option>
-                        <option value="cena">Cena</option>
-                        <option value="snack">Snack</option>
-                        <option value="especial">Especial</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="menuRestaurante">Restaurante</label>
                     <select id="menuRestaurante" name="restaurante_id" required>
                         <option value="">Seleccionar restaurante</option>
@@ -144,43 +133,55 @@
         <div class="modal-body">
             <form id="platilloForm">
                 <div class="form-group">
-                    <label for="platilloNombre">Nombre del Platillo</label>
+                    <label for="platilloNombre">Nombre del Platillo *</label>
                     <input type="text" id="platilloNombre" name="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label for="platilloCategoria">Categoría</label>
-                    <select id="platilloCategoria" name="categoria" required>
-                        <option value="">Seleccionar categoría</option>
-                        <option value="entrada">Entrada</option>
-                        <option value="sopa">Sopa</option>
-                        <option value="ensalada">Ensalada</option>
-                        <option value="plato_principal">Plato Principal</option>
-                        <option value="postre">Postre</option>
-                        <option value="bebida">Bebida</option>
-                        <option value="acompanamiento">Acompañamiento</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="platilloMenu">Menú</label>
+                    <label for="platilloMenu">Menú en el que se colocará *</label>
                     <select id="platilloMenu" name="menu_id" required>
                         <option value="">Seleccionar menú</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="platilloPrecio">Precio</label>
+                    <label>Restaurantes en los que se servirá *</label>
+                    <div id="restaurantesContainer">
+                        <div class="restaurante-item">
+                            <select class="restaurante-select" name="restaurantes[]" required>
+                                <option value="">Seleccionar restaurante</option>
+                            </select>
+                            <button type="button" class="btn-remove" onclick="removeRestaurante(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" id="addRestauranteBtn" class="btn btn-secondary btn-sm">+ Agregar Restaurante</button>
+                </div>
+                <div class="form-group">
+                    <label>Ingredientes del platillo *</label>
+                    <div id="ingredientesContainer">
+                        <div class="ingrediente-item">
+                            <select class="ingrediente-select" name="ingredientes[]" required>
+                                <option value="">Seleccionar ingrediente</option>
+                            </select>
+                            <input type="number" class="cantidad-input" name="cantidades[]" placeholder="Cantidad (g)" min="0.01" step="0.01" required>
+                            <select class="unidad-select" name="unidades[]" required>
+                                <option value="g">Gramos (g)</option>
+                                <option value="kg">Kilogramos (kg)</option>
+                                <option value="l">Litros (l)</option>
+                                <option value="ml">Mililitros (ml)</option>
+                                <option value="unidad">Unidad</option>
+                            </select>
+                            <button type="button" class="btn-remove" onclick="removeIngrediente(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" id="addIngredienteBtn" class="btn btn-secondary btn-sm">+ Agregar Ingrediente</button>
+                </div>
+                <div class="form-group">
+                    <label for="platilloPrecio">Precio *</label>
                     <input type="number" id="platilloPrecio" name="precio" step="0.01" min="0" required>
+                    <small class="help-text">Precio por el cual será cobrado el platillo</small>
                 </div>
                 <div class="form-group">
-                    <label for="platilloTiempo">Tiempo de Preparación (minutos)</label>
-                    <input type="number" id="platilloTiempo" name="tiempo_preparacion" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="platilloPorciones">Número de Porciones</label>
-                    <input type="number" id="platilloPorciones" name="porciones" min="1" value="1">
-                </div>
-                <div class="form-group">
-                    <label for="platilloDescripcion">Descripción</label>
-                    <textarea id="platilloDescripcion" name="descripcion" rows="3"></textarea>
+                    <label for="platilloDescripcion">Descripción del platillo</label>
+                    <textarea id="platilloDescripcion" name="descripcion" rows="3" placeholder="Descripción opcional del platillo"></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('platilloModal')">Cancelar</button>
@@ -609,22 +610,148 @@
     background: #e5e7eb;
 }
 
+/* Estilos para selección de restaurantes */
+#restaurantesContainer {
+    margin-top: 8px;
+}
+
+.restaurante-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.restaurante-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    flex: 1;
+}
+
+.help-text {
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Estilos para ingredientes */
+#ingredientesContainer {
+    margin-top: 8px;
+}
+
+.ingrediente-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.ingrediente-select,
+.cantidad-input,
+.unidad-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    flex: 1;
+}
+
+.ingrediente-select {
+    flex: 2;
+}
+
+.cantidad-input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.unidad-select {
+    flex: 1;
+    min-width: 100px;
+}
+
+.btn-remove {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s ease;
+}
+
+.btn-remove:hover {
+    background: #dc2626;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.btn-sm.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-sm.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
 @media (max-width: 768px) {
     .gestion-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         margin: 10% auto;
         width: 95%;
+    }
+
+    .ingrediente-item {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ingrediente-select,
+    .cantidad-input,
+    .unidad-select {
+        width: 100%;
+        flex: none;
+    }
+
+    .restaurante-item {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .restaurante-select {
+        width: 100%;
+        flex: none;
     }
 }
 </style>
@@ -652,15 +779,21 @@ window.onclick = function(event) {
 
 // Cargar opciones para los selects
 function loadSelectOptions(modalId) {
-    if (modalId === 'menuModal' || modalId === 'platilloModal') {
-        loadRestaurants();
+    if (modalId === 'menuModal') {
+        loadRestaurantsForMenu();
+    }
+    if (modalId === 'platilloModal') {
+        loadMenusForPlatillo();
+        loadRestaurantsForPlatillo();
+        loadIngredientesForPlatillo();
+        setupIngredientesFunctionality();
     }
     if (modalId === 'restauranteModal') {
         loadCruceros();
     }
 }
 
-function loadRestaurants() {
+function loadRestaurantsForMenu() {
     fetch('{% url "restaurant:get_restaurants" %}')
         .then(response => response.json())
         .then(data => {
@@ -673,6 +806,128 @@ function loadRestaurants() {
                 select.appendChild(option);
             });
         });
+}
+
+function loadMenusForPlatillo() {
+    fetch('{% url "restaurant:get_menus" %}')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('platilloMenu');
+            select.innerHTML = '<option value="">Seleccionar menú</option>';
+            data.menus.forEach(menu => {
+                const option = document.createElement('option');
+                option.value = menu.id;
+                option.textContent = `${menu.nombre} - ${menu.tipo_display}`;
+                select.appendChild(option);
+            });
+        });
+}
+
+function loadRestaurantsForPlatillo() {
+    fetch('{% url "restaurant:get_restaurants" %}')
+        .then(response => response.json())
+        .then(data => {
+            const selects = document.querySelectorAll('.restaurante-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Seleccionar restaurante</option>';
+                data.restaurants.forEach(restaurant => {
+                    const option = document.createElement('option');
+                    option.value = restaurant.id;
+                    option.textContent = restaurant.name;
+                    select.appendChild(option);
+                });
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            });
+        });
+}
+
+function loadIngredientesForPlatillo() {
+    fetch('{% url "restaurant:get_ingredientes" %}')
+        .then(response => response.json())
+        .then(data => {
+            const selects = document.querySelectorAll('.ingrediente-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Seleccionar ingrediente</option>';
+                data.ingredientes.forEach(ingrediente => {
+                    const option = document.createElement('option');
+                    option.value = ingrediente.id;
+                    option.textContent = ingrediente.nombre;
+                    option.setAttribute('data-unidad', ingrediente.unidad);
+                    select.appendChild(option);
+                });
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            });
+        });
+}
+
+function setupIngredientesFunctionality() {
+    // Agregar funcionalidad al botón de agregar ingrediente
+    document.getElementById('addIngredienteBtn').onclick = addIngrediente;
+
+    // Agregar funcionalidad al botón de agregar restaurante
+    document.getElementById('addRestauranteBtn').onclick = addRestaurante;
+}
+
+function addIngrediente() {
+    const container = document.getElementById('ingredientesContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'ingrediente-item';
+    newItem.innerHTML = `
+        <select class="ingrediente-select" name="ingredientes[]" required>
+            <option value="">Seleccionar ingrediente</option>
+        </select>
+        <input type="number" class="cantidad-input" name="cantidades[]" placeholder="Cantidad (g)" min="0.01" step="0.01" required>
+        <select class="unidad-select" name="unidades[]" required>
+            <option value="g">Gramos (g)</option>
+            <option value="kg">Kilogramos (kg)</option>
+            <option value="l">Litros (l)</option>
+            <option value="ml">Mililitros (ml)</option>
+            <option value="unidad">Unidad</option>
+        </select>
+        <button type="button" class="btn-remove" onclick="removeIngrediente(this)">×</button>
+    `;
+
+    container.appendChild(newItem);
+    loadIngredientesForPlatillo(); // Recargar opciones de ingredientes
+}
+
+function removeIngrediente(button) {
+    const item = button.parentElement;
+    if (document.querySelectorAll('.ingrediente-item').length > 1) {
+        item.remove();
+    } else {
+        alert('Debe haber al menos un ingrediente');
+    }
+}
+
+function addRestaurante() {
+    const container = document.getElementById('restaurantesContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'restaurante-item';
+    newItem.innerHTML = `
+        <select class="restaurante-select" name="restaurantes[]" required>
+            <option value="">Seleccionar restaurante</option>
+        </select>
+        <button type="button" class="btn-remove" onclick="removeRestaurante(this)">×</button>
+    `;
+
+    container.appendChild(newItem);
+    loadRestaurantsForPlatillo(); // Recargar opciones de restaurantes
+}
+
+function removeRestaurante(button) {
+    const item = button.parentElement;
+    if (document.querySelectorAll('.restaurante-item').length > 1) {
+        item.remove();
+    } else {
+        alert('Debe haber al menos un restaurante');
+    }
 }
 
 function loadCruceros() {
@@ -711,9 +966,59 @@ document.getElementById('menuForm').addEventListener('submit', function(e) {
 
 document.getElementById('platilloForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    // Recopilar datos del formulario
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
-    
+
+    // Procesar restaurantes seleccionados
+    const restaurantes = [];
+    document.querySelectorAll('.restaurante-select').forEach(select => {
+        if (select.value) {
+            restaurantes.push(select.value);
+        }
+    });
+    data.restaurantes = restaurantes;
+
+    // Procesar ingredientes
+    const ingredientes = [];
+    const cantidades = [];
+    const unidades = [];
+
+    document.querySelectorAll('.ingrediente-select').forEach(select => {
+        if (select.value) {
+            ingredientes.push(select.value);
+        }
+    });
+
+    document.querySelectorAll('.cantidad-input').forEach(input => {
+        if (input.value) {
+            cantidades.push(parseFloat(input.value));
+        }
+    });
+
+    document.querySelectorAll('.unidad-select').forEach(select => {
+        if (select.value) {
+            unidades.push(select.value);
+        }
+    });
+
+    data.ingredientes = ingredientes;
+    data.cantidades = cantidades;
+    data.unidades = unidades;
+
+    // Validar que se haya seleccionado al menos un restaurante
+    if (restaurantes.length === 0) {
+        alert('Debe seleccionar al menos un restaurante');
+        return;
+    }
+
+    // Validar que se haya agregado al menos un ingrediente
+    if (ingredientes.length === 0) {
+        alert('Debe agregar al menos un ingrediente');
+        return;
+    }
+
     fetch('{% url "restaurant:create_platillo" %}', {
         method: 'POST',
         headers: {
@@ -731,6 +1036,9 @@ document.getElementById('platilloForm').addEventListener('submit', function(e) {
         } else {
             alert('Error: ' + data.message);
         }
+    })
+    .catch(error => {
+        alert('Error al enviar el formulario: ' + error.message);
     });
 });
 
