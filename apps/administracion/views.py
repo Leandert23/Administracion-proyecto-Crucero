@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
@@ -12,35 +11,31 @@ from django.db.models import Count
 #Obtener las solicitudes de compra de un crucero en particualar
 def cruceros_dashboard_data(request, crucero_id):
     """API endpoint para obtener datos del dashboard de un crucero en particular"""
-    if crucero_id:
-        try:
-            crucero = Crucero.objects.get(id=crucero_id)
-        except Crucero.DoesNotExist:
-            # Si no existe el crucero, usar el primero disponible
-            crucero = Crucero.objects.first()
-    else:
-        # Si no se proporciona ID, usar el primero disponible
-        crucero = Crucero.objects.first()
-    alertas = Alerta.objects.get(id=crucero_id)
+    crucero = get_object_or_404(Crucero, pk=crucero_id)
+
+    # Alertas asociadas al crucero seleccionado
+    alertas_qs = (
+        Alerta.objects
+        .filter(crucero=crucero)
+    )
+    alertas_list = [
+        {
+            "mensaje": a.mensaje,
+            "fecha": a.fecha,
+            "leida": a.leida,
+        }
+        for a in alertas_qs
+    ]
     data = []
 
-    # Obtener el objeto Dashboard para este crucero
-    try:
-        dashboard = Dashboard.objects.get(crucero=crucero)
-        passengers = dashboard.num_pasajeros_actual
-        employees = dashboard.num_empleados_actual
-        budget = dashboard.presupuesto_estimado
-        costs_total = dashboard.costos_totales
-        earnings_total = dashboard.ganancias_totales
-    except Dashboard.DoesNotExist:
-        # Si no existe el dashboard para este crucero, usar valores por defecto
-        passengers = 0
-        employees = 0
-        budget = 0
-        costs_total = 0
-        earnings_total = 0
+    dashboard = Dashboard.objects.get(crucero=crucero)
+    passengers = dashboard.num_pasajeros_actual
+    employees = dashboard.num_empleados_actual
+    budget = dashboard.presupuesto_estimado
+    costs_total = dashboard.costos_totales
+    earnings_total = dashboard.ganancias_totales
         
-    data.append({
+    data = {
         "name": crucero.nombre,
         "status": crucero.estado_operativo,
         "passengers": passengers,
@@ -58,16 +53,11 @@ def cruceros_dashboard_data(request, crucero_id):
             "real": earnings_total - costs_total,
             "categories": {}
         },
-        "alerts": [alertas.mensaje, alertas.fecha]
-    })
+        "alerts": alertas_list,
+        "purchase_requests": "purchase_requests"
+    }
 
-    # Agregar datos de solicitudes de compra del modulo Compras
-    purchase_requests = []
-    
-    return JsonResponse({
-        "ships": data,
-        "purchase_requests": purchase_requests
-    })
+    return render(request, 'dashboard_crucero.html', data)
 
 #Obtener de alguna forma la ubicación actual de los barcos y no solo su puerto base 
 def dashboard_empresa(request):
