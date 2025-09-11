@@ -1,15 +1,19 @@
-{% extends 'dashboard_sidebar.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard de Administración - Empresa{% endblock %}</title>
 
-{% block title %}Dashboard de Administración - Cruceros{% endblock %}
-
-{% block page_title %}Dashboard de Administración{% endblock %}
-
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-{% endblock %}
-
-{% block content %}
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/styles_admin_dashboard.css' %}">
+  {% endblock %}
+</head>
+<body>
   <div class="container" style="display: flex; height: 100vh; min-height: 100vh;">
     <aside class="sidebar">
       <div class="logo">
@@ -22,19 +26,7 @@
         <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=100&h=60&fit=crop" alt="Crucero en Mantenimiento" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
       </div>
     </aside>
-    
-    <main class="main-content">
-      <div id="dashboard" class="page active">
-        <!-- Contenido del dashboard se cargará dinámicamente -->
-      </div>
-      
-      <div id="purchaseRequests" class="page">
-        <!-- Contenido de solicitudes de compra se cargará dinámicamente -->
-      </div>
-      
-    </main>
   </div>
-{% endblock %}
 
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -58,3 +50,5 @@
     });
   </script>
 {% endblock %}
+</body>
+</html>

@@ -46,48 +46,77 @@ body {
   box-shadow: 0 2px 8px #f9c2c244;
   font-size: 1.05em;
 }
+.alerts-center {
+  background: linear-gradient(135deg, #dc2626, #b91c1c); 
+  color: white; 
+  padding: 20px; 
+  border-radius: 12px 12px 0 0; 
+  position: relative;
+}
+.alerts-center h2 {
+  margin: 0; 
+  font-size: 24px; 
+  text-align: center;
+}
 .modal-overlay {
   display: none; /* Oculto por defecto */
   position: fixed; /* Posición fija */
+  left: 0; 
+  top: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro con transparencia */
   z-index: 1000; /* Asegura que esté encima de todo */
   justify-content: center;
   align-items: center;
+  backdrop-filter: blur(2px);
 }
 /* Estilos para la ventana modal */
 .modal-content {
   background-color: white;
+  margin: 5% auto;
   padding: 20px;
   border-radius: 5px;
+  width: 80%; 
+  max-width: 600px; 
+  max-height: 80vh;
   position: relative;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
 }
 /* Estilo para el botón de cerrar */
 .close-button {
   position: absolute;
+  color: white;
   top: 10px;
   right: 10px;
   font-size: 20px;
   background: none;
   border: none;
   cursor: pointer;
+  padding: 0; 
+  width: 30px; 
+  height: 30px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  border-radius: 50%; 
 }
 .open-modal-btn{
+    cursor: pointer; 
+    font-size: 16px; 
+    font-weight: bold;
     gap: 6px;
-    padding: 12px 20px;
     background: #fff;
     color: #0f0f0f;
     text-decoration: none;
-    border-radius: 0 8px 8px 0;
     border: 1px solid #e2e8f0;
     margin-right: 12px;
     max-width:450px;
-    border-radius:18px; 
+    border-radius: 8px; 
     padding:24px; 
     box-shadow: 0 5px 25px rgba(0,0,0,0.1);;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;  
 }
 .open-modal-btn:hover {
     transform: translateY(-5px);
@@ -238,14 +267,28 @@ body {
     color: white;
 }
 
-.nav-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
 .nav-item {
     margin: 4px 0;
+}
+
+.chart-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #fff;
+    color: #cbd5e1;
+    text-decoration: none;
+    border-radius: 0 8px 8px 0;
+    border: 1px solid #e2e8f0;
+    margin-right: 12px;
+    max-width:700px;
+    text-align:center; 
+    border-radius:18px; 
+    padding:24px; 
+    width:100%;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-link {
@@ -295,61 +338,6 @@ body {
     transition: color 0.4s ease;
 }
 
-.settings-link {
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    font-family: inherit;
-    font-size: inherit;
-}
-
-/* Header */
-.main-header {
-    background: white;
-    padding: 24px 32px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.page-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-}
-
-.page-subtitle {
-    font-size: 16px;
-    color: #64748b;
-    margin: 0;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #334155;
-  color: #cbd5e1;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s ease;
-}
-
-.tab-button:hover {
-  background: #475569;
-}
-
-.tab-button.active {
-  background: #3b82f6;
-  color: white;
-}
-
 .purchase-request-card {
   background: white;
   border-radius: 12px;
@@ -391,115 +379,4 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-}
-
-/* Added styles for budget calculator */
-.budget-calculator {
-  background: #f0f9ff;
-  border: 2px solid #3b82f6;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-.budget-input-group {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.budget-input {
-  flex: 1;
-  min-width: 150px;
-}
-
-.budget-input label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #1e40af;
-}
-
-.budget-input input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.budget-result {
-  background: #1e40af;
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 15px;
-}
-
-/* Estilos adicionales para las mejoras */
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  filter: invert(1);
-}
-
-.ship-image {
-  width: 100px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-right: 15px;
-}
-
-.purchase-requests {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 8px #0001;
-  padding: 24px;
-  margin-top: 20px;
-  max-width: 900px;
-  margin: 20px auto;
-}
-
-.request-item {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.request-details {
-  flex: 1;
-}
-
-.request-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.rejection-reason {
-  margin-top: 10px;
-  width: 100%;
-  display: none;
-}
-
-.budget-calculation {
-  background: #f0f9ff;
-  border-radius: 12px;
-  padding: 15px;
-  margin: 15px 0;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 20px;
-  width: 90%;
 }

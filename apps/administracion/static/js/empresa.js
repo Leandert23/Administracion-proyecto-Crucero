@@ -109,16 +109,16 @@ function renderAllShips() {
             <li>🌊 Barcos en viaje: ${viaje}</li>
           </ul>
         </div>
-        <button id="open-modal-btn" class="open-modal-btn" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+        <button id="open-modal-btn" class="open-modal-btn">
           <i class="fas fa-bell"></i> Ver Alertas${numberAlerts}
         </button>
-        <div id="myModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px);" class="modal-overlay">
-          <div class="modal-content" style="background-color: white; margin: 5% auto; padding: 0; border-radius: 12px; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;">
-            <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px; border-radius: 12px 12px 0 0; position: relative;">
-              <h2 style="margin: 0; font-size: 24px; text-align: center;">
+        <div id="myModal" class="modal-overlay">
+          <div class="modal-content">
+            <div class="alerts-center">
+              <h2>
                 <i class="fas fa-exclamation-triangle"></i> Centro de Alertas
               </h2>
-              <button id="close-modal-btn" class="close-button" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: white; font-size: 28px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.3s ease;">&times;</button>
+              <button id="close-modal-btn" class="close-button">&times;</button>
             </div>
             <div style="padding: 20px;">
               ${alertsHtml}
@@ -129,7 +129,7 @@ function renderAllShips() {
       
       <hr>
       <div class="flex-row">
-        <div class="nav-link">
+        <div class="chart-title">
           <div class="dashboard-subtitle">Distribución por barcos</div>
           <canvas id="mainChart" style="max-width:600px; margin:auto;"></canvas>
         </div>
@@ -166,8 +166,17 @@ function renderModal(){
     myModal.style.alignItems = 'center';
     myModal.style.justifyContent = 'center';
     
-    // Animación de entrada
+    // Cambiar color del modal basado en el número de alertas
     const modalContent = myModal.querySelector('.modal-content');
+    if (alertas && alertas.length > 0) {
+      modalContent.style.border = '3px solid #dc2626';
+      modalContent.style.boxShadow = '0 0 20px rgba(220, 38, 38, 0.3)';
+    } else {
+      modalContent.style.border = '3px solid #10b981';
+      modalContent.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+    }
+    
+    // Animación de entrada
     modalContent.style.transform = 'scale(0.8)';
     modalContent.style.opacity = '0';
     
