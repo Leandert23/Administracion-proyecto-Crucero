@@ -20,24 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   .catch(function(error) {
     console.error('Error al obtener los datos de los cruceros:', error);
     ships = [];
-    purchaseRequests = [
-      {
-        id: 1,
-        ship_name: "Crucero Atlántico",
-        amount: 15000,
-        description: "Combustible para próximo viaje",
-        status: "pending",
-        created_at: "2024-01-15",
-      },
-      {
-        id: 2,
-        ship_name: "Crucero Pacífico",
-        amount: 8500,
-        description: "Suministros de cocina",
-        status: "pending",
-        created_at: "2024-01-14",
-      },
-    ];
+    purchaseRequests = [];
     renderShipList();
     const selector = document.getElementById('shipSelector');
     selector.addEventListener('change', function() {
@@ -134,6 +117,87 @@ function renderPurchaseRequests() {
   });
 
   container.innerHTML = requestsHtml;
+}
+
+function renderModal(allAlerts){
+  const myModal = document.getElementById('myModal');
+  const openModalBtn = document.getElementById('open-modal-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  
+  // Función para abrir el modal con animación
+  function openModal() {
+    myModal.style.display = 'flex';
+    myModal.style.alignItems = 'center';
+    myModal.style.justifyContent = 'center';
+    
+    // Animación de entrada
+    const modalContent = myModal.querySelector('.modal-content');
+    modalContent.style.transform = 'scale(0.8)';
+    modalContent.style.opacity = '0';
+    
+    setTimeout(() => {
+      modalContent.style.transition = 'all 0.3s ease';
+      modalContent.style.transform = 'scale(1)';
+      modalContent.style.opacity = '1';
+    }, 10);
+  }
+
+  // Función para cerrar el modal con animación
+  function closeModal() {
+    const modalContent = myModal.querySelector('.modal-content');
+    modalContent.style.transition = 'all 0.3s ease';
+    modalContent.style.transform = 'scale(0.8)';
+    modalContent.style.opacity = '0';
+    
+    setTimeout(() => {
+      myModal.style.display = 'none';
+    }, 300);
+  }
+
+  // Event listeners para los botones
+  if (openModalBtn) {
+    openModalBtn.addEventListener('click', openModal);
+    
+    // Efecto hover para el botón
+    openModalBtn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    });
+    
+    openModalBtn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+    });
+  }
+
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeModal);
+    
+    // Efecto hover para el botón de cerrar
+    closeModalBtn.addEventListener('mouseenter', function() {
+      this.style.backgroundColor = 'rgba(255,255,255,0.2)';
+    });
+    
+    closeModalBtn.addEventListener('mouseleave', function() {
+      this.style.backgroundColor = 'transparent';
+    });
+  }
+
+  // Cerrar el modal al hacer clic fuera de él
+  if (myModal) {
+    myModal.addEventListener('click', (event) => {
+      if (event.target === myModal) {
+        closeModal();
+      }
+    });
+  }
+
+  // Cerrar el modal con la tecla Escape
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && myModal.style.display === 'flex') {
+      closeModal();
+    }
+  });
 }
 
 function showRejectModal(requestId) {
@@ -243,186 +307,6 @@ function renderBudgetCalculation() {
       }
     });
   }, 100);
-}
-
-function getCsrfToken() {
-  return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
-}
-
-// Variables globales para los graficos
-let mainChart = null;
-let secondaryChart = null;
-let selectedShipId = null;
-
-// Renderiza el dashboard de todos los barcos
-function renderAllShips() {
-  const dashboard = document.getElementById('dashboard');
-  // Calcular totales
-  const active = ships.filter(s => s.status === 'activo' || s.status === 'Navegando' || s.status === 'viaje').length;
-  const inactive = ships.filter(s => s.status === 'inactivo' || s.status === 'Embarcado').length;
-  const maintenance = ships.filter(s => s.status === 'mantenimiento' || s.status === 'En mantenimiento').length;
-  const totalCosts = ships.reduce((acc, s) => acc + (s.costs?.total || 0), 0);
-  const totalEarnings = ships.reduce((acc, s) => acc + (s.earnings?.total || 0), 0);
-  const realEarnings = ships.reduce((acc, s) => acc + (s.earnings?.real || 0), 0);
-  const allAlerts = ships.flatMap(s => s.alerts || []);
-  const shipsLocations = (ships.flatMap(s => [s.location, s.name] || [])).map(
-    (locate, index) => {
-    if (index%2 === 0){
-      return `<span>${locate}, </span>`
-    } else{
-      return `<span">${locate}</span><br>`
-    }}).join('');
-  let alertsHtml = '';
-  let numberAlerts = '';
-  if (allAlerts.length > 0) {
-    alertsHtml = `<div>${allAlerts.map(a => `<div>${a}</div>`).join('')}</div>`;
-    numberAlerts = `<strong>(${allAlerts.length})</strong>`;
-  } else{
-    alertsHtml = `<div>No hay alertas</div>`;
-  }
-  dashboard.innerHTML = `
-    <div class="dashboard-box">
-      <div style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&h=300&fit=crop'); 
-                  background-size: cover; background-position: center; border-radius: 12px; padding: 40px; margin-bottom: 20px; text-align: center;">
-        <h1 style="color: white; font-size: 2.5em; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Dashboard de Cruceros</h1>
-        <p style="color: white; font-size: 1.2em; margin: 10px 0 0 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">Sistema de gestión integral de flota</p>
-      </div>
-      <div class="content-box">
-        <div>
-          <h2 style="color: #2196f3; margin-bottom: 15px;">Estado de la Flota</h2>
-          <ul style="padding-left: 20px; padding-top: 10px;">
-            <li>🚢 Barcos activos: ${active}</li>
-            <li>⚓ Barcos inactivos: ${inactive}</li>
-            <li>🔧 Barcos en mantenimiento: ${maintenance}</li>
-            <li>🌊 Barcos en viaje: ${active}</li>
-          </ul>
-        </div>
-        <button id="open-modal-btn" class="open-modal-btn">Ver Alertas${numberAlerts}</button>
-        <div id="myModal" style="display: none;" class="modal-overlay">
-          <div class="modal-content">
-            <h2>Ventana de Alertas</h2>
-            ${alertsHtml}
-            <button id="close-modal-btn" class="close-button">&times;</button>
-          </div>
-        </div>
-      </div>
-      <div class="budget-calculator">
-        <h3 style="color: #1e40af; margin-bottom: 15px; text-align: center;">📊 Calculadora de Presupuesto</h3>
-        <div class="budget-input-group">
-          <div class="budget-input">
-            <label>Pasajeros:</label>
-            <input type="number" id="budgetPassengers" placeholder="Número de pasajeros" value="100">
-          </div>
-          <div class="budget-input">
-            <label>Empleados:</label>
-            <input type="number" id="budgetEmployees" placeholder="Número de empleados" value="50">
-          </div>
-          <div class="budget-input">
-            <label>Días de viaje:</label>
-            <input type="number" id="budgetDays" placeholder="Días de viaje" value="7">
-          </div>
-          <div class="budget-input">
-            <label>Distancia (km):</label>
-            <input type="number" id="budgetDistance" placeholder="Distancia en km" value="1000">
-          </div>
-        </div>
-        <button onclick="calculateBudget()" style="background: #1e40af; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%;">
-          Calcular Presupuesto
-        </button>
-        <div id="budgetResult" class="budget-result" style="display: none;"></div>
-      </div>
-
-      <hr>
-      <div class="flex-row">
-        <div class="nav-link">
-          <div class="dashboard-subtitle">Distribución por barcos</div>
-          <canvas id="mainChart" style="max-width:600px; margin:auto;"></canvas>
-        </div>
-      </div>
-      <div class="flex-row">
-        <div class="stats-block">
-          <strong>💰 Costos totales:</strong> $${totalCosts.toLocaleString()}<br>
-          <strong>📈 Ganancias totales:</strong> $${totalEarnings.toLocaleString()}
-        </div>
-        <div class="stats-block">
-          <strong>💵 Ganancias reales:</strong> $${realEarnings.toLocaleString()}
-        </div>
-        <div class="stats-block">
-          <strong>Ubicación de los cruceros:</strong>
-          <div>
-            ${shipsLocations}
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(renderAllShipsCharts, 0);
-  renderModal();
-}
-
-function renderModal(allAlerts){
-  const myModal = document.getElementById('myModal');
-  const openModalBtn = document.getElementById('open-modal-btn');
-  const closeModalBtn = document.getElementById('close-modal-btn');
-  
-  // Función para abrir el modal
-  function openModal() {
-    myModal.style.display = 'flex'; // Usa 'flex' para centrar el contenido
-  }
-
-  // Función para cerrar el modal
-  function closeModal() {
-    myModal.style.display = 'none';
-  }
-
-  // Event listeners para los botones
-  openModalBtn.addEventListener('click', openModal);
-  closeModalBtn.addEventListener('click', closeModal);
-
-  // Opcional: Cerrar el modal al hacer clic fuera de él
-  window.addEventListener('click', (event) => {
-    if (event.target === myModal) {
-      closeModal();
-    }
-  });
-}
-
-// Renderiza los gráficos de todos los barcos
-function renderAllShipsCharts() {
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  if (mainChart) mainChart.destroy();
-  mainChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ships.map(s => s.name),
-      datasets: [
-        {
-          label: 'Costos totales',
-          data: ships.map(s => (s.costs?.total || 0)),
-          backgroundColor: '#b3dafe',
-        },
-        {
-          label: 'Ganancias totales',
-          data: ships.map(s => (s.earnings?.total || 0)),
-          backgroundColor: '#aaf2b2',
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        title: {
-          display: true,
-          text: 'Costos y Ganancias por Barco',
-          font: { size: 18 }
-        }
-      },
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
 }
 
 // Renderiza los gráficos de un solo barco

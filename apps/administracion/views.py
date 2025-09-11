@@ -75,6 +75,8 @@ def dashboard_empresa(request):
     dashboards = Dashboard.objects.select_related('crucero').all()
     cruceros_qs = Crucero.objects.all()
 
+    costos_por_crucero = []
+    ganancias_por_crucero = []
     total_costos = sum((d.costos_totales or 0) for d in dashboards)
     total_ganancias = sum((d.ganancias_totales or 0) for d in dashboards)
 
@@ -98,9 +100,15 @@ def dashboard_empresa(request):
         if estado in estados_counts:
             estados_counts[estado] = row['cantidad'] or 0
 
+    for dashboard in dashboards:
+        costos_por_crucero.append(dashboard.costos_totales or 0)
+        ganancias_por_crucero.append(dashboard.ganancias_totales or 0)
+
     contexto = {
         'total_costos': total_costos,
+        'costos_por_crucero': costos_por_crucero,
         'total_ganancias': total_ganancias,
+        'ganancias_por_crucero': ganancias_por_crucero,
         'ubicaciones_cruceros': ubicaciones,
         'alertas': alertas,
         'conteo_cruceros_por_estado': estados_counts,

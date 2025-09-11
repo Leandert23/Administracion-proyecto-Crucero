@@ -21,17 +21,6 @@
         <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=100&h=60&fit=crop" alt="Crucero Activo" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
         <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=100&h=60&fit=crop" alt="Crucero en Mantenimiento" style="width: 80px; height: 50px; border-radius: 8px; margin: 5px;">
       </div>
-      
-      <label for="shipSelector" style="font-weight:bold; margin-bottom:10px;">Seleccionar barco:</label>
-      <select id="shipSelector" class="sidebar-select" style="width: 90%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1.1em; margin-bottom: 20px; background: white; cursor: pointer;">
-        <option value="all">Todos los barcos</option>
-      </select>
-      
-      <div class="nav-tabs">
-        <button id="dashboardTab" class="tab-button active" onclick="showTab('dashboard')">Dashboard</button>
-        <button id="purchaseTab" class="tab-button" onclick="showTab('purchase')">Solicitudes</button>
-        <button id="budgetTab" class="tab-button" onclick="showTab('budget')">Presupuesto</button>
-      </div>
     </aside>
     
     <main class="main-content">
@@ -43,76 +32,29 @@
         <!-- Contenido de solicitudes de compra se cargará dinámicamente -->
       </div>
       
-      <div id="budgetCalculation" class="page">
-        <!-- Contenido de cálculo de presupuesto se cargará dinámicamente -->
-      </div>
-      
-      {% if alertas %}
-        <div class="row mt-4">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="card-title mb-0">Alertas</h5>
-              </div>
-              <div class="card-body">
-                {% for alerta in alertas %}
-                  <div class="alert alert-warning" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i> {{ alerta.mensaje }}
-                    <small class="text-muted"> - {{ alerta.fecha|date:"d/m/Y H:i" }}</small>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
     </main>
   </div>
 {% endblock %}
 
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="{% static 'js/script.js' %}"></script>
-  <script>
-    // Función para cambiar entre pestañas
-    function showTab(tabName) {
-      // Ocultar todas las pestañas
-      document.querySelectorAll('.page').forEach(function(tab) {
-        tab.classList.remove('active');
-      });
-      
-      // Mostrar la pestaña seleccionada
-      document.getElementById(tabName).classList.add('active');
-      
-      // Actualizar botones activos
-      document.querySelectorAll('.tab-button').forEach(function(btn) {
-        btn.classList.remove('active');
-      });
-      document.getElementById(tabName + 'Tab').classList.add('active');
-      
-      // Cargar contenido específico si es necesario
-      if (tabName === 'purchase') {
-        renderPurchaseRequests();
-      } else if (tabName === 'budget') {
-        renderBudgetCalculation();
-      }
-    }
+  <script src="{% static 'js/empresa.js' %}"></script>
+  <script> 
+    // Pasar datos del contexto de Django al JavaScript
+    window.djangoContext = {
+      total_costos: { total_costos },
+      costos_por_crucero: { costos_por_crucero },
+      total_ganancias: { total_ganancias },
+      ganancias_por_crucero: { ganancias_por_crucero },
+      ubicaciones_cruceros: { ubicaciones_cruceros },
+      alertas: { alertas },
+      conteo_cruceros_por_estado: { conteo_cruceros_por_estado }
+    };
     
     // Inicializar cuando el DOM esté cargado
     document.addEventListener('DOMContentLoaded', function() {
-      // Cargar datos iniciales del dashboard
-      fetch('/administracion/api/cruceros-dashboard/')
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-          // Inicializar datos y renderizar
-          window.ships = data.ships || [];
-          window.purchaseRequests = data.purchase_requests || [];
-          renderShipList();
-          renderAllShips();
-        })
-        .catch(function(error) {
-          console.error('Error al obtener datos:', error);
-        });
+      // Los datos ya están disponibles en window.djangoContext
+      renderAllShips();
     });
   </script>
 {% endblock %}
