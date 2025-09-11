@@ -117,17 +117,17 @@ def stock_view(request):
     return render(request, 'restaurant/stock.html', context)
 
 def employees_view(request):
-    """Vista para gestión de empleados - muestra únicamente empleados de la categoría Culinario"""
-    # Obtener únicamente empleados de la categoría "Culinario"
-    personal_rrhh = PersonalRRHH.objects.filter(categoria='Culinario')
-    
-    # Filtrar por estado si se especifica
-    estado_filter = request.GET.get('estado', '')
-    if estado_filter:
-        personal_rrhh = personal_rrhh.filter(pStatus=estado_filter)
-    
+    """Vista para gestión de empleados (usa el modelo Employee real)."""
+    employees = Employee.objects.select_related('restaurant').all()
+
+    estado_filter = request.GET.get('estado', '')  # '1' activos, '2' inactivos
+    if estado_filter == '1':
+        employees = employees.filter(active=True)
+    elif estado_filter == '2':
+        employees = employees.filter(active=False)
+
     context = {
-        'employees': personal_rrhh,
+        'employees': employees,
         'estado_filter': estado_filter,
     }
     return render(request, 'restaurant/employees.html', context)
