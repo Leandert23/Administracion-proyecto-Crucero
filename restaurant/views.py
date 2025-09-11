@@ -240,15 +240,24 @@ def records_view(request):
 
 def get_restaurants(request):
     """Devuelve lista mínima de restaurantes para selects (AJAX GET)"""
-    restaurants = Restaurante.objects.all().values('id', 'name', 'type')
+    restaurants = Restaurante.objects.all().values('id', 'name', 'type', 'area_total')
     # Mapear display de type
     items = []
     for r in restaurants:
         obj = Restaurante(id=r['id'], name=r['name'], type=r['type'])
+        # Incluir dimensión si existe
+        dimension_display = ""
+        if r['area_total']:
+            dimension_display = f" ({r['area_total']} m²)"
+        else:
+            dimension_display = " (Sin dimensión)"
+
         items.append({
             'id': r['id'],
             'name': r['name'],
-            'type_display': obj.get_type_display()
+            'type_display': obj.get_type_display(),
+            'area_total': r['area_total'],
+            'dimension_display': dimension_display
         })
     return JsonResponse({'restaurants': items})
 
@@ -611,6 +620,7 @@ def create_restaurante(request):
             type=data['tipo'],
             crucero=crucero,
             capacity=int(data['capacity']),
+            area_total=float(data['area_total']) if data.get('area_total') else None,
             largo=float(data.get('largo', 0)) if data.get('largo') else None,
             ancho=float(data.get('ancho', 0)) if data.get('ancho') else None,
             ubicacion=data.get('ubicacion', ''),
