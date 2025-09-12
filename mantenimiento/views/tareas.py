@@ -14,6 +14,7 @@ from mantenimiento.models import (
     Producto,
     HistorialMantenimiento,
     CambioEstado,
+    AsignacionPersonal,
 )
 from mantenimiento.forms import (
     TareaMantenimientoForm,
@@ -35,7 +36,9 @@ def tarea_list(request):
     prioridad = request.GET.get('prioridad')
     asignado = request.GET.get('asignado')
     tipo_crucero_id = request.GET.get('tipo_crucero')
+    modulo_origen = request.GET.get('modulo_origen')
     incluir_finalizadas = request.GET.get('incluir_finalizadas') == '1'
+    solo_externas = request.GET.get('solo_externas') == '1'
 
     if tipo:
         tareas = tareas.filter(tipo=tipo)
@@ -47,6 +50,11 @@ def tarea_list(request):
         tareas = tareas.filter(asignado_a__id=asignado)
     if tipo_crucero_id:
         tareas = tareas.filter(tipo_crucero__id=tipo_crucero_id)
+    if modulo_origen:
+        tareas = tareas.filter(modulo_origen=modulo_origen)
+    if solo_externas:
+        # Mostrar solo tareas que vienen de módulos externos (no de mantenimiento)
+        tareas = tareas.exclude(modulo_origen__in=['', 'mantenimiento']).exclude(modulo_origen__isnull=True)
     # Ocultar tareas completadas/canceladas por defecto
     if not incluir_finalizadas:
         tareas = tareas.exclude(estado__in=['completada', 'cancelada'])
@@ -54,6 +62,27 @@ def tarea_list(request):
     paginator = Paginator(tareas, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Obtener módulos de origen únicos para el filtro
+    modulos_origen = TareaMantenimiento.objects.exclude(
+        modulo_origen__isnull=True
+    ).exclude(
+        modulo_origen=''
+    ).values_list('modulo_origen', flat=True).distinct().order_by('modulo_origen')
+
+    # Mapeo de módulos para mostrar nombres más amigables
+    MODULOS_DISPLAY = {
+        'servicios_medicos': 'Servicios Médicos',
+        'almacen': 'Almacén',
+        'recursos_humanos': 'Recursos Humanos',
+        'ventas': 'Ventas',
+        'reservas': 'Reservas',
+        'restaurante': 'Restaurante',
+        'bares': 'Bares',
+        'entretenimiento': 'Entretenimiento',
+        'compras': 'Compras',
+        'mantenimiento': 'Mantenimiento',
+    }
 
     context = {
         'page_obj': page_obj,
@@ -63,6 +92,9 @@ def tarea_list(request):
         'usuarios': [],  # se llenará cuando agreguemos filtros por usuario
         'tipos_crucero': TipoCrucero.objects.all(),
         'incluir_finalizadas': incluir_finalizadas,
+        'modulos_origen': modulos_origen,
+        'modulos_display': MODULOS_DISPLAY,
+        'solo_externas': solo_externas,
     }
     return render(request, 'mantenimiento/tarea_list.html', context)
 
@@ -226,6 +258,19 @@ def tarea_asignar_personal(request, pk):
             messages.success(request, 'Personal asignado a la tarea.')
     else:
         messages.error(request, 'Error al asignar personal.')
+    return redirect('mantenimiento:tarea_detail', pk=pk)
+
+
+@require_POST
+def tarea_eliminar_personal(request, pk, asignacion_id):
+    """Eliminar personal asignado de una tarea"""
+    tarea = get_object_or_404(TareaMantenimiento, pk=pk)
+    asignacion = get_object_or_404(AsignacionPersonal, pk=asignacion_id, tarea=tarea)
+    
+    personal_nombre = asignacion.personal.nombre
+    asignacion.delete()
+    
+    messages.success(request, f'Personal {personal_nombre} eliminado de la tarea.')
     return redirect('mantenimiento:tarea_detail', pk=pk)
 
 

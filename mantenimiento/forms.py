@@ -4,7 +4,7 @@ from .models import (
     SolicitudMantenimiento, TareaMantenimiento, Equipo, Ubicacion, 
     TipoCrucero, Crucero, Personal, Producto, InventarioProducto,
     Piscina, MedicionPiscina, ReporteIncidente, ProductoUtilizado,
-    ChecklistItem, AdjuntoTarea
+    ChecklistItem, AdjuntoTarea, AsignacionPersonal
 )
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -393,13 +393,29 @@ class EquipoForm(forms.ModelForm):
         }
 
 
-class AsignacionPersonalForm(forms.Form):
+class AsignacionPersonalForm(forms.ModelForm):
     """Formulario para asignar personal a tareas"""
-    personal = forms.ModelChoiceField(
-        queryset=Personal.objects.filter(activo=True),
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Personal de Mantenimiento'
-    )
+    
+    class Meta:
+        model = AsignacionPersonal
+        fields = ['personal', 'horas_asignadas']
+        widgets = {
+            'personal': forms.Select(attrs={'class': 'form-select'}),
+            'horas_asignadas': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0.5',
+                'step': '0.5',
+                'value': '1.0'
+            })
+        }
+        labels = {
+            'personal': 'Personal de Mantenimiento',
+            'horas_asignadas': 'Horas Asignadas'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['personal'].queryset = Personal.objects.filter(activo=True)
 
 
 class ProductoUtilizadoForm(forms.ModelForm):

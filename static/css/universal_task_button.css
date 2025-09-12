@@ -1,0 +1,222 @@
+/* Estilos para el Sistema Universal de Tareas */
+
+/* Asegurar que nuestro botón tenga la máxima prioridad visual */
+#universal-task-button {
+    position: fixed !important;
+    z-index: 10000 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Estilos para evitar conflictos con otros elementos flotantes */
+.universal-task-button {
+    position: fixed !important;
+    z-index: 10000 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: scale(0.9) !important;
+}
+
+/* Efecto hover - crecer suavemente */
+.universal-task-button:hover {
+    transform: translateY(-2px) scale(1.1) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important;
+    padding: 14px 22px !important;
+    font-size: 14px !important;
+    min-width: 180px !important;
+}
+
+/* Estilos para el modal */
+#task-creation-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 10001 !important;
+    background: rgba(0,0,0,0.6) !important;
+}
+
+/* Asegurar que las notificaciones sean visibles */
+.universal-task-notification {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 10002 !important;
+    pointer-events: auto !important;
+}
+
+/* Estilos para elementos que podrían causar conflictos */
+.floating-button,
+.fixed-button,
+.bottom-right-button,
+.chat-button,
+.help-button,
+.support-button,
+.feedback-button {
+    /* Asegurar que otros botones flotantes no interfieran */
+    z-index: 9999 !important;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+    #universal-task-button {
+        bottom: 20px !important;
+        right: 20px !important;
+        min-width: 140px !important;
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+        transform: scale(0.85) !important;
+    }
+    
+    .universal-task-button:hover {
+        min-width: 160px !important;
+        padding: 12px 18px !important;
+        font-size: 13px !important;
+        transform: translateY(-2px) scale(0.95) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #universal-task-button {
+        bottom: 15px !important;
+        right: 15px !important;
+        min-width: 120px !important;
+        padding: 8px 14px !important;
+        font-size: 11px !important;
+        transform: scale(0.8) !important;
+    }
+    
+    .universal-task-button:hover {
+        min-width: 140px !important;
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+        transform: translateY(-2px) scale(0.9) !important;
+    }
+    
+    #task-creation-modal .modal-content {
+        margin: 10px !important;
+        max-height: calc(100vh - 20px) !important;
+    }
+}
+
+/* Estilos para debug (solo en desarrollo) */
+.debug-overlap-detection {
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    background: rgba(255, 0, 0, 0.8) !important;
+    color: white !important;
+    padding: 10px !important;
+    border-radius: 5px !important;
+    z-index: 10003 !important;
+    font-size: 12px !important;
+    max-width: 300px !important;
+}
+
+/* Animaciones suaves */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.universal-task-notification {
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.universal-task-notification.removing {
+    animation: slideOutToRight 0.3s ease-in;
+}
+
+/* Estilos para el contador de tareas */
+#task-count {
+    background: rgba(255,255,255,0.2) !important;
+    border-radius: 50% !important;
+    padding: 2px 8px !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    min-width: 20px !important;
+    text-align: center !important;
+}
+
+/* Estilos para el modal de creación de tareas */
+#task-creation-modal .modal-content {
+    background: white !important;
+    border-radius: 16px !important;
+    padding: 32px !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+}
+
+/* Estilos para los campos del formulario */
+#task-creation-form input,
+#task-creation-form textarea,
+#task-creation-form select {
+    width: 100% !important;
+    padding: 12px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    transition: border-color 0.2s !important;
+}
+
+#task-creation-form input:focus,
+#task-creation-form textarea:focus,
+#task-creation-form select:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Estilos para los botones del modal */
+#task-creation-form button {
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    border: none !important;
+}
+
+#submit-task-btn {
+    background: #3b82f6 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+#submit-task-btn:hover {
+    background: #2563eb !important;
+    transform: translateY(-1px) !important;
+}
+
+#cancel-task-btn {
+    background: white !important;
+    color: #6b7280 !important;
+    border: 2px solid #d1d5db !important;
+}
+
+#cancel-task-btn:hover {
+    border-color: #9ca3af !important;
+    color: #374151 !important;
+}

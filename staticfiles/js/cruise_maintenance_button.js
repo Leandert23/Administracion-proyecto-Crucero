@@ -17,7 +17,7 @@ class UniversalTaskButton {
      */
     detectCurrentModule() {
         const path = window.location.pathname;
-        
+
         // Detectar por URL patterns
         if (path.includes('/mantenimiento') || path.includes('/maintenance')) {
             return 'mantenimiento';
@@ -40,14 +40,14 @@ class UniversalTaskButton {
         } else if (path.includes('/compras') || path.includes('/purchases')) {
             return 'compras';
         }
-        
+
         // Detectar por elementos del DOM (sidebar)
         const activeNavItem = document.querySelector('.nav-item.active .nav-text');
         if (activeNavItem) {
             const moduleName = activeNavItem.textContent.toLowerCase().trim();
             return this.normalizeModuleName(moduleName);
         }
-        
+
         // Detectar por todos los elementos del sidebar
         const allNavItems = document.querySelectorAll('.nav-item .nav-text');
         for (let item of allNavItems) {
@@ -63,7 +63,7 @@ class UniversalTaskButton {
             if (text.includes('entretenimiento')) return 'entretenimiento';
             if (text.includes('compras')) return 'compras';
         }
-        
+
         // Por defecto, mantenimiento
         return 'mantenimiento';
     }
@@ -470,7 +470,7 @@ class UniversalTaskButton {
                     <div>
                         <h3 style="margin: 0; color: #1f2937; font-size: 20px; font-weight: 600;">
                             Crear Tarea - ${moduleConfig.name}
-                </h3>
+                        </h3>
                         <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">
                             Esta tarea será enviada al departamento de mantenimiento
                         </p>
@@ -574,7 +574,7 @@ class UniversalTaskButton {
                         style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; transition: border-color 0.2s;"
                         onfocus="this.style.borderColor='${moduleConfig.color}';"
                         onblur="this.style.borderColor='#e5e7eb';">
-            </div>
+                </div>
 
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
                     <button type="button" id="cancel-task-btn"
@@ -590,7 +590,7 @@ class UniversalTaskButton {
                         <i class="fas fa-paper-plane"></i>
                         <span>Enviar a Mantenimiento</span>
                     </button>
-            </div>
+                </div>
             </form>
         `;
 

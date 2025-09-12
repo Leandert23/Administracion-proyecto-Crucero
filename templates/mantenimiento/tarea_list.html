@@ -78,17 +78,42 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <label for="modulo_origen" class="form-label fw-semibold">
+                                <i class="fas fa-building me-1 text-info"></i>Módulo de Origen
+                            </label>
+                            <select name="modulo_origen" class="form-select">
+                                <option value="">Todos los módulos</option>
+                                {% for modulo in modulos_origen %}
+                                <option value="{{ modulo }}" {% if request.GET.modulo_origen == modulo %}selected{% endif %}>
+                                    {{ modulos_display|default_if_none:modulo|default:modulo|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-search me-1"></i>Filtrar
                             </button>
                         </div>
                         <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="incluir_finalizadas" value="1" id="toggleFinalizadas" {% if incluir_finalizadas %}checked{% endif %} onchange="this.form.submit()">
-                                <label class="form-check-label fw-semibold" for="toggleFinalizadas">
-                                    <i class="fas fa-check-circle me-1 text-success"></i>Incluir tareas completadas/canceladas
-                                </label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="incluir_finalizadas" value="1" id="toggleFinalizadas" {% if incluir_finalizadas %}checked{% endif %} onchange="this.form.submit()">
+                                        <label class="form-check-label fw-semibold" for="toggleFinalizadas">
+                                            <i class="fas fa-check-circle me-1 text-success"></i>Incluir tareas completadas/canceladas
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="solo_externas" value="1" id="toggleExternas" {% if solo_externas %}checked{% endif %} onchange="this.form.submit()">
+                                        <label class="form-check-label fw-semibold" for="toggleExternas">
+                                            <i class="fas fa-external-link-alt me-1 text-info"></i>Solo tareas de módulos externos
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -125,6 +150,9 @@
                                         <i class="fas fa-info-circle me-2 text-info"></i>Estado
                                     </th>
                                     <th class="border-0 fw-semibold">
+                                        <i class="fas fa-building me-2 text-secondary"></i>Módulo Origen
+                                    </th>
+                                    <th class="border-0 fw-semibold">
                                         <i class="fas fa-calendar me-2 text-danger"></i>Programada
                                     </th>
                                     <th class="border-0 fw-semibold text-center">
@@ -154,6 +182,30 @@
                                         <span class="badge bg-{% if tarea.estado == 'completada' %}success{% elif tarea.estado == 'en_progreso' %}info{% elif tarea.estado == 'cancelada' %}secondary{% else %}warning{% endif %}">
                                             {{ tarea.get_estado_display }}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {% if tarea.modulo_origen %}
+                                            {% if tarea.modulo_origen == 'mantenimiento' %}
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="fas fa-tools me-1"></i>
+                                                    Mantenimiento
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-external-link-alt me-1"></i>
+                                                    {% for key, value in modulos_display.items %}
+                                                        {% if key == tarea.modulo_origen %}{{ value }}{% endif %}
+                                                    {% empty %}
+                                                        {{ tarea.modulo_origen|title }}
+                                                    {% endfor %}
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-tools me-1"></i>
+                                                Mantenimiento
+                                            </span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column">
@@ -186,7 +238,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-5">
+                                    <td colspan="7" class="text-center py-5">
                                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                                         <h5 class="text-muted">Sin tareas encontradas</h5>
                                         <p class="text-muted mb-3">No se encontraron tareas que coincidan con los filtros aplicados.</p>
@@ -208,12 +260,12 @@
                         <ul class="pagination justify-content-center mb-0">
                             {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                <a class="page-link" href="?page=1{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.modulo_origen %}&modulo_origen={{ request.GET.modulo_origen }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}{% if solo_externas %}&solo_externas=1{% endif %}">
                                     <i class="fas fa-angle-double-left"></i>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.modulo_origen %}&modulo_origen={{ request.GET.modulo_origen }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}{% if solo_externas %}&solo_externas=1{% endif %}">
                                     <i class="fas fa-angle-left"></i>
                                 </a>
                             </li>
@@ -225,12 +277,12 @@
 
                             {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.modulo_origen %}&modulo_origen={{ request.GET.modulo_origen }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}{% if solo_externas %}&solo_externas=1{% endif %}">
                                     <i class="fas fa-angle-right"></i>
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.tipo_crucero %}&tipo_crucero={{ request.GET.tipo_crucero }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.modulo_origen %}&modulo_origen={{ request.GET.modulo_origen }}{% endif %}{% if incluir_finalizadas %}&incluir_finalizadas=1{% endif %}{% if solo_externas %}&solo_externas=1{% endif %}">
                                     <i class="fas fa-angle-double-right"></i>
                                 </a>
                             </li>

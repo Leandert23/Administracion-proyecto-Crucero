@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios Médicos - Sistema de Crucero</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Estilos del botón universal -->
+    <link href="/static/css/universal_task_button.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar simulando servicios médicos -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-stethoscope"></i> 🏥 Servicios Médicos
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-text">servicios_medicos</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h1><i class="fas fa-stethoscope text-danger"></i> Panel Médico - Crucero</h1>
+
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡URGENTE!</strong> Equipo de rayos X presenta fallos críticos. Pacientes afectados.
+                </div>
+
+                <div class="row mt-4">
+                    <!-- Card de equipos médicos -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-x-ray"></i> Equipos de Diagnóstico
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Rayos X, ecógrafos y equipos de diagnóstico médico.</p>
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-radiation"></i>
+                                    <strong>CRÍTICO:</strong> Equipo de rayos X fuera de servicio.
+                                </div>
+                                <button class="btn btn-danger btn-lg" onclick="crearTareaCritica('rayos_x')">
+                                    <i class="fas fa-exclamation-triangle"></i> CREAR TAREA DE EMERGENCIA
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card de equipos de soporte -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-heartbeat"></i> Equipos de Soporte Vital
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Monitores, desfibriladores y equipos de soporte vital.</p>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-clock"></i>
+                                    <strong>Mantenimiento:</strong> Revisión mensual programada.
+                                </div>
+                                <button class="btn btn-warning" onclick="programarMantenimiento('desfibriladores')">
+                                    <i class="fas fa-calendar-check"></i> Programar Revisión
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de equipos médicos críticos -->
+                <div class="card mt-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Equipos Médicos Críticos</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Estado</th>
+                                    <th>Prioridad</th>
+                                    <th>Última Revisión</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="table-danger">
+                                    <td><strong>Equipo de Rayos X Philips</strong></td>
+                                    <td><span class="badge bg-danger">FUERA DE SERVICIO</span></td>
+                                    <td><span class="badge bg-critical">CRÍTICA</span></td>
+                                    <td>2024-09-01</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="crearTareaCritica('rayos_x')">
+                                            <i class="fas fa-bolt"></i> EMERGENCIA
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td>Desfibriladores Portátiles</td>
+                                    <td><span class="badge bg-warning">Mantenimiento Requerido</span></td>
+                                    <td><span class="badge bg-warning">Alta</span></td>
+                                    <td>2024-08-15</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="programarMantenimiento('desfibriladores')">
+                                            <i class="fas fa-calendar-plus"></i> Programar
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Monitores de Signos Vitales</td>
+                                    <td><span class="badge bg-success">Operativo</span></td>
+                                    <td><span class="badge bg-success">Normal</span></td>
+                                    <td>2024-09-10</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary" disabled>
+                                            <i class="fas fa-check"></i> OK
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td>Incubadora Neonatal</td>
+                                    <td><span class="badge bg-warning">Inspección Pendiente</span></td>
+                                    <td><span class="badge bg-medium">Media</span></td>
+                                    <td>2024-08-20</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="crearTareaInspeccion('incubadora')">
+                                            <i class="fas fa-search"></i> Inspeccionar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar médico -->
+            <div class="col-md-4">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-hospital"></i> Estado Médico
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Tareas Pendientes:</strong>
+                            <span class="badge bg-primary float-end" id="task-count">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Equipos Críticos:</strong>
+                            <span class="badge bg-danger float-end">2/8</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Módulo Actual:</strong>
+                            <span class="badge bg-danger float-end">Servicios Médicos</span>
+                        </div>
+                        <div class="alert alert-danger py-2">
+                            <small><i class="fas fa-exclamation-triangle"></i> Equipos críticos requieren atención inmediata</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de emergencias -->
+                <div class="card mt-3 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h6><i class="fas fa-ambulance"></i> Panel de Emergencias</h6>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-danger btn-sm w-100 mb-2" onclick="emergenciaCritica()">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>EMERGENCIA CRÍTICA</strong>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm w-100 mb-2" onclick="reportarFallo()">
+                            <i class="fas fa-tools"></i> Reportar Fallo de Equipo
+                        </button>
+                        <button class="btn btn-outline-info btn-sm w-100" onclick="verHistorialMedico()">
+                            <i class="fas fa-history"></i> Historial de Mantenimiento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Indicadores médicos -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="fas fa-chart-line"></i> Indicadores Médicos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <div class="h5 text-success">98%</div>
+                                    <small class="text-muted">Equipos OK</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <div class="h5 text-danger">2%</div>
+                                    <small class="text-muted">Críticos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Botón Universal de Tareas -->
+    <script src="/static/js/cruise_maintenance_button.js"></script>
+
+    <script>
+        // Funciones específicas para servicios médicos
+        function crearTareaCritica(equipo) {
+            const taskData = {
+                titulo: `EMERGENCIA: Reparar ${equipo.replace('_', ' ')} - SERVICIOS MÉDICOS`,
+                descripcion: `EQUIPO CRÍTICO FUERA DE SERVICIO. ${equipo.replace('_', ' ').toUpperCase()} presenta fallos que afectan la atención médica de pacientes. REQUERIMIENTO DE MÁXIMA PRIORIDAD.`,
+                tipo: 'emergencia',
+                prioridad: 'emergencia',
+                ubicacion_solicitud: 'Cubierta 1 - Sala de Emergencias Médicas',
+                equipo_afectado: equipo.replace('_', ' ').toUpperCase(),
+                tiempo_estimado: 4.0
+            };
+
+            if (window.universalTaskButton) {
+                window.universalTaskButton.createTask(taskData);
+            } else {
+                alert('Sistema de mantenimiento no disponible. Contacte soporte técnico.');
+            }
+        }
+
+        function programarMantenimiento(equipo) {
+            const taskData = {
+                titulo: `Mantenimiento preventivo: ${equipo} - Servicios Médicos`,
+                descripcion: `Revisión programada mensual de ${equipo}. Verificar funcionamiento, baterías y calibración.`,
+                tipo: 'preventivo',
+                prioridad: 'alta',
+                ubicacion_solicitud: 'Cubierta 1 - Área Médica',
+                equipo_afectado: equipo.charAt(0).toUpperCase() + equipo.slice(1),
+                tiempo_estimado: 2.0
+            };
+
+            if (window.universalTaskButton) {
+                window.universalTaskButton.createTask(taskData);
+            }
+        }
+
+        function crearTareaInspeccion(equipo) {
+            const taskData = {
+                titulo: `Inspección de seguridad: ${equipo} - Servicios Médicos`,
+                descripcion: `Inspección de seguridad y funcionamiento de ${equipo}. Verificar certificaciones y estado general.`,
+                tipo: 'inspeccion',
+                prioridad: 'media',
+                ubicacion_solicitud: 'Cubierta 1 - Área Médica',
+                equipo_afectado: equipo.charAt(0).toUpperCase() + equipo.slice(1),
+                tiempo_estimado: 1.5
+            };
+
+            if (window.universalTaskButton) {
+                window.universalTaskButton.createTask(taskData);
+            }
+        }
+
+        function emergenciaCritica() {
+            crearTareaCritica('sistema_completo_medico');
+        }
+
+        function reportarFallo() {
+            if (window.universalTaskButton) {
+                window.universalTaskButton.showTaskCreationModal();
+            }
+        }
+
+        function verHistorialMedico() {
+            window.open('/mantenimiento/tareas/?modulo_origen=servicios_medicos', '_blank');
+        }
+
+        // Actualizar contador de tareas con énfasis médico
+        function updateTaskCount() {
+            fetch('/api/tasks/count/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const countElement = document.getElementById('task-count');
+                        countElement.textContent = data.count;
+
+                        // Cambiar color si hay tareas críticas
+                        if (data.count > 0) {
+                            countElement.className = 'badge bg-danger float-end';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener conteo de tareas:', error);
+                });
+        }
+
+        // Actualizar más frecuentemente en módulo médico
+        setInterval(updateTaskCount, 10000); // Cada 10 segundos
+        updateTaskCount();
+
+        // Alerta especial para módulo médico
+        document.addEventListener('universalTaskButtonReady', function() {
+            console.log('🏥 Sistema de mantenimiento médico listo!');
+            console.log('⚕️ Equipos críticos monitorizados');
+
+            // Mostrar notificación especial
+            setTimeout(() => {
+                if (confirm('¿Desea reportar el fallo crítico del equipo de rayos X?')) {
+                    crearTareaCritica('rayos_x');
+                }
+            }, 2000);
+        });
+
+        // Verificar equipos críticos al cargar
+        window.addEventListener('load', function() {
+            console.log('🔴 Verificando equipos médicos críticos...');
+            // Simular verificación de equipos críticos
+            setTimeout(() => {
+                console.log('⚠️ ALERTA: Equipo de rayos X requiere atención inmediata');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

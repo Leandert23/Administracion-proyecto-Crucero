@@ -82,14 +82,22 @@
         </div>
         <div class="card-body">
           {% for asignacion in personal_asignado %}
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
             <div>
               <strong>{{ asignacion.personal.nombre }}</strong><br>
               <small class="text-muted">{{ asignacion.personal.get_rol_display }} - {{ asignacion.horas_asignadas }}h</small>
             </div>
-            <span class="badge badge-{% if asignacion.estado == 'asignado' %}warning{% else %}success{% endif %}">
-              {{ asignacion.get_estado_display }}
-            </span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge badge-{% if asignacion.estado == 'asignado' %}warning{% else %}success{% endif %}">
+                {{ asignacion.get_estado_display }}
+              </span>
+              <form method="post" action="{% url 'mantenimiento:tarea_eliminar_personal' tarea.pk asignacion.pk %}" style="display: inline;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar a {{ asignacion.personal.nombre }} de esta tarea?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar personal">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
           </div>
           {% empty %}
           <p class="text-muted">Sin personal asignado</p>

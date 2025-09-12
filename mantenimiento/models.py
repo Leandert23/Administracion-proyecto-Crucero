@@ -509,9 +509,13 @@ class TareaMantenimiento(models.Model):
         validators=[MinValueValidator(Decimal('0.5')), MaxValueValidator(Decimal('24'))]
     )
     tiempo_real_horas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    
+
     observaciones = models.TextField(blank=True)
-    
+
+    # Campos para rastrear origen de la tarea desde otros módulos
+    modulo_origen = models.CharField(max_length=50, blank=True, help_text="Módulo desde el cual se creó la tarea")
+    origen_url = models.URLField(blank=True, help_text="URL de origen de la tarea")
+
     def clean(self):
         # Ubicación coherente con equipo si se indica
         if self.equipo and self.ubicacion_id and self.equipo.ubicacion_id != self.ubicacion_id:

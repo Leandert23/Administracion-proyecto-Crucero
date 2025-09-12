@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Restaurante - Sistema de Crucero</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Estilos del botón universal -->
+    <link href="/static/css/universal_task_button.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar simulando el módulo de restaurante -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-utensils"></i> 🍽️ Módulo de Restaurante
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-text">restaurante</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h1><i class="fas fa-utensils text-danger"></i> Panel de Control - Restaurante</h1>
+
+                <div class="row mt-4">
+                    <!-- Card de ejemplo 1 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-refrigerator"></i> Equipos de Cocina
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Gestión de refrigeradores, hornos y equipos de cocina.</p>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Alerta:</strong> Refrigerador industrial presenta fallos de enfriamiento.
+                                </div>
+                                <button class="btn btn-danger" onclick="reportarProblema('refrigerador')">
+                                    <i class="fas fa-tools"></i> Reportar Problema
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card de ejemplo 2 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-wind"></i> Sistema de Ventilación
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Campanas extractoras y sistema de ventilación de cocinas.</p>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Información:</strong> Mantenimiento preventivo programado para mañana.
+                                </div>
+                                <button class="btn btn-danger" onclick="solicitarMantenimiento('campana')">
+                                    <i class="fas fa-calendar-plus"></i> Programar Mantenimiento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de equipos -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list"></i> Equipos del Restaurante</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Estado</th>
+                                    <th>Última Revisión</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Refrigerador Industrial Whirlpool</td>
+                                    <td><span class="badge bg-danger">Requiere Reparación</span></td>
+                                    <td>2024-09-01</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="crearTarea('refrigerador')">
+                                            <i class="fas fa-plus"></i> Crear Tarea
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Campana Extractora Industrial</td>
+                                    <td><span class="badge bg-warning">Mantenimiento Pendiente</span></td>
+                                    <td>2024-08-15</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="crearTarea('campana')">
+                                            <i class="fas fa-plus"></i> Crear Tarea
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Horno Industrial Convectivo</td>
+                                    <td><span class="badge bg-success">Operativo</span></td>
+                                    <td>2024-09-10</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary" disabled>
+                                            <i class="fas fa-check"></i> OK
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tachometer-alt"></i> Estado del Sistema
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Tareas Pendientes:</strong>
+                            <span class="badge bg-primary float-end" id="task-count">0</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Equipos Operativos:</strong>
+                            <span class="badge bg-success float-end">8/10</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Módulo Actual:</strong>
+                            <span class="badge bg-danger float-end">Restaurante</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones rápidas -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="fas fa-bolt"></i> Acciones Rápidas</h6>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-danger btn-sm w-100 mb-2" onclick="crearTareaRapida()">
+                            <i class="fas fa-plus-circle"></i> Crear Tarea de Mantenimiento
+                        </button>
+                        <button class="btn btn-outline-info btn-sm w-100 mb-2" onclick="verTareasPendientes()">
+                            <i class="fas fa-list-check"></i> Ver Tareas Pendientes
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm w-100" onclick="reportarIncidente()">
+                            <i class="fas fa-exclamation-triangle"></i> Reportar Incidente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Botón Universal de Tareas -->
+    <script src="/static/js/cruise_maintenance_button.js"></script>
+
+    <script>
+        // Funciones de ejemplo para interactuar con el botón universal
+        function crearTarea(equipo) {
+            const taskData = {
+                titulo: `Reparar ${equipo} en restaurante`,
+                descripcion: `El ${equipo} presenta problemas y requiere mantenimiento urgente.`,
+                tipo: 'correctivo',
+                prioridad: 'alta',
+                ubicacion_solicitud: 'Cubierta 3 - Cocina Principal',
+                equipo_afectado: equipo.charAt(0).toUpperCase() + equipo.slice(1),
+                tiempo_estimado: 2.5
+            };
+
+            // Usar el botón universal si está disponible
+            if (window.universalTaskButton) {
+                window.universalTaskButton.createTask(taskData);
+            } else {
+                alert('Botón universal no disponible. Cargando...');
+            }
+        }
+
+        function crearTareaRapida() {
+            if (window.universalTaskButton) {
+                window.universalTaskButton.showTaskCreationModal();
+            } else {
+                alert('Botón universal no está listo aún.');
+            }
+        }
+
+        function verTareasPendientes() {
+            window.open('/mantenimiento/tareas/', '_blank');
+        }
+
+        function reportarIncidente() {
+            alert('Función de reporte de incidentes - próximamente');
+        }
+
+        function reportarProblema(equipo) {
+            crearTarea(equipo);
+        }
+
+        function solicitarMantenimiento(equipo) {
+            crearTarea(equipo);
+        }
+
+        // Actualizar contador de tareas
+        function updateTaskCount() {
+            fetch('/api/tasks/count/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('task-count').textContent = data.count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener conteo de tareas:', error);
+                });
+        }
+
+        // Actualizar contador cada 30 segundos
+        setInterval(updateTaskCount, 30000);
+        updateTaskCount(); // Actualizar al cargar
+
+        // Mostrar mensaje cuando el botón universal esté listo
+        document.addEventListener('universalTaskButtonReady', function() {
+            console.log('🚀 Botón universal de tareas listo en módulo restaurante!');
+        });
+    </script>
+</body>
+</html>

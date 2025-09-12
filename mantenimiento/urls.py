@@ -1,13 +1,15 @@
 from django.urls import path
-from .views.dashboard import dashboard, dashboard_update_data
+from .views.dashboard import (
+    dashboard, dashboard_update_data, create_task_api, task_count_api
+)
 from .views.equipos import equipo_list, equipo_create, equipo_detail, equipo_update, equipo_delete
 from .views.tareas import (
     tarea_list, tarea_create, tarea_detail, tarea_update, tarea_delete,
-    tarea_asignar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_workflow,
+    tarea_asignar_personal, tarea_eliminar_personal, tarea_registrar_producto, tarea_cambiar_estado, tarea_workflow,
     tarea_crear_preventiva, tarea_crear_correctiva, tarea_finalizar, tarea_siguiente_estado
 )
 from .views.piscinas import (
-    piscina_list, piscina_create, piscina_detail, piscina_update, 
+    piscina_list, piscina_create, piscina_detail, piscina_update,
     piscina_trends, medicion_piscina_create, piscina_update_data
 )
 from .views.inventario import inventario_list, inventario_update, stock_bajo
@@ -26,6 +28,10 @@ urlpatterns = [
     # Dashboard principal
     path('', dashboard, name='dashboard'),
     path('api/dashboard-update/', dashboard_update_data, name='dashboard_update_data'),
+
+    # APIs para sistema universal de tareas
+    path('api/tasks/create/', create_task_api, name='create_task_api'),
+    path('api/tasks/count/', task_count_api, name='task_count_api'),
     
     # Gestión de ubicaciones
     path('ubicaciones/', ubicacion_list, name='ubicacion_list'),
@@ -62,6 +68,7 @@ urlpatterns = [
     path('tareas/<int:pk>/editar/', tarea_update, name='tarea_update'),
     path('tareas/<int:pk>/eliminar/', tarea_delete, name='tarea_delete'),
     path('tareas/<int:pk>/asignar-personal/', tarea_asignar_personal, name='tarea_asignar_personal'),
+    path('tareas/<int:pk>/eliminar-personal/<int:asignacion_id>/', tarea_eliminar_personal, name='tarea_eliminar_personal'),
     path('tareas/<int:pk>/registrar-producto/', tarea_registrar_producto, name='tarea_registrar_producto'),
     path('tareas/<int:pk>/cambiar-estado/', tarea_cambiar_estado, name='tarea_cambiar_estado'),
     path('tareas/<int:pk>/workflow/', tarea_workflow, name='tarea_workflow'),
