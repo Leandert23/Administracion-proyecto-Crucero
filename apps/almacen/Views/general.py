@@ -9,6 +9,7 @@ from apps.cruceros.models import Crucero, Instalacion
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
 from apps.almacen.models import SolicitudSalida
 from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
+from apps.almacen.Services.products import calcular_asignacion_lotes
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from datetime import timedelta
 
@@ -259,5 +260,33 @@ def entregar_solicitud(request):
             return JsonResponse({'success': False, 'error': 'error_interno', 'detalle': str(ex)}, status=500)
 
         return JsonResponse({'success': True, 'id': solicitud.id, 'estado': solicitud.estado})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_GET
+def entrega_preview(request, solicitud_id):
+    """Devuelve una previsualización de los lotes que se utilizarían para cumplir una solicitud.
+
+    Responde JSON con lista por producto y asignaciones por lote.
+    """
+    try:
+        solicitud = get_object_or_404(SolicitudSalida.objects.prefetch_related('productos_solicitados__producto'), pk=int(solicitud_id))
+        productos = []
+        for ps in solicitud.productos_solicitados.select_related('producto').all():
+            producto = ps.producto
+            cantidad = int(ps.cantidad or 0)
+            asignaciones, disponible_total = calcular_asignacion_lotes(producto.pk, cantidad)
+            productos.append({
+                'producto_id': producto.pk,
+                'nombre': producto.nombre,
+                'unidad': getattr(producto, 'get_medida_display', lambda: '')(),
+                'total_solicitado': cantidad,
+                'asignaciones': asignaciones,
+                'disponible_total': disponible_total,
+                'insuficiente': disponible_total < cantidad
+            })
+
+        return JsonResponse({'success': True, 'preview': productos})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

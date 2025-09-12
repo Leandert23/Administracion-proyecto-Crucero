@@ -317,11 +317,25 @@
         
         .titulo-modal {
             margin: 0;
-            font-size: 1.25rem;
+            font-size: 2rem;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: 0.2px;
         }
+.header-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05) inset;
+    margin-right: 12px;
+}
         
         .titulo-modal small {
             display: block;
@@ -329,6 +343,13 @@
             font-weight: 500;
             color: var(--text-secondary);
             margin-top: 4px;
+        }
+
+        /* Alinear icono y título en el header uno al lado del otro */
+        .contenido-encabezado {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         /* Estilo del subtítulo dentro del formulario (h3) */
@@ -606,6 +627,8 @@
             <button type="button" class="boton-cerrar-modal" data-cerrar-modal="true" aria-label="Cerrar solicitud">&times;</button>
             <div class="encabezado-modal">
                 <div class="contenido-encabezado">
+                    <!-- Icono para el modal (usa estilos .header-icon definidos en almacen.css) -->
+                    <div class="header-icon" aria-hidden="true"><i  class="fa-solid fa-clipboard-list" aria-hidden="true"></i></div>
                     <h2 class="titulo-modal">Solicitar Productos a Almacén</h2>
                 </div>
             </div>
@@ -653,7 +676,7 @@
                     <h3 style="margin-bottom:12px;">Solicitar producto</h3>
                     <div style="margin-bottom:12px;">
                         <label for="cantidadSolicitud">Cantidad:</label>
-                        <input type="number" min="1" id="cantidadSolicitud" name="cantidad" class="control-formulario" required style="width:200px; margin-left:8px;" />
+                        <input type="number" min="1" step="1" inputmode="numeric" id="cantidadSolicitud" name="cantidad" class="control-formulario" required style="width:200px; margin-left:8px;" />
                     </div>
                     <div style="margin-bottom:12px;">
                         <label for="descripcionSolicitudSingle">Descripción (opcional):</label>
@@ -686,7 +709,7 @@
                 <form id="formularioSolicitudModal" class="formulario-solicitud">
                     <div class="grupo-formulario">
                         <label for="cantidadSolicitudModal" class="etiqueta-formulario">Cantidad:</label>
-                        <input type="number" min="1" id="cantidadSolicitudModal" name="cantidad" class="entrada-formulario" required />
+                        <input type="number" min="1" step="1" inputmode="numeric" id="cantidadSolicitudModal" name="cantidad" class="entrada-formulario" required />
                     </div>
                     <div class="grupo-formulario">
                         <label for="descripcionSolicitudModal" class="etiqueta-formulario">Descripción (opcional):</label>
@@ -772,6 +795,16 @@ const Utilidades = {
         if (busqueda) params.set('busqueda', busqueda);
         if (pagina) params.set('page', pagina);
         return params;
+    }
+    ,
+    validarCantidadEntera(valor) {
+        // Acepta número o string; rechaza decimales, negativos y 0; devuelve entero >=1 o null si inválido
+        if (valor === null || valor === undefined || valor === '') return null;
+        const n = Number(valor);
+        if (!Number.isFinite(n)) return null;
+        const entero = Math.trunc(n);
+        if (entero < 1) return null;
+        return entero;
     }
 };
 
@@ -959,11 +992,46 @@ const InterfazSolicitud = {
     agregarSeleccion(item) {
         if (!item || !item.id) return;
         const lista = this._obtenerListaSeleccionados();
+        // intentar detectar stock actual desde la fila del producto si está presente en el DOM
+        let stockDetectado = null;
+        try {
+            const selectors = [
+                `tr[data-id="${item.id}"]`,
+                `tr[data-producto-id="${item.id}"]`,
+                `[data-id="${item.id}"]`,
+                `[data-producto-id="${item.id}"]`,
+                `#producto-${item.id}`
+            ];
+            let fila = null;
+            for (const s of selectors) {
+                fila = document.querySelector(s);
+                if (fila) break;
+            }
+            if (fila) {
+                // Priorizar dataset.stock
+                if (fila.dataset && fila.dataset.stock != null && fila.dataset.stock !== '') {
+                    stockDetectado = parseInt(String(fila.dataset.stock).replace(/[^0-9\-]/g, ''), 10);
+                } else {
+                    // buscar columnas que puedan contener la cantidad/stock
+                    const posibles = fila.querySelectorAll('.stock, .cantidad, .cantidad-actual, td[data-stock]');
+                    if (posibles && posibles.length) {
+                        for (const p of posibles) {
+                            const txt = (p.dataset && p.dataset.stock) ? p.dataset.stock : (p.textContent || p.innerText || '');
+                            const n = parseInt(String(txt).replace(/[^0-9\-]/g, ''), 10);
+                            if (!isNaN(n)) { stockDetectado = n; break; }
+                        }
+                    }
+                }
+            }
+        } catch (e) { stockDetectado = null; }
+
         const existente = lista.find(i => String(i.id) === String(item.id));
         if (existente) {
             existente.cantidad = (parseInt(existente.cantidad,10) || 0) + (parseInt(item.cantidad,10) || 0);
+            // actualizar stock si hemos detectado uno nuevo
+            if (stockDetectado != null) existente.stock = stockDetectado;
         } else {
-            lista.push({id: item.id, nombre: item.nombre || '', cantidad: parseInt(item.cantidad,10) || 1});
+            lista.push({id: item.id, nombre: item.nombre || '', cantidad: parseInt(item.cantidad,10) || 1, stock: (stockDetectado != null ? stockDetectado : null)});
         }
         this._guardarListaSeleccionados(lista);
         this._renderizarSeleccionados();
@@ -980,7 +1048,12 @@ const InterfazSolicitud = {
         const lista = this._obtenerListaSeleccionados();
         const it = lista.find(i => String(i.id) === String(productoId));
         if (it) {
-            it.cantidad = Math.max(1, parseInt(cantidad,10) || 1);
+            // Normalizar: eliminar decimales y valores negativos, mínimo 1
+            let n = Number(cantidad);
+            if (!Number.isFinite(n)) n = parseInt(cantidad,10) || 1;
+            n = Math.trunc(n);
+            if (isNaN(n) || n < 1) n = 1;
+            it.cantidad = n;
             this._guardarListaSeleccionados(lista);
             this._renderizarSeleccionados();
         }
@@ -1025,22 +1098,37 @@ const InterfazSolicitud = {
             cont.appendChild(div);
         });
 
-        // footer con total y acción rápida
+        // footer con total (sin botones duplicados)
         const footer = document.createElement('div');
         footer.className = 'seleccion-footer';
         footer.innerHTML = `
             <div class="total">Total unidades: <span id="totalUnidades">${total}</span></div>
-            <div class="acciones">
-                <button id="botonEnviarSolicitudFooter" class="boton boton-primario">Solicitar</button>
-                <button id="botonLimpiarSeleccionFooter" class="boton boton-secundario">Limpiar</button>
-            </div>
         `;
         cont.appendChild(footer);
 
-        // eventos para inputs y botones
+        // eventos para inputs: sanitizar en input y change
         cont.querySelectorAll('.input-cantidad').forEach(inp => {
+            // prevenir decimales/negativos mientras se escribe
+            inp.addEventListener('input', (e) => {
+                const raw = e.target.value;
+                // eliminar caracteres no numéricos excepto signo y punto
+                let cleaned = String(raw).replace(/[^0-9.-]/g, '');
+                // eliminar decimales truncando en el primer punto
+                if (cleaned.indexOf('.') !== -1) cleaned = cleaned.split('.')[0];
+                // eliminar signos negativos
+                cleaned = cleaned.replace(/-/g, '');
+                if (cleaned === '') cleaned = '1';
+                e.target.value = cleaned;
+            });
             inp.addEventListener('change', (e) => {
                 const id = e.target.dataset.producto;
+                // validar y forzar entero >=1
+                const valid = Utilidades.validarCantidadEntera(e.target.value);
+                if (valid === null) {
+                    e.target.value = '1';
+                } else {
+                    e.target.value = String(valid);
+                }
                 this.actualizarCantidad(id, e.target.value);
                 // actualizar total
                 const tot = cont.querySelectorAll('.input-cantidad');
@@ -1054,12 +1142,7 @@ const InterfazSolicitud = {
                 this.quitarSeleccion(id);
             });
         });
-
-        // footer buttons
-        const btnF = document.getElementById('botonEnviarSolicitudFooter');
-        if (btnF) btnF.addEventListener('click', (e) => { e.preventDefault(); this.enviarSolicitudSeleccionada(); });
-        const btnL = document.getElementById('botonLimpiarSeleccionFooter');
-        if (btnL) btnL.addEventListener('click', (e) => { e.preventDefault(); this.limpiarSeleccion(); });
+        
     },
 
     limpiarSeleccion() {
@@ -1071,6 +1154,62 @@ const InterfazSolicitud = {
         const lista = this._obtenerListaSeleccionados();
         if (!lista.length) {
             Utilidades.mostrarError(document.querySelector(SELECTORES.RETRO_FEED), 'No hay productos seleccionados.');
+            return;
+        }
+        // Sincronizar cantidades desde los inputs visibles (por si usuario no hizo blur)
+        try {
+            const inputs = document.querySelectorAll(`${SELECTORES.LISTA_SELECCIONADOS} .input-cantidad`);
+            inputs.forEach(inp => {
+                const id = inp.dataset.producto;
+                const listaItem = lista.find(i => String(i.id) === String(id));
+                if (listaItem) {
+                    // aplicar la misma normalización usada en change
+                    const valid = Utilidades.validarCantidadEntera(inp.value);
+                    if (valid === null) {
+                        // dejar el valor tal cual para que la validación global lo detecte
+                        listaItem.cantidad = inp.value;
+                    } else {
+                        listaItem.cantidad = valid;
+                        inp.value = String(valid);
+                    }
+                }
+            });
+        } catch (e) { /* ignore */ }
+
+        // Validar cantidades: enteras >=1
+        const invalidos = [];
+        lista.forEach(item => {
+            const valid = Utilidades.validarCantidadEntera(item.cantidad);
+            if (valid === null) invalidos.push({id: item.id, nombre: item.nombre || ('#'+item.id), valor: item.cantidad});
+            else item.cantidad = valid; // normalizar
+        });
+        if (invalidos.length) {
+            let msg = 'Corrige las cantidades de los siguientes productos (deben ser enteros >= 1):\n\n';
+            invalidos.forEach(i => msg += `- ${i.nombre} (ID:${i.id}): "${i.valor}"\n`);
+            window.alert(msg);
+            Utilidades.mostrarError(document.querySelector(SELECTORES.RETRO_FEED), 'Hay cantidades inválidas en la selección.');
+            this._guardarListaSeleccionados(lista); this._renderizarSeleccionados();
+            return;
+        }
+        // Verificar cantidades solicitadas contra stock conocido
+        const excedidos = [];
+        lista.forEach(item => {
+            const qty = parseInt(item.cantidad || 0, 10) || 0;
+            const stock = (item.stock != null) ? (parseInt(item.stock || 0, 10) || 0) : null;
+            if (stock != null && qty > stock) {
+                excedidos.push({id: item.id, nombre: item.nombre || ('#'+item.id), solicitado: qty, disponible: stock});
+            }
+        });
+        if (excedidos.length) {
+            // Construir mensaje legible y mostrar alert; no continuar con el envío
+            let mensaje = 'No se puede enviar la solicitud porque la cantidad solicitada supera el stock disponible:\n\n';
+            excedidos.forEach(it => {
+                mensaje += `- ${it.nombre} (ID: ${it.id}): solicitado ${it.solicitado}, disponible ${it.disponible}\n`;
+            });
+            // mostrar alert para que el usuario corrija cantidades
+            window.alert(mensaje);
+            // también mostrar en la retroalimentación
+            Utilidades.mostrarError(document.querySelector(SELECTORES.RETRO_FEED), 'Hay productos con cantidad mayor al stock disponible.');
             return;
         }
         const descripcion = document.querySelector(SELECTORES.DESCRIPCION) ? document.querySelector(SELECTORES.DESCRIPCION).value : '';
@@ -1108,6 +1247,18 @@ const InterfazSolicitud = {
         Utilidades.limpiarRetroalimentacion(document.querySelector(SELECTORES.RETROALIMENTACION_MODAL));
         
         try {
+            // Validar cantidad del formulario (evitar decimales/negativos)
+            const campoCantidad = formulario.querySelector('input[name="cantidad"]');
+            if (campoCantidad) {
+                const valid = Utilidades.validarCantidadEntera(campoCantidad.value);
+                if (valid === null) {
+                    const msg = 'La cantidad debe ser un número entero mayor o igual a 1.';
+                    window.alert(msg);
+                    Utilidades.mostrarError(document.querySelector(SELECTORES.RETROALIMENTACION_MODAL), msg);
+                    return;
+                }
+                campoCantidad.value = String(valid);
+            }
             const datosFormulario = new FormData(formulario);
             const resultado = await ApiService.enviarSolicitud(datosFormulario);
             

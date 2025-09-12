@@ -52,7 +52,11 @@ Accesibilidad:
             <td>{% if producto.seccion %}{{ producto.seccion.nombre }}{% else %}-{% endif %}</td>
             <td>
                 {% with estado=producto.estado %}
-                {% if estado == 'BAJO' %}
+                {% if estado == 'NO HAY STOCK' %}
+                <span class="stock-badge stock-none">Sin stock</span>
+                {% elif estado == 'CRITICO' %}
+                <span class="stock-badge stock-critical">Crítico</span>
+                {% elif estado == 'BAJO' %}
                 <span class="stock-badge stock-low">Bajo</span>
                 {% elif estado == 'MEDIO' %}
                 <span class="stock-badge stock-medium">Medio</span>

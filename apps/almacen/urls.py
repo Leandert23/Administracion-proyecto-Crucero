@@ -29,5 +29,6 @@ urlpatterns = [
     path("solicitudes/aceptar/", general.aceptar_solicitud, name="solicitud_aceptar"),
     path("solicitudes/rechazar/", general.rechazar_solicitud, name="solicitud_rechazar"),
     path("solicitudes/aprobadas/", general.obtener_solicitudes_aprobadas, name="solicitudes_aprobadas"),
+    path("solicitudes/entrega_preview/<int:solicitud_id>/", general.entrega_preview, name="solicitudes_entrega_preview"),
     path("solicitudes/entregar/", general.entregar_solicitud, name="solicitudes_entregar"),
 ]

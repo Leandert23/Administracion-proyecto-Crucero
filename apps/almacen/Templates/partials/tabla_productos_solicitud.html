@@ -4,15 +4,17 @@
             <th>Nombre</th>
             <th>Tipo</th>
             <th>Stock</th>
+            <th>Medida</th>
             <th>Acción</th>
         </tr>
     </thead>
     <tbody>
     {% for producto in page.object_list %}
-        <tr>
+        <tr data-id="{{ producto.id }}" data-stock="{{ producto.cantidad }}">
             <td>{{ producto.nombre }}</td>
             <td>{{ producto.get_tipo_display }}</td>
-            <td>{{ producto.cantidad }}</td>
+            <td class="stock-value">{{ producto.cantidad }}</td>
+            <td class="stock-value">{{ producto.get_medida_display }}</td>
             <td>
                 <button type="button" class="btn btn-primary btn-solicitar-producto" data-id="{{ producto.id }}" data-nombre="{{ producto.nombre }}">Solicitar</button>
             </td>

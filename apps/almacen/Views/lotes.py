@@ -182,7 +182,7 @@ def registrar_lote(request):
 def registrar_salida(request):
     producto_id = request.POST.get('producto')
     cantidad_cruda = request.POST.get('cantidad_productos', '')
-    modulo_entrada = (request.POST.get('modulo_entrega') or '').strip()
+    modulo_entrada = (request.POST.get('modulo_entrega') or request.POST.get('modulo') or '').strip()
     descripcion = (request.POST.get('descripcion') or '').strip()
     
     if not producto_id:
@@ -217,49 +217,21 @@ def registrar_salida(request):
             'mensaje': 'La cantidad debe ser mayor a 0.'
         }, status=400)
     
+    # Mapear modulo a opciones conocidas; por defecto 'ALMACEN'
     modulo_lookup = {opcion[0].lower(): opcion[0] for opcion in MovimientoAlmacen.TIPO_MODULO}
-    modulo = modulo_lookup.get(modulo_entrada.lower(), 'COMPRAS')
-    
-    stock_actual = producto.cantidad
-    if stock_actual < cantidad:
-        return JsonResponse({
-            'success': False,
-            'error': 'stock_insuficiente',
-            'mensaje': 'Stock insuficiente para realizar la salida.',
-            'detalle': f'Disponible {stock_actual}, solicitado {cantidad}'
-        }, status=409)
-    
-    tiene_lotes_con_fecha = producto.lotes.filter(
-        cantidad_productos__gt=0, 
-        fecha_caducidad__isnull=False
-    ).exists()
-    
-    metodo = 'FEFO' if tiene_lotes_con_fecha else 'FIFO'
-    
+    modulo = modulo_lookup.get(modulo_entrada.lower(), 'ALMACEN')
+
+    # En lugar de retirar stock inmediatamente, creamos una SolicitudSalida
     try:
-        if metodo == 'FEFO':
-            retirar_producto_fefo(producto.pk, cantidad, modulo, descripcion=descripcion)
-        else:
-            retirar_producto_fifo(producto.pk, cantidad, modulo, descripcion=descripcion)
-        
-        return JsonResponse({
-            'success': True, 
-            'producto_id': producto.pk, 
-            'retirado': cantidad, 
-            'metodo': metodo
-        })
-        
-    except ValueError as error:
-        return JsonResponse({
-            'success': False,
-            'error': 'operacion_invalida',
-            'mensaje': str(error)
-        }, status=400)
-        
+        with transaction.atomic():
+            solicitud = SolicitudSalida.objects.create(descripcion=descripcion, modulo=modulo)
+            ProductoSolicitado.objects.create(
+                solicitud=solicitud,
+                producto=producto,
+                cantidad=cantidad,
+                unidad=producto.medida or 'U'
+            )
+
+        return JsonResponse({'success': True, 'solicitud_id': solicitud.id, 'items_creados': 1})
     except Exception as error:
-        return JsonResponse({
-            'success': False,
-            'error': 'error_interno',
-            'mensaje': 'Error inesperado al registrar la salida.',
-            'detalle': str(error)
-        }, status=500)
+        return JsonResponse({'success': False, 'error': 'error_interno', 'mensaje': 'Error al crear la solicitud', 'detalle': str(error)}, status=500)

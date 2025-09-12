@@ -18,6 +18,22 @@
 .msa-small { font-size:0.9rem; color:#475569; }
 /* ensure no horizontal scroll */
 .msa-dialog, .msa-body { overflow-x: hidden; }
+
+/* Preview modal: prevent horizontal scrollbar and make tables wrap */
+#modalPreviewLotes .msa-body { overflow-x: hidden; }
+#modalPreviewLotes .msa-body table { width:100%; table-layout: fixed; border-collapse: collapse; }
+#modalPreviewLotes .msa-body th, #modalPreviewLotes .msa-body td {
+    white-space: normal;      /* allow wrapping */
+    word-break: break-word;   /* break long words */
+    overflow-wrap: anywhere;  /* better wrapping for long strings */
+}
+
+/* Stronger rules to prevent any horizontal overflow */
+#modalPreviewLotes, #modalPreviewLotes .msa-dialog, #modalPreviewLotes .msa-body { overflow-x: hidden !important; }
+#modalPreviewLotes .msa-dialog { box-sizing: border-box; max-width: calc(100vw - 40px); }
+#modalPreviewLotes .msa-body { padding-left:8px; padding-right:8px; }
+#modalPreviewLotes .msa-body table { margin:0; }
+#modalPreviewLotes .msa-body th, #modalPreviewLotes .msa-body td { min-width: 0; }
 </style>
 
 <!-- Modal: listado de solicitudes APROBADAS para entrega -->
@@ -58,7 +74,7 @@
 <!-- Modal detalle reutilizable (usa el mismo endpoint de detalle existente) -->
 <div id="modalDetalleEntrega" class="modal-solicitudes-aprobadas" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
     <div class="msa-overlay" data-close-detalle-entrega="true"></div>
-    <div class="msa-dialog" role="document" style="max-width:900px; height:70vh;">
+    <div class="msa-dialog" role="document" style="max-width:900px; height:70vh; overflow-x:hidden;">
         <div class="msa-header">
             <div class="msa-title">Detalle de Solicitud</div>
             <div>
@@ -79,6 +95,20 @@
 function getCruceroIdFromPage(){
     const root = document.getElementById('almacen-root');
     return root ? root.dataset.cruceroId : null;
+}
+
+// Obtener CSRF token de cookie (robusto)
+function getCSRFToken(){
+    try{
+        const name = 'csrftoken=';
+        const decoded = decodeURIComponent(document.cookie || '');
+        const parts = decoded.split(';');
+        for(let p of parts){
+            p = p.trim();
+            if(p.startsWith(name)) return p.substring(name.length);
+        }
+    }catch(e){}
+    return '';
 }
 
 // Open/close modal
@@ -122,8 +152,8 @@ document.addEventListener('click', function(e){
     if(action === 'ver'){
         mostrarDetalleAprobada(id);
     } else if(action === 'entregar'){
-        if(!confirm('¿Confirmar entrega de esta solicitud?')) return;
-        entregarSolicitud(id);
+    // Abrir preview de lotes en lugar de entrega directa
+    try{ mostrarPreviewLotes(id); } catch(e) { /* fallback a entrega directa */ entregarSolicitud(id); }
     }
 });
 
@@ -161,13 +191,131 @@ function mostrarDetalleAprobada(id){
 }
 
 function entregarSolicitud(id){
-    const csrftoken = (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)') || [])[2] || '';
+    const csrftoken = getCSRFToken();
     fetch('/almacen/solicitudes/entregar/', {
         method: 'POST', headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken}, body: JSON.stringify({id: id})
-    }).then(r => r.json()).then(data => {
-        if(data && data.success){ cargarSolicitudesAprobadas(); alert('Entrega registrada'); }
-        else alert('No fue posible registrar la entrega: ' + (data && data.error? data.error : 'error'));
-    }).catch(err => { console.error('Error entregar', err); alert('Error al registrar entrega'); });
+    }).then(r => {
+        if(!r.ok) return r.text().then(text => { throw { status: r.status, text }; });
+        return r.json();
+    }).then(data => {
+        if(data && data.success){
+            cargarSolicitudesAprobadas();
+            // refrescar historial de movimientos si el gestor está disponible
+            try {
+                if (window.GestorHistorial && typeof window.GestorHistorial.cargarPagina === 'function') {
+                    setTimeout(() => { try { window.GestorHistorial.cargarPagina(window.GestorHistorial.paginaActual || 1); } catch(e){} }, 220);
+                }
+            } catch(e) {}
+            alert('Entrega registrada');
+        } else alert('No fue posible registrar la entrega: ' + (data && data.error? data.error : 'error'));
+    }).catch(err => {
+        console.error('Error entregar', err);
+        if(err && err.status === 403){
+            // probable problema CSRF
+            console.error('Server returned HTML:', err.text);
+            alert('Error CSRF o de permisos al registrar la entrega. Refresca la página e inténtalo de nuevo.');
+        } else if(err && err.text){
+            alert('Error del servidor: revisa la consola para más detalles.');
+        } else {
+            alert('Error al registrar entrega');
+        }
+    });
 }
 
+</script>
+
+<!-- Modal preview de lotes antes de confirmar entrega -->
+<div id="modalPreviewLotes" class="modal-solicitudes-aprobadas" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="msa-overlay" data-close-preview="true"></div>
+    <div class="msa-dialog" role="document" style="max-width:900px; height:70vh;">
+        <div class="msa-header">
+            <div class="msa-title">Vista previa de lotes - Entrega</div>
+            <div><button type="button" class="msa-btn" data-close-preview="true">✕</button></div>
+        </div>
+    <div class="msa-body" style="background:#fff; overflow-y:auto; overflow-x:hidden;">
+            <div id="previewLotesContenido">Cargando...</div>
+        </div>
+        <div class="msa-footer">
+            <button type="button" class="msa-btn" data-close-preview="true">Cancelar</button>
+            <button type="button" class="msa-btn msa-deliver" id="confirmarEntregaBtn">Confirmar entrega</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar preview: fetch al endpoint y renderizar tabla agrupada por producto
+function mostrarPreviewLotes(solicitudId){
+    const modal = document.getElementById('modalPreviewLotes');
+    const contenido = document.getElementById('previewLotesContenido');
+    if(!modal || !contenido) return;
+    contenido.innerHTML = '<div style="padding:12px;">Cargando asignaciones...</div>';
+    modal.style.display = ''; modal.classList.add('active'); modal.setAttribute('aria-hidden','false');
+
+    fetch(`/almacen/solicitudes/entrega_preview/${solicitudId}/`)
+        .then(r => r.ok ? r.json() : r.text().then(t => Promise.reject(t)))
+        .then(data => {
+            if(!data || !data.success){ contenido.innerHTML = '<div style="color:#b91c1c;padding:12px;">No se pudo obtener la previsualización.</div>'; return; }
+            const items = data.preview || [];
+            if(items.length === 0){ contenido.innerHTML = '<div style="padding:12px;">Sin productos en esta solicitud.</div>'; return; }
+
+            let html = '<div style="padding:8px 12px;"><small class="msa-small">Asignación sugerida por lote (basada en disponibilidad actual). La entrega final puede fallar si el stock cambia.</small></div>';
+            html += '<div style="padding:8px 12px;">';
+            items.forEach(prod => {
+                html += `<h4 style="margin:8px 0 4px 0;">${prod.nombre} — solicitado: ${prod.total_solicitado} ${prod.unidad || ''} ${prod.insuficiente?'<span style="color:#b91c1c;">(Insuficiente)</span>':''}</h4>`;
+                html += '<table style="width:100%;border-collapse:collapse;margin-bottom:12px"><thead><tr><th style="text-align:left;padding:6px">Lote</th><th style="text-align:left;padding:6px">Cantidad</th><th style="text-align:left;padding:6px">Ubicación</th></tr></thead><tbody>';
+                (prod.asignaciones||[]).forEach(a => {
+                    html += `<tr><td style="padding:6px">${a.numero_lote || a.lote_id}</td><td style="padding:6px">${a.cantidad}</td><td style="padding:6px">${a.ubicacion || ''}</td></tr>`;
+                });
+                html += '</tbody></table>';
+            });
+            html += '</div>';
+            contenido.innerHTML = html;
+
+            // Wire confirmar button to call entregar with the solicitud id
+            const btn = document.getElementById('confirmarEntregaBtn');
+            btn.dataset.solicitudId = solicitudId;
+        }).catch(err => {
+            console.error('error preview', err);
+            contenido.innerHTML = '<div style="color:#b91c1c;padding:12px;">Error al obtener la previsualización.</div>';
+        });
+}
+
+// Delegated click for preview confirm and close
+document.addEventListener('click', function(e){
+    const t = e.target;
+    if(t && (t.dataset && (t.dataset.closePreview === 'true' || t.getAttribute('data-close-preview') === 'true'))){
+        const md = document.getElementById('modalPreviewLotes'); if(md){ md.classList.remove('active'); md.style.display='none'; md.setAttribute('aria-hidden','true'); }
+    }
+    if(t && t.id === 'confirmarEntregaBtn'){
+        const sid = t.dataset.solicitudId;
+        if(!sid) return alert('Solicitud no identificada');
+        // Deshabilitar mientras se procesa
+        t.disabled = true; t.textContent = 'Procesando...';
+        const csrftoken = getCSRFToken();
+        fetch('/almacen/solicitudes/entregar/', { method: 'POST', headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken}, body: JSON.stringify({id: sid}) })
+            .then(r => {
+                if(!r.ok) return r.text().then(text => { throw { status: r.status, text }; });
+                return r.json();
+            })
+            .then(data => {
+                t.disabled = false; t.textContent = 'Confirmar entrega';
+                const md = document.getElementById('modalPreviewLotes'); if(md){ md.classList.remove('active'); md.style.display='none'; md.setAttribute('aria-hidden','true'); }
+                if(data && data.success){
+                    cargarSolicitudesAprobadas();
+                    try { if (window.GestorHistorial && typeof window.GestorHistorial.cargarPagina === 'function') setTimeout(()=>{ try{ window.GestorHistorial.cargarPagina(window.GestorHistorial.paginaActual||1) }catch(e){} },220); } catch(e){}
+                    alert('Entrega registrada');
+                } else {
+                    alert('No fue posible registrar la entrega: ' + (data && data.error? data.error : 'error'));
+                }
+            }).catch(err => {
+                t.disabled = false; t.textContent = 'Confirmar entrega'; console.error('Error entregar', err);
+                if(err && err.status === 403){ console.error('Server returned HTML:', err.text); alert('Error CSRF o de permisos al registrar la entrega. Refresca la página e inténtalo de nuevo.'); }
+                else if(err && err.text){ alert('Error del servidor: revisa la consola para más detalles.'); }
+                else { alert('Error al registrar entrega'); }
+            });
+    }
+});
+
+// Intercept original entregar flow in the main modal: open preview instead
+// (removed duplicate interceptor)
 </script>

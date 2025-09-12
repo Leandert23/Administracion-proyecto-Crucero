@@ -28,6 +28,7 @@
                         <span></span>
                         <span></span>
                     </button>
+                    <!-- Icono de quickcard Solicitud Almacén en el header -->
                     <h1 class="page-title">Almacén</h1>
                     <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
                 </div>
@@ -145,7 +146,13 @@
         window.abrirModalSolicitudAlmacen = function(){
             try{
                 var modal = document.getElementById('modalSolicitudAlmacen');
-                if(modal) modal.style.display = '';
+                if(modal) {
+                    // usar la clase 'active' como en el modal original para mostrarlo
+                    modal.classList.add('active');
+                    // intentar enfocar el input de búsqueda si existe
+                    var input = modal.querySelector('#inputBusquedaProductos');
+                    if(input) input.focus();
+                }
                 // intentar usar la interfaz del modal si está disponible
                 if(window.InterfazSolicitud && typeof InterfazSolicitud.reiniciarEstado === 'function'){
                     InterfazSolicitud.reiniciarEstado();
