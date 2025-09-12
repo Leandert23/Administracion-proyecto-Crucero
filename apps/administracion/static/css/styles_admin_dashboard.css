@@ -197,6 +197,7 @@ body {
   align-items:flex-start;
 }
 .sidebar {
+    width: 280px;
     background: #1e293b;
     color: white;
     display: flex;
@@ -272,6 +273,12 @@ body {
     color: white;
 }
 
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 .nav-item {
     margin: 4px 0;
 }
@@ -301,33 +308,16 @@ body {
     align-items: center;
     gap: 12px;
     padding: 12px 20px;
-    background: #fff;
     color: #cbd5e1;
     text-decoration: none;
+    transition: all 0.3s ease, color 0.4s ease;
     border-radius: 0 8px 8px 0;
-    border: 1px solid #e2e8f0;
     margin-right: 12px;
-    max-width:700px;
-    text-align:center; 
-    border-radius:18px; 
-    padding:24px; 
-    width:100%;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.1);;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-link:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 50px rgba(0,0,0,0.15);
-}
-
-.nav-link:hover .nav-text {
-    color: white;
-}
-
-.nav-item.active .nav-link {
-    background: #3b82f6;
-    color: white;
 }
 
 .nav-icon {
@@ -340,7 +330,6 @@ body {
 .nav-text {
     font-weight: 500;
     font-size: 14px;
-    transition: color 0.4s ease;
 }
 
 .purchase-request-card {
@@ -413,3 +402,26 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
+
+.btn-primary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:linear-gradient(90deg,#3b82f6,#6366f1);
+  color:#fff;
+  border: none;
+  border-radius: 10px;
+  width: 150px;
+  height: 75px;
+  box-shadow:0 2px 6px -1px rgba(59,130,246,.4),0 1px 2px rgba(0,0,0,.08);
+  transition:filter .25s,box-shadow .25s;
+}
+
+.btn-primary:hover {
+  filter:brightness(1.05);
+  box-shadow:0 4px 12px -2px rgba(59,130,246,.45),0 2px 4px rgba(0,0,0,.08);
+} 
+
+.btn-primary:active {
+  filter:brightness(.95);
+} 

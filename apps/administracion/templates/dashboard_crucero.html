@@ -13,17 +13,157 @@
 </head>
 <body>
 {% block content %}
-  <div class="row g-3">
-    <div class="col-12">
-      <div id="dashboard"></div>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+        <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
+        <span class="logo-text">Panel de Control</span>
+      </div>
     </div>
+            
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/" class="nav-link">
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <!---->
+        {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
+        {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
+        <li class="nav-item">
+          <a href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}" class="nav-link">
+            <span class="nav-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+            <span class="nav-text">Entretenimiento</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Ventas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
+            <span class="nav-text">Reservas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Restaurante</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Bares</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
+            <span class="nav-text">Compras</span>
+          </a>
+        </li>
+        <li class="nav-item active">
+          <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
+            <span class="nav-text">Almacen</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Recursos Humanos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Servicios Medicos</span>
+        </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Mantenimiento</span>
+          </a>
+        </li>
+        {% else %}
+        {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Entretenimiento</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Ventas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Reservas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Restaurante</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Bares</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Compras</span>
+          </a>
+        </li>
+        <li class="nav-item active">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Almacen</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Recursos Humanos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Servicios Medicos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Mantenimiento</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav> 
+  </aside>
+
+  <div class="row g-3" style="padding-bottom: 30px;">
+    <div id="dashboard"></div>
   </div>
-  <div class="row g-3 mt-1">
-    <div class="col-12">
-      <div id="purchaseRequests"></div>
+  <div class="row g-3 mt-1" style="padding-bottom: 30px;">
+    <div id="purchaseRequests"></div>
+  </div>
+  
+  <!-- Botón para ver solicitudes de salida -->
+  <div style="padding-bottom: 30px;">
+    <div class="dashboard-box" >
+      <h2 class="dashboard-title" style="text-align: center;">Solicitudes de Salida</h5>
+      <p>Gestiona las solicitudes de salida de productos del almacén</p>
+      <button type="button" class="btn-primary" onclick="abrirListadoSolicitudesAlmacen()">
+        <i class="fas fa-list"></i> Ver Solicitudes de Salida
+      </button>
     </div>
   </div>
 {% endblock %}
+
+<!-- Modal para solicitudes de salida -->
+{% include 'Modals/modal_listado_solicitudes.html' %}
 
 {% block extra_js %}
   {{ ships|json_script:"ship-data" }}
@@ -62,7 +202,7 @@
       };
       window.ships = [normalizedShip];
       window.purchaseRequests = Array.isArray(prList) ? prList : [];
-      
+
       if (typeof renderSingleShip === 'function') {
         try { renderSingleShip(Number(shipObj.id || 0)); } catch (e) { /* noop */ }
       }
@@ -70,6 +210,21 @@
         try { renderPurchaseRequests(); } catch (e) { /* noop */ }
       }
     })();
+    
+    // Función para abrir el modal de solicitudes de salida
+    window.abrirListadoSolicitudesAlmacen = function(){
+      const el = document.getElementById('modalListadoSolicitudes');
+      if (!el) {
+        console.error('Modal de solicitudes no encontrado');
+        return;
+      }
+      el.classList.add('active');
+      el.setAttribute('aria-hidden', 'false');
+      // Cargar las solicitudes si la función existe
+      if (typeof cargarListadoSolicitudes === 'function') {
+        cargarListadoSolicitudes(1);
+      }
+    };
   </script>
 {% endblock %}
 </body>

@@ -22,6 +22,16 @@ class Dashboard(models.Model):
     num_empleados_actual = models.PositiveIntegerField() #Recursos humanos
     
     '''''''''
+    
+    background: #fff;
+    border-radius: 0 8px 8px 0;
+    border: 1px solid #e2e8f0;
+
+    <li class="nav-item">
+          <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+            <span class="nav-text">Gestión Crucero</span>
+          </a>
+        </li>
     # Agregar método para calcular presupuesto
     @property
     def presupuesto_estimado(self, pasajeros=None, empleados=None, dias=None, distancia=None):
