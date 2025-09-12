@@ -13,7 +13,14 @@
     <!-- Filtros retirados: día activo se define globalmente -->
 
     <div class="consumption-header">
-        <div class="spacer"></div>
+        <div class="consumption-filters">
+            <select id="restaurantFilter" class="filter-select">
+                <option value="all">Todos los restaurantes</option>
+                <option value="buffet">Buffet</option>
+                <option value="main">Main Dining Room</option>
+                <option value="especial">Especialidades</option>
+            </select>
+        </div>
         <button id="registerConsumptions" class="btn btn-primary compact">
             <i class="fas fa-check"></i> Registrar consumos
         </button>
@@ -45,7 +52,7 @@
 .menu-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e9f2fb}
 .menu-title{margin:0;font-size:1.05rem;font-weight:700}
 .dish-list{display:flex;flex-direction:column}
-.dish-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px dashed #eef6fb}
+.dish-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px dashed #eef6fb;position:relative}
 .dish-row:first-child{border-top:0}
 .dish-name{font-weight:600;color:#0f172a}
 .dish-meta{color:#64748b;font-size:.9rem}
@@ -59,6 +66,16 @@
 .chip.success{background:#dcfce7;border-color:#bbf7d0}
 .extras-actions{display:flex;gap:8px;margin-top:8px}
 .extras-actions .btn{padding:6px 10px;border-radius:8px}
+.custom-orders{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.custom-order{border:1px solid #dbeafe;border-left:5px solid #3b82f6;border-radius:10px;padding:12px 14px;background:#f1f5f9;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.custom-order-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.custom-order-title{font-size:.82rem;font-weight:600;color:#1e3a8a;letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.custom-order .ingredients{margin-top:4px}
+.custom-order-actions{display:flex;align-items:center;gap:8px}
+.remove-custom{background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;padding:4px 8px;border-radius:8px;cursor:pointer;font-size:.7rem}
+.badge-personal{background:#3b82f6;color:#fff;font-size:.6rem;padding:3px 6px;border-radius:999px;font-weight:700;letter-spacing:.5px;box-shadow:0 0 0 1px #1d4ed8 inset}
+.custom-hint{font-size:.65rem;color:#475569;margin-top:6px;display:flex;align-items:center;gap:4px}
+.custom-hint i{color:#3b82f6}
 .register-actions{margin-top:16px}
 .register-actions .btn{padding:12px 18px;border-radius:12px}
 .help{color:#64748b}
@@ -67,6 +84,9 @@
 /* Header con botón a la derecha */
 .consumption-header{display:flex;justify-content:flex-end;align-items:center;margin:10px 0}
 .btn.compact{padding:10px 14px;border-radius:10px}
+.consumption-header .consumption-filters{margin-right:auto;display:flex;align-items:center;gap:10px}
+.filter-select{padding:8px 12px;border:1px solid #d0d8e2;border-radius:10px;background:#fff;font-size:.85rem;min-width:220px}
+.filter-select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 1px #3b82f6}
 @media(max-width:640px){.filter-form{flex-direction:column}}
 </style>
 {% endblock %}
@@ -79,8 +99,47 @@ const CURRENT_DAY = '{{ current_day|default:"" }}';
 
 // DEMO: datos y estado en front para prototipo
 const DEMO_MODE = true;
+function buildBuffetMenu(){
+    // Platos fijos buffet (incluidos, no personalizables)
+    const dishes = [
+        { id: 1101, name: 'Huevos (Revueltos / Fritos / Cocidos)', included:true, price:0, customizable:false, ingredients:[{name:'Huevos',qty:1}] },
+        { id: 1102, name: 'Granja (Yogur, Granola, Quesos, Carnes frías)', included:true, price:0, customizable:false, ingredients:[{name:'Variedad',qty:1}] },
+        { id: 1103, name: 'Cereales (Avena, Cereales con frutos secos)', included:true, price:0, customizable:false, ingredients:[{name:'Cereal',qty:1}] },
+        { id: 1104, name: 'Panadería (Pan tostado, Muffins, Croissants)', included:true, price:0, customizable:false, ingredients:[{name:'Panadería',qty:1}] },
+        { id: 1105, name: 'Bebidas (Café, Té, Zumos, Leche)', included:true, price:0, customizable:false, ingredients:[{name:'Bebida',qty:1}] },
+        { id: 1106, name: 'Especialidades (Sin Gluten / Sin Lactosa / Almendras)', included:true, price:0, customizable:false, ingredients:[{name:'Especial',qty:1}] },
+        // Platos principales día a día (se listan todos en demo)
+        { id: 1201, name: 'Día 1 · Pollo a la parrilla', included:true, price:0, customizable:false, ingredients:[{name:'Pollo',qty:1}] },
+        { id: 1202, name: 'Día 1 · Pasta salsa cremosa', included:true, price:0, customizable:false, ingredients:[{name:'Pasta',qty:1}] },
+        { id: 1203, name: 'Día 2 · Pescado frito', included:true, price:0, customizable:false, ingredients:[{name:'Pescado',qty:1}] },
+        { id: 1204, name: 'Día 2 · Lasaña de carne', included:true, price:0, customizable:false, ingredients:[{name:'Lasaña',qty:1}] },
+        { id: 1205, name: 'Día 3 · Albóndigas salsa tomate', included:true, price:0, customizable:false, ingredients:[{name:'Albóndigas',qty:1}] },
+        { id: 1206, name: 'Día 3 · Salmón al horno', included:true, price:0, customizable:false, ingredients:[{name:'Salmón',qty:1}] },
+        { id: 1207, name: 'Día 4 · Hamburguesas parrilla', included:true, price:0, customizable:false, ingredients:[{name:'Hamburguesa',qty:1}] },
+        { id: 1208, name: 'Día 4 · Perritos calientes', included:true, price:0, customizable:false, ingredients:[{name:'Hot Dog',qty:1}] },
+        { id: 1209, name: 'Día 4 · Arroz frito', included:true, price:0, customizable:false, ingredients:[{name:'Arroz',qty:1}] },
+        { id: 1210, name: 'Día 5 · Cerdo asado', included:true, price:0, customizable:false, ingredients:[{name:'Cerdo',qty:1}] },
+        { id: 1211, name: 'Día 5 · Pasta salsa marinara', included:true, price:0, customizable:false, ingredients:[{name:'Pasta',qty:1}] },
+        { id: 1212, name: 'Día 6 · Tiras de pollo empanizadas', included:true, price:0, customizable:false, ingredients:[{name:'Pollo',qty:1}] },
+        { id: 1213, name: 'Día 6 · Fajitas de pollo', included:true, price:0, customizable:false, ingredients:[{name:'Pollo',qty:1}] },
+        { id: 1214, name: 'Día 7 · Pescado parrilla con verduras', included:true, price:0, customizable:false, ingredients:[{name:'Pescado',qty:1}] },
+        { id: 1215, name: 'Día 7 · Curry de pollo', included:true, price:0, customizable:false, ingredients:[{name:'Curry',qty:1}] },
+        { id: 1216, name: 'Día 8 · Sopa de tomate', included:true, price:0, customizable:false, ingredients:[{name:'Sopa',qty:1}] },
+        { id: 1217, name: 'Día 8 · Tacos de carne', included:true, price:0, customizable:false, ingredients:[{name:'Taco',qty:1}] },
+        { id: 1218, name: 'Estación de Ensaladas', included:true, price:0, customizable:false, ingredients:[{name:'Ensaladas',qty:1}] },
+        { id: 1219, name: 'Sopas del Día (Carne / Vegetales)', included:true, price:0, customizable:false, ingredients:[{name:'Sopa',qty:1}] },
+        { id: 1220, name: 'Parrilla (Carne / Pescado)', included:true, price:0, customizable:false, ingredients:[{name:'Parrilla',qty:1}] },
+        { id: 1221, name: 'Pizza y Panadería', included:true, price:0, customizable:false, ingredients:[{name:'Pizza',qty:1}] },
+        { id: 1222, name: 'Postres (Frutas / Pastel)', included:true, price:0, customizable:false, ingredients:[{name:'Postre',qty:1}] },
+        { id: 1223, name: 'Vegetariano & Vegano', included:true, price:0, customizable:false, ingredients:[{name:'Veg',qty:1}] },
+        { id: 1224, name: 'Opciones Sin Gluten', included:true, price:0, customizable:false, ingredients:[{name:'Sin Gluten',qty:1}] },
+    ];
+    return { name:'Buffet Internacional', code:'BF', group:'buffet', dishes };
+}
+
 const SAMPLE_MENUS = [
-    { name: 'El Rincón Ibérico', code: 'ES', dishes: [
+    buildBuffetMenu(),
+    { name: 'El Rincón Ibérico', code: 'ES', group: 'main', dishes: [
         { id: 101, name: 'Paella Valenciana', included: false, price: 18.5, ingredients: [
             { name: 'Arroz bomba', qty: 1 }, { name: 'Pollo', qty: 1 }, { name: 'Mariscos', qty: 1 }, { name: 'Azafrán', qty: 1 }
         ] },
@@ -88,7 +147,7 @@ const SAMPLE_MENUS = [
             { name: 'Huevo', qty: 3 }, { name: 'Papa', qty: 2 }, { name: 'Cebolla', qty: 1 }
         ] }
     ]},
-    { name: 'Tesoro Arubiano', code: 'AW', dishes: [
+    { name: 'Tesoro Arubiano', code: 'AW', group: 'especial', dishes: [
         { id: 201, name: 'Keshi Yena', included: false, price: 16.0, ingredients: [
             { name: 'Queso Edam', qty: 1 }, { name: 'Pollo', qty: 1 }, { name: 'Aceitunas', qty: 1 }
         ] },
@@ -97,9 +156,16 @@ const SAMPLE_MENUS = [
         ] }
     ]}
 ];
+let CURRENT_ALL_MENUS = [];
+let ACTIVE_FILTER = 'all';
 
-const state = { items: new Map() };
-function ensureItemState(id){ if(!state.items.has(id)) state.items.set(id, { qty: 0, added: [], removed: [] }); return state.items.get(id); }
+// Estado:
+// baseQuantities: Map platoId -> cantidad de pedidos estándar (sin modificaciones)
+// customOrders: array de órdenes personalizadas independientes {localId, dishId, qty, ingredients:[{name, qty}], added:[], removed:[], baseMap:{ingName:qtyInicial}}
+const state = { baseQuantities: new Map(), customOrders: [], seq: 1 };
+function ensureBaseQty(id){ if(!state.baseQuantities.has(id)) state.baseQuantities.set(id,0); return state.baseQuantities.get(id); }
+function setBaseQty(id,val){ state.baseQuantities.set(id, Math.max(0,val)); }
+function nextLocalId(){ return state.seq++; }
 function cssSafe(s){ return s.replace(/[^a-z0-9_-]/gi,'_'); }
 
 function renderMenus(menus){
@@ -114,16 +180,19 @@ function renderMenus(menus){
             const row = document.createElement('div');
             row.className = 'dish-row';
             const priceOrIncl = dish.included ? '<span class="chip success">Incluido</span>' : `<span class=\"chip\">$${dish.price.toFixed(2)}</span>`;
+            const canCustomize = dish.customizable !== false && menu.group !== 'buffet';
+            const customizeBtn = canCustomize ? `<div class=\"extras-actions\"><button type=\"button\" class=\"btn btn-secondary\" data-customize=\"${dish.id}\"><i class=\"fas fa-wand-magic-sparkles\"></i> Personalizar</button></div>` : '';
             row.innerHTML = `
                 <div>
                     <div class="dish-name">${dish.name}</div>
                     <div class="dish-meta">${menu.name} · ${priceOrIncl}</div>
                     <div class="ingredients" id="ing-${dish.id}"></div>
-                    <div class="extras-actions"><button type="button" class="btn btn-secondary" data-add-extra="${dish.id}"><i class="fas fa-plus"></i> Agregar ingrediente extra</button></div>
+                    ${customizeBtn}
+                    ${canCustomize ? `<div class=\"custom-orders\" id=\"custom-wrap-${dish.id}\"></div>` : ''}
                 </div>
                 <div class="qty-controls" data-id="${dish.id}">
                     <button type="button" data-dec>-</button>
-                    <span class="qty" id="qty-${dish.id}">0</span>
+                    <span class="qty" id="qty-${dish.id}">${ensureBaseQty(dish.id)}</span>
                     <button type="button" data-inc>+</button>
                 </div>
                 <div></div>`;
@@ -133,7 +202,7 @@ function renderMenus(menus){
             dish.ingredients.forEach(ing => {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
-                chip.innerHTML = `<button class="chip-btn" data-ing-dec="${dish.id}::${ing.name}">−</button><span>${ing.name}</span><span class="chip-qty" id="ing-${dish.id}-${cssSafe(ing.name)}">x${ing.qty}</span><button class="chip-btn" data-ing-inc="${dish.id}::${ing.name}">+</button>`;
+                chip.innerHTML = `<span>${ing.name}</span><span class="chip-qty">x${ing.qty}</span>`;
                 ingWrap.appendChild(chip);
             });
         });
@@ -144,46 +213,128 @@ function renderMenus(menus){
     container.querySelectorAll('.qty-controls').forEach(ctrl => {
         const id = parseInt(ctrl.dataset.id, 10);
         ctrl.addEventListener('click', (e)=>{
-            if(e.target.hasAttribute('data-inc')){ ensureItemState(id).qty++; updateQty(id); }
-            else if(e.target.hasAttribute('data-dec')){ ensureItemState(id).qty = Math.max(0, ensureItemState(id).qty-1); updateQty(id); }
+            if(e.target.hasAttribute('data-inc')){ setBaseQty(id, ensureBaseQty(id)+1); updateQty(id); }
+            else if(e.target.hasAttribute('data-dec')){ setBaseQty(id, ensureBaseQty(id)-1); updateQty(id); }
         });
     });
-    container.querySelectorAll('[data-add-extra]').forEach(btn => btn.addEventListener('click', ()=>{
-        if(typeof window.abrirModalSolicitudAlmacen === 'function') window.abrirModalSolicitudAlmacen();
-        else alert('Abrir modal de Almacén (demo)');
+    container.querySelectorAll('[data-customize]').forEach(btn => btn.addEventListener('click', ()=>{
+        const dishId = parseInt(btn.getAttribute('data-customize'),10);
+        const dishInfo = findDishById(dishId);
+        if(!dishInfo) return;
+        createCustomOrder(dishInfo);
     }));
-    container.addEventListener('click', (e)=>{
-        const dec = e.target.closest('[data-ing-dec]');
-        const inc = e.target.closest('[data-ing-inc]');
-        if(dec || inc){
-            const [dishIdStr, ingName] = (dec||inc).getAttribute(dec? 'data-ing-dec':'data-ing-inc').split('::');
-            adjustIngredientQty(parseInt(dishIdStr,10), ingName, inc? +1 : -1);
-        }
+}
+
+function updateQty(id){ const el = document.getElementById(`qty-${id}`); if(el) el.textContent = ensureBaseQty(id); }
+
+function findDishById(id){
+    for(const m of SAMPLE_MENUS){ for(const d of m.dishes){ if(d.id===id) return d; } }
+    return null;
+}
+
+function createCustomOrder(dish){
+    const localId = nextLocalId();
+    const baseMap = {}; dish.ingredients.forEach(i=> baseMap[i.name]=i.qty);
+    // Número secuencial por plato
+    const perDishCount = state.customOrders.filter(o=>o.dishId===dish.id).length + 1;
+    const order = { localId, dishId: dish.id, seq: perDishCount, qty:1, ingredients: dish.ingredients.map(i=>({name:i.name, qty:i.qty})), added:[], removed:[], baseMap };
+    state.customOrders.push(order);
+    renderCustomOrder(order, dish);
+}
+
+function renderCustomOrder(order, dish){
+    const wrap = document.getElementById(`custom-wrap-${dish.id}`);
+    if(!wrap) return;
+    const div = document.createElement('div');
+    div.className = 'custom-order';
+    div.id = `custom-${order.localId}`;
+    div.innerHTML = `
+        <div class="custom-order-header">
+            <div class="custom-order-title"><span class="badge-personal">P${order.seq}</span> Personalizada · ${dish.name}</div>
+            <div class="custom-order-actions" data-co="${order.localId}">
+                <div class="qty-controls mini">
+                    <button type="button" data-co-dec>-</button>
+                    <span class="qty" id="co-qty-${order.localId}">${order.qty}</span>
+                    <button type="button" data-co-inc>+</button>
+                </div>
+                <button type="button" class="remove-custom" data-co-remove>&times;</button>
+            </div>
+        </div>
+        <div class="ingredients" id="co-ing-${order.localId}"></div>
+        <div class="extras-actions"><button type="button" class="btn btn-secondary" data-co-addextra="${order.localId}"><i class="fas fa-plus"></i> Ingrediente extra</button></div>
+        <div class="custom-hint"><i class="fas fa-circle-info"></i> No suma ni resta a la cantidad estándar arriba; se registra como orden separada.</div>
+    `;
+    wrap.appendChild(div);
+
+    const ingWrap = div.querySelector(`#co-ing-${order.localId}`);
+    order.ingredients.forEach(ing => addIngredientChip(order, ingWrap, ing.name, ing.qty));
+
+    // Delegated events for this custom order
+    div.addEventListener('click', (e)=>{
+        if(e.target.closest('[data-co-inc]')){ order.qty++; document.getElementById(`co-qty-${order.localId}`).textContent = order.qty; }
+        else if(e.target.closest('[data-co-dec]')){ order.qty=Math.max(1,order.qty-1); document.getElementById(`co-qty-${order.localId}`).textContent = order.qty; }
+        else if(e.target.closest('[data-co-remove]')){ removeCustomOrder(order.localId); }
+        else if(e.target.closest('[data-chip-inc]')){ const name = e.target.closest('[data-chip-inc]').dataset.name; adjustCustomIngredient(order, name, +1); }
+        else if(e.target.closest('[data-chip-dec]')){ const name = e.target.closest('[data-chip-dec]').dataset.name; adjustCustomIngredient(order, name, -1); }
+        else if(e.target.closest('[data-co-addextra]')){ if(typeof window.abrirModalSolicitudAlmacen==='function') window.abrirModalSolicitudAlmacen(); else alert('Extra (demo)'); }
     });
 }
 
-function adjustIngredientQty(dishId, ingName, delta){
-    const qtyEl = document.getElementById(`ing-${dishId}-${cssSafe(ingName)}`);
-    if(!qtyEl) return;
-    const current = parseInt(qtyEl.textContent.replace('x','')) || 0;
-    const next = Math.max(0, current + delta);
-    qtyEl.textContent = 'x' + next;
-    const st = ensureItemState(dishId);
-    if(delta>0) st.added.push({ name: ingName, qty: 1 });
-    else if(delta<0 && current>0) st.removed.push({ name: ingName, qty: 1 });
+function addIngredientChip(order, container, name, qty){
+    const safe = cssSafe(name)+'-'+order.localId;
+    const chip = document.createElement('span');
+    chip.className='chip';
+    chip.id = `chip-${safe}`;
+    chip.innerHTML = `<button class="chip-btn" data-chip-dec data-name="${name}">−</button><span>${name}</span><span class="chip-qty" id="chip-qty-${safe}">x${qty}</span><button class="chip-btn" data-chip-inc data-name="${name}">+</button>`;
+    container.appendChild(chip);
 }
-function updateQty(id){ const el = document.getElementById(`qty-${id}`); if(el) el.textContent = ensureItemState(id).qty; }
-function getPayload(){ const items=[]; state.items.forEach((v,k)=>{ if(v.qty>0) items.push({id:k, qty:v.qty, added:v.added, removed:v.removed}); }); return { cruise_id: CURRENT_CRUISE_ID, day: CURRENT_DAY, items }; }
+
+function adjustCustomIngredient(order, name, delta){
+    const ing = order.ingredients.find(i=>i.name===name);
+    if(!ing) return;
+    const newQty = Math.max(0, ing.qty + delta);
+    // Track modifications vs base
+    const baseQty = order.baseMap[name] || 0;
+    if(delta>0) order.added.push({name, qty:1});
+    else if(delta<0 && ing.qty>0) order.removed.push({name, qty:1});
+    ing.qty = newQty;
+    const safe = cssSafe(name)+'-'+order.localId;
+    const qtyEl = document.getElementById(`chip-qty-${safe}`);
+    if(qtyEl) qtyEl.textContent = 'x'+ing.qty;
+}
+
+function removeCustomOrder(localId){
+    state.customOrders = state.customOrders.filter(o=>o.localId!==localId);
+    const el = document.getElementById(`custom-${localId}`); if(el) el.remove();
+}
+
+function getPayload(){
+    const items = [];
+    state.baseQuantities.forEach((qty, dishId)=>{ if(qty>0) items.push({ id:dishId, qty }); });
+    state.customOrders.forEach(o=>{
+        items.push({ id:o.dishId, qty:o.qty, added:o.added, removed:o.removed, custom:true, ingredients:o.ingredients });
+    });
+    return { cruise_id: CURRENT_CRUISE_ID, day: CURRENT_DAY, items };
+}
 
 // Cargar menús disponibles según crucero y día
+function applyFilter(){
+    if(!CURRENT_ALL_MENUS.length){ return; }
+    const filtered = ACTIVE_FILTER==='all' ? CURRENT_ALL_MENUS : CURRENT_ALL_MENUS.filter(m=>m.group===ACTIVE_FILTER);
+    // Reinicia estado de cantidades al cambiar filtro (demo). En producción podríamos mantener por restaurante.
+    state.baseQuantities = new Map();
+    state.customOrders = [];
+    renderMenus(filtered);
+}
+
 function fetchMenus(cruiseId, day){
     const container = document.getElementById('menusContainer');
     container.innerHTML = '<p class="loading">Cargando menús...</p>';
     // En DEMO mostramos siempre sin depender de día/crucero
-    if(DEMO_MODE){ renderMenus(SAMPLE_MENUS); return; }
+    if(DEMO_MODE){ CURRENT_ALL_MENUS = SAMPLE_MENUS; applyFilter(); return; }
     if(!cruiseId || !day){ container.innerHTML = '<div class="empty-state">No hay día activo del crucero seleccionado</div>'; return; }
     // Futuro: fetch real a backend
-    renderMenus(SAMPLE_MENUS);
+    CURRENT_ALL_MENUS = SAMPLE_MENUS; applyFilter();
 }
 
 // Ya no hay cambio manual de día en esta vista.
@@ -207,9 +358,9 @@ function showAlert(msg, type){
 
 // Si ya tenemos crucero activo y el día está preseleccionado, cargar menús
 document.addEventListener('DOMContentLoaded', ()=>{
-    if(DEMO_MODE){ fetchMenus(CURRENT_CRUISE_ID, CURRENT_DAY); return; }
-    if(CURRENT_CRUISE_ID && CURRENT_DAY){ fetchMenus(CURRENT_CRUISE_ID, CURRENT_DAY); }
-    else { document.getElementById('menusContainer').innerHTML = '<div class="empty-state">No hay día activo del crucero seleccionado</div>'; }
+    const rf = document.getElementById('restaurantFilter');
+    rf.addEventListener('change', ()=>{ ACTIVE_FILTER = rf.value; applyFilter(); });
+    fetchMenus(CURRENT_CRUISE_ID, CURRENT_DAY);
 });
 
 </script>
