@@ -11,6 +11,9 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseRedirect
 from django.db import IntegrityError
 from django.urls import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.template.loader import render_to_string
 
 from .models import Rol, ModuloSistema
 
@@ -161,4 +164,286 @@ def create_role(request):
         return JsonResponse({'ok': False, 'error': 'Ya existe un rol con ese nombre'}, status=400)
     except Exception as exc:
         print("[DEBUG] Excepción:", exc)
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
+def roles_list(request):
+    """Devuelve JSON con roles activos"""
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Método no permitido')
+    qs = Rol.objects.order_by('nombre')
+    data = [{'id': r.id, 'nombre': r.nombre, 'descripcion': r.descripcion, 'activo': bool(r.activo)} for r in qs]
+    return JsonResponse({'ok': True, 'roles': data})
+
+
+def modules_list(request):
+    """Devuelve JSON con módulos del sistema"""
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Método no permitido')
+    qs = ModuloSistema.objects.filter(activo=True).order_by('codigo')
+    data = [{'id': m.id, 'codigo': m.codigo, 'label': str(m)} for m in qs]
+    return JsonResponse({'ok': True, 'modulos': data})
+
+
+def role_detail(request, role_id):
+    """Devuelve JSON con detalles de un rol (incluye modulos asignados)"""
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Método no permitido')
+    try:
+        rol = Rol.objects.get(pk=role_id)
+    except Rol.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
+    mods = [m.id for m in rol.modulos_acceso.all()]
+    data = {'id': rol.id, 'nombre': rol.nombre, 'descripcion': rol.descripcion, 'activo': bool(rol.activo), 'modulos': mods}
+    return JsonResponse({'ok': True, 'role': data})
+
+
+def users_by_crucero(request):
+    """Devuelve JSON con usuarios del crucero actual (pasado por ?crucero_id=)"""
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Método no permitido')
+    crucero_id = request.GET.get('crucero_id')
+    page_num = request.GET.get('page', '1')
+    if crucero_id:
+        usuarios_qs = Empleado.objects.filter(crucero_id=crucero_id).order_by('first_name', 'last_name')
+    else:
+        usuarios_qs = Empleado.objects.none()
+
+    # Build a list of serializable dicts (used both for rendering and stats)
+    data_list = []
+    for u in usuarios_qs:
+        rol_obj = getattr(u, 'rol', None)
+        rol_nombre = rol_obj.nombre if rol_obj else ''
+        ultimo = None
+        try:
+            if getattr(u, 'fecha_ultimo_acceso', None):
+                ultimo = u.fecha_ultimo_acceso.strftime('%Y-%m-%d %H:%M')
+        except Exception:
+            ultimo = str(getattr(u, 'fecha_ultimo_acceso', ''))
+        data_list.append({
+            'id': u.id,
+            'nombre': f"{u.first_name} {u.last_name}",
+            'username': u.username,
+            'rol_nombre': rol_nombre,
+            'is_active': u.is_active,
+            'ultimo_acceso': ultimo,
+        })
+
+    # Paginate the serialized list
+    per_page = 10
+    paginator = Paginator(data_list, per_page)
+    try:
+        page_obj = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    # Totals for the sidebar
+    totals = {
+        'total': paginator.count,
+        'activos': sum(1 for x in data_list if x.get('is_active')),
+        'inactivos': sum(1 for x in data_list if not x.get('is_active')),
+        'bloqueados': 0,
+    }
+
+    # If AJAX, render the partial and return HTML inside JSON
+    html = render_to_string('partials/_users_table_pagination.html', {'page_obj': page_obj, 'totals': totals}, request=request)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'html': html})
+
+    # For non-AJAX fallback, return the html directly
+    return JsonResponse({'ok': True, 'html': html})
+
+
+def search_users(request):
+    """Busca usuarios por término (q). Renderiza la misma partial de tabla paginada.
+    Parámetros GET: q (término de búsqueda), crucero_id (opcional), page (opcional)
+    """
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Método no permitido')
+
+    q = (request.GET.get('q') or '').strip()
+    page_num = request.GET.get('page', '1')
+    crucero_id = request.GET.get('crucero_id')
+
+    if not q:
+        # si no hay término, devolver lista vacía (o la lista completa si no se quiere filtrar)
+        usuarios_qs = Empleado.objects.none()
+    else:
+        # Buscar en username, first_name, last_name y combinación de nombres
+        filtro = Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(first_name__icontains=q.split(' ')[0])
+        usuarios_qs = Empleado.objects.filter(filtro).order_by('first_name', 'last_name')
+        if crucero_id:
+            usuarios_qs = usuarios_qs.filter(crucero_id=crucero_id)
+
+    # Serializar como en users_by_crucero
+    data_list = []
+    for u in usuarios_qs:
+        rol_obj = getattr(u, 'rol', None)
+        rol_nombre = rol_obj.nombre if rol_obj else ''
+        ultimo = None
+        try:
+            if getattr(u, 'fecha_ultimo_acceso', None):
+                ultimo = u.fecha_ultimo_acceso.strftime('%Y-%m-%d %H:%M')
+        except Exception:
+            ultimo = str(getattr(u, 'fecha_ultimo_acceso', ''))
+        data_list.append({
+            'id': u.id,
+            'nombre': f"{u.first_name} {u.last_name}",
+            'username': u.username,
+            'rol_nombre': rol_nombre,
+            'is_active': u.is_active,
+            'ultimo_acceso': ultimo,
+        })
+
+    # Paginar
+    per_page = 10
+    paginator = Paginator(data_list, per_page)
+    try:
+        page_obj = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    totals = {
+        'total': paginator.count,
+        'activos': sum(1 for x in data_list if x.get('is_active')),
+        'inactivos': sum(1 for x in data_list if not x.get('is_active')),
+        'bloqueados': 0,
+    }
+
+    html = render_to_string('partials/_users_table_pagination.html', {'page_obj': page_obj, 'totals': totals}, request=request)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'html': html})
+    return JsonResponse({'ok': True, 'html': html})
+
+
+@login_required
+def deactivate_user(request, usuario_id):
+    """Marca un usuario como inactivo (desactivar). Acepta POST (idealmente AJAX)."""
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    try:
+        user = Empleado.objects.get(pk=usuario_id)
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        data = {'ok': True, 'id': user.id}
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse(data)
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('login')
+        return HttpResponseRedirect(next_url)
+    except Empleado.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Usuario no encontrado'}, status=404)
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
+@login_required
+def activate_user(request, usuario_id):
+    """Marca un usuario como activo (reactivar)."""
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    try:
+        user = Empleado.objects.get(pk=usuario_id)
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+        data = {'ok': True, 'id': user.id}
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse(data)
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('login')
+        return HttpResponseRedirect(next_url)
+    except Empleado.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Usuario no encontrado'}, status=404)
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
+@login_required
+def edit_user(request, usuario_id):
+    """Edita campos básicos de un Empleado: username, rol y (opcional) password.
+    Responde JSON para solicitudes AJAX.
+    """
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    try:
+        user = Empleado.objects.get(pk=usuario_id)
+    except Empleado.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Usuario no encontrado'}, status=404)
+
+    # Permisos básicos: sólo usuarios autenticados (decorador) pueden usar esto.
+    # Puedes añadir comprobaciones más estrictas aquí (superuser/administrativo).
+
+    username = (request.POST.get('username') or '').strip()
+    rol_id = request.POST.get('rol')
+    password = (request.POST.get('password') or '').strip()
+
+    # Aplicar cambios
+    try:
+        changed = False
+        if username and username != user.username:
+            user.username = username
+            changed = True
+        if rol_id is not None and rol_id != '':
+            # allow setting rol_id empty to detach? follow create_user pattern
+            user.rol_id = rol_id
+            changed = True
+        if password:
+            user.set_password(password)
+            changed = True
+
+        if changed:
+            user.save()
+            # si el usuario editado es el que está en sesión y cambió la contraseña, mantener la sesión
+            if request.user.pk == user.pk and password:
+                try:
+                    update_session_auth_hash(request, user)
+                except Exception:
+                    pass
+
+        data = {'ok': True, 'id': user.id}
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse(data)
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or reverse('login')
+        return HttpResponseRedirect(next_url)
+    except IntegrityError:
+        return JsonResponse({'ok': False, 'error': 'El nombre de usuario ya está en uso'}, status=400)
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
+@login_required
+def edit_role(request, role_id):
+    """Edita un Rol: nombre, descripcion y activo. Responde JSON para AJAX."""
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    try:
+        rol = Rol.objects.get(pk=role_id)
+    except Rol.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Rol no encontrado'}, status=404)
+
+    nombre = (request.POST.get('nombre') or '').strip()
+    descripcion = (request.POST.get('descripcion') or '').strip()
+    activo = request.POST.get('activo') in ('true', 'on', '1')
+    modulos_values = request.POST.getlist('modulos')
+
+    if not nombre:
+        return JsonResponse({'ok': False, 'error': 'El nombre es obligatorio'}, status=400)
+
+    try:
+        rol.nombre = nombre
+        rol.descripcion = descripcion
+        rol.activo = activo
+        rol.save()
+        # actualizar modulos de acceso si se enviaron
+        if modulos_values is not None:
+            try:
+                mod_qs = ModuloSistema.objects.filter(id__in=[int(x) for x in modulos_values])
+                rol.modulos_acceso.set(mod_qs)
+            except Exception:
+                # ignorar si valores no son válidos
+                rol.modulos_acceso.clear()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'id': rol.id})
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    except IntegrityError:
+        return JsonResponse({'ok': False, 'error': 'Nombre de rol duplicado'}, status=400)
+    except Exception as exc:
         return JsonResponse({'ok': False, 'error': str(exc)}, status=500)

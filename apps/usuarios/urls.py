@@ -31,6 +31,15 @@ urlpatterns = [
     ), name='password_reset_complete'),
     # Crear rol desde modal
     path('roles/create/', usuario_views.create_role, name='create_role'),
-    # Crear usuario desde modal
-    path('usuarios/create/', usuario_views.create_user, name='create_user'),
+    path('roles/list/', usuario_views.roles_list, name='roles_list'),
+    path('roles/<int:role_id>/edit/', usuario_views.edit_role, name='edit_role'),
+    path('roles/<int:role_id>/', usuario_views.role_detail, name='role_detail'),
+    path('modules/list/', usuario_views.modules_list, name='modules_list'),
+    path('search/', usuario_views.search_users, name='search_users'),
+    # Crear usuario desde modal (rutas relativas; se incluyen bajo 'usuarios/' en el proyecto)
+    path('create/', usuario_views.create_user, name='create_user'),
+    path('by-crucero/', usuario_views.users_by_crucero, name='users_by_crucero'),
+    path('<int:usuario_id>/deactivate/', usuario_views.deactivate_user, name='deactivate_user'),
+    path('<int:usuario_id>/activate/', usuario_views.activate_user, name='activate_user'),
+    path('<int:usuario_id>/edit/', usuario_views.edit_user, name='edit_user'),
 ]

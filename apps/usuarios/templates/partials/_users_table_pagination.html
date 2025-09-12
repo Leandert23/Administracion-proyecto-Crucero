@@ -1,0 +1,91 @@
+{% load static %}
+{# Partial: tabla de usuarios + paginación. Recibe: page_obj, totals (dict con total/activos/inactivos/bloqueados) #}
+<div class="table-container" style="margin-top:8px;" data-current-page="{{ page_obj.number }}" data-total-pages="{{ page_obj.paginator.num_pages }}">
+    <table id="um-users-table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Último acceso</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="um-users-tbody">
+            {% if page_obj.object_list %}
+                {% for u in page_obj.object_list %}
+                <tr>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.nombre }}</td>
+                    <td>{{ u.rol_nombre }}</td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge badge-success">Activo</span>
+                        {% else %}
+                            <span class="badge badge-muted">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.ultimo_acceso|default:'-' }}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditUser({{ u.id }})">Editar</button>
+                            {% if u.is_active %}
+                                <button class="btn btn-danger btn-action btn-sm" onclick="deactivateUser({{ u.id }})">Desactivar</button>
+                            {% else %}
+                                <button class="btn btn-success btn-action btn-sm" onclick="activateUser({{ u.id }})">Activar</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="6" class="empty">No hay usuarios para este crucero.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {# Pagination controls #}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="um-pagination" aria-label="Paginación usuarios" style="margin-top:12px; display:flex; gap:6px; align-items:center;">
+        {# Prev button #}
+        {% if page_obj.has_previous %}
+            <button class="btn btn-secondary" id="um-page-prev" data-page="{{ page_obj.previous_page_number }}">← Anterior</button>
+        {% else %}
+            <button class="btn btn-secondary" id="um-page-prev" disabled>← Anterior</button>
+        {% endif %}
+
+        <div style="display:flex; gap:6px; align-items:center;">
+        {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+                <button class="btn btn-primary" disabled>{{ p }}</button>
+            {% else %}
+                <a href="?page={{ p }}" class="btn btn-secondary" data-page="{{ p }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        </div>
+
+        {# Next button #}
+        {% if page_obj.has_next %}
+            <button class="btn btn-secondary" id="um-page-next" data-page="{{ page_obj.next_page_number }}">Siguiente →</button>
+        {% else %}
+            <button class="btn btn-secondary" id="um-page-next" disabled>Siguiente →</button>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {# Actualiza las estadísticas en el panel lateral (el modal espera elementos con estos ids) #}
+    <script>
+        (function(){
+            try{
+                var totals = {{ totals|default:"{}"|safe }};
+                if(totals){
+                    if(document.getElementById('um-total')) document.getElementById('um-total').textContent = totals.total || '-';
+                    if(document.getElementById('um-activos')) document.getElementById('um-activos').textContent = totals.activos || '-';
+                    if(document.getElementById('um-inactivos')) document.getElementById('um-inactivos').textContent = totals.inactivos || '-';
+                    if(document.getElementById('um-bloqueados')) document.getElementById('um-bloqueados').textContent = totals.bloqueados || '-';
+                }
+            }catch(e){ /* noop */ }
+        })();
+    </script>
+</div>

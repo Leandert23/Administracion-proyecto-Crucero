@@ -11,6 +11,8 @@
 <body>
 
     <div class="dashboard-container">
+    <!-- Exponer crucero actual para modales (id accesible vía data-current-crucero-id) -->
+    <div id="currentCruceroHolder" data-current-crucero-id="{{ crucero.id }}" style="display:none"></div>
         {% include "sidebar.html" with active_module="gestion_crucero"%}
 
         <!-- Main Content -->
@@ -51,6 +53,13 @@
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Distribución de habitaciones</h3>
                             <p class="quick-card__text">Ver distribución de habitaciones del crucero</p>
+                        </div>
+                    </a>
+                    <a href="#" class="quick-card" onclick="openModalUserManagement('modalUserManagement'); return false;">
+                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Gestion Usuarios</h3>
+                            <p class="quick-card__text">Gestiona los usuarios</p>
                         </div>
                     </a>
                 </div>
@@ -321,5 +330,13 @@
             window.__formInfoInitial?.forEach(item=>{const el=form.elements[item.name]; if(!el) return; if(el.type==='checkbox') el.checked=false; else el.value='';});
         }
     </script>
+
+    {# Incluir modal de Gestión de Usuarios para que el quick-card lo abra #}
+    {% include 'usuarios/_modal_user_management.html' %}
+    {% url 'create_role' as create_role_url %}
+    {% include 'usuarios/_modal_create_role.html' with create_role_url=create_role_url modal_id='modalCrearRol' %}
+    {% url 'create_user' as create_user_url %}
+    {% include 'usuarios/_modal_create_user.html' with create_user_url=create_user_url modal_id='modalCrearUsuario' %}
+
 </body>
 </html>

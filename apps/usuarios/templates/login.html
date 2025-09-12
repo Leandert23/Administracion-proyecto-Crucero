@@ -30,24 +30,24 @@
                 {% endif %}
                 
                 {% if messages %}
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
                 {% endif %}
                 
                 <div class="form-field">
                     <label for="id_username">Usuario</label>
                     <input type="text" name="username" id="id_username" 
-                           placeholder="Ingrese su usuario" required autofocus
-                           value="{{ form.username.value|default:'' }}">
+                    placeholder="Ingrese su usuario" required autofocus
+                    value="{{ form.username.value|default:'' }}">
                 </div>
                 
                 <div class="form-field">
                     <label for="id_password">Contraseña</label>
                     <input type="password" name="password" id="id_password" 
-                           placeholder="Ingrese su contraseña" required>
+                    placeholder="Ingrese su contraseña" required>
                 </div>
                 
                 <div class="form-actions">
@@ -62,18 +62,11 @@
                         <span>Recordar sesión</span>
                     </label>
                     
-                    <a href="{% url 'password_reset' %}" class="text-sm">
-                        ¿Olvidó su contraseña?
-                    </a>
                 </div>
             </form>
             
             <div class="login-links">
                 <a href="{% url 'admin:login' %}">Acceso Administrativo</a>
-                <!-- Botón temporal para abrir modal de creación de Rol -->
-                <button type="button" class="btn btn-link" onclick="openModalCreateRol('modalCrearRol')">Crear Rol (temporal)</button>
-                <!-- Botón temporal para abrir modal de creación de Usuario -->
-                <button type="button" class="btn btn-link" onclick="openModalCreateUsuario('modalCrearUsuario')">Crear Usuario (temporal)</button>
             </div>
         </div>
         
@@ -81,11 +74,5 @@
             <p>&copy; 2025 Odyssey Cruise Services. v1.0.0</p>
         </div>
     </div>
-        {% url 'create_role' as create_role_url %}
-        {% include 'usuarios/_modal_create_role.html' with create_role_url=create_role_url modal_id='modalCrearRol' %}
-        {% url 'create_user' as create_user_url %}
-        {% with roles=roles cruceros=cruceros %}
-            {% include 'usuarios/_modal_create_user.html' with create_user_url=create_user_url modal_id='modalCrearUsuario' roles=roles cruceros=cruceros %}
-        {% endwith %}
-    </body>
-    </html>
+</body>
+</html>

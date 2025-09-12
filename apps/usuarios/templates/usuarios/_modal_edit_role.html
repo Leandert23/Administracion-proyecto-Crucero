@@ -1,0 +1,125 @@
+{% load static %}
+<!-- Modal para editar rol -->
+<style>
+/* Styles scoped for edit role modal */
+.modal-role{ display:none; position:fixed; inset:0; z-index:2500; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); }
+.modal-role.active{ display:flex; }
+.modal-role-dialog{ width:640px; max-width:95%; background:#fff; border-radius:10px; box-shadow:0 12px 36px rgba(2,6,23,0.2); }
+.modal-role-header{ padding:12px 16px; border-bottom:1px solid #eef2f7; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; }
+.modal-role-body{ padding:14px 16px; }
+.modal-role-footer{ padding:12px 16px; border-top:1px solid #eef2f7; display:flex; justify-content:flex-end; gap:8px; background:#f8fafc; }
+.form-control{ width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; }
+.form-text{ color:#6b7280; font-size:0.85rem; margin-top:6px; }
+.btn-primary{ background:linear-gradient(90deg,#3b82f6,#6366f1); color:#fff; }
+.btn-secondary{ background:#f1f5f9; color:#1f2937; }
+</style>
+
+<div id="modalEditarRol" class="modal-role" aria-hidden="true">
+    <div class="modal-role-dialog" role="dialog" aria-modal="true">
+        <div class="modal-role-header">
+            <h4 style="margin:0;">Editar Rol</h4>
+            <button type="button" class="btn btn-secondary" onclick="closeModalEditarRol()">×</button>
+        </div>
+        <form id="form-edit-rol" method="post" action="#">
+            {% csrf_token %}
+            <div class="modal-role-body">
+                <input type="hidden" id="edit_rol_id" name="rol_id" value="" />
+                <div style="margin-bottom:10px;">
+                    <label for="edit_rol_nombre">Nombre</label>
+                    <input id="edit_rol_nombre" name="nombre" class="form-control" required maxlength="150" />
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label for="edit_rol_descripcion">Descripción</label>
+                    <textarea id="edit_rol_descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <div style="margin-bottom:6px; display:flex; gap:10px; align-items:center;">
+                    <input type="checkbox" id="edit_rol_activo" name="activo" />
+                    <label for="edit_rol_activo" class="form-text">Activo</label>
+                </div>
+                <hr />
+                <div style="margin-bottom:8px;">
+                    <label class="form-text">Módulos de acceso</label>
+                    <div id="edit_rol_modulos" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        <p class="text-secondary">Cargando módulos…</p>
+                    </div>
+                </div>
+                <div id="edit-rol-feedback" class="form-text" style="color:#ef4444; display:none;"></div>
+            </div>
+            <div class="modal-role-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModalEditarRol()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModalEditarRol(){
+        const el = document.getElementById('modalEditarRol');
+        if(el) el.classList.add('active');
+    }
+    function closeModalEditarRol(){
+        const el = document.getElementById('modalEditarRol');
+        if(el) el.classList.remove('active');
+    }
+
+    function openEditRole_prefill(role){
+        // role: {id, nombre, descripcion, activo}
+        document.getElementById('edit_rol_id').value = role.id || '';
+        document.getElementById('edit_rol_nombre').value = role.nombre || '';
+        document.getElementById('edit_rol_descripcion').value = role.descripcion || '';
+        document.getElementById('edit_rol_activo').checked = !!role.activo;
+        document.getElementById('edit-rol-feedback').style.display = 'none';
+        // load modules and then open modal (prefill assigned modules if available)
+        const modContainer = document.getElementById('edit_rol_modulos');
+        if(!modContainer) { openModalEditarRol(); return; }
+        modContainer.innerHTML = '<p class="text-secondary">Cargando módulos…</p>';
+        // fetch all modules and role detail in parallel
+        Promise.all([
+            fetch('{% url "modules_list" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(r=>r.json()),
+            fetch('{% url "role_detail" role_id=0 %}'.replace('/0/', '/' + encodeURIComponent(role.id) + '/'), { headers: { 'X-Requested-With': 'XMLHttpRequest' } }).then(r=>r.json())
+        ]).then(results => {
+            const modsResp = results[0];
+            const roleResp = results[1];
+            let assigned = [];
+            if(roleResp && roleResp.ok && roleResp.role) assigned = roleResp.role.modulos || [];
+            if(modsResp && modsResp.ok && modsResp.modulos){
+                modContainer.innerHTML = '';
+                modsResp.modulos.forEach(function(m){
+                    const id = m.id;
+                    const label = m.label || m.codigo;
+                    const checked = assigned.indexOf(id) !== -1;
+                    const div = document.createElement('div');
+                    div.innerHTML = '<label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" name="modulos" value="'+ id +'" '+ (checked? 'checked':'') +'/> <span>'+ label +'</span></label>';
+                    modContainer.appendChild(div);
+                });
+            } else {
+                modContainer.innerHTML = '<p class="text-secondary">No hay módulos</p>';
+            }
+            openModalEditarRol();
+        }).catch(err=>{ console.error(err); modContainer.innerHTML = '<p class="text-secondary">Error cargando módulos</p>'; openModalEditarRol(); });
+    }
+
+    // helper to get csrftoken
+    function _getCookie(name){ const value = `; ${document.cookie}`; const parts = value.split(`; ${name}=`); if (parts.length === 2) return parts.pop().split(';').shift(); }
+
+    document.getElementById('form-edit-rol').addEventListener('submit', function(e){
+        e.preventDefault();
+        const id = document.getElementById('edit_rol_id').value;
+        if(!id) return alert('Rol inválido');
+        const url = '{% url "edit_role" role_id=0 %}'.replace('/0/', '/' + encodeURIComponent(id) + '/');
+        const fd = new FormData(this);
+        fetch(url, { method: 'POST', body: fd, headers: { 'X-CSRFToken': _getCookie('csrftoken') || '', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json().catch(()=>({ok:true})); })
+            .then(data => {
+                if(data && data.ok){
+                    // refresh roles and close modal
+                    if(typeof loadRolesIntoUserManagement === 'function') loadRolesIntoUserManagement();
+                    closeModalEditarRol();
+                } else {
+                    const fb = document.getElementById('edit-rol-feedback'); if(fb){ fb.style.display='block'; fb.textContent = data && data.error ? data.error : 'Error al guardar'; }
+                }
+            })
+            .catch(err => { console.error(err); const fb = document.getElementById('edit-rol-feedback'); if(fb){ fb.style.display='block'; fb.textContent='Error de red o servidor'; } });
+    });
+</script>

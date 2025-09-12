@@ -539,12 +539,16 @@
     }
     
     .sidebar-footer {
-        padding: 20px;
+        padding: 8px 12px;
         border-top: 1px solid #334155;
+        font-size: 12px;
+        color: rgba(255,255,255,0.85);
+        text-align: center;
     }
     
     .sidebar.collapsed .sidebar-footer {
-        padding: 20px 10px;
+        padding: 8px 10px;
+        font-size: 11px;
     }
     
     /* Main Content */
@@ -845,6 +849,9 @@
             {% endif %}
         </ul>
     </nav>
+    <div class="sidebar-footer">
+        <p>&copy; 2025 Odyssey Cruise Services. v1.0.0</p>
+    </div>
 </aside>
 <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
 

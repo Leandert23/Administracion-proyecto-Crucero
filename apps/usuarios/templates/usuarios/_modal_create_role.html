@@ -232,26 +232,31 @@
             fetch(form.action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: formData
             })
             .then(response => {
                 if (response.ok) {
-                    return response.json();
-                } else {
-                    return response.json().then(data => { throw data; });
+                    // Try to parse JSON; if parse fails assume success (server may have redirected)
+                    return response.json().then(data => ({ ok: true, data })).catch(() => ({ ok: true, data: null }));
                 }
+                // Non-ok: try to extract JSON error, otherwise throw generic
+                return response.json().then(err => { throw err; }).catch(() => { throw { message: 'Error al crear el rol.' }; });
             })
-            .then(data => {
-                // Éxito: cerrar modal, limpiar formulario, mostrar alerta
+            .then(result => {
+                // Success path
                 closeModalCreateRol('modalCrearRol');
                 form.reset();
-                alert(data.message || 'Rol creado exitosamente.');
-                // Opcional: recargar lista de roles, etc.
+                // Refresh roles list in management modal if available
+                if (typeof loadRolesIntoUserManagement === 'function') {
+                    try { loadRolesIntoUserManagement(); } catch(e) { console.error('Error refreshing roles', e); }
+                }
+                // Do not show blocking alert on success
             })
             .catch(error => {
-                let msg = error && error.message ? error.message : 'Error al crear el rol.';
+                let msg = (error && (error.message || error.error)) ? (error.message || error.error) : 'Error al crear el rol.';
                 alert(msg);
             });
         });
