@@ -1,122 +1,26 @@
-{% extends 'dashboard_sidebar.html' %}
+{% load static %}
 
-{% block title %}Dashboard del Crucero{% endblock %}
-
-{% block page_title %}
-  {{ ships.name }}
-{% endblock %}
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title>{% block title %}Dashboard del Crucero{% endblock %}</title>
+  {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/styles_admin_dashboard.css' %}">
+  {% endblock %}
+  {% block page_title %}
+    {{ ships.name }}
+  {% endblock %}
+</head>
+<body>
 {% block content %}
   <div class="row g-3">
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="card">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Estado</h6>
-          <h3 class="mb-0">{{ ships.status }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="card">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Pasajeros</h6>
-          <h3 class="mb-0">{{ ships.passengers }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="card">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Empleados</h6>
-          <h3 class="mb-0">{{ ships.employees }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="card">
-        <div class="card-body">
-          <h6 class="text-muted mb-1">Día de viaje</h6>
-          <h3 class="mb-0">{{ ships.days }}</h3>
-        </div>
-      </div>
+    <div class="col-12">
+      <div id="dashboard"></div>
     </div>
   </div>
-
-  <div class="row g-3 mt-1">
-    <div class="col-12 col-lg-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Información del Crucero</h5>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Nombre:</strong> {{ ships.name }}</li>
-            <li class="list-group-item"><strong>Ubicación:</strong> {{ ships.location }}</li>
-            <li class="list-group-item"><strong>Distancia:</strong> {{ ships.distance }}</li>
-            <li class="list-group-item"><strong>Presupuesto:</strong> {{ ships.budget }}</li>
-            <li class="list-group-item"><strong>Costos totales:</strong> {{ ships.costs.total }}</li>
-            <li class="list-group-item"><strong>Ganancias totales:</strong> {{ ships.earnings.total }}</li>
-            <li class="list-group-item"><strong>Ganancias reales:</strong> {{ ships.earnings.real }}</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">Alertas</h5>
-          {% if ships.alerts and ships.alerts|length > 0 %}
-            <ul class="list-group list-group-flush">
-              {% for alerta in ships.alerts %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <div>{{ alerta.mensaje }}</div>
-                    <small class="text-muted">{{ alerta.fecha }}</small>
-                  </div>
-                  {% if not alerta.leida %}
-                    <span class="badge bg-danger">Nueva</span>
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mb-0">No hay alertas.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="row g-3 mt-1">
     <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Solicitudes de compra</h5>
-          {% if purchase_requests and purchase_requests|length > 0 %}
-            <div class="table-responsive">
-              <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for pr in purchase_requests %}
-                    <tr>
-                      <td>{{ pr.fecha }}</td>
-                      <td>{{ pr.descripcion }}</td>
-                      <td>{{ pr.estado }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <p class="text-muted mb-0">No hay solicitudes de compra.</p>
-          {% endif %}
-        </div>
-      </div>
+      <div id="purchaseRequests"></div>
     </div>
   </div>
 {% endblock %}
@@ -127,9 +31,46 @@
   <script src="{% static 'js/sidebar.js' %}"></script>
   <script src="{% static 'js/crucero.js' %}"></script>
   <script>
-    window.djangoContext = {
-      ship: JSON.parse(document.getElementById('ship-data').textContent),
-      purchase_requests: JSON.parse(document.getElementById('purchase-requests-data').textContent)
-    };
+    (function inyectarContextoYRender(){
+      const shipObj = JSON.parse(document.getElementById('ship-data').textContent);
+      const prList = JSON.parse(document.getElementById('purchase-requests-data').textContent);
+      // Inyectar contexto en formato plano para que el JS pueda normalizar
+      window.djangoContext = Object.assign({}, shipObj, { purchase_requests: prList });
+
+      // Normalizar y exponer un arreglo ships con la estructura esperada
+      const normalizedShip = {
+        id: typeof shipObj.id !== 'undefined' ? Number(shipObj.id) : 0,
+        name: shipObj.name || '',
+        status: shipObj.status || '',
+        passengers: Number(shipObj.passengers || 0),
+        employees: {
+          total: (typeof shipObj.employees === 'number') ? shipObj.employees : (shipObj.employees && typeof shipObj.employees.total === 'number' ? shipObj.employees.total : 0),
+          status: {
+            active_employees: 0,
+            inactive_employees: 0,
+            de_baja_employees: 0
+          }
+        },
+        location: shipObj.location || '',
+        days: Number(shipObj.days || 0),
+        distance: Number(shipObj.distance || 0),
+        budget: Number(shipObj.budget || 0),
+        gasPrice: Number(shipObj.gasPrice || 0),
+        costs: shipObj.costs || { total: 0, categories: {} },
+        earnings: shipObj.earnings || { total: 0, real: 0, categories: {} },
+        alerts: Array.isArray(shipObj.alerts) ? shipObj.alerts : []
+      };
+      window.ships = [normalizedShip];
+      window.purchaseRequests = Array.isArray(prList) ? prList : [];
+      
+      if (typeof renderSingleShip === 'function') {
+        try { renderSingleShip(Number(shipObj.id || 0)); } catch (e) { /* noop */ }
+      }
+      if (typeof renderPurchaseRequests === 'function') {
+        try { renderPurchaseRequests(); } catch (e) { /* noop */ }
+      }
+    })();
   </script>
 {% endblock %}
+</body>
+</html>

@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 
-class Administracion(models.Model):
+class Dashboard(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='finanzas')
     costos_totales = models.DecimalField(max_digits=12, 
                                          decimal_places=2, 
@@ -60,6 +60,14 @@ class Administracion(models.Model):
                     total += costo_unitario * item.cantidad
         return total
     
+    @costos_totales.setter
+    def costos_totales(self, value):
+        """Setter para costos_totales que permite asignar valores directamente."""
+        if value is not None:
+            self._costos_totales_value = Decimal(str(value))
+        else:
+            self._costos_totales_value = None
+
     @property
     def ganancias_totales(self):
         # Suma el monto_total de todas las ventas completadas del crucero
@@ -71,6 +79,14 @@ class Administracion(models.Model):
         )['total']
         return total if total is not None else Decimal('0.00')
     
+    @ganancias_totales.setter
+    def ganancias_totales(self, value):
+        """Setter para ganancias_totales que permite asignar valores directamente."""
+        if value is not None:
+            self._ganancias_totales_value = Decimal(str(value))
+        else:
+            self._ganancias_totales_value = None
+
     #Agregar para decidir el precio del combustible
 
     def clean(self):
@@ -81,6 +97,19 @@ class Administracion(models.Model):
         if self.precio_combustible and self.precio_combustible < 0:
             raise ValidationError("El precio del combustible no puede ser negativo.")
         return super().clean() 
+    
+    def save(self, *args, **kwargs):
+        """Sobrescribe save para manejar los valores asignados a través de los setters."""
+        # Si se asignaron valores a través de los setters, actualizar los campos de la base de datos
+        if hasattr(self, '_costos_totales_value') and self._costos_totales_value is not None:
+            # Actualizar el campo de la base de datos con el valor asignado
+            super(Dashboard, self).__setattr__('costos_totales', self._costos_totales_value)
+        
+        if hasattr(self, '_ganancias_totales_value') and self._ganancias_totales_value is not None:
+            # Actualizar el campo de la base de datos con el valor asignado
+            super(Dashboard, self).__setattr__('ganancias_totales', self._ganancias_totales_value)
+        
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Finanzas"
@@ -90,13 +119,13 @@ class Administracion(models.Model):
         return f"{self.crucero.nombre} - Costos {self.costos_totales} - Ganancias {self.ganancias_totales}"
 
 class Alerta(models.Model):
-    crucero = models.ForeignKey(Administracion, on_delete=models.CASCADE, related_name='alertas')
+    crucero = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name='alertas', default=None)
     mensaje = models.CharField(max_length=255)
     fecha = models.DateTimeField(auto_now_add=True)
     leida = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.crucero.nombre} - {self.mensaje} - {self.fecha}"
+        return f"{self.crucero.crucero.nombre} - {self.mensaje} - {self.fecha}"
 
 class Cubierta(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='cubierta')

@@ -4,7 +4,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.http import JsonResponse
 from apps.cruceros.models import Crucero
-from .models import Administracion, Alerta
+from .models import Dashboard, Alerta
 from .forms import SolicitudMantenimientoHabitacionForm, HabitacionForm
 from .signals import decision_solicitud, obtener_solicitudes_compra
 from django.db.models import Count
@@ -14,8 +14,20 @@ def cruceros_dashboard_data(request, crucero_id):
     """API endpoint para obtener datos del dashboard de un crucero en particular"""
     crucero = get_object_or_404(Crucero, pk=crucero_id)
 
+    try:
+        dashboard = Dashboard.objects.get(pk=crucero_id)
+    except Dashboard.DoesNotExist:
+        # Si no existe un registro de administración para este crucero, crear uno con valores por defecto
+        dashboard = Dashboard.objects.create(
+            crucero=crucero,
+            costos_totales=0.00,
+            ganancias_totales=0.00,
+            presupuesto_estimado=0.00,
+            precio_combustible=0.00,
+            num_pasajeros_actual=0,
+            num_empleados_actual=0
+        )
     # Alertas asociadas al crucero seleccionado
-    dashboard = Administracion.objects.get(crucero=crucero)
     alertas_list = list(
         Alerta.objects.filter(crucero=dashboard)
         .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__crucero__nombre')
@@ -55,7 +67,7 @@ def cruceros_dashboard_data(request, crucero_id):
 #Obtener de alguna forma la ubicación actual de los barcos y no solo su puerto base 
 def dashboard_empresa(request):
     """Dashboard principal de administración"""    
-    dashboards = Administracion.objects.select_related('crucero').all()
+    dashboards = Dashboard.objects.select_related('crucero').all()
     cruceros_qs = Crucero.objects.all()
 
     costos_por_crucero = []

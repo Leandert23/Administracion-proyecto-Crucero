@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Administracion, Alerta, Habitaciones
+from .models import Dashboard, Alerta, Habitaciones
 
-admin.register(Administracion)
+admin.register(Dashboard)
 admin.register(Habitaciones)
 admin.register(Alerta)

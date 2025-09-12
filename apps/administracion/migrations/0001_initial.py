@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.conf import settings
+from decimal import Decimal
 from django.db import migrations, models
 
 
@@ -15,20 +16,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Modulo',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=50, unique=True)),
-                ('descripcion', models.TextField(blank=True)),
-                ('activo', models.BooleanField(default=True)),
-            ],
-            options={
-                'verbose_name': 'Módulo',
-                'verbose_name_plural': 'Módulos',
-                'ordering': ['nombre'],
-            },
-        ),
         migrations.CreateModel(
             name='Administracion',
             fields=[
@@ -53,39 +40,41 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Rol',
+            name='Habitaciones',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=50)),
-                ('tipo', models.CharField(choices=[('admin', 'Administrador'), ('editor', 'Editor'), ('lector', 'Lector'), ('especialista', 'Especialista')], max_length=20)),
-                ('descripcion', models.TextField(blank=True)),
-                ('permisos', models.JSONField(default=dict, help_text='Permisos específicos del rol')),
-                ('activo', models.BooleanField(default=True)),
-                ('modulo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='roles', to='administracion.modulo')),
+                ('tipo', models.CharField(choices=[('indivual', 'Individual'), ('double', 'Doble'), ('triple', 'Triple'), ('quadruple', 'Cuadruple'), ('penthouse', 'Penthouse'), ('suite', 'Suite'), ('ship_crew', 'De tripulación')], max_length=20)),
+                ('id_room', models.PositiveIntegerField()),
+                ('precio_base', models.DecimalField(decimal_places=2, max_digits=20, validators=[django.core.validators.MinValueValidator(Decimal('0'))])),
+                ('ubicacion', models.CharField(max_length=25)),
+                ('estado', models.CharField(choices=[('free', 'Libre'), ('reserved', 'Reservada'), ('occupied', 'Ocupada'), ('maintenance', 'Mantenimiento')], default='free', max_length=20)),
+                ('espacio_area', models.DecimalField(decimal_places=2, max_digits=5, validators=[django.core.validators.MinValueValidator(Decimal('0'))])),
+                ('nombre_usuario', models.CharField(default='free', max_length=25)),
+                ('capacidad', models.PositiveIntegerField()),
+                ('vista_mar', models.BooleanField(default=False)),
+                ('ultimo_mantenimiento', models.DateField()),
+                ('proximo_mantenimiento', models.DateField()),
+                ('costo_final', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0'))])),
+                ('cubierta', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='habitaciones', to='administracion.cubierta')),
             ],
             options={
-                'verbose_name': 'Rol',
-                'verbose_name_plural': 'Roles',
-                'ordering': ['modulo', 'nombre'],
-                'unique_together': {('nombre', 'modulo')},
+                'verbose_name': 'Habitación',
+                'verbose_name_plural': 'Habitaciones',
             },
         ),
         migrations.CreateModel(
-            name='UsuarioRol',
+            name='Cubierta',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fecha_asignacion', models.DateTimeField(auto_now_add=True)),
-                ('fecha_expiracion', models.DateTimeField(blank=True, null=True)),
-                ('activo', models.BooleanField(default=True)),
-                ('asignado_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='roles_asignados_por_mi', to=settings.AUTH_USER_MODEL)),
-                ('rol', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='usuarios', to='administracion.rol')),
-                ('usuario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='roles_asignados', to=settings.AUTH_USER_MODEL)),
+                ('nombre', models.CharField(max_length=25)),
+                ('numero', models.PositiveIntegerField()),
+                ('area_disponible', models.DecimalField(decimal_places=2, max_digits=5, validators=[django.core.validators.MinValueValidator(Decimal('0'))])),
+                ('area_restante', models.DecimalField(decimal_places=2, max_digits=5, validators=[django.core.validators.MinValueValidator(Decimal('0'))])),
+                ('crucero', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cubierta', to='cruceros.crucero')),
             ],
             options={
-                'verbose_name': 'Rol de Usuario',
-                'verbose_name_plural': 'Roles de Usuarios',
-                'ordering': ['-fecha_asignacion'],
-                'unique_together': {('usuario', 'rol')},
+                'verbose_name': 'Cubierta',
+                'verbose_name_plural': 'Cubiertas',
             },
         ),
     ]

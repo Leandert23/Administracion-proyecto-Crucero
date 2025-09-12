@@ -1,9 +1,9 @@
-from .models import Administracion, Alerta
+from .models import Dashboard, Alerta
 
 def calcular_presupuesto(administracion):
-    compras = Administracion.compras.all()
+    compras = Dashboard.compras.all()
     total_compras = sum([c.monto for c in compras])
-    return Administracion.presupuesto_estimado - total_compras
+    return Dashboard.presupuesto_estimado - total_compras
 
 def generar_alerta_si_excede_presupuesto(administracion):
     if calcular_presupuesto(administracion) < 0:

@@ -1,5 +1,5 @@
 from django.dispatch import receiver, Signal
-from .models import Administracion
+from .models import Dashboard
 from apps.compras.signals import solicitud_compra_administracion_signal
 import threading
 
@@ -14,7 +14,7 @@ def manejar_solicitud_compra_administracion(sender, id, monto, mensaje, **kwargs
         print(f"Solicitud recibida: id={id}, monto={monto}, mensaje={mensaje}")
         
         # Obtener el dashboard asociado al crucero
-        admin = Administracion.objects.get(id=id)
+        admin = Dashboard.objects.get(id=id)
         
         # Crear el objeto de solicitud
         solicitud_data = {

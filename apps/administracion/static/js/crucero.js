@@ -349,7 +349,9 @@ function renderSingleShip(shipId) {
 
   dashboard.innerHTML = `
     <div class="dashboard-box" style="max-height: 100%;">
-      <div style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('${shipImage}'); background-size: cover; background-position: center; border-radius: 12px; padding: 30px; margin-bottom: 20px; text-align: center;"></div>
+      <div style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('${shipImage}'); background-size: cover; background-position: center; border-radius: 12px; padding: 30px; margin-bottom: 20px; text-align: center;">
+        <h1 style="color:white">Dasboard de ${ship.name}</h1>
+      </div>
       <div class="content-box">
         <h1 style="color: white; font-size: 2em; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">${ship.name}</h1>
         ${alertsHtml}
