@@ -4,6 +4,82 @@ from datetime import date
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from apps.almacen.models import Producto, Lote, MovimientoAlmacen, OrdenCompra
 from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.db import transaction
+from apps.almacen.models import SolicitudSalida, ProductoSolicitado
+
+@require_POST
+@csrf_exempt
+def solicitar_productos(request):
+    # Now support batch requests: POST 'productos' = JSON list of {producto: id, cantidad: n}
+    descripcion = (request.POST.get('descripcion') or '').strip()
+    productos_json = request.POST.get('productos')
+    crucero_id = request.POST.get('crucero_id')
+
+    # Build items list: [{producto_id:int, cantidad:int}, ...]
+    items = []
+    if productos_json:
+        try:
+            parsed = json.loads(productos_json)
+            if isinstance(parsed, list):
+                for it in parsed:
+                    pid = it.get('producto') or it.get('id')
+                    qty = it.get('cantidad') or it.get('cantidad')
+                    items.append({'producto': int(pid), 'cantidad': int(qty)})
+            else:
+                return JsonResponse({'success': False, 'mensaje': 'Formato de productos inválido.'}, status=400)
+        except Exception:
+            return JsonResponse({'success': False, 'mensaje': 'JSON inválido en productos.'}, status=400)
+    else:
+        # Fallback single-product payload (compatibilidad): producto & cantidad
+        producto_id = request.POST.get('producto')
+        cantidad_cruda = request.POST.get('cantidad')
+        if not producto_id:
+            return JsonResponse({'success': False, 'mensaje': 'Producto requerido.'}, status=400)
+        try:
+            items.append({'producto': int(producto_id), 'cantidad': int(cantidad_cruda)})
+        except Exception:
+            return JsonResponse({'success': False, 'mensaje': 'Cantidad inválida.'}, status=400)
+
+    # Validate items and create Solicitud + ProductoSolicitado records
+    try:
+        # Determine modulo from POST (accept both 'modulo' and legacy 'modulo_entrega')
+        # Also accept an optional X-MODULO header. Default to 'ALMACEN'.
+        modulo_entrada = (
+            (request.POST.get('modulo') or request.POST.get('modulo_entrega'))
+            or request.META.get('HTTP_X_MODULO')
+            or ''
+        ).strip()
+        modulo_lookup = {opcion[0].lower(): opcion[0] for opcion in MovimientoAlmacen.TIPO_MODULO}
+        modulo = modulo_lookup.get(modulo_entrada.lower(), 'ALMACEN')
+
+        with transaction.atomic():
+            solicitud = SolicitudSalida.objects.create(descripcion=descripcion, modulo=modulo)
+            created = 0
+            for it in items:
+                pid = it.get('producto')
+                qty = it.get('cantidad')
+                if not pid or not isinstance(qty, int) or qty <= 0:
+                    transaction.set_rollback(True)
+                    return JsonResponse({'success': False, 'mensaje': 'Producto o cantidad inválida.'}, status=400)
+                try:
+                    producto = Producto.objects.get(pk=pid)
+                except Producto.DoesNotExist:
+                    transaction.set_rollback(True)
+                    return JsonResponse({'success': False, 'mensaje': f'Producto {pid} no encontrado.'}, status=404)
+
+                ProductoSolicitado.objects.create(
+                    solicitud=solicitud,
+                    producto=producto,
+                    cantidad=qty,
+                    unidad=producto.medida or 'U'
+                )
+                created += 1
+
+        return JsonResponse({'success': True, 'solicitud_id': solicitud.id, 'items_creados': created})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': 'Error interno al crear la solicitud.'}, status=500)
 
 @require_POST
 def registrar_lote(request):

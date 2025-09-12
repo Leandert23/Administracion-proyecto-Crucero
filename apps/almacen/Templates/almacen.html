@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
     <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
@@ -38,38 +40,59 @@
                 <!-- Tarjetas resumen superiores -->
                 <div class="quick-cards">
                     <div class="quick-card" id="inventario-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-boxes" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Inventario</h3>
                             <p class="quick-card__text">Maneja el inventario general</p>
                         </div>
                     </div>
                     <div class="quick-card" id="entrada-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-plus-circle" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Entrada de Lote</h3>
                             <p class="quick-card__text">Registrar manualmente la entrada de un lote</p>
                         </div>
                     </div>
                     <div class="quick-card" id="salida-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-truck" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Salida de producto</h3>
                             <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
                         </div>
                     </div>
                     <div class="quick-card" id="historial-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-history" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Historial de Movimientos</h3>
                             <p class="quick-card__text">Ver historial de entradas y salidas</p>
                         </div>
                     </div>
                     <div class="quick-card" id="reportes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Reportes de Mermas</h3>
                             <p class="quick-card__text">Reportar algún daño a productos</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="solicitud-almacen-card" onclick="abrirModalSolicitudAlmacen()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Solicitud Almacen</h3>
+                            <p class="quick-card__text">Solicitar productos a almacen</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="solicitud-almacen-card_listado" onclick="abrirListadoSolicitudesAlmacen()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Solicitudes de Productos</h3>
+                            <p class="quick-card__text">Procesar solicitudes de salida en el almacen</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="solicitud-aprobadas-card" onclick="abrirSolicitudesAprobadas()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Salidas por Procesar</h3>
+                            <p class="quick-card__text">Procesar entregas de producto aprobadas</p>
                         </div>
                     </div>
                 </div> <!-- quick-cards -->
@@ -90,6 +113,9 @@
     {% include 'Modals/salida_producto.html' %}
     {% include 'Modals/registro_merma.html' %}
     {% include 'Modals/lotes_de_producto.html' %}
+    {% include 'Modals/modal_solicitud_a_almacen.html' %}
+    {% include 'Modals/modal_listado_solicitudes.html' %}
+    {% include 'Modals/modal_solicitudes_aprobadas.html' %}
 
 
     <script src="{% static 'Js/sidebar.js' %}"></script>
@@ -114,6 +140,20 @@
             });
         }
     })();
+    // Fallback: asegurar que la función global exista para abrir el modal de solicitud
+    if(typeof window.abrirModalSolicitudAlmacen !== 'function'){
+        window.abrirModalSolicitudAlmacen = function(){
+            try{
+                var modal = document.getElementById('modalSolicitudAlmacen');
+                if(modal) modal.style.display = '';
+                // intentar usar la interfaz del modal si está disponible
+                if(window.InterfazSolicitud && typeof InterfazSolicitud.reiniciarEstado === 'function'){
+                    InterfazSolicitud.reiniciarEstado();
+                    InterfazSolicitud.cargarProductos();
+                }
+            }catch(e){ console.error('abrirModalSolicitudAlmacen fallback error', e); }
+        };
+    }
     </script>
 </body>
 </html>

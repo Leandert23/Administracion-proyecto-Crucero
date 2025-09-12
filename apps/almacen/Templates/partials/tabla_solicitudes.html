@@ -1,0 +1,33 @@
+<table class="table" role="grid">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Solicitante</th>
+            <th>Estado</th>
+            <th>Unidades</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in solicitudes %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.fecha_creacion|date:"Y-m-d" }}</td>
+            {# Mostrar el módulo de la solicitud bajo la columna 'Solicitante' #}
+            <td>{{ s.modulo|default:'ALMACEN' }}</td>
+            <td>{{ s.get_estado_display }}</td>
+            <td>{{ s.total_unidades|default:0 }}</td>
+            <td>
+                <button class="mls-btn mls-view" data-mls-action="ver" data-mls-id="{{ s.id }}">Ver</button>
+                {% if s.estado == 'PENDIENTE' %}
+                    <button class="mls-btn mls-accept" data-mls-action="aceptar" data-mls-id="{{ s.id }}">Aceptar</button>
+                    <button class="mls-btn mls-reject" data-mls-action="rechazar" data-mls-id="{{ s.id }}">Rechazar</button>
+                {% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6">No se encontraron solicitudes.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -1,9 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
+import json
 from django.core.paginator import Paginator
+from django.db.models import Sum
+from django.db import transaction
 from apps.cruceros.models import Crucero, Instalacion
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
+from apps.almacen.models import SolicitudSalida
+from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from datetime import timedelta
 
@@ -42,10 +47,10 @@ def obtener_ordenes_compra_por_registrar(request):
     paginator = Paginator(ordenes_compra, 10)
     page_obj = paginator.get_page(page_number)
 
-    tabla_html = render(request, 'Partials/tabla_ordenes_compra.html', {
+    tabla_html = render(request, 'partials/tabla_ordenes_compra.html', {
         'ordenes': page_obj.object_list
     }).content.decode('utf-8')
-    paginacion_html = render(request, 'Partials/botones_paginacion.html', {
+    paginacion_html = render(request, 'partials/botones_paginacion.html', {
         'page_obj': page_obj,
         'page_label': 'órdenes',
         'js_function': 'cargarPaginaOrdenes',
@@ -83,3 +88,176 @@ def detalle_orden_compra(request, orden_id):
             'seccion': prod.seccion.nombre
         }
     })
+
+
+@require_GET
+def obtener_listado_solicitudes(request):
+    """Devuelve HTML parcial con la tabla de solicitudes (paginado).
+
+    Nota: únicamente devuelve solicitudes con estado 'PENDIENTE' para que el modal
+    muestre solo las solicitudes por procesar.
+    """
+    # Anotar con la suma de cantidades solicitadas para mostrar unidades totales
+    qs = SolicitudSalida.objects.filter(estado='PENDIENTE').annotate(total_unidades=Sum('productos_solicitados__cantidad')).order_by('-fecha_creacion')
+    page_number = int(request.GET.get('page', 1))
+    paginator = Paginator(qs, 10)
+    page_obj = paginator.get_page(page_number)
+
+    tabla_html = render(request, 'partials/tabla_solicitudes.html', {
+        'solicitudes': page_obj.object_list
+    }).content.decode('utf-8')
+
+    paginacion_html = render(request, 'partials/botones_paginacion.html', {
+        'page_obj': page_obj,
+        'page_label': 'solicitudes',
+        'js_function': 'cargarPaginaSolicitudes',
+        'summary_id': 'solicitudes-summary'
+    }).content.decode('utf-8')
+
+    return JsonResponse({
+        'success': True,
+        'tabla_html': tabla_html,
+        'paginacion_html': paginacion_html,
+        'total': qs.count()
+    })
+
+
+@require_GET
+def detalle_solicitud(request, solicitud_id):
+    """Devuelve HTML parcial con los productos y cantidades de una solicitud."""
+    solicitud = get_object_or_404(SolicitudSalida.objects.prefetch_related('productos_solicitados__producto'), pk=solicitud_id)
+    html = render(request, 'partials/detalle_solicitud.html', {'solicitud': solicitud}).content.decode('utf-8')
+    return JsonResponse({'success': True, 'html': html})
+
+
+@require_GET
+def obtener_solicitudes_aprobadas(request):
+    """Devuelve HTML parcial con la tabla de solicitudes aprobadas asociadas al crucero actual.
+
+    Parámetros (GET): page (opcional), crucero_id (opcional - si no se recibe se listan todas)
+    """
+    crucero_id = request.GET.get('crucero_id')
+    qs = SolicitudSalida.objects.filter(estado='APROBADA')
+    # Si se proporciona crucero_id intentamos filtrar por relación a través de productos->seccion->almacen->crucero
+    if crucero_id:
+        qs = qs.filter(productos_solicitados__producto__seccion__almacen__crucero_id=crucero_id).distinct()
+    qs = qs.annotate(total_unidades=Sum('productos_solicitados__cantidad')).order_by('-fecha_creacion')
+
+    page_number = int(request.GET.get('page', 1))
+    paginator = Paginator(qs, 10)
+    page_obj = paginator.get_page(page_number)
+
+    tabla_html = render(request, 'partials/tabla_solicitudes_aprobadas.html', {
+        'solicitudes': page_obj.object_list
+    }).content.decode('utf-8')
+
+    paginacion_html = render(request, 'partials/botones_paginacion.html', {
+        'page_obj': page_obj,
+        'page_label': 'solicitudes aprobadas',
+        'js_function': 'cargarPaginaSolicitudesAprobadas',
+        'summary_id': 'solicitudes-aprobadas-summary'
+    }).content.decode('utf-8')
+
+    return JsonResponse({'success': True, 'tabla_html': tabla_html, 'paginacion_html': paginacion_html, 'total': qs.count()})
+
+
+
+
+
+@require_POST
+def aceptar_solicitud(request):
+    """Marca una SolicitudSalida como Aprobada. Acepta JSON o form-encoded body con 'id' o 'solicitud_id'."""
+    try:
+        sid = None
+        if request.content_type and 'application/json' in request.content_type:
+            data = json.loads(request.body.decode('utf-8') or '{}')
+            sid = data.get('id') or data.get('solicitud_id')
+        else:
+            sid = request.POST.get('id') or request.POST.get('solicitud_id')
+
+        if not sid:
+            return JsonResponse({'success': False, 'error': 'id_requerido'}, status=400)
+
+        solicitud = get_object_or_404(SolicitudSalida, pk=int(sid))
+        # Sólo aceptar si está pendiente
+        if solicitud.estado != 'PENDIENTE':
+            return JsonResponse({'success': False, 'error': 'estado_no_permitido', 'estado_actual': solicitud.estado}, status=400)
+
+        solicitud.estado = 'APROBADA'
+        solicitud.save()
+        return JsonResponse({'success': True, 'id': solicitud.id, 'estado': solicitud.estado})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_POST
+def rechazar_solicitud(request):
+    """Marca una SolicitudSalida como Rechazada. Acepta JSON o form-encoded body con 'id' o 'solicitud_id'."""
+    try:
+        sid = None
+        if request.content_type and 'application/json' in request.content_type:
+            data = json.loads(request.body.decode('utf-8') or '{}')
+            sid = data.get('id') or data.get('solicitud_id')
+        else:
+            sid = request.POST.get('id') or request.POST.get('solicitud_id')
+
+        if not sid:
+            return JsonResponse({'success': False, 'error': 'id_requerido'}, status=400)
+
+        solicitud = get_object_or_404(SolicitudSalida, pk=int(sid))
+        # Sólo rechazar si está pendiente
+        if solicitud.estado != 'PENDIENTE':
+            return JsonResponse({'success': False, 'error': 'estado_no_permitido', 'estado_actual': solicitud.estado}, status=400)
+
+        solicitud.estado = 'RECHAZADA'
+        solicitud.save()
+        return JsonResponse({'success': True, 'id': solicitud.id, 'estado': solicitud.estado})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)@require_POST
+
+def entregar_solicitud(request):
+    """Marca una SolicitudSalida como COMPLETADA y puede realizar otras acciones de entrega."""
+    try:
+        sid = None
+        if request.content_type and 'application/json' in request.content_type:
+            data = json.loads(request.body.decode('utf-8') or '{}')
+            sid = data.get('id') or data.get('solicitud_id')
+        else:
+            sid = request.POST.get('id') or request.POST.get('solicitud_id')
+
+        if not sid:
+            return JsonResponse({'success': False, 'error': 'id_requerido'}, status=400)
+
+        solicitud = get_object_or_404(SolicitudSalida.objects.prefetch_related('productos_solicitados__producto'), pk=int(sid))
+        if solicitud.estado != 'APROBADA':
+            return JsonResponse({'success': False, 'error': 'estado_no_permitido', 'estado_actual': solicitud.estado}, status=400)
+
+        # Procesar cada producto solicitado: retirar stock siguiendo FIFO/FEFO según lotes
+        try:
+            with transaction.atomic():
+                productos_solicitados = solicitud.productos_solicitados.select_related('producto').all()
+                # Usar el modulo de la solicitud para los movimientos (fallback a 'ALMACEN')
+                modulo_mov = (getattr(solicitud, 'modulo', None) or 'ALMACEN')
+                for ps in productos_solicitados:
+                    producto = ps.producto
+                    cantidad = int(ps.cantidad or 0)
+                    # Determinar método: FEFO si existen lotes con fecha de caducidad
+                    tiene_lotes_con_fecha = producto.lotes.filter(cantidad_productos__gt=0, fecha_caducidad__isnull=False).exists()
+                    if tiene_lotes_con_fecha:
+                        retirar_producto_fefo(producto.pk, cantidad, modulo_mov, descripcion=f'Entrega solicitud #{solicitud.id}')
+                    else:
+                        retirar_producto_fifo(producto.pk, cantidad, modulo_mov, descripcion=f'Entrega solicitud #{solicitud.id}')
+
+                # Si todo fue bien, marcar solicitud como completada
+                solicitud.estado = 'COMPLETADA'
+                solicitud.save()
+
+        except ValueError as ve:
+            # error lanzado por la lógica de retiro (por ejemplo stock insuficiente)
+            return JsonResponse({'success': False, 'error': 'stock_insuficiente', 'detalle': str(ve)}, status=409)
+        except Exception as ex:
+            return JsonResponse({'success': False, 'error': 'error_interno', 'detalle': str(ex)}, status=500)
+
+        return JsonResponse({'success': True, 'id': solicitud.id, 'estado': solicitud.estado})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

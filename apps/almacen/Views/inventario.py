@@ -8,6 +8,57 @@ from apps.almacen.models import Producto, MovimientoAlmacen, SeccionAlmacen
 from apps.cruceros.models import Instalacion
 from ...cruceros.Services.fecha_general import obtener_fecha_actual
 
+
+@require_GET
+def obtener_productos_para_solicitud(request):
+    from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+    tipos = request.GET.getlist('tipos')
+    tipo_filtro = request.GET.get('tipo')
+    busqueda = request.GET.get('busqueda', '')
+    page_number = request.GET.get('page', 1)
+    crucero_id = request.GET.get('crucero_id')
+
+    productos = Producto.objects.all()
+
+    if crucero_id:
+        try:
+            instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
+            secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+            productos = productos.filter(seccion__in=secciones)
+        except Exception:
+            pass
+
+    if tipos:
+        productos = productos.filter(tipo__in=tipos)
+    if tipo_filtro:
+        productos = productos.filter(tipo=tipo_filtro)
+    if busqueda:
+        productos = productos.filter(nombre__icontains=busqueda)
+    productos = productos.order_by('nombre')
+    paginador = Paginator(productos, 10)
+    try:
+        page_obj = paginador.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginador.page(1)
+    html_tabla = render_to_string('Partials/tabla_productos_solicitud.html', {
+        'page': page_obj
+    })
+    html_paginacion = render_to_string('Partials/botones_paginacion.html', {
+        'page_obj': page_obj
+    })
+    return JsonResponse({
+        'success': True,
+        'tabla_html': html_tabla,
+        'paginacion_html': html_paginacion,
+        'info_paginacion': {
+            'pagina_actual': page_obj.number,
+            'total_paginas': paginador.num_pages,
+            'total_productos': paginador.count,
+            'inicio': page_obj.start_index(),
+            'fin': page_obj.end_index()
+        }
+    })
+
 @require_GET
 def obtener_pagina_inventario_productos(request):
     crucero_id = request.GET.get('crucero_id')
