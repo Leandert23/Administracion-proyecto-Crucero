@@ -141,6 +141,11 @@ body {
   letter-spacing: 1px;
   margin-bottom:10px;
 }
+.dashboard-title p {
+  text-align: center; 
+  color: #64748b; 
+  margin-bottom: 30px;
+}
 .dashboard-subtitle {
   font-size: 1.1em;
   font-weight: bold;
@@ -353,6 +358,34 @@ body {
 
 .purchase-request-card.rejected {
   border-left-color: #ef4444;
+}
+
+.purchase-request-title {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: start; 
+  margin-bottom: 10px;
+}
+
+.purchase-request-date {
+  background: #f1f5f9; 
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  font-size: 12px; 
+  color: #475569;
+}
+
+.purchase-request-info {
+  margin: 10px 0; 
+  color: #64748b; 
+  font-size: 18px;
+}
+
+.purchase-status-text {
+  padding: 6px 12px; 
+  border-radius: 6px; 
+  font-size: 14px; 
+  font-weight: bold;
 }
 
 .purchase-actions {

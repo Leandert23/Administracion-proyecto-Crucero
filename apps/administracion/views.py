@@ -2,38 +2,31 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
+from django.http import JsonResponse
 from apps.cruceros.models import Crucero
-from .models import Dashboard, Alerta
-from .forms import SolicitudMantenimientoHabitacionForm
+from .models import Administracion, Alerta
+from .forms import SolicitudMantenimientoHabitacionForm, HabitacionForm
+from .signals import decision_solicitud, obtener_solicitudes_compra
 from django.db.models import Count
 
 #Obtener la distancia del recorrido de un crucero en particular
-#Obtener las solicitudes de compra de un crucero en particualar
 def cruceros_dashboard_data(request, crucero_id):
     """API endpoint para obtener datos del dashboard de un crucero en particular"""
     crucero = get_object_or_404(Crucero, pk=crucero_id)
 
     # Alertas asociadas al crucero seleccionado
-    alertas_qs = (
-        Alerta.objects
-        .filter(crucero=crucero)
+    dashboard = Administracion.objects.get(crucero=crucero)
+    alertas_list = list(
+        Alerta.objects.filter(crucero=dashboard)
+        .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__crucero__nombre')
     )
-    alertas_list = [
-        {
-            "mensaje": a.mensaje,
-            "fecha": a.fecha,
-            "leida": a.leida,
-        }
-        for a in alertas_qs
-    ]
     data = []
-
-    dashboard = Dashboard.objects.get(crucero=crucero)
     passengers = dashboard.num_pasajeros_actual
     employees = dashboard.num_empleados_actual
     budget = dashboard.presupuesto_estimado
     costs_total = dashboard.costos_totales
     earnings_total = dashboard.ganancias_totales
+    purchase_requests = obtener_solicitudes_compra(crucero_id)
         
     data = {
         "name": crucero.nombre,
@@ -54,7 +47,7 @@ def cruceros_dashboard_data(request, crucero_id):
             "categories": {}
         },
         "alerts": alertas_list,
-        "purchase_requests": "purchase_requests"
+        "purchase_requests": purchase_requests
     }
 
     return render(request, 'dashboard_crucero.html', data)
@@ -62,7 +55,7 @@ def cruceros_dashboard_data(request, crucero_id):
 #Obtener de alguna forma la ubicación actual de los barcos y no solo su puerto base 
 def dashboard_empresa(request):
     """Dashboard principal de administración"""    
-    dashboards = Dashboard.objects.select_related('crucero').all()
+    dashboards = Administracion.objects.select_related('crucero').all()
     cruceros_qs = Crucero.objects.all()
 
     costos_por_crucero = []
@@ -75,8 +68,8 @@ def dashboard_empresa(request):
     )
 
     alertas = list(
-        Alerta.objects.select_related('crucero')
-        .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__nombre')
+        Alerta.objects.select_related('crucero__crucero')
+        .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__crucero__nombre')
     )
 
     estados_counts = {
@@ -133,40 +126,94 @@ def solicitar_mantenimiento_habitacion(request):
     }
     return render(request, 'administracion/solicitar_mantenimiento_habitacion.html', contexto)
 
-# Agregar vistas para manejar solicitudes de compra
+# Agregar vista para manejar solicitudes de compra
 @csrf_exempt
 @require_http_methods(["POST"])
-def approve_purchase_request(request, request_id):
-    # Agregar datos de solicitudes de compra del modulo Compras
-    pass
-    '''''''''
+def decision_solicitud_view(request):
+    """
+    Vista para procesar la decisión de una solicitud de compra enviada desde crucero.js
+    URL: /administracion/decision-solicitud/
+    """
     try:
-        solicitud = SolicitudCompra.objects.get(id=request_id)
-        solicitud.estado = 'approved'
-        solicitud.razon_rechazo = None
-        solicitud.save()
-        return JsonResponse({"status": "success"})
-    except SolicitudCompra.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Solicitud no encontrada"}, status=404)
-    '''''''''
+        # Obtener los datos del FormData enviado desde JavaScript
+        request_id = request.POST.get('id')
+        aceptado_str = request.POST.get('aceptado')
+        mensaje = request.POST.get('mensaje', '')
         
-@csrf_exempt
-@require_http_methods(["POST"])
-def reject_purchase_request(request, request_id):
-    # Agregar datos de solicitudes de compra del modulo Compras
-    pass
-'''''''''
-    try:
-        data = json.loads(request.body)
-        reason = data.get('reason', '')
+        # Validar que se proporcionen los datos requeridos
+        if not request_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de solicitud requerido'
+            }, status=400)
         
-        solicitud = SolicitudCompra.objects.get(id=request_id)
-        solicitud.estado = 'rejected'
-        solicitud.razon_rechazo = reason
-        solicitud.save()
-        return JsonResponse({"status": "success"})
-    except SolicitudCompra.DoesNotExist:
-        return JsonResponse({"status": "error", "message": "Solicitud no encontrada"}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({"status": "error", "message": "Datos inválidos"}, status=400)
-'''''''''
+        if aceptado_str is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'Estado de decisión requerido'
+            }, status=400)
+        
+        # Convertir el string a boolean
+        aceptado = aceptado_str.lower() in ['true', '1', 'yes', 'si', 'sí'] 
+        
+        # Procesar la decisión usando la función de utils
+        decision_solicitud(request_id, aceptado, mensaje)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error interno del servidor: {str(e)}'
+        }, status=500)
+
+def registrar_habitacion(request):
+    """Vista para registrar una nueva habitación."""
+    if request.method == 'POST':
+        form = HabitacionForm(request.POST)
+        if form.is_valid():
+            try:
+                # Guardar la habitación en la base de datos
+                habitacion = form.save()
+                
+                # Mensaje de éxito con información detallada
+                messages.success(
+                    request, 
+                    f'¡Habitación registrada exitosamente! '
+                    f'ID: {habitacion.id}, Nombre: "{habitacion.nombre_usuario}", '
+                    f'Ubicación: {habitacion.ubicacion}, Tipo: {habitacion.get_tipo_display()}, '
+                    f'Costo final: ${habitacion.costo_final:,.2f}'
+                )
+                
+                # Redirigir para limpiar el formulario
+                return redirect('registrar_habitacion')
+            except Exception as e:
+                # Manejar otros errores
+                messages.error(
+                    request, 
+                    f'Error al registrar la habitación: {str(e)}. '
+                    'Por favor, verifique los datos e intente nuevamente.'
+                )
+        else:
+            # El formulario no es válido, mostrar errores
+            messages.error(
+                request, 
+                'Por favor, corrija los errores en el formulario antes de continuar.'
+            )
+    else:
+        form = HabitacionForm()
+    
+    contexto = {
+        'form': form,
+        'titulo': 'Registrar Nueva Habitación'
+    }
+    return render(request, 'administracion/registrar_habitacion.html', contexto)
+
+def listar_habitaciones(request):
+    """Vista para listar todas las habitaciones registradas."""
+    from .models import Habitaciones
+    
+    habitaciones = Habitaciones.objects.select_related('cubierta', 'cubierta__crucero').all().order_by('-id')
+    
+    contexto = {
+        'habitaciones': habitaciones,
+        'titulo': 'Lista de Habitaciones Registradas'
+    }
+    return render(request, 'administracion/listar_habitaciones.html', contexto)

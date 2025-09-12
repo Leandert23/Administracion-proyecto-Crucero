@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-
 function renderPurchaseRequests() {
   const container = document.getElementById("purchaseRequests");
 
@@ -66,7 +65,7 @@ function renderPurchaseRequests() {
     container.innerHTML = `
       <div class="dashboard-box">
         <h2 class="dashboard-title">Solicitudes de Compra</h2>
-        <p style="text-align: center; color: #64748b; margin: 40px 0;">No hay solicitudes de compra pendientes</p>
+        <p>No hay solicitudes de compra pendientes</p>
       </div>
     `;
     return;
@@ -75,24 +74,24 @@ function renderPurchaseRequests() {
   let requestsHtml = `
     <div class="dashboard-box">
       <h2 class="dashboard-title">Solicitudes de Compra</h2>
-      <p style="text-align: center; color: #64748b; margin-bottom: 30px;">
-        Gestiona las solicitudes de compra del módulo de compras
-      </p>
+      <p>Gestiona las solicitudes de compra del módulo de compras</p>
+    </div>
   `;
 
   purchaseRequests.forEach(function(request) {
-    const statusClass = request.status === "approved" ? "approved" : request.status === "rejected" ? "rejected" : "";
+    const statusClass = request.status === "approved" ? "approved" : 
+      request.status === "rejected" ? "rejected" : "pending";
 
     requestsHtml += `
       <div class="purchase-request-card ${statusClass}">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+        <div class="purchase-request-title">
           <h3 style="margin: 0; color: #1e293b;">${request.ship_name}</h3>
-          <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #475569;">
+          <span class="purchase-request-date">
             ${request.created_at}
           </span>
         </div>
-        <p style="margin: 10px 0; color: #64748b;"><strong>Descripción:</strong> ${request.description}</p>
-        <p style="margin: 10px 0; color: #1e293b; font-size: 18px;"><strong>Monto:</strong> $${request.amount.toLocaleString()}</p>
+        <p class="purchase-request-info"><strong>Descripción:</strong> ${request.description}</p>
+        <p class="purchase-request-info"><strong>Monto:</strong> $${request.amount.toLocaleString()}</p>
         
         ${request.status === "pending" ? `
           <div class="purchase-actions">
@@ -105,8 +104,8 @@ function renderPurchaseRequests() {
           </div>
         ` : `
           <div style="margin-top: 15px;">
-            <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: bold; 
-                         background: ${request.status === "approved" ? "#dcfce7; color: #166534" : "#fee2e2; color: #dc2626"};">
+            <span class="purchase-status-text" style="background: ${request.status === "approved" ? 
+                "#dcfce7; color: #166534" : "#fee2e2; color: #dc2626"};">
               ${request.status === "approved" ? "APROBADA" : "RECHAZADA"}
             </span>
             ${request.rejection_reason ? `<p style="margin-top: 10px; color: #dc2626;"><strong>Razón:</strong> ${request.rejection_reason}</p>` : ""}
@@ -117,6 +116,70 @@ function renderPurchaseRequests() {
   });
 
   container.innerHTML = requestsHtml;
+}
+
+function showRejectModal(requestId) {
+  const reason = prompt("Ingrese la razón del rechazo:");
+  if (reason && reason.trim()) {
+    rejectPurchaseRequest(requestId, reason.trim());
+  }
+}
+
+function approvePurchaseRequest(requestId) {
+  const request = purchaseRequests.find(function(r) { return r.id === requestId; });
+  if (request) {
+    request.status = "approved";
+    renderPurchaseRequests();
+    
+    // Enviar signal decision_solicitud para aprobar
+    sendDecisionSignal(requestId, true, "Solicitud aprobada");
+  }
+}
+
+function rejectPurchaseRequest(requestId, reason) {
+  const request = purchaseRequests.find(function(r) { return r.id === requestId; });
+  if (request) {
+    // Validar que se proporcione una razón para el rechazo
+    if (!reason || reason.trim() === '') {
+      alert('Debe proporcionar una razón para rechazar la solicitud');
+      return;
+    }
+    
+    request.status = "rejected";
+    request.rejection_reason = reason;
+    renderPurchaseRequests();
+    
+    // Enviar signal decision_solicitud para rechazar
+    sendDecisionSignal(requestId, false, reason.trim());
+  }
+}
+
+function sendDecisionSignal(requestId, aceptado, mensaje) {
+  // Crear un objeto FormData para enviar los datos
+  const formData = new FormData();
+  formData.append('id', requestId);
+  formData.append('aceptado', aceptado);
+  formData.append('mensaje', mensaje);
+  formData.append('csrfmiddlewaretoken', getCsrfToken());
+  
+  // Enviar la signal usando fetch
+  fetch('/administracion/decision-solicitud/', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': getCsrfToken()
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('Signal decision_solicitud enviada correctamente');
+    } else {
+      console.error('Error al enviar signal decision_solicitud');
+    }
+  })
+  .catch(error => {
+    console.error('Error de red al enviar signal decision_solicitud:', error);
+  });
 }
 
 function renderModal(){
@@ -207,47 +270,6 @@ function renderModal(){
       closeModal();
     }
   });
-}
-
-function showRejectModal(requestId) {
-  const reason = prompt("Ingrese la razón del rechazo:");
-  if (reason && reason.trim()) {
-    rejectPurchaseRequest(requestId, reason.trim());
-  }
-}
-
-function approvePurchaseRequest(requestId) {
-  const request = purchaseRequests.find(function(r) { return r.id === requestId; });
-  if (request) {
-    request.status = "approved";
-    renderPurchaseRequests();
-
-    fetch("/administracion/api/purchase-requests/" + requestId + "/approve/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
-      },
-    }).catch(function(error) { console.error("Error approving request:", error); });
-  }
-}
-
-function rejectPurchaseRequest(requestId, reason) {
-  const request = purchaseRequests.find(function(r) { return r.id === requestId; });
-  if (request) {
-    request.status = "rejected";
-    request.rejection_reason = reason;
-    renderPurchaseRequests();
-
-    fetch("/administracion/api/purchase-requests/" + requestId + "/reject/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
-      },
-      body: JSON.stringify({ reason: reason }),
-    }).catch(function(error) { console.error("Error rejecting request:", error); });
-  }
 }
 
 // Renderiza los gráficos de un solo barco

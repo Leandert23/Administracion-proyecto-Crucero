@@ -124,6 +124,8 @@
 {% block extra_js %}
   {{ ships|json_script:"ship-data" }}
   {{ purchase_requests|json_script:"purchase-requests-data" }}
+  <script src="{% static 'js/sidebar.js' %}"></script>
+  <script src="{% static 'js/crucero.js' %}"></script>
   <script>
     window.djangoContext = {
       ship: JSON.parse(document.getElementById('ship-data').textContent),

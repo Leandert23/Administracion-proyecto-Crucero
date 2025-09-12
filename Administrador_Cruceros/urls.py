@@ -21,7 +21,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from apps.administracion.views import LoginPersonalizado, registro_usuario, logout_usuario
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,9 +29,6 @@ urlpatterns = [
     path('bar/', include('apps.bares_snacks.urls')),
     path('dashboard/', include('apps.administracion.urls')),
     # URLs de autenticación
-    path('login/', LoginPersonalizado.as_view(), name='login'),
-    path('logout/', logout_usuario, name='logout'),
-    path('registro/', registro_usuario, name='registro'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

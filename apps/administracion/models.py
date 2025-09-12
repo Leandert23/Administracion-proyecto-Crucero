@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 
-class Dashboard(models.Model):
+class Administracion(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='finanzas')
     costos_totales = models.DecimalField(max_digits=12, 
                                          decimal_places=2, 
@@ -90,7 +90,7 @@ class Dashboard(models.Model):
         return f"{self.crucero.nombre} - Costos {self.costos_totales} - Ganancias {self.ganancias_totales}"
 
 class Alerta(models.Model):
-    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='alertas')
+    crucero = models.ForeignKey(Administracion, on_delete=models.CASCADE, related_name='alertas')
     mensaje = models.CharField(max_length=255)
     fecha = models.DateTimeField(auto_now_add=True)
     leida = models.BooleanField(default=False)
@@ -98,8 +98,6 @@ class Alerta(models.Model):
     def __str__(self):
         return f"{self.crucero.nombre} - {self.mensaje} - {self.fecha}"
 
-
-# Supongo que lo tendría Almacén
 class Cubierta(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='cubierta')
     nombre = models.CharField(max_length=25)
@@ -132,7 +130,6 @@ class Cubierta(models.Model):
             total_instalaciones = Instalaciones.objects.filter(cubierta=self).aggregate(
                 total=models.Sum('espacio_area')
             )['total']
-            
             # Calcular área total usada por habitaciones
             total_habitaciones = Habitaciones.objects.filter(cubierta=self).aggregate(
                 total=models.Sum('espacio_area')
@@ -169,7 +166,7 @@ class Cubierta(models.Model):
 
     def __str__(self):
         return f"Cubierta {self.nombre} - Numero {self.numero}"
-    
+
 class Instalaciones(models.Model):
     ESTADOS = [
         ('active', 'Activa'),
@@ -190,20 +187,19 @@ class Instalaciones(models.Model):
         ('navigation_bridge', 'Puente de navegación'),
     ]
 
-    cubierta = models.ForeignKey(Cubierta, on_delete=models.CASCADE, related_name='instalaciones')
-    tipo = models.CharField(max_length=10, choices=TIPOS)
+    cubierta = models.ForeignKey(Cubierta, on_delete=models.PROTECT, related_name='instalaciones')
+    tipo = models.CharField(max_length=20, choices=TIPOS)
     capacidad = models.PositiveIntegerField()
     espacio_area = models.DecimalField(max_digits=5, 
                                        decimal_places=2, 
                                        validators=[MinValueValidator(Decimal('0'))])
-    id = models.PositiveIntegerField() 
+    id_instalacion = models.PositiveIntegerField() 
     ubicacion = models.CharField(max_length=25)
-    estado = models.CharField(max_length=10, 
+    estado = models.CharField(max_length=20, 
                               default='active', 
                               choices=ESTADOS)
     ultimo_mantenimiento = models.DateField()
     proximo_mantenimiento = models.DateField()
-
 
     def clean(self):
         if self.cubierta:
@@ -224,7 +220,7 @@ class Instalaciones(models.Model):
 
     def __str__(self):
         return f"Instalación {self.tipo} - Ubicación {self.ubicacion} - {self.estado}"
-    
+
 class Habitaciones(models.Model):
     ESTADOS = [
         ('free', 'Libre'),
@@ -233,33 +229,57 @@ class Habitaciones(models.Model):
         ('maintenance', 'Mantenimiento')
     ]
     TIPOS = [
-        ('client', 'De clientes'),
-        ('ship_crew', 'De tripulación')
+        ('indivual', 'Individual'),
+        ('double', 'Doble'),
+        ('triple', 'Triple'),
+        ('quadruple', 'Cuadruple'),
+        ('penthouse', 'Penthouse'),
+        ('suite', 'Suite'),
+        ('ship_crew', 'De tripulación'),
     ]
-    cubierta = models.ForeignKey(Cubierta, on_delete=models.CASCADE, related_name='habitaciones')
-    tipo = models.CharField(max_length=10, choices=TIPOS)
-    precio_base = models.DecimalField(max_digits=10, 
+    cubierta = models.ForeignKey(Cubierta, on_delete=models.PROTECT, related_name='habitaciones')
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    id_room = models.PositiveIntegerField() 
+    precio_base = models.DecimalField(max_digits=20, 
                                       decimal_places=2, 
                                       validators=[MinValueValidator(Decimal('0'))])
     ubicacion = models.CharField(max_length=25)
-    estado = models.CharField(max_length=10, default='free', choices=ESTADOS)
+    aumento_ubicacion = models.DecimalField(max_digits=20, 
+                                      decimal_places=2,
+                                      default=0)
+    estado = models.CharField(max_length=20, default='free', choices=ESTADOS)
     espacio_area = models.DecimalField(max_digits=5, 
                                        decimal_places=2, 
                                        validators=[MinValueValidator(Decimal('0'))]) #En m^2
-    nombre_usuario = models.CharField(max_length=25, 
-                                      unique=True, 
+    nombre_usuario = models.CharField(max_length=25,  
                                       default='free') 
     capacidad = models.PositiveIntegerField() #El límite es de 1 persona por cada 0.4645 m^2
     vista_mar = models.BooleanField(default=False)
+    aumento_vista_mar = models.DecimalField(max_digits=20, 
+                                      decimal_places=2,
+                                      default=0)
+    costo_extra = models.DecimalField(max_digits=20, 
+                                      decimal_places=2,
+                                      default=0)
     ultimo_mantenimiento = models.DateField()
     proximo_mantenimiento = models.DateField()
-    #
     costo_final = models.DecimalField(max_digits=10, 
                                       decimal_places=2, 
                                       validators=[MinValueValidator(Decimal('0'))])
-    #
 
-    #Nosotros manejamos los precios de habitaciones?
+    def calcular_costo_final(self):
+        """Calcula el costo final basado en precio_base, aumento_ubicacion, capacidad y opcionalmente aumento_vista_mar."""
+        if not self.precio_base or not self.capacidad:
+            return Decimal('0.00')
+        
+        # Calcular el costo base con el aumento de ubicación
+        costo_final = self.precio_base + (self.precio_base * self.aumento_ubicacion)
+        
+        # Aplicar el aumento por vista al mar si está habilitado
+        if self.vista_mar and self.aumento_vista_mar:
+            costo_final = costo_final + (costo_final * self.aumento_vista_mar)
+
+        return costo_final
 
     def clean(self):
         if self.cubierta:
@@ -268,7 +288,10 @@ class Habitaciones(models.Model):
         return super().clean()
 
     def save(self, *args, **kwargs):
-        """Sobrescribe save para asegurar validación en cada guardado."""
+        """Sobrescribe save para asegurar validación en cada guardado y calcular costo_final."""
+        # Calcular el costo final antes de guardar
+        self.costo_final = self.calcular_costo_final()
+        
         # Validar antes de guardar
         if self.cubierta:
             self.cubierta._validar_uso_area_cubierta()

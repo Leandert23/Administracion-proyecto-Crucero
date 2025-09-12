@@ -1,18 +1,48 @@
 from django.dispatch import receiver, Signal
 from .models import Administracion
 from apps.compras.signals import solicitud_compra_administracion_signal
+import threading
+
+# Arreglo global para almacenar las solicitudes de compra
+solicitudes_compra = []
+lock = threading.Lock()
 
 @receiver(solicitud_compra_administracion_signal)
 def manejar_solicitud_compra_administracion(sender, id, monto, mensaje, **kwargs):
     # Actualizar/registrar información administrativa si aplica
     try:
         print(f"Solicitud recibida: id={id}, monto={monto}, mensaje={mensaje}")
-        admin = Administracion.objects.filter(id=id).first()
-        if admin is not None and monto is not None:
-            admin.costos_totales = (admin.costos_totales or 0) + monto
-            admin.save()
+        
+        # Obtener el dashboard asociado al crucero
+        admin = Administracion.objects.get(id=id)
+        
+        # Crear el objeto de solicitud
+        solicitud_data = {
+            'id': id,
+            'monto': monto,
+            'mensaje': mensaje,
+            'crucero_id': admin.crucero.id,
+            'crucero_nombre': admin.crucero.nombre,
+            'fecha': admin.crucero.fecha_creacion if hasattr(admin.crucero, 'fecha_creacion') else None,
+            'estado': 'Pendiente'
+        }
+        
+        # Agregar la solicitud al arreglo de forma thread-safe
+        with lock:
+            solicitudes_compra.append(solicitud_data)
+            print(f"[ADMIN] Solicitud agregada al arreglo: {solicitud_data}")
+            
     except Exception as e:
-        print(f"[ADMIN] No se pudo actualizar costos_totales para id={id}: {e}")
+        print(f"[ADMIN] No se pudo procesar solicitud para id={id}: {e}")
+
+def obtener_solicitudes_compra(crucero_id=None):
+    """
+    Obtiene las solicitudes de compra, opcionalmente filtradas por crucero_id
+    """
+    with lock:
+        if crucero_id:
+            return [s for s in solicitudes_compra if s.get('crucero_id') == crucero_id]
+        return solicitudes_compra.copy()
 
 ## Sender: decisión de solicitud hacia Compras
 # Señal que será recibida por el receiver en apps/compras/signals.py
@@ -32,12 +62,3 @@ def decision_solicitud(id, aceptado, mensaje=None):
     if mensaje is None and not aceptado:
         return "Se debe dar una razón del rechazo de la orden"
     decision_solicitud_signal.send(sender=None, id=id, aceptado=aceptado, mensaje=mensaje)
-
-# Helpers explícitos para uso desde administración (UI/Views/Forms)
-def aprobar_solicitud_compra(id, mensaje=None):
-    """Aprueba una solicitud de compra desde administración."""
-    decision_solicitud(id=id, aceptado=True, mensaje=mensaje or "Aprobado por administración")
-
-def rechazar_solicitud_compra(id, mensaje=None):
-    """Rechaza una solicitud de compra desde administración."""
-    decision_solicitud(id=id, aceptado=False, mensaje=mensaje or "Rechazado por administración")
