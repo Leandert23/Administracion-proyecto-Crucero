@@ -1,0 +1,259 @@
+{% load static %}
+<!-- Modal reutilizable para crear un Rol -->
+<!-- Variables esperadas (opcional):
+- create_role_url: URL donde se envía el formulario (default '#')
+- modulos: iterable de ModuloSistema para poblar el select multiple
+- modal_id: id del modal (default 'modalCreateRol')
+-->
+{% with create_role_url|default:'#' as action_url %}
+{% with modal_id|default:'modalCreateRol' as modal_id %}
+{% load static %}
+<style>
+    /* Styles for the modal in apps/usuarios/templates/usuarios/_modal_create_role.html
+    Based on the project's `inicio.css` modal styles and adapted for this component.
+    */
+    
+    /* Base modal */
+    .modal { display:none; position:fixed; inset:0; z-index:2000; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); }
+    .modal.active { display:flex; }
+    
+    .modal-dialog { max-width:680px; width:90%; margin:48px auto; }
+    .modal-content { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 12px 36px rgba(15,23,42,0.18); }
+    
+    .modal-header { padding:14px 18px; border-bottom:1px solid #e9ecef; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; }
+    .modal-header h5 { margin:0; font-size:1.05rem; font-weight:600; color:#0f172a; }
+    
+    .close { background:transparent; border:0; font-size:1.3rem; cursor:pointer; color:#4b5563; padding:6px 8px; border-radius:6px; }
+    .close:hover { background:#eef2ff; color:#0f172a; }
+    
+    .modal-body { padding:16px 18px; max-height:60vh; overflow:auto; }
+    
+    /* Form controls (small, safe subset to match project's look) */
+    .form-group { margin-bottom:12px; }
+    .form-control { width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; font-family:inherit; font-size:0.95rem; color:#0f172a; }
+    .form-control:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,0.06); }
+    .form-text { display:block; margin-top:6px; font-size:0.82rem; color:#6b7280; }
+    
+    select.form-control { height:auto; min-height:44px; }
+    
+    .form-check { display:flex; align-items:center; gap:8px; margin-top:8px; }
+    .form-check-input { width:16px; height:16px; }
+    .form-check-label { font-size:0.95rem; color:#0f172a; }
+    
+    .modal-footer { padding:12px 16px; border-top:1px solid #e9ecef; display:flex; gap:10px; justify-content:flex-end; background:#f8fafc; }
+    
+    /* Buttons (lightweight, aligned with inicio.css tokens) */
+    .btn { appearance:none; border:0; border-radius:8px; padding:8px 14px; font-size:0.92rem; font-weight:600; cursor:pointer; }
+    .btn-secondary { background:#edf2ff; color:#364fc7; }
+    .btn-secondary:hover { background:#e0e7ff; }
+    .btn-primary { background:linear-gradient(90deg,#3b82f6,#6366f1); color:#fff; box-shadow:0 4px 12px rgba(59,130,246,0.12); }
+    .btn-primary:hover { filter:brightness(1.03); }
+    
+    /* Small responsive tweaks */
+    @media (max-width:640px) {
+        .modal-dialog { margin:20px; max-width:96%; }
+        .modal-body { padding:12px; }
+        .modal-header, .modal-footer { padding:12px; }
+    }
+    
+    /* Accessibility helpers */
+    .modal[aria-hidden="true"] { display:none; }
+    
+    /* Utility classes used by the template JS (keeps compatibility) */
+    /* If script toggles style.display = 'block' use .active to keep consistent visuals */
+    .modal.show, .modal.block { display:flex; }
+</style>
+<div id="{{ modal_id }}" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{{ action_url }}" id="form-create-rol">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Rol</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" onclick="closeModalCreateRol('{{ modal_id }}')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="id_nombre">Nombre</label>
+                        <input type="text" name="nombre" id="id_nombre" class="form-control" required maxlength="100" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_descripcion">Descripción</label>
+                        <textarea name="descripcion" id="id_descripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Módulos de acceso</label>
+                        <div id="modulos-checkbox-list" style="display: flex; flex-wrap: wrap; gap: 10px 24px;">
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="administracion">
+                                    Administración
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="cruceros">
+                                    Gestión de Cruceros
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="entretenimiento">
+                                    Entretenimiento
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="ventas">
+                                    Ventas
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="reservas">
+                                    Reservas
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="restaurante">
+                                    Restaurante
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="bares">
+                                    Bares
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="compras">
+                                    Compras
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="almacen">
+                                    Almacén
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="rh">
+                                    Recursos Humanos
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="medico">
+                                    Servicio Médico
+                                </label>
+                            </div>
+                            <div style="min-width: 180px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <input type="checkbox" name="modulos_acceso" value="mantenimiento">
+                                    Mantenimiento
+                                </label>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Selecciona los módulos a los que tendrá acceso este rol.</small>
+                    </div>
+                    
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModalCreateRol('{{ modal_id }}')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Rol</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endwith %}
+{% endwith %}
+<script>
+    // Funciones de ayuda: abrir y cerrar el modal por id (scope global)
+    function openModalCreateRol(modalId) {
+        var id = modalId || 'modalCrearRol';
+        var el = document.getElementById(id);
+        if (el) el.classList.add('active');
+        else console.log("Se eliminó el modal");
+    }
+    function closeModalCreateRol(modalId) {
+        var id = modalId || 'modalCrearRol';
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    }
+    // Close modal when clicking outside content
+    document.addEventListener('click', function(e){
+        var modal = document.getElementById('modalCrearRol');
+        if (!modal) return;
+        if (modal.classList.contains('active') && e.target === modal) {
+            closeModalCreateRol('modalCrearRol');
+        }
+    });
+
+    // --- AJAX para crear rol (adaptado del flujo de usuario) ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('form-create-rol');
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            // Para los checkboxes de módulos, juntar todos los seleccionados
+            const modulos = [];
+            form.querySelectorAll('input[name="modulos_acceso"]:checked').forEach(cb => {
+                modulos.push(cb.value);
+            });
+            formData.delete('modulos_acceso');
+            modulos.forEach(val => formData.append('modulos_acceso', val));
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(data => { throw data; });
+                }
+            })
+            .then(data => {
+                // Éxito: cerrar modal, limpiar formulario, mostrar alerta
+                closeModalCreateRol('modalCrearRol');
+                form.reset();
+                alert(data.message || 'Rol creado exitosamente.');
+                // Opcional: recargar lista de roles, etc.
+            })
+            .catch(error => {
+                let msg = error && error.message ? error.message : 'Error al crear el rol.';
+                alert(msg);
+            });
+        });
+    });
+</script>

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Crucero, FechaDelSistema
+from apps.usuarios.models import ModuloSistema
 from .forms import creacionCruceroForm, AsignarRutaForm, CruceroEditForm
 from ..reservaciones.utils import rellenar_entretenimiento, rellenar_restaurantes
 from .Services.creacion_rutas_por_plantilla import cargar_rutas_desde_json
@@ -53,6 +54,12 @@ def _renderizar_lista_cruceros(request, cruceros, fecha_sistema):
 
 def mostrar_inicio(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
+
+    # obtener módulos accesibles por el usuario para renderizar el sidebar
+    if request.user.is_authenticated and hasattr(request.user, 'get_modulos_activos'):
+        modulos_usuario = request.user.get_modulos_activos()
+    else:
+        modulos_usuario = ModuloSistema.objects.filter(activo=True)
     
     if request.method == 'POST' and request.POST.get('accion') == 'editar_crucero':
         form_edit = CruceroEditForm(request.POST, instance=crucero)
@@ -63,19 +70,19 @@ def mostrar_inicio(request, crucero_id):
         form_edit = CruceroEditForm(instance=crucero)
     
     if crucero.viajes.filter(estado="activo").count() == 0 and crucero.viajes.filter(estado = "planificacion").count() == 0:
-        return _manejar_crucero_sin_viajes(request, crucero)
-    
-    return _mostrar_vista_inicio(request, crucero, form_edit)
+        return _manejar_crucero_sin_viajes(request, crucero, modulos_usuario)
 
-def _manejar_crucero_sin_viajes(request, crucero):
+    return _mostrar_vista_inicio(request, crucero, form_edit, modulos_usuario)
+
+def _manejar_crucero_sin_viajes(request, crucero, modulos_usuario):
     cargar_rutas_desde_json()
-    
-    if request.method == 'POST':
-        return _procesar_asignacion_ruta(request, crucero)
-    
-    return _mostrar_formulario_asignacion(request, crucero)
 
-def _procesar_asignacion_ruta(request, crucero):
+    if request.method == 'POST':
+        return _procesar_asignacion_ruta(request, crucero, modulos_usuario)
+
+    return _mostrar_formulario_asignacion(request, crucero, modulos_usuario)
+
+def _procesar_asignacion_ruta(request, crucero, modulos_usuario):
     form = AsignarRutaForm(request.POST)
     if form.is_valid():
         viaje = form.save(commit=False)
@@ -92,19 +99,22 @@ def _procesar_asignacion_ruta(request, crucero):
         'crucero': crucero,
         'form_asignar': form,
         'abrir_modal_asignar': True,
+        'modulos_usuario': modulos_usuario,
     })
 
-def _mostrar_formulario_asignacion(request, crucero):
+def _mostrar_formulario_asignacion(request, crucero, modulos_usuario):
     form = AsignarRutaForm()
     return render(request, "inicio/inicio_sin_ruta.html", {
         'crucero': crucero,
         'form_asignar': form,
+        'modulos_usuario': modulos_usuario,
     })
 
-def _mostrar_vista_inicio(request, crucero, form_edit):
+def _mostrar_vista_inicio(request, crucero, form_edit, modulos_usuario):
     viajes_crucero = crucero.viajes.filter(estado__in = ["activo", "planificacion"]).order_by('fecha_inicio')
     primer_viaje = viajes_crucero.first()
     fecha_sistema = FechaDelSistema.objects.first()
     contexto = construir_contexto_preview(crucero, viajes_crucero, primer_viaje, fecha_sistema)
     contexto['form_crucero_edit'] = form_edit
+    contexto['modulos_usuario'] = modulos_usuario
     return render(request, 'inicio/inicio.html', contexto)

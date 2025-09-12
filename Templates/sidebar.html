@@ -1,4 +1,5 @@
 {% load static %}
+{% load tags_globales %}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -704,84 +705,144 @@
     </div>
     <nav class="sidebar-nav">
         <ul class="nav-list">
+            <!-- Botón público de Cerrar sesión (visible para cualquier usuario) -->
+            <li class="nav-item home-item logout-item">
+                <a href="{% url 'logout' %}" class="nav-link home-link">
+                    <img src="{% static 'svg/casita.svg' %}" alt="Icono cerrar sesión" class="nav-icon">
+                    <span class="nav-text">Cerrar sesión</span>
+                </a>
+            </li>
+
+            {% if request.user.is_superuser or request.user.is_administrativo %}
             <li class="nav-item home-item">
                 <a href="/" class="nav-link home-link">
                     <img src="{% static 'svg/casita.svg' %}" alt="Icono de inicio - volver al panel principal" class="nav-icon">
                     <span class="nav-text">Inicio</span>
                 </a>
             </li>
-            <li class="nav-item {% if active_module == 'dashboard' %}active{% endif %}">
-                <a href="{% url 'administracion:dashboard' 1%}" class="nav-link">
-                    <img src="{% static 'svg/icono__admin.svg' %}" alt="Icono de dashboard - panel de administración" class="nav-icon">
-                    <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'gestion_crucero' %}active{% endif %}">
-                <a href="{% url 'gestion_crucero' 1 %}" class="nav-link">
-                    <img src="{% static 'svg/icono__gestion.svg' %}" alt="Icono de gestión de crucero" class="nav-icon">
-                    <span class="nav-text">Gestión Crucero</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'entretenimiento' %}active{% endif %}">
-                <a href="{% url 'entretenimiento:entretenimiento' %}" class="nav-link">
-                    <img src="{% static 'svg/icono__entretenimiento.svg' %}" alt="Icono de entretenimiento" class="nav-icon">
-                    <span class="nav-text">Entretenimiento</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'ventas' %}active{% endif %}">
-                <a href="{% url 'ventas:ventas' 1 %}" class="nav-link">
-                    <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas" class="nav-icon">
-                    <span class="nav-text">Ventas</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'reservas' %}active{% endif %}">
-                <a href="{% url 'reservas' 1 %}" class="nav-link">
-                    <img src="{% static 'svg/icono__reserva.svg' %}" alt="Icono de reservas" class="nav-icon">
-                    <span class="nav-text">Reservas</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'restaurante' %}active{% endif %}">
-                <a href="{% url 'restaurantes:dashboard' %}" class="nav-link">
-                    <img src="{% static 'svg/icono__restaurant.svg' %}" alt="Icono de restaurante" class="nav-icon">
-                    <span class="nav-text">Restaurante</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'bares' %}active{% endif %}">
-                <a href="{% url 'bares_snacks:bares' 1 %}" class="nav-link">
-                    <img src="{% static 'svg/icono__bares.svg' %}" alt="Icono de bares" class="nav-icon">
-                    <span class="nav-text">Bares</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'compras' %}active{% endif %}">
-                <a href="{% url 'compras:compras' 1 %}" class="nav-link">
-                    <img src="{% static 'svg/icono__compras.svg' %}" alt="Icono de compras" class="nav-icon">
-                    <span class="nav-text">Compras</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'almacen' %}active{% endif %}">
-                <a href="{% url 'vista_almacen' 1%}" class="nav-link">
-                    <img src="{% static 'svg/icono__almacen.svg' %}" alt="Icono de almacén" class="nav-icon">
-                    <span class="nav-text">Almacen</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'recursos_humanos' %}active{% endif %}">
-                <a href="{% url 'recursos_humanos:dashboard' %}" class="nav-link">
-                    <img src="{% static 'svg/icono__rrhh.svg' %}" alt="Icono de recursos humanos" class="nav-icon">
-                    <span class="nav-text">Recursos Humanos</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'servicios_medicos' %}active{% endif %}">
-                <a href="{% url 'panel_personal_medico' %}" class="nav-link">
-                    <img src="{% static 'svg/icono__medico.svg' %}" alt="Icono de servicios médicos" class="nav-icon">
-                    <span class="nav-text">Servicios Medicos</span>
-                </a>
-            </li>
-            <li class="nav-item {% if active_module == 'mantenimiento' %}active{% endif %}">
-                <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
-                    <img src="{% static 'svg/icono__mantenimiento.svg' %}" alt="Icono de mantenimiento" class="nav-icon">
-                    <span class="nav-text">Mantenimiento</span>
-                </a>
-            </li>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"administracion" %}
+                <li class="nav-item {% if active_module == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'administracion:dashboard' 1%}" class="nav-link">
+                        <img src="{% static 'svg/icono__admin.svg' %}" alt="Icono de dashboard - panel de administración" class="nav-icon">
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                <li class="nav-item {% if active_module == 'gestion_crucero' %}active{% endif %}">
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'gestion_crucero' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
+                    <a href="{% url 'gestion_crucero' 1 %}" class="nav-link">
+                    {% endif %}
+                        <img src="{% static 'svg/icono__gestion.svg' %}" alt="Icono de gestión de crucero" class="nav-icon">
+                        <span class="nav-text">Gestión Crucero</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"entretenimiento" %}
+                <li class="nav-item {% if active_module == 'entretenimiento' %}active{% endif %}">
+                    <a href="{% url 'entretenimiento:entretenimiento' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__entretenimiento.svg' %}" alt="Icono de entretenimiento" class="nav-icon">
+                        <span class="nav-text">Entretenimiento</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"ventas" %}
+                <li class="nav-item {% if active_module == 'ventas' %}active{% endif %}">
+                    <a href="{% url 'ventas:ventas' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas" class="nav-icon">
+                        <span class="nav-text">Ventas</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"reservas" %}
+                <li class="nav-item {% if active_module == 'reservas' %}active{% endif %}">
+                    <a href="{% url 'reservas' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__reserva.svg' %}" alt="Icono de reservas" class="nav-icon">
+                        <span class="nav-text">Reservas</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"restaurante" %}
+                <li class="nav-item {% if active_module == 'restaurante' %}active{% endif %}">
+                    <a href="{% url 'restaurantes:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__restaurant.svg' %}" alt="Icono de restaurante" class="nav-icon">
+                        <span class="nav-text">Restaurante</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"bares" %}
+                <li class="nav-item {% if active_module == 'bares' %}active{% endif %}">
+                    <a href="{% url 'bares_snacks:bares' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__bares.svg' %}" alt="Icono de bares" class="nav-icon">
+                        <span class="nav-text">Bares</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"compras" %}
+                <li class="nav-item {% if active_module == 'compras' %}active{% endif %}">
+                    <a href="{% url 'compras:compras' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__compras.svg' %}" alt="Icono de compras" class="nav-icon">
+                        <span class="nav-text">Compras</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"almacen" %}
+                <li class="nav-item {% if active_module == 'almacen' %}active{% endif %}">
+                    <a href="{% url 'vista_almacen' 1%}" class="nav-link">
+                        <img src="{% static 'svg/icono__almacen.svg' %}" alt="Icono de almacén" class="nav-icon">
+                        <span class="nav-text">Almacen</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"rh" %}
+                <li class="nav-item {% if active_module == 'recursos_humanos' %}active{% endif %}">
+                    <a href="{% url 'recursos_humanos:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__rrhh.svg' %}" alt="Icono de recursos humanos" class="nav-icon">
+                        <span class="nav-text">Recursos Humanos</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"medico" %}
+                <li class="nav-item {% if active_module == 'servicios_medicos' %}active{% endif %}">
+                    <a href="{% url 'panel_personal_medico' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__medico.svg' %}" alt="Icono de servicios médicos" class="nav-icon">
+                        <span class="nav-text">Servicios Medicos</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"mantenimiento" %}
+                <li class="nav-item {% if active_module == 'mantenimiento' %}active{% endif %}">
+                    <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__mantenimiento.svg' %}" alt="Icono de mantenimiento" class="nav-icon">
+                        <span class="nav-text">Mantenimiento</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
         </ul>
     </nav>
 </aside>

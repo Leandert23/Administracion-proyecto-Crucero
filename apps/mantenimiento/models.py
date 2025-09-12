@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -414,8 +414,8 @@ class TareaMantenimiento(models.Model):
     tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE, null=True, blank=True)
     crucero = models.ForeignKey('Crucero', on_delete=models.CASCADE, null=True, blank=True)
     
-    asignado_a = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas_creadas')
+    asignado_a = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='tareas_creadas')
     
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_programada = models.DateTimeField()
@@ -546,7 +546,7 @@ class CambioEstado(models.Model):
     estado_anterior = models.CharField(max_length=25)
     estado_nuevo = models.CharField(max_length=25)
     fecha_cambio = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     observaciones = models.TextField(blank=True)
     
     def __str__(self):
@@ -656,7 +656,7 @@ class ReporteIncidente(models.Model):
     tipo_crucero = models.ForeignKey(TipoCrucero, on_delete=models.CASCADE, null=True, blank=True, help_text="Tipo de crucero donde ocurrió el incidente")
     severidad = models.CharField(max_length=20, choices=SEVERIDADES)
     
-    reportado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reportado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_reporte = models.DateTimeField(auto_now_add=True)
     
     tarea_generada = models.ForeignKey(TareaMantenimiento, on_delete=models.SET_NULL, null=True, blank=True)
@@ -873,7 +873,7 @@ class ChecklistItem(models.Model):
     descripcion = models.CharField(max_length=300)
     completado = models.BooleanField(default=False)
     fecha_completado = models.DateTimeField(null=True, blank=True)
-    usuario_completado = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario_completado = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     orden = models.IntegerField(default=1)
     obligatorio = models.BooleanField(default=True)
     
@@ -906,7 +906,7 @@ class AdjuntoTarea(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPOS_ARCHIVO)
     descripcion = models.TextField(blank=True)
     fecha_subida = models.DateTimeField(auto_now_add=True)
-    subido_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    subido_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
         return f"{self.tarea.titulo} - {self.nombre}"
@@ -951,7 +951,7 @@ class MantenimientoRecurrente(models.Model):
 class FiltroGuardado(models.Model):
     """Filtros guardados para listas de tareas"""
     nombre = models.CharField(max_length=100)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     filtros = models.JSONField(default=dict)  # Almacena los parámetros del filtro
     publico = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
