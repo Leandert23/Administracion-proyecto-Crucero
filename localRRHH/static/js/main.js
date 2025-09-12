@@ -8,9 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
         'Personal Extra': ['No Ocupado']
     };
 
+
+    
     const categoriaSelect = document.getElementById('categoria');
     const puestoSelect = document.getElementById('puesto');
-
     function actualizarPuestos() {
         const categoria = categoriaSelect.value;
         puestoSelect.innerHTML = '';
@@ -34,21 +35,23 @@ document.addEventListener('DOMContentLoaded', function () {
         actualizarPuestos();
     }
 
+    // Registrar listener de acciones en la tabla solo si existe; pero NO terminar la ejecución
+    // para que los botones del header (Generar/Vaciar/Actualizar) se registren aun con tabla vacía.
     const tabla = document.querySelector('table');
-    if (!tabla) return;
-
-    tabla.addEventListener('click', function(event) {
-        const btn = event.target;
-        if (btn.classList.contains('btn-editar')) {
-            activarEdicionFila(btn.closest('tr'));
-        } else if (btn.classList.contains('btn-guardar')) {
-            guardarEdicion(btn.closest('tr'));
-        } else if (btn.classList.contains('btn-eliminar')) {
-            eliminarFila(btn.closest('tr'));
-        } else if (btn.classList.contains('btn-cancelar')) {
-            cancelarEdicion(btn.closest('tr'));
-        }
-    });
+    if (tabla) {
+        tabla.addEventListener('click', function(event) {
+            const btn = event.target;
+            if (btn.classList.contains('btn-editar')) {
+                activarEdicionFila(btn.closest('tr'));
+            } else if (btn.classList.contains('btn-guardar')) {
+                guardarEdicion(btn.closest('tr'));
+            } else if (btn.classList.contains('btn-eliminar')) {
+                eliminarFila(btn.closest('tr'));
+            } else if (btn.classList.contains('btn-cancelar')) {
+                cancelarEdicion(btn.closest('tr'));
+            }
+        });
+    }
 
     function activarEdicionFila(tr) {
         const btnEditar = tr.querySelector('.btn-editar');
@@ -165,8 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function eliminarFila(tr) {
         if (!confirm('¿Está seguro que desea eliminar este registro?')) return;
         const id = tr.dataset.id;
-        fetch(`/api/personal/${id}/`, {
-            method: 'DELETE',
+        fetch(`/personal/${id}/delete/`, {
+            method: 'POST',
             headers: { 'X-CSRFToken': getCSRFToken() },
             credentials: 'same-origin'
         })
@@ -243,16 +246,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (amonestacionEstado && (!amonestacionDetalle || amonestacionDetalle.trim() === '')) {
             motivoInput.value = '';
-            // Posiciona el popover cerca del input detalle
-            const rect = inputDetalleActual.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-            popover.style.top = (rect.top + scrollTop + rect.height + 5) + 'px';
-            popover.style.left = (rect.left + scrollLeft) + 'px';
-            popover.style.display = 'block';
-            motivoInput.focus();
-
+            // Mostrar el popover en posición fija (esquina superior derecha)
+            // para evitar que provoque scroll o cambios en el layout.
+            if (popover) {
+                popover.style.position = 'fixed';
+                popover.style.top = '10px';
+                popover.style.right = '10px';
+                popover.style.left = '';
+                popover.style.display = 'block';
+            }
+            if (motivoInput) motivoInput.focus();
         } else {
             enviarDatosPUT();
         }
@@ -291,8 +294,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 detalle: dataParaGuardar.amonestacionDetalle
             }
         };
-        fetch(`/api/personal/${id}/`, {
-            method: 'PUT',
+        fetch(`/personal/${id}/update/`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken(),
@@ -317,6 +320,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(updated => {
             refrescarFila(tr, updated);
             alert('Personal actualizado correctamente');
+            // Recargar la página para que todo quede sincronizado
+            setTimeout(() => location.reload(), 300);
         })
         .catch(error => {
             if (error.message !== 'Error en la actualización') {
@@ -331,130 +336,186 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refrescarFila(tr, data) {
+        // Actualizar columnas numéricas/texto
         tr.cells[3].textContent = '$' + data.salario;
         tr.cells[4].textContent = data.edad;
         tr.cells[5].textContent = data.anios_experiencia;
         tr.cells[6].textContent = data.categoria;
         tr.cells[7].textContent = data.puesto;
-        tr.cells[8].textContent = data.pStatus === 1 ? 'Activo' : (data.pStatus === 2 ? 'Inactivo' : 'De baja');
 
-        tr.cells[9].innerHTML = `<input type="checkbox" class="amonestacion-estado" ${data.amonestacion?.estado ? 'checked' : ''} disabled />`;
-        tr.cells[10].innerHTML = `<input type="text" class="amonestacion-detalle" maxlength="50" value="${data.amonestacion?.detalle || ''}" disabled />`;
+        const statusText = data.pStatus === 1 ? 'Activo' : (data.pStatus === 2 ? 'Inactivo' : 'De baja');
+        const statusCell = tr.cells[8];
+        const existingBadge = statusCell.querySelector('.badge-tipo');
+        if (existingBadge) {
+            existingBadge.textContent = statusText;
+        } else {
+            statusCell.textContent = statusText;
+        }
+
+        // Amonestación: reconstruir inputs sin reemplazar otros elementos
+        const amCell = tr.cells[9];
+        amCell.innerHTML = '';
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.classList.add('amonestacion-estado');
+        chk.disabled = true;
+        if (data.amonestacion && data.amonestacion.estado) chk.checked = true;
+        amCell.appendChild(chk);
+
+        const detCell = tr.cells[10];
+        detCell.innerHTML = '';
+        const detInput = document.createElement('input');
+        detInput.type = 'text';
+        detInput.classList.add('amonestacion-detalle');
+        detInput.maxLength = 50;
+        detInput.value = (data.amonestacion && data.amonestacion.detalle) ? data.amonestacion.detalle : '';
+        detInput.disabled = true;
+        detCell.appendChild(detInput);
 
         const btnGuardar = tr.querySelector('.btn-guardar');
         const btnCancelar = tr.querySelector('.btn-cancelar');
 
-        btnGuardar.textContent = 'Editar';
-        btnGuardar.classList.replace('btn-guardar', 'btn-editar');
+        if (btnGuardar) {
+            btnGuardar.textContent = 'Editar';
+            btnGuardar.classList.replace('btn-guardar', 'btn-editar');
+        }
 
-        btnCancelar.textContent = 'Eliminar';
-        btnCancelar.classList.replace('btn-cancelar', 'btn-eliminar');
+        if (btnCancelar) {
+            btnCancelar.textContent = 'Eliminar';
+            btnCancelar.classList.replace('btn-cancelar', 'btn-eliminar');
+        }
     }
 
-    // Función para actualizar plantel
+    // Función para actualizar plantel (botón pequeño)
     function actualizarPlantel() {
         location.reload();
     }
 
-    // Función para vaciar plantel
-    function vaciarPlantel() {
-        if (!confirm('¿Está completamente seguro de vaciar todo el plantel?\n\nEsta acción eliminará TODOS los registros de personal y no se puede deshacer.')) {
-            return;
-        }
-
-        if (!confirm('CONFIRMACIÓN FINAL: ¿Realmente desea eliminar todos los empleados?\n\nSe perderán todos los datos permanentemente.')) {
-            return;
-        }
-
-        fetch('/api/vaciar-plantel/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error || 'Error al vaciar plantel');
-                });
+    // Filtrado por categoría en la tabla de personal (control añadido en template)
+    const filterCategoria = document.getElementById('filterCategoria');
+    function aplicarFiltroCategoria() {
+        if (!filterCategoria) return;
+        const val = filterCategoria.value;
+        const tbody = document.querySelector('table.inst-table tbody');
+        if (!tbody) return;
+        [...tbody.querySelectorAll('tr')].forEach(tr => {
+            const categoriaCell = tr.cells[6];
+            const categoriaText = categoriaCell ? categoriaCell.textContent.trim() : '';
+            if (!val || val === '') {
+                tr.style.display = '';
+            } else {
+                tr.style.display = (categoriaText === val) ? '' : 'none';
             }
-            return response.json();
-        })
-        .then(data => {
-            alert(`¡Plantel vaciado exitosamente!\nSe eliminaron ${data.eliminados} registros.`);
-            location.reload(); // Recargar para mostrar la tabla vacía
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-            console.error('Error vaciando plantel:', error);
         });
     }
 
-    // Funciones para generar plantel
-    function mostrarModalGenerarPlantel() {
-        document.getElementById('modalGenerarPlantel').style.display = 'block';
+    if (filterCategoria) {
+        filterCategoria.addEventListener('change', aplicarFiltroCategoria);
+        // aplicar filtro al cargar por si hay un valor por defecto
+        aplicarFiltroCategoria();
     }
 
-    function ocultarModalGenerarPlantel() {
-        document.getElementById('modalGenerarPlantel').style.display = 'none';
+    // Modal y acciones de Generar/Vaciar plantel
+    const btnMostrarGenerar = document.getElementById('btnMostrarGenerar');
+    const btnVaciarPlantel = document.getElementById('btnVaciarPlantel');
+    const btnActualizar = document.getElementById('btnActualizar');
+    const modalGenerar = document.getElementById('modalGenerar');
+    const btnGenerarCancelar = document.getElementById('btnGenerarCancelar');
+    const btnGenerarConfirmar = document.getElementById('btnGenerarConfirmar');
+    const generarFeedback = document.getElementById('generarFeedback');
+    const generarSpinner = document.getElementById('generarSpinner');
+
+    let cantidadSeleccionada = null;
+    // Normalizar estilo de botones del header para usar color principal del sitio
+    [btnMostrarGenerar, btnVaciarPlantel, btnActualizar].forEach(b => {
+        if (b) {
+            b.classList.add('btn', 'btn-primary');
+            // Remover estilos inline que puedan causar colores inconsistentes
+            b.style.backgroundColor = '';
+            b.style.borderColor = '';
+        }
+    });
+
+    function abrirModalGenerar() {
+        cantidadSeleccionada = null;
+        // reset botones
+        modalGenerar.style.display = 'flex';
+        generarFeedback.style.display = 'none';
+        generarSpinner.style.display = 'none';
+        document.querySelectorAll('.btn-cantidad').forEach(b => b.classList.remove('selected'));
     }
 
-    // Event listeners para el modal
-    const btnCancelarGenerar = document.getElementById('btnCancelarGenerar');
-    const btnConfirmarGenerar = document.getElementById('btnConfirmarGenerar');
-
-    if (btnCancelarGenerar) {
-        btnCancelarGenerar.onclick = ocultarModalGenerarPlantel;
+    function cerrarModalGenerar() {
+        modalGenerar.style.display = 'none';
     }
 
-    if (btnConfirmarGenerar) {
-        btnConfirmarGenerar.onclick = function() {
-            const cantidad = document.getElementById('selectCantidadTripulantes').value;
-            generarPlantel(cantidad);
-        };
-    }
+    if (btnMostrarGenerar) btnMostrarGenerar.addEventListener('click', abrirModalGenerar);
+    if (btnGenerarCancelar) btnGenerarCancelar.addEventListener('click', cerrarModalGenerar);
+    if (btnActualizar) btnActualizar.addEventListener('click', actualizarPlantel);
 
-    function generarPlantel(cantidad) {
-        if (!confirm(`¿Está seguro de generar ${cantidad} tripulantes? Esto puede tomar tiempo.`)) {
+    document.querySelectorAll('.btn-cantidad').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.btn-cantidad').forEach(b => b.style.borderColor = '#ccc');
+            this.style.borderColor = '#06b6d4';
+            cantidadSeleccionada = parseInt(this.dataset.cantidad, 10);
+        });
+    });
+
+    if (btnGenerarConfirmar) btnGenerarConfirmar.addEventListener('click', function () {
+        if (!cantidadSeleccionada) {
+            alert('Seleccione una cantidad antes de generar.');
             return;
         }
-
-        // Deshabilitar el botón mientras se genera
-        btnConfirmarGenerar.disabled = true;
-        btnConfirmarGenerar.textContent = 'Generando...';
-
-        fetch(`/api/generar-plantel/`, {
+        // Mostrar spinner y deshabilitar
+        generarSpinner.style.display = 'block';
+        btnGenerarConfirmar.disabled = true;
+        fetch('/generar-plantel/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken(),
+                'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify({ cantidad: parseInt(cantidad) }),
+            credentials: 'same-origin',
+            body: JSON.stringify({ cantidad: cantidadSeleccionada })
+        })
+        .then(resp => resp.json().then(js => ({ ok: resp.ok, status: resp.status, body: js })))
+        .then(res => {
+            generarSpinner.style.display = 'none';
+            btnGenerarConfirmar.disabled = false;
+            if (res.ok) {
+                generarFeedback.style.display = 'block';
+                generarFeedback.textContent = 'Generados: ' + (res.body.created_count || 0) + '. Recargando...';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                generarFeedback.style.display = 'block';
+                generarFeedback.textContent = 'Error: ' + (res.body.error || JSON.stringify(res.body));
+            }
+        })
+        .catch(err => {
+            generarSpinner.style.display = 'none';
+            btnGenerarConfirmar.disabled = false;
+            generarFeedback.style.display = 'block';
+            generarFeedback.textContent = 'Error de conexión: ' + err.message;
+        });
+    });
+
+    // Vaciar plantel con confirmación
+    if (btnVaciarPlantel) btnVaciarPlantel.addEventListener('click', function () {
+        if (!confirm('¿Seguro que desea eliminar todo el plantel y las amonestaciones? Esta acción no se puede deshacer.')) return;
+        btnVaciarPlantel.disabled = true;
+        fetch('/vaciar-plantel/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() },
             credentials: 'same-origin'
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.error || 'Error al generar plantel');
-                });
-            }
-            return response.json();
+        .then(resp => resp.json())
+        .then(js => {
+            alert('Vaciado completado. ' + (js.deleted_personal || 0) + ' personal eliminado. Recargando...');
+            location.reload();
         })
-        .then(data => {
-            alert(`¡Plantel generado exitosamente!\nSe crearon ${data.creados} tripulantes.`);
-            ocultarModalGenerarPlantel();
-            location.reload(); // Recargar para mostrar los nuevos registros
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-            console.error('Error generando plantel:', error);
-        })
-        .finally(() => {
-            // Rehabilitar el botón
-            btnConfirmarGenerar.disabled = false;
-            btnConfirmarGenerar.textContent = 'Generar Plantel';
+        .catch(err => {
+            btnVaciarPlantel.disabled = false;
+            alert('Error al vaciar: ' + err.message);
         });
-    }
+    });
 });

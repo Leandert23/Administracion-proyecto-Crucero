@@ -118,3 +118,59 @@ class Amonestacion(models.Model):
         return f"Amonestacion de {self.personal} - {'Activa' if self.estado else 'Inactiva'}"
 
 
+# Modelos auxiliares para pools de generación (nombres, apellidos y salarios)
+class NombrePool(models.Model):
+    nombre = models.CharField(max_length=30, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+
+class ApellidoPool(models.Model):
+    apellido = models.CharField(max_length=30, unique=True)
+
+    def __str__(self):
+        return self.apellido
+
+
+class SalarioOption(models.Model):
+    salario = models.PositiveIntegerField(unique=True)
+
+    def __str__(self):
+        return str(self.salario)
+
+
+# Pools opcionales para generación de datos
+class NombrePool(models.Model):
+    nombre = models.CharField(max_length=30, validators=[validate_name])
+
+    class Meta:
+        verbose_name = 'Nombre Pool'
+        verbose_name_plural = 'Nombres Pool'
+
+    def __str__(self):
+        return self.nombre
+
+
+class ApellidoPool(models.Model):
+    apellido = models.CharField(max_length=30, validators=[validate_name])
+
+    class Meta:
+        verbose_name = 'Apellido Pool'
+        verbose_name_plural = 'Apellidos Pool'
+
+    def __str__(self):
+        return self.apellido
+
+
+class SalarioOption(models.Model):
+    salario = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = 'Salario Option'
+        verbose_name_plural = 'Salarios Option'
+
+    def __str__(self):
+        return str(self.salario)
+
+

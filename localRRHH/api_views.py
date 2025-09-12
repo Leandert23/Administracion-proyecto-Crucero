@@ -1,11 +1,6 @@
-from rest_framework import generics
-from .models import Personal
-from .serializers import PersonalSerializer
+"""
+Archivo stub eliminado: anteriormente contenía vistas basadas en DRF.
+Se deja vacío intencionalmente para evitar dependencias de rest_framework.
+"""
 
-class PersonalListCreateAPI(generics.ListCreateAPIView):
-    queryset = Personal.objects.all()
-    serializer_class = PersonalSerializer
-
-class PersonalRetrieveUpdateDeleteAPI(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Personal.objects.all()
-    serializer_class = PersonalSerializer
+# No dejar imports que dependan de paquetes externos aquí.

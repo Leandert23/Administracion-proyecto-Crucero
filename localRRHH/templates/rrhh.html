@@ -105,15 +105,9 @@
                     <p class="page-subtitle">Gestión del personal y administración de empleados</p>
                 </div>
                 <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
-                    <button class="btn btn-success generar-plantel" onclick="mostrarModalGenerarPlantel()" style="padding: 8px 16px; font-size: 14px;">
-                        Generar Plantel
-                    </button>
-                    <button class="btn btn-primary actualizar-plantel" onclick="actualizarPlantel()" style="padding: 8px 16px; font-size: 14px;">
-                        Actualizar Plantel
-                    </button>
-                    <button class="btn btn-danger vaciar-plantel" onclick="vaciarPlantel()" style="padding: 8px 16px; font-size: 14px;">
-                        Vaciar Plantel
-                    </button>
+                    <button id="btnMostrarGenerar" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px; border-radius:8px;">Generar Plantel</button>
+                    <button id="btnVaciarPlantel" class="btn btn-danger" style="padding: 8px 16px; font-size: 14px; border-radius:8px;">Vaciar Plantel</button>
+                    <button id="btnActualizar" title="Actualizar" class="btn btn-primary" style="padding:8px 10px; font-size:16px; border-radius:8px;">🔄</button>
                 </div>
             </header>
 
@@ -126,7 +120,7 @@
                         <div class="section-icon">👤</div>
                         <div>
                             <h3>Registro de Personal</h3>
-                            <p>Complete los datos del nuevo empleado</p>
+                            <!-- Interacciones manejadas por static/js/main.js (incluido al final con cache-busting) -->
                         </div>
                     </div>
                     <div class="form-section-body">
@@ -203,6 +197,21 @@
                         </div>
                     </div>
                     <div class="form-section-body">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <div></div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <label for="filterCategoria" style="font-size:13px; color:#334155;">Filtrar por categoría:</label>
+                                <select id="filterCategoria" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;">
+                                    <option value="">Todas</option>
+                                    <option value="Culinario">Culinario</option>
+                                    <option value="Medico">Medico</option>
+                                    <option value="Administrativo">Administrativo</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Entretenimiento">Entretenimiento</option>
+                                    <option value="Personal Extra">Personal Extra</option>
+                                </select>
+                            </div>
+                        </div>
                         {% if personal_list %}
                         <div class="table-container" style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0;">
                             <table class="inst-table">
@@ -235,11 +244,11 @@
                                         <td>{{ p.puesto }}</td>
                                         <td>
                                             {% if p.pStatus == 1 %}
-                                                <span class="badge-tipo tipo-restaurantes">Activo</span>
+                                                Activo
                                             {% elif p.pStatus == 2 %}
-                                                <span class="badge-tipo tipo-bares_cafes">Inactivo</span>
+                                                Inactivo
                                             {% else %}
-                                                <span class="badge-tipo tipo-otro">De baja</span>
+                                                De baja
                                             {% endif %}
                                         </td>
                                         <td>
@@ -307,38 +316,31 @@
       </div>
     </div>
 
-    <!-- Modal para generar plantel -->
-    <div id="modalGenerarPlantel" style="display:none; position:fixed; z-index:10001; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
-      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; border-radius:12px; padding:30px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); width: 400px;">
-        <h3 style="margin:0 0 20px 0; font-weight:600; color:#1e293b; font-size:18px; text-align:center;">Generar Plantel Genérico</h3>
 
-        <div style="margin-bottom:20px;">
-          <label style="display:block; margin-bottom:10px; font-weight:500;">Seleccione cantidad de tripulantes:</label>
-          <select id="selectCantidadTripulantes" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
-            <option value="630">630 Tripulantes</option>
-            <option value="1300">1300 Tripulantes</option>
-            <option value="1950">1950 Tripulantes</option>
-          </select>
-        </div>
 
-        <div style="margin-bottom:20px; padding:15px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
-          <h4 style="margin:0 0 10px 0; font-size:14px; color:#374151;">Prioridad de módulos:</h4>
-          <ol style="margin:0; padding-left:20px; font-size:13px; color:#6b7280;">
-            <li>Mantenimiento</li>
-            <li>Restaurantes (Culinario)</li>
-            <li>Entretenimiento</li>
-            <li>Médico</li>
-            <li>Administrativo</li>
-          </ol>
+    <!-- Modal para Generar Plantel -->
+    <div id="modalGenerar" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:9999;">
+        <div style="background:#fff; padding:20px; border-radius:10px; width:360px; max-width:90%; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0;">Generar Plantel</h3>
+            <p>Selecciona la cantidad de personal a generar. <small style="color:#666;">(Se excluirán puestos únicos/altos, y se priorizarán categorías)</small></p>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <button class="btn-cantidad" data-cantidad="630" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">630</button>
+                <button class="btn-cantidad" data-cantidad="1300" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">1300</button>
+                <button class="btn-cantidad" data-cantidad="1950" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">1950</button>
+            </div>
+            <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+                <label style="font-size:13px; color:#555; margin:0;">Estado:</label>
+                <div id="generarSpinner" style="display:none;">Generando... ⏳</div>
+            </div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+                <button id="btnGenerarCancelar" style="padding:8px 12px; border-radius:6px; background:#e5e7eb; border:none;">Cancelar</button>
+                <button id="btnGenerarConfirmar" style="padding:8px 12px; border-radius:6px; background:#06b6d4; color:#fff; border:none;">Generar</button>
+            </div>
+            <div id="generarFeedback" style="margin-top:12px; display:none; font-size:13px;"></div>
         </div>
-
-        <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
-          <button id="btnCancelarGenerar" class="btn btn-secondary" style="padding:10px 20px; font-size:14px;">Cancelar</button>
-          <button id="btnConfirmarGenerar" class="btn btn-success" style="padding:10px 20px; font-size:14px;">Generar Plantel</button>
-        </div>
-      </div>
     </div>
 
-    <script src="{% static 'js/main.js' %}"></script>
+    {% now "U" as ts %}
+    <script src="{% static 'js/main.js' %}?v={{ ts }}"></script>
 </body>
 </html>
