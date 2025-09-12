@@ -80,14 +80,6 @@
             </div>
         </button>
 
-        <button class="gestion-card restaurante-bg" onclick="openModal('restauranteModal')">
-            <div class="card-overlay">
-                <div class="card-content">
-                    <h3>Restaurantes</h3>
-                    <p>Crear nuevos establecimientos</p>
-                </div>
-            </div>
-        </button>
     </div>
 </section>
 
@@ -244,62 +236,6 @@
     </div>
 </div>
 
-<!-- Modal para crear Restaurante -->
-<div id="restauranteModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Crear Nuevo Restaurante</h3>
-            <span class="close" onclick="closeModal('restauranteModal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form id="restauranteForm">
-                <div class="form-group">
-                    <label for="restauranteNombre">Nombre del Restaurante</label>
-                    <input type="text" id="restauranteNombre" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label for="restauranteTipo">Tipo de Restaurante</label>
-                    <select id="restauranteTipo" name="tipo" required>
-                        <option value="">Seleccionar tipo</option>
-                        <option value="buffet">Buffet</option>
-                        <option value="principal">Restaurante Principal</option>
-                        <option value="tematico">Restaurante Especializado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="restauranteCapacidad">Capacidad</label>
-                    <input type="number" id="restauranteCapacidad" name="capacity" min="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="restauranteArea">Dimensión (m²)</label>
-                    <input type="number" id="restauranteArea" name="area_total" min="0" step="0.01" placeholder="Ej: 150.50">
-                </div>
-                <div class="form-group">
-                    <label for="restauranteUbicacion">Ubicación en el Crucero</label>
-                    <input type="text" id="restauranteUbicacion" name="ubicacion">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="restauranteApertura">Horario de Apertura</label>
-                        <input type="time" id="restauranteApertura" name="horario_apertura">
-                    </div>
-                    <div class="form-group">
-                        <label for="restauranteCierre">Horario de Cierre</label>
-                        <input type="time" id="restauranteCierre" name="horario_cierre">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="restauranteDescripcion">Descripción</label>
-                    <textarea id="restauranteDescripcion" name="descripcion" rows="3"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('restauranteModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Crear Restaurante</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -424,12 +360,6 @@
     background-repeat: no-repeat;
 }
 
-.restaurante-bg {
-    background-image: url('/imagenes/Imagen2.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
 
 .card-overlay {
     background: rgba(0, 0, 0, 0.6);
@@ -775,9 +705,6 @@ function loadSelectOptions(modalId) {
         loadIngredientesForPlatillo();
         setupIngredientesFunctionality();
     }
-    if (modalId === 'restauranteModal') {
-        loadCruceros();
-    }
 }
 
 function loadRestaurantsForMenu() {
@@ -1047,30 +974,6 @@ document.getElementById('ingredienteForm').addEventListener('submit', function(e
     });
 });
 
-document.getElementById('restauranteForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
-    
-    fetch('{% url "restaurant:create_restaurante" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            closeModal('restauranteModal');
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-});
 
 // Función para obtener el token CSRF
 function getCookie(name) {
