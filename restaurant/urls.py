@@ -19,6 +19,9 @@ urlpatterns = [
     path('buffet/', views.buffet_view, name='buffet'),
     path('main-dining-room/', views.main_dining_room_view, name='main_dining_room'),
     path('especialidades/', views.especialidades_view, name='especialidades'),
+    # Pedidos / registros
+    path('order/<int:restaurant_id>/', views.order_entry_view, name='order_entry'),
+    path('buffet/<int:restaurant_id>/registro/', views.buffet_bulk_view, name='buffet_bulk'),
 
     # AJAX endpoints
     path('ajax/add-item/', views.add_menu_item, name='add_menu_item'),

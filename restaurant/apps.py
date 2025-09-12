@@ -4,3 +4,6 @@ class RestaurantConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'restaurant'
     verbose_name = 'Gestión de Restaurante'
+
+    def ready(self):
+        from . import signals  # noqa: F401

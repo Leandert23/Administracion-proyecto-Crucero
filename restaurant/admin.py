@@ -1,4 +1,4 @@
-from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord
+from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, ServiceInvoice, ServiceInvoiceItem, BuffetBulkRecord
 from django.contrib import admin
 
 @admin.register(Crucero)
@@ -45,3 +45,24 @@ class ConsumptionRecordAdmin(admin.ModelAdmin):
     search_fields = ['menu_item__name']
     date_hierarchy = 'created_at'
     readonly_fields = ['unit_price', 'total_price', 'is_included']
+
+class ServiceInvoiceItemInline(admin.TabularInline):
+    model = ServiceInvoiceItem
+    extra = 1
+    readonly_fields = ['line_total']
+
+@admin.register(ServiceInvoice)
+class ServiceInvoiceAdmin(admin.ModelAdmin):
+    list_display = ['code', 'restaurant', 'room_number', 'date', 'total_amount']
+    search_fields = ['code', 'room_number']
+    list_filter = ['restaurant', 'date']
+    date_hierarchy = 'date'
+    inlines = [ServiceInvoiceItemInline]
+    readonly_fields = ['code', 'total_amount', 'created_at']
+
+@admin.register(BuffetBulkRecord)
+class BuffetBulkRecordAdmin(admin.ModelAdmin):
+    list_display = ['restaurant', 'date', 'platillo', 'quantity']
+    list_filter = ['restaurant', 'date']
+    search_fields = ['platillo__nombre']
+    date_hierarchy = 'date'

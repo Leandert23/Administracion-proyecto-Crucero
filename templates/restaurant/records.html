@@ -10,6 +10,8 @@
         <i class="fas fa-chart-bar"></i> Registro
     </h2>
 
+    <!-- Secciones movidas dentro de cada día -->
+
     <div class="accordion-days">
         {% for day in days_list %}
         <details class="day-accordion" {% if forloop.first %}open{% endif %}>
@@ -54,6 +56,69 @@
                     <p>Sin consumos registrados para este día.</p>
                 </div>
                 {% endif %}
+
+                <div class="day-subsections">
+                    <div class="day-invoices">
+                        <h4><i class="fas fa-file-invoice"></i> Facturas del día</h4>
+                        {% if day.invoices %}
+                        <table class="simple-table mini">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Hora</th>
+                                    <th>Rest.</th>
+                                    <th>Hab.</th>
+                                    <th class="right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inv in day.invoices %}
+                                <tr>
+                                    <td>{{ inv.code }}</td>
+                                    <td>{{ inv.created_at|date:'H:i' }}</td>
+                                    <td>{{ inv.restaurant.name }}</td>
+                                    <td>{{ inv.room_number }}</td>
+                                    <td class="right">${{ inv.total_amount|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="empty-state xsmall">
+                            <i class="fas fa-receipt"></i>
+                            <p>Sin facturas este día.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="day-buffet">
+                        <h4><i class="fas fa-utensils"></i> Buffet del día</h4>
+                        {% if day.buffet_records %}
+                        <table class="simple-table mini">
+                            <thead>
+                                <tr>
+                                    <th>Platillo</th>
+                                    <th>Buffet</th>
+                                    <th class="right">Cant.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for br in day.buffet_records %}
+                                <tr>
+                                    <td>{{ br.platillo.nombre }}</td>
+                                    <td>{{ br.restaurant.name }}</td>
+                                    <td class="right">{{ br.quantity }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="empty-state xsmall">
+                            <i class="fas fa-bell-concierge"></i>
+                            <p>Sin buffet registrado.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </details>
         {% endfor %}
@@ -63,6 +128,17 @@
 
 {% block extra_css %}
 <style>
+/* Secciones superiores */
+.simple-table{width:100%;border-collapse:collapse}
+.simple-table th,.simple-table td{padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;background:#fff}
+.simple-table th{background:#f1f5f9;font-weight:600;font-size:.85rem;letter-spacing:.5px;text-transform:uppercase;color:#475569}
+.simple-table .right{text-align:right}
+.day-subsections{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.day-subsections h4{margin:0 0 8px;font-size:.95rem;display:flex;align-items:center;gap:6px;color:#1e293b}
+.mini th,.mini td{padding:6px 8px}
+.empty-state.xsmall{padding:10px;font-size:.75rem}
+@media(max-width:900px){.day-subsections{grid-template-columns:1fr}}
+
 /* Acordeón por días */
 .accordion-days{display:flex;flex-direction:column;gap:12px}
 .day-accordion{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(2,132,199,.06)}

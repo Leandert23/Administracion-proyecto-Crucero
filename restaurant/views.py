@@ -65,6 +65,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo, PersonalRRHH, ComidasPreviu
+from .models import ServiceInvoice, ServiceInvoiceItem, BuffetBulkRecord
 
 def dashboard(request):
     """Vista principal del dashboard del restaurante"""
@@ -148,6 +149,23 @@ def consumption_view(request):
     cruceros = Crucero.objects.all()
     restaurants = Restaurante.objects.all()
 
+    # Si llega un restaurante seleccionado, redirigir a la vista adecuada
+    sel_rest = request.GET.get('restaurante')
+    if sel_rest:
+        r = None
+        if sel_rest.isdigit():
+            try:
+                r = Restaurante.objects.get(id=sel_rest)
+            except Restaurante.DoesNotExist:
+                r = None
+        else:
+            # tratar como tipo (buffet, main, restaurant)
+            r = Restaurante.objects.filter(type=sel_rest).first()
+        if r:
+            if r.type == 'buffet':
+                return redirect('restaurant:buffet_bulk', restaurant_id=r.id)
+            return redirect('restaurant:order_entry', restaurant_id=r.id)
+
     # Obtener crucero activo (definido por el módulo general). Fallback: None.
     current_cruise_id = request.session.get('current_cruise_id') or request.GET.get('cruise')
     current_cruise = None
@@ -180,6 +198,80 @@ def main_dining_room_view(request):
 def especialidades_view(request):
     """Vista específica para el restaurante de Especialidades"""
     return render(request, 'restaurant/especialidades.html')
+
+# ----------------------------
+# Pedidos (facturación no buffet)
+# ----------------------------
+from django.views.decorators.http import require_http_methods
+from django.shortcuts import get_object_or_404, redirect
+
+@require_http_methods(["GET", "POST"])
+def order_entry_view(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurante, id=restaurant_id)
+    if restaurant.type == 'buffet':
+        return redirect('restaurant:buffet_bulk', restaurant_id=restaurant.id)
+    platillos = Platillo.objects.filter(activo=True, restaurantes=restaurant).order_by('nombre') | Platillo.objects.filter(activo=True, menu__restaurante=restaurant)
+    platillos = platillos.distinct()
+    cruise_day = request.session.get('current_cruise_day')
+
+    if request.method == 'POST':
+        room = request.POST.get('room_number','').strip()
+        items_data = []
+        for key, val in request.POST.items():
+            if key.startswith('item_'):
+                try:
+                    plat_id = int(key.split('_')[1])
+                    qty = int(val)
+                    if qty > 0:
+                        items_data.append((plat_id, qty))
+                except ValueError:
+                    continue
+        if not items_data:
+            messages.error(request, 'Debe seleccionar al menos un platillo con cantidad > 0')
+        else:
+            invoice = ServiceInvoice.objects.create(restaurant=restaurant, cruise_id=request.session.get('current_cruise_id'), cruise_day=cruise_day, room_number=room or 'N/D')
+            for plat_id, qty in items_data:
+                try:
+                    p = Platillo.objects.get(id=plat_id)
+                except Platillo.DoesNotExist:
+                    continue
+                ServiceInvoiceItem.objects.create(invoice=invoice, platillo=p, quantity=qty, unit_price=p.precio, line_total=0, included=(p.precio == 0))
+            invoice.recalc_total()
+            messages.success(request, f'Factura {invoice.code} creada.')
+            return redirect('restaurant:order_entry', restaurant_id=restaurant.id)
+
+    context = {
+        'restaurant': restaurant,
+        'platillos': platillos,
+    }
+    return render(request, 'restaurant/order_entry.html', context)
+
+@require_http_methods(["GET", "POST"])
+def buffet_bulk_view(request, restaurant_id):
+    restaurant = get_object_or_404(Restaurante, id=restaurant_id)
+    if restaurant.type != 'buffet':
+        return redirect('restaurant:order_entry', restaurant_id=restaurant.id)
+    platillos = Platillo.objects.filter(activo=True, restaurantes=restaurant).order_by('nombre') | Platillo.objects.filter(activo=True, menu__restaurante=restaurant)
+    platillos = platillos.distinct()
+    cruise_day = request.session.get('current_cruise_day')
+    if request.method == 'POST':
+        created = 0
+        for key, val in request.POST.items():
+            if key.startswith('item_'):
+                try:
+                    plat_id = int(key.split('_')[1])
+                    qty = int(val)
+                    if qty > 0:
+                        BuffetBulkRecord.objects.create(restaurant=restaurant, cruise_id=request.session.get('current_cruise_id'), cruise_day=cruise_day, platillo_id=plat_id, quantity=qty)
+                        created += 1
+                except ValueError:
+                    continue
+        if created:
+            messages.success(request, f'{created} registros buffet creados.')
+        else:
+            messages.error(request, 'No se ingresaron cantidades.')
+        return redirect('restaurant:buffet_bulk', restaurant_id=restaurant.id)
+    return render(request, 'restaurant/buffet_bulk.html', {'restaurant': restaurant, 'platillos': platillos})
 
 def records_view(request):
     """Vista para registros de consumo"""
@@ -220,11 +312,31 @@ def records_view(request):
         })
         days[day]['total'] += line_total
 
-    # Lista auxiliar para plantillas (evitar lookup por clave variable)
-    days_list = [
-        {'day': d, 'items': days[d]['items'], 'total': days[d]['total']}
-        for d in days_range
-    ]
+    # Integrar facturas y registros buffet dentro de cada día
+    invoice_qs = ServiceInvoice.objects.select_related('restaurant').order_by('-created_at')
+    buffet_qs = BuffetBulkRecord.objects.select_related('restaurant', 'platillo').order_by('-created_at')
+    if current_cruise_id:
+        invoice_qs = invoice_qs.filter(cruise_id=current_cruise_id)
+        buffet_qs = buffet_qs.filter(cruise_id=current_cruise_id)
+    for inv in invoice_qs:
+        d = inv.cruise_day or 0
+        if d in days:
+            days[d].setdefault('invoices', []).append(inv)
+    for br in buffet_qs:
+        d = br.cruise_day or 0
+        if d in days:
+            days[d].setdefault('buffet', []).append(br)
+
+    # Lista auxiliar para plantillas con nuevas claves
+    days_list = []
+    for d in days_range:
+        days_list.append({
+            'day': d,
+            'items': days[d]['items'],
+            'total': days[d]['total'],
+            'invoices': days[d].get('invoices', []),
+            'buffet_records': days[d].get('buffet', []),
+        })
 
     context = {
         'consumption_records': consumption_records,
@@ -234,7 +346,7 @@ def records_view(request):
         'current_cruise': current_cruise,
         'days': days,
         'days_range': days_range,
-    'days_list': days_list,
+        'days_list': days_list,
     }
     return render(request, 'restaurant/records.html', context)
 

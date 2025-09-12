@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 class Crucero(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre del Crucero")
@@ -14,11 +15,11 @@ class Crucero(models.Model):
         return self.name
 
 class Restaurante(models.Model):
+    # Normalizado a tres tipos funcionales
     RESTAURANT_TYPES = [
         ('buffet', 'Buffet'),
-        ('principal', 'Restaurante Principal'),
-        ('tematico', 'Restaurante Temático'),
-        ('roomservice', 'Room Service'),
+        ('main', 'Main Dining Room'),
+        ('restaurant', 'Restaurante'),
     ]
     
     name = models.CharField(max_length=100, verbose_name="Nombre del Restaurante")
@@ -241,35 +242,31 @@ class ComidasPreviu(models.Model):
 
 class Ingrediente(models.Model):
     UNIDADES = [
-        ('kg', 'Kilogramo'),
-        ('g', 'Gramo'),
-        ('l', 'Litro'),
-        ('ml', 'Mililitro'),
-        ('unidad', 'Unidad'),
-        ('taza', 'Taza'),
-        ('cucharada', 'Cucharada'),
-        ('cucharadita', 'Cucharadita'),
+        ('g', 'Gramos'),
+        ('ml', 'Mililitros'),
     ]
-    
-    nombre = models.CharField(max_length=100, verbose_name="Nombre del Ingrediente")
-    precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio por Unidad")
-    unidad = models.CharField(max_length=20, choices=UNIDADES, verbose_name="Unidad de Medida")
-    descripcion = models.TextField(blank=True, verbose_name="Descripción")
-    stock_disponible = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Stock Disponible")
-    stock_minimo = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Stock Mínimo")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    
+    SUBTIPOS = [
+        ('caducable', 'Caducable'),
+        ('no_caducable', 'No Caducable'),
+        ('refrigerable', 'Refrigerable'),
+        ('no_refrigerable', 'No Refrigerable'),
+    ]
+
+    nombre = models.CharField(max_length=120, unique=True, verbose_name="Nombre")
+    unidad = models.CharField(max_length=5, choices=UNIDADES, verbose_name="Unidad")
+    subtipo = models.CharField(max_length=20, choices=SUBTIPOS, default='no_caducable', verbose_name="Subtipo")
+    # tipo fijo 'comida' según requerimiento (no se modela tabla aparte aún)
+    tipo = models.CharField(max_length=20, default='comida', editable=False, verbose_name="Tipo")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    creado = models.DateTimeField(auto_now_add=True, null=True, verbose_name="Creado")
+
     class Meta:
         verbose_name = "Ingrediente"
         verbose_name_plural = "Ingredientes"
         ordering = ['nombre']
-    
+
     def __str__(self):
-        return f"{self.nombre} ({self.get_unidad_display()})"
-    
-    @property
-    def is_low_stock(self):
-        return self.stock_disponible < self.stock_minimo
+        return self.nombre
 
 class Menu(models.Model):
     TIPOS_MENU = [
@@ -286,6 +283,7 @@ class Menu(models.Model):
     restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, verbose_name="Restaurante")
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Precio Total")
     activo = models.BooleanField(default=True, verbose_name="Activo")
+    is_temporary = models.BooleanField(default=False, verbose_name="Temporal / Ad-hoc")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
     
     class Meta:
@@ -308,7 +306,8 @@ class Platillo(models.Model):
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
     precio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio")
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE, related_name='platillos', verbose_name="Menú")
-    restaurantes = models.ManyToManyField(Restaurante, related_name='platillos', verbose_name="Restaurantes", blank=True)
+    # Se elimina la asociación directa a múltiples restaurantes; queda implícita vía Menu.restaurante
+    # restaurantes = models.ManyToManyField(Restaurante, related_name='platillos', verbose_name="Restaurantes", blank=True)
     activo = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
 
@@ -319,6 +318,156 @@ class Platillo(models.Model):
 
     def __str__(self):
         return self.nombre
+
+# ---------------------
+# Inventario (Almacén y Despensa)
+# ---------------------
+
+class WarehouseStock(models.Model):
+    ingrediente = models.OneToOneField(Ingrediente, on_delete=models.CASCADE, related_name='warehouse_stock', verbose_name="Ingrediente")
+    cantidad = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Cantidad Disponible")
+    actualizado = models.DateTimeField(auto_now=True, verbose_name="Actualizado")
+
+    class Meta:
+        verbose_name = "Stock Almacén"
+        verbose_name_plural = "Stocks Almacén"
+
+    def __str__(self):
+        return f"{self.ingrediente.nombre} {self.cantidad}{self.ingrediente.unidad}"
+
+class PantryItem(models.Model):
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='despensa', verbose_name="Restaurante")
+    ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE, related_name='pantry_items', verbose_name="Ingrediente")
+    cantidad = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Cantidad")
+    actualizado = models.DateTimeField(auto_now=True, verbose_name="Actualizado")
+
+    class Meta:
+        verbose_name = "Item Despensa"
+        verbose_name_plural = "Items Despensa"
+        unique_together = ('restaurante', 'ingrediente')
+
+    def __str__(self):
+        return f"{self.restaurante.name} - {self.ingrediente.nombre}: {self.cantidad}{self.ingrediente.unidad}"
+
+# ---------------------
+# Pedidos (Restaurant -> Almacén)
+# ---------------------
+
+class Request(models.Model):
+    STATUS = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('parcial', 'Parcial'),
+        ('entregado', 'Entregado'),
+        ('rechazado', 'Rechazado'),
+    ]
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='pedidos', verbose_name="Restaurante")
+    creado_por = models.CharField(max_length=120, verbose_name="Creado por")  # Más adelante FK a User
+    status = models.CharField(max_length=12, choices=STATUS, default='pendiente', verbose_name="Estado")
+    notas = models.TextField(blank=True, verbose_name="Notas")
+    creado = models.DateTimeField(auto_now_add=True, verbose_name="Creado")
+    actualizado = models.DateTimeField(auto_now=True, verbose_name="Actualizado")
+
+    class Meta:
+        verbose_name = "Pedido"
+        verbose_name_plural = "Pedidos"
+        ordering = ['-creado']
+
+    def __str__(self):
+        return f"Pedido {self.id} {self.restaurante.name} ({self.status})"
+
+class RequestLine(models.Model):
+    pedido = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='lineas', verbose_name="Pedido")
+    ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE, verbose_name="Ingrediente")
+    cantidad_solicitada = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Cant. Solicitada")
+    cantidad_aprobada = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Cant. Aprobada")
+    cantidad_entregada = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Cant. Entregada")
+
+    class Meta:
+        verbose_name = "Línea Pedido"
+        verbose_name_plural = "Líneas Pedido"
+        unique_together = ('pedido', 'ingrediente')
+
+    def __str__(self):
+        return f"{self.ingrediente.nombre} ({self.cantidad_solicitada}{self.ingrediente.unidad})"
+
+# ---------------------
+# Facturación y registros buffet
+# ---------------------
+
+class ServiceInvoice(models.Model):
+    code = models.CharField(max_length=10, unique=True, editable=False, verbose_name="Código")
+    restaurant = models.ForeignKey(Restaurante, on_delete=models.CASCADE, verbose_name="Restaurante")
+    cruise = models.ForeignKey(Crucero, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Crucero")
+    cruise_day = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Día Crucero")
+    room_number = models.CharField(max_length=10, verbose_name="Habitación")
+    date = models.DateField(auto_now_add=True, verbose_name="Fecha")
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Total")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creado")
+
+    class Meta:
+        verbose_name = "Factura Restaurante"
+        verbose_name_plural = "Facturas Restaurante"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.code
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            last = ServiceInvoice.objects.order_by('-id').first()
+            next_num = 1 if not last else last.id + 1
+            self.code = f"R{next_num:05d}"
+        super().save(*args, **kwargs)
+
+    def recalc_total(self):
+        total = sum(item.line_total for item in self.items.all())
+        self.total_amount = total
+        super().save(update_fields=['total_amount'])
+
+class ServiceInvoiceItem(models.Model):
+    invoice = models.ForeignKey(ServiceInvoice, related_name='items', on_delete=models.CASCADE, verbose_name="Factura")
+    platillo = models.ForeignKey(Platillo, on_delete=models.CASCADE, verbose_name="Platillo")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="Cantidad")
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio Unitario")
+    line_total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Subtotal")
+    included = models.BooleanField(default=False, verbose_name="Incluido")
+
+    class Meta:
+        verbose_name = "Item Factura"
+        verbose_name_plural = "Items Factura"
+
+    def __str__(self):
+        return f"{self.platillo.nombre} x{self.quantity}"
+
+    def save(self, *args, **kwargs):
+        # Unit price tomado del platillo salvo que included (0)
+        if not self.pk:  # primera vez
+            self.unit_price = self.platillo.precio
+        if self.included:
+            self.line_total = 0
+        else:
+            self.line_total = self.unit_price * self.quantity
+        super().save(*args, **kwargs)
+        # Recalcular total factura
+        self.invoice.recalc_total()
+
+class BuffetBulkRecord(models.Model):
+    restaurant = models.ForeignKey(Restaurante, on_delete=models.CASCADE, limit_choices_to={'type': 'buffet'}, verbose_name="Buffet")
+    cruise = models.ForeignKey(Crucero, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Crucero")
+    cruise_day = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Día Crucero")
+    date = models.DateField(auto_now_add=True, verbose_name="Fecha")
+    platillo = models.ForeignKey(Platillo, on_delete=models.CASCADE, verbose_name="Platillo")
+    quantity = models.PositiveIntegerField(default=0, verbose_name="Cantidad")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creado")
+
+    class Meta:
+        verbose_name = "Registro Buffet"
+        verbose_name_plural = "Registros Buffet"
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"{self.restaurant.name} {self.date} {self.platillo.nombre} ({self.quantity})"
 
 class IngredientePlatillo(models.Model):
     platillo = models.ForeignKey(Platillo, on_delete=models.CASCADE, related_name='ingredientes', verbose_name="Platillo")
