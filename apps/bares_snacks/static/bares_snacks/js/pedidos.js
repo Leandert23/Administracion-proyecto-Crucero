@@ -5,12 +5,14 @@
     let seq = 1;
     let pedidoSeleccionado = null;
     let proximoEstado = null;
+    let editPedidoId = null; // id del pedido en edición (si aplica)
 
     const ESTADOS = ['pendiente','en_proceso','completado'];
 
     // ----- Multi productos (estado in-memory) -----
     let catalogoProductos = [];
     const cantidadesEstado = new Map(); // productoId -> { id, nombre, tipo, precio, cantidad }
+    let cantidadesBackup = null; // backup para restaurar al cambiar tipo/subtipo
     function parseListaProductos(){ return Array.from(cantidadesEstado.values()); }
 
     function syncCajaCantidades(){
@@ -124,68 +126,192 @@
         return t.content.firstElementChild;
     }
 
+    // ========== MODIFICACIONES PARA DISEÑO Y LÓGICA DE PEDIDOS ==========
+
+    // Eliminar referencias a cliente_id en toda la lógica
+    // Mostrar número de habitación en el resumen si aplica
+    // Rediseñar la caja de pedido y botones con clases animadas y coloridas
+    // Solo permitir edición en estado 'pendiente'
+    // Ventana de detalle tipo factura con receta y botón llamativo para completar pedido
+
     function buildCard(p, esHistorial){
-        const productosTxt = (p.productos||[]).map(d=> typeof d==='string'? d : `${escapeHtml(d.nombre)} x${d.cantidad}`).join(', ');
-        const totalTxt = (p.total!=null)? Number(p.total).toFixed(2) : (p.productos||[]).reduce((a,d)=> a + ((parseFloat(d.precio)||0)*(parseInt(d.cantidad,10)||0)), 0).toFixed(2);
-        const btns = esHistorial? '' : `
-            <div class="pedido-actions">
-                <button class="btn-secundario" data-accion="estado" data-id="${p.id}">Estado</button>
-                <button class="btn-peligro" data-accion="eliminar" data-id="${p.id}" ${p.estado!=='pendiente'?'disabled':''}>Eliminar</button>
+        // Etiqueta de plan y precio si es premium
+        let planLabel = '';
+        let planType = 'inclusive';
+        if(p.productos && p.productos.length > 0){
+            const premium = p.productos.some(d => d.plan === 'pago' || d.plan === 'premium');
+            if(premium){
+                planLabel = `<span class="plan-label premium">Premium</span>`;
+                planType = 'premium';
+            } else {
+                planLabel = `<span class="plan-label inclusive">All Inclusive</span>`;
+            }
+        }
+        // Estado visual
+        let estadoClass = 'pedido-estado ' + p.estado;
+        let estadoTxt = p.estado.replace('_',' ');
+        // Productos y cantidades - estilo factura
+        const productosTxt = (p.productos||[]).map(d=> `${escapeHtml(d.nombre)} x${d.cantidad}`).join(', ');
+        // Lugar/habitación
+        let lugarTxt = p.tipo_consumo==='camarote' ? `Habitación: ${escapeHtml(p.habitacion_nombre||'-')}` : `Lugar: ${escapeHtml(p.lugarentrega_nombre||'-')}`;
+    // Empleado (mostrar nombre y categoría si están disponibles)
+    let empNom = p.empleado_nombre || null;
+    let empCat = p.empleado_categoria || null;
+    let empleadoTxt = 'Empleado: ' + (empNom ? `${escapeHtml(empNom)}${empCat?` — ${escapeHtml(empCat)}`:''}` : (p.empleado_id??'-'));
+        // Botones
+        let btns = '';
+        if(esHistorial){
+            btns = `<div class="pedido-actions">
+                <button class="btn-secundario btn-animado" data-accion="detalle" data-id="${p.id}">Ver Detalle</button>
             </div>`;
+        } else {
+            btns = `<div class="pedido-actions">
+                <button class="btn-secundario btn-animado" data-accion="detalle" data-id="${p.id}">Ver Detalle</button>
+                <button class="btn-peligro btn-animado" data-accion="eliminar" data-id="${p.id}" ${p.estado!=='pendiente'?'disabled':''}>Eliminar</button>
+            </div>`;
+        }
+        // Card visual estilo factura
         const card = htmlToEl(`
-            <div class="pedido-card" data-id="${p.id}">
+            <div class="pedido-card ${p.estado}" data-id="${p.id}" style="background:#fff; border:1px solid #e5e7eb; font-family: 'Fira Mono', 'Consolas', monospace; padding:18px 24px 22px;">
                 <div class="pedido-head">
                     <div class="pedido-id">#${p.id}</div>
-                    <div class="pedido-estado ${escapeHtml(p.estado)}">${escapeHtml(p.estado.replace('_',' '))}</div>
+                    <div class="pedido-factura">Factura: <span style="color:#059669;font-weight:600;">${p.numero_factura||'-'}</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <div class="${estadoClass}">${estadoTxt}</div>
+                      ${planLabel}
+                    </div>
                 </div>
-                <div class="pedido-body">
-                    <div class="pedido-linea"><strong>Cliente:</strong> ${p.cliente_id??'-'}</div>
-                    <div class="pedido-linea"><strong>Empleado:</strong> ${p.empleado_id??'-'}</div>
-                    <div class="pedido-linea"><strong>${p.tipo_consumo==='camarote'?'Habitación':'Lugar'}:</strong> ${escapeHtml(p.lugarentrega_nombre||p.habitacion_nombre||'-')}</div>
-                    <div class="pedido-linea"><strong>Productos:</strong> ${productosTxt||'-'}</div>
-                    <div class="pedido-linea"><strong>Total:</strong> $${totalTxt}</div>
+                <div class="pedido-body" style="display:flex;flex-direction:column;gap:8px; margin-top:10px;">
+                    <div class="pedido-linea productos-lista" style="color:#64748b;">Productos: ${productosTxt||'-'}</div>
+                    <div class="pedido-linea lugar-lista" style="color:#64748b;">${lugarTxt}</div>
+                    <div class="pedido-linea empleado-lista" style="color:#64748b;">${empleadoTxt}</div>
                 </div>
                 ${btns}
-            </div>`);
+            </div>
+        `);
         return card;
     }
 
+    // Ventana de detalle tipo factura con receta y botón para completar pedido
+    function crearModalDetalle(p){
+        const backdrop = document.createElement('div');
+        backdrop.className='modal-pedido';
+        backdrop.style.display='flex';
+        // Receta por producto
+        let recetaHtml = '';
+        if(p.productos && p.productos.length){
+            recetaHtml = p.productos.map(prod => `<div><strong>${prod.nombre}</strong><br>${prod.receta||'-'}</div>`).join('<hr>');
+        } else {
+            recetaHtml = 'Sin productos cargados aún.';
+        }
+        // Botón completar
+    const btnCompletar = (p.estado!=='completado') ? '<button type="button" class="btn-primario btn-animado btn-completar" data-completar style="background:#16a34a;">Completar Pedido</button>' : '';
+    const btnEditar = (p.estado==='pendiente') ? '<button type="button" class="btn-secundario btn-animado" data-editar style="margin-left:8px;">Editar</button>' : '';
+        backdrop.innerHTML = `
+            <div class="modal-pedido-dialog recibo" style="max-width:440px; background:linear-gradient(180deg,#ffffff,#f8fafc 40%,#ffffff); border:1px solid #e2e8f0;">
+                <button class="modal-close" aria-label="Cerrar">×</button>
+                <h2 class="modal-title">Pedido #${p.id} (Estado: ${p.estado.replace('_',' ')})</h2>
+                <div style="font-family:'Fira Mono','Consolas',monospace; color:#475569; margin:10px 0 14px; font-size:.95em;">
+                  <div style="color:#059669; font-weight:600;">Número de Factura: ${p.numero_factura||'-'}</div>
+                </div>
+                <div class="estado-resumen" style="font-size:.75rem">
+                    <div class="fila">
+                        <span class="tag">${p.tipo_consumo==='camarote'?'Habitación':'Lugar'}: ${p.tipo_consumo==='camarote'?(p.habitacion_nombre||'--'):(p.lugarentrega_nombre||'--')}</span>
+                        <span class="tag">Empleado: ${p.empleado_nombre ? escapeHtml(p.empleado_nombre) + (p.empleado_categoria?` — ${escapeHtml(p.empleado_categoria)}`:'') : (p.empleado_id??'-')}</span>
+                    </div>
+                    <div class="fila"><span class="tag">Productos: ${(p.productos||[]).map(pr=>pr.nombre).join(', ')}</span></div>
+                    ${p.nota?`<div class="fila"><span class="tag">Nota: ${escapeHtml(p.nota)}</span></div>`:''}
+                </div>
+                <div class="receta-box" style="margin-top:8px; background:#f1f5f9; border:1px dashed #cbd5e1; padding:14px 16px; border-radius:16px; font-size:.68rem;">
+                    <strong>Receta / Preparación</strong>
+                    ${recetaHtml}
+                </div>
+                <div class="estado-acciones" style="justify-content:center; margin-top:10px;">
+                    ${btnCompletar}
+                    ${btnEditar}
+                </div>
+            </div>
+        `;
+        // Cierre y completar
+        backdrop.querySelector('.modal-close').addEventListener('click', ()=>{
+            backdrop.remove();
+        });
+        const btnComp = backdrop.querySelector('[data-completar]');
+        if(btnComp){
+            btnComp.addEventListener('click', ()=>{
+                // Completar pedido y actualizar stock
+                fetch(`/bar/pedido/${p.id}/estado/`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado: 'completado' }) })
+                    .then(r=>r.json())
+                    .then(j=>{
+                        toast('Pedido completado y stock actualizado','success');
+                        backdrop.remove();
+                        cargarPedidosIniciales();
+                    });
+            });
+        }
+        const btnEdit = backdrop.querySelector('[data-editar]');
+        if(btnEdit){
+            btnEdit.addEventListener('click', ()=>{
+                // Cerrar el modal de detalle y entrar en modo edición usando el submit unificado
+                try{
+                    backdrop.remove();
+                    editPedidoId = p.id;
+                    // Prellenar selección de productos y cantidades
+                    cantidadesEstado.clear();
+                    (p.productos||[]).forEach(d=>{
+                        const pid = d.producto_id || d.id;
+                        if(!pid) return;
+                        cantidadesEstado.set(pid, { id:pid, nombre:d.nombre, tipo:(d.plan==='pago'?'pago':'gratis'), precio: d.precio||0, cantidad: d.cantidad||1 });
+                    });
+                    // Tipo de consumo
+                    const tipoSel = document.getElementById('pedido-tipo-consumo');
+                    if(tipoSel){ tipoSel.value = p.tipo_consumo || 'bar'; tipoSel.dispatchEvent(new Event('change')); }
+                    // Inst / Hab
+                    const instSel = document.getElementById('pedido-lugarentrega');
+                    if(instSel && p.lugarentrega_id){ instSel.value = String(p.lugarentrega_id); instSel.dispatchEvent(new Event('change')); }
+                    const habSel = document.getElementById('pedido-habitacion');
+                    if(habSel && p.habitacion_id){ habSel.value = String(p.habitacion_id); habSel.dispatchEvent(new Event('change')); }
+                    // Empleado y nota
+                    const empInp = document.getElementById('pedido-empleado');
+                    if(empInp){ empInp.value = p.empleado_id || ''; empInp.dispatchEvent(new Event('input')); }
+                    const notaInp = document.getElementById('pedido-nota');
+                    if(notaInp){ notaInp.value = p.nota || ''; }
+                    // Abrir form y sincronizar
+                    abrirModalCrear();
+                    marcarSelectProductos();
+                    syncCajaCantidades();
+                }catch(err){ console.error(err); toast('No se pudo cargar el pedido para edición','error'); }
+            });
+        }
+        document.body.appendChild(backdrop);
+    }
+
+    // Delegación de acciones en la caja de pedidos
     function renderListas(){
         const activosCont = document.getElementById('pedidos-lista-activos');
         const histCont = document.getElementById('pedidos-lista-historial');
         if(activosCont){
-            const existentes = new Map(Array.from(activosCont.children).filter(el=>el.classList.contains('pedido-card')).map(el=>[parseInt(el.dataset.id,10), el]));
-            const frag = document.createDocumentFragment();
+            activosCont.innerHTML = '';
             if(!pedidos.length){
-                frag.appendChild(htmlToEl('<div class="pedidos-empty">No hay pedidos activos.</div>'));
+                activosCont.innerHTML = '<div class="pedidos-empty">No hay pedidos activos.</div>';
             } else {
                 pedidos.forEach(p=>{
-                    let card = existentes.get(p.id);
-                    if(card){ existentes.delete(p.id); }
-                    else { card = buildCard(p,false); card.classList.add('anim-enter'); }
-                    frag.appendChild(card);
+                    const card = buildCard(p, false);
+                    // Abrir detalle solo mediante el botón "Ver Detalle" (delegación al final del archivo)
+                    activosCont.appendChild(card);
                 });
             }
-            existentes.forEach(card=> { card.classList.add('anim-exit'); card.addEventListener('animationend', ()=> card.remove(), { once:true }); });
-            activosCont.innerHTML='';
-            activosCont.appendChild(frag);
         }
         if(histCont){
-            const existentesH = new Map(Array.from(histCont.children).filter(el=>el.classList.contains('pedido-card')).map(el=>[parseInt(el.dataset.id,10), el]));
-            const fragH = document.createDocumentFragment();
+            histCont.innerHTML = '';
             if(!historial.length){
-                fragH.appendChild(htmlToEl('<div class="pedidos-empty">Sin registros en historial.</div>'));
+                histCont.innerHTML = '<div class="pedidos-empty">Sin registros en historial.</div>';
             } else {
                 historial.forEach(p=>{
-                    let card = existentesH.get(p.id);
-                    if(card){ existentesH.delete(p.id); }
-                    else { card = buildCard(p,true); card.classList.add('anim-enter'); }
-                    fragH.appendChild(card);
+                    const card = buildCard(p, true);
+                    histCont.appendChild(card);
                 });
             }
-            existentesH.forEach(card=> { card.classList.add('anim-exit'); card.addEventListener('animationend', ()=> card.remove(), { once:true }); });
-            histCont.innerHTML='';
-            histCont.appendChild(fragH);
         }
     }
 
@@ -206,6 +332,8 @@
     function cerrarModalCrear(){
         const modal = document.getElementById('modal-crear-pedido');
         if(!modal) return; modal.classList.add('closing'); setTimeout(()=> modal.setAttribute('aria-hidden','true'),260);
+        // Salir de modo edición si estaba activo
+        editPedidoId = null;
     }
 
     function abrirModalEstado(p){
@@ -221,7 +349,7 @@
             <div class="fila">
                 <span class="tag">Estado Actual: ${p.estado.replace('_',' ')}</span>
                 <span class="tag">Cliente: ${p.cliente_id}</span>
-                <span class="tag">Empleado: ${p.empleado_id}</span>
+                <span class="tag">Empleado: ${p.empleado_nombre ? escapeHtml(p.empleado_nombre) + (p.empleado_categoria?` — ${escapeHtml(p.empleado_categoria)}`:'') : (p.empleado_id??'-')}</span>
                 <span class="tag">Cantidad: ${p.cantidad}</span>
                 <span class="tag">${p.tipo_consumo==='camarote'?'Habitación':'Lugar'}: ${p.tipo_consumo==='camarote'?(p.habitacion_nombre||'--'):(p.lugarentrega_nombre||'--')}</span>
             </div>
@@ -289,6 +417,34 @@
         ;[cerrar,cancelar].forEach(el=> el && el.addEventListener('click', cerrarModalCrear));
         if(modalCrear){ modalCrear.addEventListener('click', e=>{ if(e.target===modalCrear) cerrarModalCrear(); }); }
 
+        // Mostrar nombre y categoria del empleado al escribir el ID
+        const empleadoInput = document.getElementById('pedido-empleado');
+        const empleadoInfoEl = document.getElementById('empleado-info');
+        let empleadoFetchTimer = null;
+        if(empleadoInput && empleadoInfoEl){
+            const renderEmpleado = (txt, color='#334155')=>{ empleadoInfoEl.textContent = txt; empleadoInfoEl.style.color = color; };
+            const buscar = async (id)=>{
+                if(!id||id<=0){ renderEmpleado(''); return; }
+                try{
+                    renderEmpleado('Buscando…', '#64748b');
+                    const r = await fetch(`/bar/empleado/${id}/`);
+                    const j = await r.json();
+                    if(!r.ok || !j.success) throw new Error((j&&j.error)||'No encontrado');
+                    const e = j.empleado;
+                    renderEmpleado(`${e.nombre_completo} — ${e.categoria}${e.puesto?` (${e.puesto})`:''}`);
+                }catch(err){
+                    renderEmpleado('Empleado no encontrado', '#b91c1c');
+                }
+            };
+            const handler = ()=>{
+                const id = parseInt(empleadoInput.value||'0', 10) || 0;
+                if(empleadoFetchTimer) clearTimeout(empleadoFetchTimer);
+                empleadoFetchTimer = setTimeout(()=> buscar(id), 300);
+            };
+            empleadoInput.addEventListener('input', handler);
+            empleadoInput.addEventListener('blur', handler);
+        }
+
         // Lógica demo camarote según cliente y lugar
     const lugarSelect = document.getElementById('pedido-lugar');
         const clienteIdInput = document.getElementById('pedido-cliente');
@@ -321,8 +477,32 @@
         if(confirmEstado) confirmEstado.addEventListener('click', aplicarCambioEstado);
         if(modalEstado){ modalEstado.addEventListener('click', e=> { if(e.target===modalEstado) cerrarModalEstado(); }); }
 
-    if(form){
-            form.addEventListener('submit', e=>{
+        // Delegación para abrir detalle (aseguramos DOM listo aquí)
+        const contAct = document.getElementById('pedidos-lista-activos');
+        const contHist = document.getElementById('pedidos-lista-historial');
+        if(contAct){
+            contAct.addEventListener('click', e=>{
+                const btn = e.target.closest('[data-accion="detalle"]');
+                if(!btn) return;
+                const id = parseInt(btn.dataset.id,10);
+                const p = pedidos.find(x=>x.id===id);
+                if(!p) return;
+                abrirDetalleFactura(p);
+            });
+        }
+        if(contHist){
+            contHist.addEventListener('click', e=>{
+                const btn = e.target.closest('[data-accion="detalle"]');
+                if(!btn) return;
+                const id = parseInt(btn.dataset.id,10);
+                const p = historial.find(x=>x.id===id);
+                if(!p) return;
+                abrirDetalleFactura(p);
+            });
+        }
+
+        if(form){
+            form.addEventListener('submit', async e=>{
                 e.preventDefault();
                 const data = new FormData(form);
                 // Guardar nombre instalación seleccionada (si no se seteo aún)
@@ -332,73 +512,59 @@
                     if(hiddenNom) hiddenNom.value = selInst.options[selInst.selectedIndex]?.text || '';
                 }
                 const productosSel = parseListaProductos();
-                const totalCantSel = productosSel.reduce((a,p)=> a + (parseInt(p.cantidad,10)||0), 0);
-                const selectedInstId = parseInt((document.getElementById('pedido-lugarentrega')?.value)||'0',10) || null;
-                const selectedInstCodigo = '';
                 const tipo = data.get('tipo_consumo');
+                const selectedInstId = parseInt((document.getElementById('pedido-lugarentrega')?.value)||'0',10) || null;
+                const selectedHabId = parseInt((document.getElementById('pedido-habitacion')?.value)||'0',10) || null;
                 const autoLugarEntregaId = (tipo==='bar') ? selectedInstId : null;
-    const pedido = {
-                    id: seq++,
-                    fecha: data.get('fecha'),
-                    hora: data.get('hora'),
-                    estado: 'pendiente',
-            tipo_consumo: tipo,
-            lugarentrega_id: autoLugarEntregaId ?? (parseInt(data.get('lugarentrega_id')||'0',10) || null),
-                    lugarentrega_nombre: (data.get('lugarentrega_nombre')||'').trim(),
-                    habitacion_id: parseInt(data.get('habitacion_id')||'0',10) || null,
-                    habitacion_nombre: (data.get('habitacion_nombre')||'').trim(),
-                    cliente_id: parseInt(data.get('cliente_id'),10),
-                    empleado_id: parseInt(data.get('empleado_id'),10),
-            
-            cantidad: totalCantSel,
-                    productos: productosSel,
-                    cliente_nombre: (data.get('cliente_nombre')||'').trim(),
-                    nota: (data.get('nota')||'').trim()
-                };
-                // Enviar al backend
-                const payload = {
-                    cliente_id: pedido.cliente_id,
-                    empleado_id: pedido.empleado_id,
-                    
-            tipo_consumo: pedido.tipo_consumo,
-            lugarentrega_id: pedido.lugarentrega_id,
-                    nota: pedido.nota,
+
+                const payloadBase = {
+                    empleado_id: parseInt(data.get('empleado_id')||'0',10) || null,
+                    tipo_consumo: tipo,
+                    lugarentrega_id: autoLugarEntregaId ?? (parseInt(data.get('lugarentrega_id')||'0',10) || null),
+                    habitacion_id: (tipo==='camarote') ? (selectedHabId || (parseInt(data.get('habitacion_id')||'0',10)||null)) : null,
+                    nota: (data.get('nota')||'').trim(),
                     productos: productosSel.map(p=> ({ producto_id: p.id, cantidad: p.cantidad }))
                 };
-                fetch('/bar/crear-pedido/', {
-                    method:'POST',
-                    headers:{ 'Content-Type':'application/json' },
-                    body: JSON.stringify(payload)
-                }).then(async r=>{
-                    const text = await r.text();
-                    let resp;
-                    try { resp = JSON.parse(text); }
-                    catch(e){
-                        throw new Error(`HTTP ${r.status} ${r.statusText}: ${text.slice(0,400)}`);
+
+                try{
+                    if(editPedidoId){
+                        // Actualizar existente
+                        const r = await fetch(`/bar/pedido/${editPedidoId}/actualizar/`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payloadBase) });
+                        const j = await r.json();
+                        if(!r.ok || !j.success) throw new Error(j && j.error || 'No se pudo actualizar');
+                        const ped = j.pedido;
+                        ped.productos = (ped.productos||[]).map(d=> ({ detalle_id: d.id, producto_id:d.producto_id, id:d.producto_id, nombre:d.nombre, cantidad:d.cantidad, precio:d.precio, receta:d.receta, subtotal:d.subtotal }));
+                        ped.cantidad = ped.productos.reduce((a,d)=> a + (parseInt(d.cantidad,10)||0), 0);
+                        // Actualizar listas: reemplazar si existe en activos o historial
+                        pedidos = pedidos.map(x=> x.id===ped.id ? ped : x);
+                        historial = historial.map(x=> x.id===ped.id ? ped : x);
+                        renderListas();
+                        toast('Pedido actualizado (#'+ped.id+')','success');
+                    } else {
+                        // Crear nuevo
+                        const r = await fetch('/bar/crear-pedido/', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payloadBase) });
+                        const text = await r.text();
+                        let resp;
+                        try { resp = JSON.parse(text); } catch(e){ throw new Error(`HTTP ${r.status} ${r.statusText}: ${text.slice(0,400)}`); }
+                        if(!r.ok || !resp.success) throw new Error(resp && resp.error ? resp.error : 'Error creando pedido');
+                        const ped = resp.pedido;
+                        ped.productos = ped.productos.map(d=> ({ detalle_id: d.id, producto_id:d.producto_id, id:d.producto_id, nombre:d.nombre, cantidad:d.cantidad, precio:d.precio, receta:d.receta, subtotal:d.subtotal }));
+                        ped.cantidad = ped.productos.reduce((a,d)=> a + (parseInt(d.cantidad,10)||0), 0);
+                        pedidos.unshift(ped);
+                        renderListas();
+                        toast('Pedido creado (#'+ped.id+')','success');
                     }
-                    if(!r.ok || !resp.success){
-                        throw new Error(resp && resp.error ? resp.error : 'Error creando pedido');
-                    }
-                    return resp;
-                }).then(resp=>{
-                    // Actualizar con ID real de backend
-                    const ped = resp.pedido;
-                    ped.productos = ped.productos.map(d=> ({ id:d.producto_id, nombre:d.nombre, cantidad:d.cantidad, precio:d.precio }));
-                    ped.cantidad = ped.productos.reduce((a,d)=> a + (parseInt(d.cantidad,10)||0), 0);
-                    pedidos.unshift(ped);
-                    renderListas();
-                    toast('Pedido creado (#'+ped.id+')','success');
-                }).catch(err=>{
+                }catch(err){
                     console.error(err);
-                    toast(err.message||'Error al crear el pedido','error');
-                }).finally(()=>{
+                    toast(err.message || (editPedidoId?'Error al actualizar':'Error al crear el pedido'), 'error');
+                } finally {
                     form.reset();
                     cantidadesEstado.clear();
                     const sel = document.getElementById('pedido-productos');
                     if(sel) Array.from(sel.options).forEach(o=>o.selected=false);
                     syncCajaCantidades();
                     cerrarModalCrear();
-                });
+                }
             });
         }
 
@@ -448,20 +614,21 @@
         }
         if(tipoConsumo && wrapInst && wrapHab){
             const applyTipo = ()=>{
+                // Solo cambiar la visibilidad de los campos, sin modificar cantidadesEstado
                 if(tipoConsumo.value==='bar'){
-                    // Mostrar instalación (bar) requerido
                     wrapInst.style.display='';
                     instSelect?.setAttribute('required','required');
-                    // Camarote oculto
                     wrapHab.style.display='none';
                     habitacionSelect?.removeAttribute('required');
                 } else {
-                    // Modo camarote: requerir habitación
                     wrapHab.style.display='';
                     habitacionSelect?.setAttribute('required','required');
                     wrapInst.style.display='none';
                     instSelect?.removeAttribute('required');
                 }
+                // No modificar cantidadesEstado ni restaurar backup
+                marcarSelectProductos();
+                syncCajaCantidades();
             };
             tipoConsumo.addEventListener('change', applyTipo);
             applyTipo();
@@ -515,90 +682,184 @@
         calcularDisponibilidadResumen();
     });
 
-        /* ----------- Detalle Factura / Receta ----------- */
-        function abrirDetalleFactura(p){
-        // NO cambiamos estado aquí; se hará al cerrar si estaba pendiente
-                const modal = crearModalDetalle(p);
-                document.body.appendChild(modal.backdrop);
-        }
+    // Exponer refresco global para que otras secciones (ej. Promociones) actualicen la lista de pedidos
+    try {
+        window.BaresPedidos = window.BaresPedidos || {};
+        window.BaresPedidos.refresh = cargarPedidosIniciales;
+    } catch(_e) {}
 
-        function crearModalDetalle(p){
-                const backdrop = document.createElement('div');
-                backdrop.className='modal-pedido';
-                backdrop.style.display='flex';
-            backdrop.innerHTML=`<div class="modal-pedido-dialog recibo" style="max-width:440px; background:linear-gradient(180deg,#ffffff,#f8fafc 40%,#ffffff); border:1px solid #e2e8f0;">
-                        <button class="modal-close" aria-label="Cerrar">×</button>
-                        <h2 class="modal-title">Pedido #${p.id} (Estado: ${p.estado.replace('_',' ')})</h2>
-                        <div class="estado-resumen" style="font-size:.75rem">
-                            <div class="fila">
-                                <span class="tag">Cliente: ${p.cliente_id}</span>
-                                <span class="tag">Empleado: ${p.empleado_id}</span>
-                                
-                                <span class="tag">${p.tipo_consumo==='camarote'?'Habitación':'Lugar'}: ${p.tipo_consumo==='camarote'?(p.habitacion_nombre||'--'):(p.lugarentrega_nombre||'--')}</span>
-                                <span class="tag">Cant: ${p.cantidad}</span>
+                /* ----------- Detalle Factura / Receta ----------- */
+                function abrirDetalleFactura(p){
+                    // No cambiar estado automáticamente; mostrar acciones explícitas
+                    const modal = crearModalFactura(p);
+                    document.body.appendChild(modal.backdrop);
+                }
+
+                function crearModalFactura(p){
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-pedido';
+                    backdrop.style.display = 'flex';
+
+                    // Tabla simple: Producto | Cantidad | Receta
+                    const puedeBorrar = p.estado === 'pendiente';
+                    const filas = (p.productos||[]).map((d)=>{
+                        const nombre = (typeof d === 'string') ? d : d.nombre;
+                        const receta = (typeof d === 'object' && d.receta) ? d.receta : '';
+                        const cant = (typeof d === 'object' && (d.cantidad!=null)) ? d.cantidad : '';
+                        const detalleId = d.detalle_id || d.id; // preferir detalle_id
+                        return `<tr data-detalle-row="${detalleId||''}">
+                            <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb;">${nombre}</td>
+                            <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb; text-align:center; color:#0f172a;">${cant}</td>
+                            <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb; color:#64748b;">${receta||'-'}</td>
+                            <td style="padding:8px 10px; border-bottom:1px solid #e5e7eb; text-align:center;">${(puedeBorrar && detalleId)?`<button class="btn-peligro" data-del-detalle data-pedido-id="${p.id}" data-detalle-id="${detalleId}">Eliminar</button>`:''}</td>
+                        </tr>`;
+                    }).join('');
+
+                    const puedePonerEnProceso = p.estado === 'pendiente';
+                    const puedeCompletar = p.estado === 'en_proceso' || p.estado === 'pendiente';
+                    const puedeEditar = p.estado === 'pendiente';
+
+                    backdrop.innerHTML = `
+                        <div class="modal-pedido-dialog recibo" style="max-width:560px; background:#fff; border:1px solid #e7eaf3;">
+                            <button class="modal-close" aria-label="Cerrar">×</button>
+                            <h2 class="modal-title">Factura Pedido #${p.id}</h2>
+                            <div style="font-family:'Fira Mono','Consolas',monospace; color:#475569; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 14px;">
+                                <div>Estado: ${p.estado.replace('_',' ')}</div>
+                                <div>Tipo: ${p.tipo_consumo==='camarote'?'Camarote':'Bar'}</div>
+                                <div>${p.tipo_consumo==='camarote'?'Habitación':'Lugar'}: ${p.tipo_consumo==='camarote'?(p.habitacion_nombre||'--'):(p.lugarentrega_nombre||'--')}</div>
+                                <div>Empleado: ${p.empleado_nombre ? escapeHtml(p.empleado_nombre) + (p.empleado_categoria?` — ${escapeHtml(p.empleado_categoria)}`:'') : (p.empleado_id??'-')}</div>
+                                <div>Fecha: ${p.fecha || '--'}</div>
+                                <div>Hora: ${p.hora || '--'}</div>
+                                <div style="grid-column:1 / -1;">Total: $${(p.total!=null?Number(p.total).toFixed(2):'0.00')}</div>
+                                ${p.nota?`<div style="grid-column:1 / -1;">Nota: ${escapeHtml(p.nota)}</div>`:''}
                             </div>
-                            ${(p.productos && p.productos.length)?`<div class="fila"><span class="tag">Productos: ${p.productos.map(pr=> (typeof pr==='string'? pr : pr.nombre)).join(', ')}</span></div>`:''}
-                            ${p.cliente_nombre?`<div class="fila"><span class="tag">Nombre Cliente: ${p.cliente_nombre}</span></div>`:''}
-                            ${p.nota?`<div class="fila"><span class="tag">Nota: ${p.nota}</span></div>`:''}
-                        </div>
-                                    <div class="receta-box" style="margin-top:8px; background:#f1f5f9; border:1px dashed #cbd5e1; padding:14px 16px; border-radius:16px; font-size:.68rem;">
-                            <strong>Receta / Preparación</strong>
-                            <p style="margin:6px 0 0; line-height:1.4;">(Hover en el botón para ver ejemplo)</p>
-                            <button class="pedido-btn" id="btn-hover-receta" style="margin-top:10px; position:relative;">Ver Receta
-                                <span class="receta-tooltip" style="position:absolute; left:0; top:110%; background:#0f172a; color:#fff; padding:10px 12px; border-radius:10px; font-size:.6rem; width:260px; opacity:0; pointer-events:none; transform:translateY(6px); transition:.25s;">${(p.productos && p.productos.length)?p.productos.map(prod=>`<strong>${prod}</strong>:<br>- Paso 1<br>- Paso 2<br><br>`).join(''):'Sin productos cargados aún.'}</span>
-                            </button>
-                        </div>
-                                    <p class="nota-proceso" style="margin:20px 0 4px; font-size:.55rem; letter-spacing:.05em; color:#64748b; text-align:center; text-transform:uppercase;">al cerrar esta pestaña, el pedido comenzará su proceso</p>
-                                    <div class="estado-acciones" style="justify-content:center; margin-top:10px;">
-                                        ${(p.estado!=='completado')?'<button type="button" class="btn-primario btn-completar" data-completar style="background:#16a34a;">Completar Pedido</button>':''}
-                                    </div>
-                </div>`;
-                const dialog = backdrop.querySelector('.modal-pedido-dialog');
-                const close = backdrop.querySelector('[data-close], .modal-close');
-                backdrop.addEventListener('click', e=>{ if(e.target===backdrop) cerrar(); });
-                backdrop.querySelector('.modal-close').addEventListener('click', cerrar);
-                            if(close) close.addEventListener('click', cerrar);
-            const btnComp = backdrop.querySelector('[data-completar]');
-                if(btnComp){
-                        btnComp.addEventListener('click',()=>{
-                            const id = p.id;
-                            const chain = (p.estado==='pendiente')
-                                ? actualizarEstadoPedido(id, 'en_proceso').then(()=> actualizarEstadoPedido(id, 'completado'))
-                                : actualizarEstadoPedido(id, 'completado');
-                            chain.then(pedFinal=>{
-                                pedidos = pedidos.filter(x=>x.id!==id);
-                                historial = historial.filter(x=>x.id!==id);
-                                if(pedFinal.estado==='completado') historial.unshift(pedFinal); else pedidos.unshift(pedFinal);
-                                toast(`Pedido #${id} completado`,'success');
-                                cerrar();
-                                renderListas();
-                            }).catch(err=>{ console.error(err); toast(err.message||'No se pudo completar','error'); });
+                            <div style="border:1px solid #e7eaf3; border-radius:10px; overflow:hidden;">
+                                <table style="width:100%; border-collapse:collapse;">
+                    <thead style="background:#f8fafc; text-align:left;">
+                                        <tr>
+                                            <th style="padding:10px; font-weight:600; border-bottom:1px solid #e7eaf3;">Producto</th>
+                                            <th style="padding:10px; font-weight:600; border-bottom:1px solid #e7eaf3; text-align:center; width:96px;">Cantidad</th>
+                        <th style="padding:10px; font-weight:600; border-bottom:1px solid #e7eaf3;">Receta</th>
+                        <th style="padding:10px; font-weight:600; border-bottom:1px solid #e7eaf3; text-align:center; width:120px;">Acciones</th>
+                                        </tr>
+                                    </thead>
+                    <tbody>${filas||'<tr><td colspan="4" style="padding:10px; color:#64748b; text-align:center;">Sin productos</td></tr>'}</tbody>
+                                </table>
+                            </div>
+                            <div class="estado-acciones modal-acciones" style="display:flex; gap:8px; justify-content:center; margin-top:14px;">
+                                ${puedePonerEnProceso?'<button type="button" class="modal-btn btn-proceso" data-en-proceso>Poner en proceso</button>':''}
+                                ${puedeCompletar?'<button type="button" class="modal-btn btn-completar" data-completar>Completar</button>':''}
+                                ${puedeEditar?'<button type="button" class="btn-secundario" data-editar>Editar</button>':''}
+                            </div>
+                        </div>`;
+
+                    const cerrar = ()=> backdrop.remove();
+                    backdrop.querySelector('.modal-close')?.addEventListener('click', cerrar);
+                    backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) cerrar(); });
+
+                    // Eliminar detalle (producto) desde la factura
+                    backdrop.addEventListener('click', (e)=>{
+                        const btnDel = e.target.closest('[data-del-detalle]');
+                        if(!btnDel) return;
+                        const detalleId = parseInt(btnDel.getAttribute('data-detalle-id'),10);
+                        if(!detalleId || p.estado!=='pendiente') return;
+                        fetch(`/bar/pedido/${p.id}/detalle/${detalleId}/eliminar/`, { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'} })
+                          .then(r=>r.json().then(j=>({ok:r.ok, j})))
+                          .then(({ok,j})=>{
+                              if(!ok || !j.success){ throw new Error((j&&j.error)||'No se pudo eliminar el producto'); }
+                              if(j.pedido_deleted){
+                                  // quitar tarjeta y cerrar
+                                  pedidos = pedidos.filter(x=> x.id!==p.id);
+                                  historial = historial.filter(x=> x.id!==p.id);
+                                  toast('Pedido eliminado (sin productos).','success');
+                                  cerrar();
+                              } else if(j.pedido){
+                                  // Actualizar pedido en memoria
+                                  const pedAct = j.pedido;
+                                  // Mantener forma de productos con detalle_id
+                                  pedAct.productos = (pedAct.productos||[]).map(d=> ({ detalle_id: d.id, producto_id:d.producto_id, id:d.producto_id, nombre:d.nombre, cantidad:d.cantidad, precio:d.precio, receta:d.receta, subtotal:d.subtotal }));
+                                  pedidos = pedidos.map(x=> x.id===pedAct.id ? pedAct : x);
+                                  historial = historial.map(x=> x.id===pedAct.id ? pedAct : x);
+                                  toast('Producto eliminado del pedido.','success');
+                                  cerrar();
+                              }
+                              renderListas();
+                              try { window.BaresOrdenes && window.BaresOrdenes.refresh && window.BaresOrdenes.refresh(); } catch(e){}
+                          })
+                          .catch(err=>{ console.error(err); toast(err.message||'Error al eliminar producto','error'); });
+                    });
+
+                    // Acción: Poner en proceso
+                    const btnProceso = backdrop.querySelector('[data-en-proceso]');
+                    if(btnProceso){
+                        btnProceso.addEventListener('click', ()=>{
+                            fetch(`/bar/pedido/${p.id}/estado/`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado: 'en_proceso' }) })
+                                .then(r=>r.json()).then(({success, pedido, error})=>{
+                                    if(!success){ toast(error||'No se pudo poner en proceso', 'error'); return; }
+                                    toast('Pedido en proceso','success');
+                                    cerrar();
+                                    cargarPedidosIniciales();
+                                    try { window.BaresOrdenes && window.BaresOrdenes.refresh && window.BaresOrdenes.refresh(); } catch(e){}
+                                })
+                                .catch(()=> toast('Error de red', 'error'));
                         });
-                }
-                const hoverBtn = backdrop.querySelector('#btn-hover-receta');
-                if(hoverBtn){
-                        const tooltip = hoverBtn.querySelector('.receta-tooltip');
-                        hoverBtn.addEventListener('mouseenter',()=>{ tooltip.style.opacity='1'; tooltip.style.transform='translateY(0)'; });
-                        hoverBtn.addEventListener('mouseleave',()=>{ tooltip.style.opacity='0'; tooltip.style.transform='translateY(6px)'; });
-                }
-                const estadoInicial = p.estado;
-                function cerrar(){
-                    backdrop.classList.add('closing');
-                    if(estadoInicial==='pendiente' && p.estado==='pendiente'){
-                        actualizarEstadoPedido(p.id, 'en_proceso')
-                            .then(ped=>{
-                                pedidos = pedidos.filter(x=>x.id!==p.id);
-                                historial = historial.filter(x=>x.id!==p.id);
-                                pedidos.unshift(ped);
-                                toast(`Has empezado el pedido #${p.id}`,'success');
-                                renderListas();
-                            })
-                            .catch(err=>{ console.warn('No se pudo poner en proceso automáticamente', err); });
                     }
-                    setTimeout(()=> backdrop.remove(), 260);
+
+                    // Acción: Completar (descuenta stock en servidor)
+                    const btnComp = backdrop.querySelector('[data-completar]');
+                    if(btnComp){
+                        btnComp.addEventListener('click', ()=>{
+                            // Si está pendiente, primero pasarlo a en_proceso para respetar la secuencia
+                            const encadenar = p.estado==='pendiente'
+                                ? fetch(`/bar/pedido/${p.id}/estado/`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado: 'en_proceso' }) }).then(r=>r.json())
+                                : Promise.resolve({ success:true });
+                            encadenar.then(()=>{
+                                return fetch(`/bar/pedido/${p.id}/estado/`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ estado: 'completado' }) })
+                                    .then(r=>r.json());
+                            }).then(({success, pedido, error})=>{
+                                if(!success){ toast(error||'No se pudo completar', 'error'); return; }
+                                toast('Pedido completado','success');
+                                cerrar();
+                                cargarPedidosIniciales();
+                                try { window.BaresOrdenes && window.BaresOrdenes.refresh && window.BaresOrdenes.refresh(); } catch(e){}
+                            }).catch(()=> toast('Error de red', 'error'));
+                        });
+                    }
+
+                    // Acción: Editar (solo pendiente)
+                    const btnEdit = backdrop.querySelector('[data-editar]');
+                    if(btnEdit){
+                        btnEdit.addEventListener('click', ()=>{
+                            try{
+                                cerrar();
+                                editPedidoId = p.id;
+                                cantidadesEstado.clear();
+                                (p.productos||[]).forEach(d=>{
+                                    const pid = d.producto_id || d.id; if(!pid) return;
+                                    cantidadesEstado.set(pid, { id:pid, nombre:d.nombre, tipo:(d.plan==='pago'?'pago':'gratis'), precio: d.precio||0, cantidad: d.cantidad||1 });
+                                });
+                                const tipoSel = document.getElementById('pedido-tipo-consumo');
+                                if(tipoSel){ tipoSel.value = p.tipo_consumo || 'bar'; tipoSel.dispatchEvent(new Event('change')); }
+                                const instSel = document.getElementById('pedido-lugarentrega');
+                                if(instSel && p.lugarentrega_id){ instSel.value = String(p.lugarentrega_id); instSel.dispatchEvent(new Event('change')); }
+                                const habSel = document.getElementById('pedido-habitacion');
+                                if(habSel && p.habitacion_id){ habSel.value = String(p.habitacion_id); habSel.dispatchEvent(new Event('change')); }
+                                const empInp = document.getElementById('pedido-empleado');
+                                if(empInp){ empInp.value = p.empleado_id || ''; empInp.dispatchEvent(new Event('input')); }
+                                const notaInp = document.getElementById('pedido-nota');
+                                if(notaInp){ notaInp.value = p.nota || ''; }
+                                abrirModalCrear();
+                                marcarSelectProductos();
+                                syncCajaCantidades();
+                            }catch(err){ console.error(err); toast('No se pudo cargar el pedido para edición','error'); }
+                        });
+                    }
+
+                    return { backdrop };
                 }
-                return { backdrop, dialog };
-        }
+
+// Delegación para abrir detalle con click en botón o tarjeta
+// Delegación de detalle se maneja dentro de init() una vez el DOM está listo
 
         /* ----------- Toast ----------- */
         function toast(msg, tipo='info'){
@@ -607,10 +868,10 @@
                 const el = document.createElement('div');
                 el.textContent=msg;
             if(tipo==='success'){
-                el.style.background='linear-gradient(135deg,#16a34a,#059669)';
+                el.style.background='#16a34a';
                 el.style.color='#f0fdf4';
             } else {
-                el.style.background='linear-gradient(135deg,#0ea5e9,#6366f1)';
+                el.style.background='#0ea5e9';
                 el.style.color='#fff';
             }
                 el.style.padding='10px 16px';

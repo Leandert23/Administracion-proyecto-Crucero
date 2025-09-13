@@ -170,6 +170,8 @@ body {
     color: inherit;
     transition: transform 0.3s, box-shadow 0.3s;
     display: block;
+    /* aumentar la altura visual del card */
+    height: 400px;
 }
 
 .quick-action-card:hover {

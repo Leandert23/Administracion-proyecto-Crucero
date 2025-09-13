@@ -70,24 +70,23 @@
     }
 
     function recargarInventario() {
-            try {
-                // Solo refrescar si el modal de inventario está visible (evita fetch innecesario)
-                if (!window.GestorModales || !GestorModales.estaAbierto || !GestorModales.estaAbierto('inventario')) return;
+        try {
+            // Solo refrescar si el modal de inventario está visible (evita fetch innecesario)
+            if (!window.GestorModales || !GestorModales.estaAbierto || !GestorModales.estaAbierto('inventario')) return;
+            // Compatibilidad: diferentes nombres posibles del gestor de inventario
+            const gestor = window.GestorInventario || window.InventarioManager || window.InventoryManager;
+            if (!gestor) return;
 
-                // Compatibilidad: diferentes nombres posibles del gestor de inventario
-                const gestor = window.GestorInventario || window.InventarioManager || window.InventoryManager;
-                if (!gestor) return;
+            // Detectar función de recarga disponible
+            const fnPagina = gestor.cargarPagina || gestor.loadInventoryPage || gestor.loadPage;
+            if (typeof fnPagina !== 'function') return;
 
-                // Detectar función de recarga disponible
-                const fnPagina = gestor.cargarPagina || gestor.loadInventoryPage || gestor.loadPage;
-                if (typeof fnPagina !== 'function') return;
-
-                const paginaActual = gestor.paginaActual || gestor.currentPage || 1;
-                // Pequeño delay para asegurar commit en backend antes de reflejar (evita ver lista sin nuevo item)
-                setTimeout(() => {
-                    try { fnPagina.call(gestor, paginaActual); } catch(e) {}
-                }, 180);
-            } catch (error) {}
+            const paginaActual = gestor.paginaActual || gestor.currentPage || 1;
+            // Pequeño delay para asegurar commit en backend antes de reflejar (evita ver lista sin nuevo item)
+            setTimeout(() => {
+                try { fnPagina.call(gestor, paginaActual); } catch(e) {}
+            }, 180);
+        } catch (error) {}
     }
 
         // Refresca el historial de movimientos si el modal está abierto
@@ -228,6 +227,39 @@
 
     const GestorFormularios = {
         configuraciones: {
+            lote: {
+                idFormulario: 'form-crear-lote',
+                claveModal: 'lote',
+                endpoint: '/almacen/registrar-lote/',
+                inicializar(contexto) {
+                    aplicarEstilosEnfoque(contexto.formulario);
+                },
+                validar(contexto) {
+                    let valido = true;
+                    const producto = obtenerElementoPorId('id_producto');
+                    const cantidad = obtenerElementoPorId('id_cantidad_productos');
+                    if (!producto || !producto.value) {
+                        mostrarError(contexto.formulario, 'producto', 'Selecciona un producto');
+                        valido = false;
+                    }
+                    if (!cantidad || !cantidad.value || parseInt(cantidad.value, 10) <= 0) {
+                        mostrarError(contexto.formulario, 'cantidad_productos', 'Ingresa una cantidad válida (>0)');
+                        valido = false;
+                    }
+                    return valido;
+                },
+                exito(contexto, datos) {
+                    contexto.formulario.reset();
+                    limpiarErrores(contexto.formulario);
+                    cerrarModalClave('lote');
+                    recargarInventario();
+                    recargarHistorial();
+                },
+                reiniciar(contexto) {
+                    contexto.formulario.reset();
+                    limpiarErrores(contexto.formulario);
+                }
+            },
             producto: {
                 idFormulario: 'form-crear-producto',
                 claveModal: 'producto',

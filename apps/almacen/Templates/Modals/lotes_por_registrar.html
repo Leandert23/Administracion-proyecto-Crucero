@@ -53,5 +53,36 @@
     mo.observe(modal, {attributes: true});
     // If modal is already visible on load, trigger immediately
     if(modal.getAttribute('aria-hidden') === 'false') triggerLoad();
+
+    // After the tabla_html is injected into #tabla-ordenes-compra-wrapper, bind the Revisar buttons
+    const tablaWrapper = document.getElementById('tabla-ordenes-compra-wrapper');
+    function bindRevisarButtons(){
+        if(!tablaWrapper) return;
+        const botones = tablaWrapper.querySelectorAll('.btn-revisar[data-orden-id]');
+        botones.forEach(btn=>{
+            // avoid double-binding
+            if(btn.__almacen_revisar_bound) return;
+            btn.__almacen_revisar_bound = true;
+            btn.addEventListener('click', function(e){
+                e.preventDefault();
+                const ordenId = this.getAttribute('data-orden-id');
+                const productoId = this.getAttribute('data-producto-id') || '';
+                const cantidad = this.getAttribute('data-cantidad') || '';
+                if(typeof window.abrirEntradaLoteFromOrden === 'function'){
+                    window.abrirEntradaLoteFromOrden(ordenId, productoId, cantidad);
+                } else {
+                    console.debug('abrirEntradaLoteFromOrden no definida');
+                }
+            });
+        });
+    }
+
+    // Observe child list changes to the wrapper to bind new buttons when tabla_html is injected
+    if(tablaWrapper){
+        const moTabla = new MutationObserver((muts)=>{ bindRevisarButtons(); });
+        moTabla.observe(tablaWrapper, {childList: true, subtree: true});
+        // initial bind in case content already present
+        bindRevisarButtons();
+    }
     })();
     </script>

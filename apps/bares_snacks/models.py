@@ -49,6 +49,46 @@ class Bar(models.Model):
 
     
 class Pedidos(models.Model):
+    def descontar_stock_ingredientes(self):
+        """
+        Descuenta el stock de los ingredientes usados en los productos del pedido,
+        registrando el egreso en MovimientoAlmacen por cada ingrediente y lote utilizado.
+        """
+        from almacen.models import Producto, Lote, MovimientoAlmacen
+        for detalle in self.detalles.all():
+            producto_bar = detalle.producto
+            if not producto_bar:
+                continue
+            for receta_item in producto_bar.receta_items.all():
+                ingrediente = receta_item.ingrediente
+                cantidad_necesaria = receta_item.cantidad * detalle.cantidad
+                # Buscar lotes disponibles (FIFO)
+                lotes = ingrediente.lotes.order_by('fecha_ingreso', 'numero_lote')
+                cantidad_restante = cantidad_necesaria
+                for lote in lotes:
+                    # Calcular stock actual del lote
+                    ingresos = lote.cantidad_productos
+                    egresos = lote.movimientos.filter(tipo='OUT').aggregate(models.Sum('cantidad'))['cantidad__sum'] or 0
+                    disponible = ingresos - egresos
+                    if disponible <= 0:
+                        continue
+                    descontar = min(disponible, cantidad_restante)
+                    if descontar > 0:
+                        MovimientoAlmacen.objects.create(
+                            tipo='OUT',
+                            producto=ingrediente,
+                            lote=lote,
+                            cantidad=descontar,
+                            fecha=self.fecha_hora.date(),
+                            modulo='BARES_SNACKS',
+                            descripcion=f"Pedido #{self.id} - {producto_bar.nombre}"
+                        )
+                        cantidad_restante -= descontar
+                    if cantidad_restante <= 0:
+                        break
+                if cantidad_restante > 0:
+                    # Si no hay suficiente stock, podrías lanzar una excepción o registrar un error
+                    pass
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('completado', 'Completado'),
@@ -56,9 +96,22 @@ class Pedidos(models.Model):
     ]
     id = models.AutoField(primary_key=True)
     # ptoventa eliminado: ahora se usa sólo lugarentrega (Instalación)
+    empleado=models.ForeignKey(
+        'recursos_humanos.Personal',
+        on_delete=models.PROTECT,
+        related_name='pedidos_atendidos',
+        null=True,
+        blank=True,
+    )
     fecha_hora = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-
+    cliente=models.ForeignKey(
+        'ventas.Cliente',
+        on_delete=models.SET_NULL,
+        related_name='pedidos',
+        null=True,
+        blank=True,
+    )
     # Nueva FK principal a la instalación donde se entregará / consumirá
     lugarentrega = models.ForeignKey(
         'cruceros.Instalacion',
@@ -67,6 +120,23 @@ class Pedidos(models.Model):
         on_delete=models.PROTECT,
         related_name='pedidos_entregados',
         help_text='Instalación física de entrega o consumo (bar, restaurante, etc.)'
+    )
+
+    numero_factura = models.CharField(
+        max_length=32,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text='Número de factura generado para el pedido (formato BR-XXX-0001[-PR])'
+    )
+    # Si el consumo es en camarote, guardamos la habitación
+    habitacion = models.ForeignKey(
+        'cruceros.Habitacion',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='pedidos_servicio',
+        help_text='Habitación destino si el consumo es en camarote'
     )
     
     

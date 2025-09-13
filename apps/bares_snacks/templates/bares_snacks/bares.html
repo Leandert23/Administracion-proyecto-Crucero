@@ -1,5 +1,5 @@
 {% load static %}
-<!--Para render-->
+<!--Para render, importante-->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{% static 'bares_snacks/css/producto.css' %}" />
   <link rel="stylesheet" href="{% static 'bares_snacks/css/ordenes.css' %}" />
   <link rel="stylesheet" href="{% static 'bares_snacks/css/pedidos.css' %}" />
+  <link rel="stylesheet" href="{% static 'bares_snacks/css/analisis.css' %}" />
     <link
       rel="stylesheet"
       href="{% static 'bares_snacks/css/promociones.css' %}"
@@ -29,11 +30,91 @@
   <script src="{% static 'bares_snacks/js/ordenes.js' %}"></script>
     <script src="{% static 'bares_snacks/js/productos.js' %}"></script>
     <script src="{% static 'bares_snacks/js/promociones.js' %}"></script>
+    <script src="{% static 'bares_snacks/js/analisis.js' %}"></script>
   </head>
   <body>
     <div class="dashboard-container">
       <!-- Sidebar -->
-      {% include "sidebar.html" with active_module="bares" %}
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo" onclick="toggleSidebar()" style="cursor: pointer">
+            <img
+              src="{% static 'svg/logo/logo_Blanco.svg' %}"
+              alt="Logo"
+              class="logo-icon"
+            />
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="/" class="nav-link">
+                <span class="nav-text">Inicio</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                <span class="nav-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Ventas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Reservas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Restaurante</span>
+              </a>
+            </li>
+            <li class="nav-item active">
+              <a href="{% url 'bares' crucero.id %}" class="nav-link">
+                <span class="nav-text">Bares</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+                <span class="nav-text">Entretenimiento</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Compras</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
+                <span class="nav-text">Almacen</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Recursos Humanos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Servicios Medicos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link">
+                <span class="nav-text">Mantenimiento</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <!-- Footer del sidebar -->
+        </div>
+      </aside>
 
       <!-- Main Content -->
       <main class="main-content">
@@ -65,27 +146,27 @@
           <ul>
             <li>
               <a href="#ordenes" class="mini-menu-icon active" title="Órdenes">
-                <img src="{% static 'bares_snacks/svg/dashboard/orden.svg' %}" alt="🍹" />
+                <img src="{% static 'svg/dashboard/orden.svg' %}" alt="🍹" />
               </a>
             </li>
             <li>
               <a href="#pedidos" class="mini-menu-icon" title="Pedidos">
-                <img src="{% static 'bares_snacks/svg/dashboard/pedido.svg' %}" alt="🚲" />
+                <img src="{% static 'svg/dashboard/pedido.svg' %}" alt="🚲" />
               </a>
             </li>
             <li>
               <a href="#productos" class="mini-menu-icon" title="Menú">
-                <img src="{% static 'bares_snacks/svg/dashboard/menu.svg' %}" alt="🍆" />
+                <img src="{% static 'svg/dashboard/menu.svg' %}" alt="🍆" />
               </a>
             </li>
             <li>
               <a href="#promociones" class="mini-menu-icon" title="Promociones">
-                <img src="{% static 'bares_snacks/svg/dashboard/promos.svg' %}" alt="➗" />
+                <img src="{% static 'svg/dashboard/promos.svg' %}" alt="➗" />
               </a>
             </li>
             <li>
               <a href="#analisis" class="mini-menu-icon" title="Análisis">
-                <img src="{% static 'bares_snacks/svg/dashboard/analisis.svg' %}" alt="📚" />
+                <img src="{% static 'svg/dashboard/analisis.svg' %}" alt="📚" />
               </a>
             </li>
           </ul>
@@ -98,15 +179,14 @@
 
           <!-- Secciones del mini menú -->
           <section id="ordenes" class="menu-section">
-            <!-- Módulo Órdenes reiniciado: implementación previa eliminada -->
-            <div class="ordenes-placeholder" style="text-align:center; padding:48px 12px; color:#64748b; font-size:1.05rem;">
-              Módulo de Órdenes en reconstrucción.
+            <h2 style="text-align:center; color:#1e293b; margin-top:60px;">Gestión de Órdenes</h2>
+            <div id="ordenes-contenedor" class="ordenes-contenedor" aria-live="polite">
+              <div class="ordenes-empty">No hay órdenes.</div>
             </div>
           </section>
           <section id="pedidos" class="menu-section" style="display: none">
             <button id="btn-abrir-crear-pedido" class="btn-crear-pedido-fab" title="Crear nuevo pedido">+ Pedido</button>
             <h2 style="text-align:center; color:#1e293b; margin-top:60px;">Gestión de Pedidos</h2>
-            <div class="pedidos-explicacion">Registrar ventas (Bar o Camarote). Estados: Pendiente → En Proceso → Completado. Pendiente modificable, en proceso bloquea edición, completado pasa a historial.</div>
             <div class="pedidos-paneles">
               <div class="panel-pedidos">
                 <h3 class="pedidos-seccion-titulo">Activos</h3>
@@ -145,9 +225,6 @@
                     </label>
                   </div>
                   <div class="form-row fila-2cols">
-                    <label>Nombre Cliente (Demo)
-                      <input type="text" name="cliente_nombre" id="pedido-cliente-nombre" maxlength="60" placeholder="Nombre del cliente" />
-                    </label>
                     <label id="wrapper-instalacion">Instalación Entrega
                       <select name="lugarentrega_id" id="pedido-lugarentrega" required>
                         <option value="" selected>Selecciona...</option>
@@ -161,22 +238,11 @@
                   </div>
                   <input type="hidden" id="pedido-lugarentrega-nombre" name="lugarentrega_nombre" />
                   <input type="hidden" id="pedido-habitacion-nombre" name="habitacion_nombre" />
-                  <div class="form-row fila-3cols">
-                    <label>Cliente ID
-                      <input type="number" name="cliente_id" id="pedido-cliente" min="1" required placeholder="Ej: 12" />
-                    </label>
-                    <label>Empleado ID
-                      <input type="number" name="empleado_id" id="pedido-empleado" min="1" required placeholder="Ej: 3" />
-                    </label>
-                    
-                  </div>
                   <div class="form-row fila-2cols">
-                    <div>
-                      <label>Resumen de disponibilidad</label>
-                      <div id="resumen-disponibilidad" style="font-size:.75rem; color:#334155; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; min-height:42px;">
-                        <em>(Selecciona productos para ver disponibilidad)</em>
-                      </div>
-                    </div>
+                    <label>Empleado Encargado
+                      <input type="number" name="empleado_id" id="pedido-empleado" min="1" required placeholder="Ej: 3" />
+                      <small id="empleado-info" style="display:block; font-size:.7rem; color:#334155; margin-top:4px; min-height:18px;"></small>
+                    </label>
                     <label>Nota / Referencia
                       <input type="text" name="nota" id="pedido-nota" maxlength="60" placeholder="Opcional" />
                     </label>
@@ -189,11 +255,18 @@
                       <input type="time" name="hora" id="pedido-hora" required />
                     </label>
                   </div>
-                  <div class="form-row acciones">
-                    <button type="button" class="btn-secundario" id="cancelar-pedido">Cancelar</button>
-                    <button type="submit" class="btn-primario">Guardar</button>
+                  <div class="form-row">
+                    <label>Resumen de disponibilidad</label>
+                    <div id="resumen-disponibilidad" style="font-size:.75rem; color:#334155; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; min-height:42px;">
+                      <em>(Selecciona productos para ver disponibilidad)</em>
+                    </div>
+                    <div id="resumen-habitacion" style="font-size:.75rem; color:#334155; margin-top:8px;"></div>
                   </div>
-                  <p class="ayuda-form">Luego conectaremos este formulario al modelo <strong>Pedidos</strong> y generaremos Detalles.</p>
+                  <div class="form-row acciones">
+                    <button type="button" class="btn-secundario btn-animado" id="cancelar-pedido">Cancelar</button>
+                    <button type="submit" class="btn-primario btn-animado" id="guardar-pedido">Guardar</button>
+                  </div>
+                  <p class="ayuda-form">Solo puedes modificar el pedido en estado <strong>Pendiente</strong>. Al avanzar de estado, se bloquea la edición.</p>
                 </form>
               </div>
             </div>
@@ -252,30 +325,101 @@
               {% load static %}
               <script>
                 const promoImages = {
-                  "2x1 en Cervezas": "{% static 'bares_snacks/svg/promos/two-mugs.svg' %}",
-                  "Martes de Tacos": "{% static 'bares_snacks/svg/promos/taco.svg' %}",
+                  "2x1 en Cervezas": "{% static 'svg/promos/two-mugs.svg' %}",
+                  "Martes de Tacos": "{% static 'svg/promos/taco.svg' %}",
                   "Jarra de Cerveza a Precio Especial":
-                    "{% static 'bares_snacks/svg/promos/beer.svg' %}",
+                    "{% static 'svg/promos/beer.svg' %}",
                   "Cócteles a Precio de Happy Hour toda la noche":
-                    "{% static 'bares_snacks/svg/promos/cocktail-glass.svg' %}",
+                    "{% static 'svg/promos/cocktail-glass.svg' %}",
                   "Brunch con Mimosa o Bloody Mary incluido":
-                    "{% static 'bares_snacks/svg/promos/tropical-drinks.svg' %}",
-                  "Lunes de Trabajo": "{% static 'bares_snacks/svg/promos/coffee.svg' %}",
-                  "Miércoles de Dulce": "{% static 'bares_snacks/svg/promos/bagel.svg' %}",
+                    "{% static 'svg/promos/tropical-drinks.svg' %}",
+                  "Lunes de Trabajo": "{% static 'svg/promos/coffee.svg' %}",
+                  "Miércoles de Dulce": "{% static 'svg/promos/bagel.svg' %}",
                   "Viernes de Tarde":
-                    "{% static 'bares_snacks/svg/promos/bubble-tea.svg' %}",
+                    "{% static 'svg/promos/bubble-tea.svg' %}",
                 };
               </script>
               <div class="promociones-lista">
                 <h3 class="promo-list-title">Promociones Especiales por Día</h3>
                 <ul id="lista-promociones" class="promo-list"></ul>
               </div>
+              <!-- Modal pedir promoción -->
+              <div id="modal-pedir-promocion" class="modal" style="display: none;">
+                <div class="modal-content">
+                  <span class="close-modal" id="close-modal-pedir-promocion">&times;</span>
+                  <div id="modal-pedir-promocion-content">
+                    <!-- Se llena por JS -->
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
           <section id="analisis" class="menu-section" style="display: none">
-            <h2 style="text-align: center; color: #1e293b">
-              Estás en el menú de Análisis
-            </h2>
+            <h2 style="text-align: center; color: #1e293b; margin-top:60px;">Análisis</h2>
+            <div class="analisis-grid">
+              <div class="analisis-card" id="card-mas-vendidos">
+                <div class="card-head">
+                  <h3>Top vendidos por categoría</h3>
+                  <small class="sub">Historial de pedidos completados</small>
+                </div>
+                <div id="mas-vendidos-contenedor" class="card-body" aria-live="polite"></div>
+              </div>
+              <div class="analisis-card" id="card-stock">
+                <div class="card-head">
+                  <h3>Stock bajo vs Stock ideal</h3>
+                  <small class="sub">Desde Almacén</small>
+                  <button type="button" id="btn-abrir-restock" title="Solicitar reposición" class="btn-restock-head">Solicitar stock</button>
+                </div>
+                <div class="card-body">
+                  <div class="stock-cols">
+                    <div class="stock-col">
+                      <h4 class="stock-title critico">Stock bajo</h4>
+                      <ul id="stock-bajo-list" class="stock-list"></ul>
+                    </div>
+                    <div class="stock-col">
+                      <h4 class="stock-title ideal">Stock ideal</h4>
+                      <ul id="stock-ideal-list" class="stock-list"></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- Modal Restock -->
+          <section>
+          <div id="modal-restock" class="modal-producto" aria-hidden="true">
+            <div class="modal-producto-dialog">
+              <button class="modal-close" id="close-modal-restock" aria-label="Cerrar">×</button>
+              <h2 class="modal-title">Solicitar reposición</h2>
+              <form id="form-restock" class="form-restock" autocomplete="off">
+                <div class="form-row">
+                  <div id="restock-producto-selector">
+                    <label>Producto de almacén
+                      <select id="restock-producto-select" required></select>
+                    </label>
+                  </div>
+                  <div id="restock-producto-fijo" style="display:none;">
+                    <label>Producto
+                      <input type="text" id="restock-producto-nombre" readonly />
+                    </label>
+                  </div>
+                  <input type="hidden" id="restock-producto-id" />
+                </div>
+                <div class="form-row fila-2cols">
+                  <label>Cantidad a solicitar
+                    <input type="number" id="restock-cantidad" min="1" step="1" required placeholder="Ej: 50" />
+                  </label>
+                  <label>Comentario (opcional)
+                    <input type="text" id="restock-comentario" maxlength="120" placeholder="Referencia para compras" />
+                  </label>
+                </div>
+                <div class="form-row acciones">
+                  <button type="button" class="btn-secundario" id="cancelar-restock">Cancelar</button>
+                  <button type="submit" class="btn-primario" id="guardar-restock">Solicitar</button>
+                </div>
+              </form>
+            </div>
+          </div>
           </section>
           <!-- Modal para ver detalles del pedido tipo factura (debe estar fuera de las secciones) -->
           <div id="modal-detalle-pedido" class="modal" style="display: none">
@@ -337,8 +481,14 @@
                 </div>
                 <!-- Tabla dinámica de ingredientes filtrados por Tipo/Subtipo -->
                 <div class="form-row">
-                  <div id="ingredientes-tabla" class="ingredientes-tabla" aria-live="polite" style="width:100%; overflow:auto;">
-                    <!-- Se llena por JS con los productos de almacén según Tipo/Subtipo -->
+                  <div id="ingredientes-tabla" class="ingredientes-tabla" aria-live="polite" style="display:none;width:100%; overflow:auto;">
+                    <!-- Oculto por redundancia con la sección de ingredientes -->
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div id="ingredientes-actuales" class="ingredientes-actuales-card" style="margin:8px 0 16px 0; display:none; border:1px solid #e0e7ef; border-radius:8px; background:#f8fafc; padding:12px;">
+                    <h4 style="margin:0 0 8px 0; font-size:1.05em; color:#64748b;">Ingredientes actuales de la receta</h4>
+                    <div id="ingredientes-actuales-list"></div>
                   </div>
                 </div>
                 <div class="form-row">

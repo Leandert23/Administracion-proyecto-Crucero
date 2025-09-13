@@ -278,6 +278,21 @@ class OrdenCompra(models.Model):
     def __str__(self):
         return f"OC#{self.id or ''} - {self.producto.nombre} x {self.cantidad_productos} ({self.get_estado_display()})"
 
+
+class MensajeParaCompras(models.Model):
+    compra_lote = models.ForeignKey(CompraLote, on_delete=models.CASCADE, related_name='mensajes_para_almacen')
+    descripcion = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Mensaje para Compras"
+        verbose_name_plural = "Mensajes para Compras"
+
+    def __str__(self):
+        texto = (self.descripcion or '').strip()
+        if len(texto) > 40:
+            texto = texto[:37] + '...'
+        return f"Mensaje#{self.id or ''} - {texto or 'sin descripción'}"
+
     
 class SolicitudSalida(models.Model):
     ESTADOS = [
