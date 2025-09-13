@@ -8,7 +8,7 @@ from .models import Dashboard, Alerta
 from .signals import decision_solicitud, obtener_solicitudes_compra
 from apps.compras.models import CompraLote, Proveedores
 from apps.ventas.models import Venta
-from apps.recursos_humanos.models import Personal
+# from apps.recursos_humanos.models import Personal
 from django.db.models import Count, Sum
 
 def obtener_totales_compras_por_tipo(crucero_id):
@@ -110,32 +110,12 @@ def obtener_estadisticas_empleados():
     Returns:
         dict: Diccionario con conteos de empleados por estado
     """
-    # Obtener conteos por estado usando el campo pStatus
-    # 1 = Activo, 2 = Inactivo, 3 = De baja
-    estadisticas = Personal.objects.values('pStatus').annotate(
-        cantidad=Count('id')
-    )
-    
-    # Inicializar contadores
-    conteos = {
+    # Temporalmente sin estadísticas de empleados
+    return {
         'activos': 0,
         'inactivos': 0,
         'de_baja': 0
     }
-    
-    # Procesar los resultados
-    for stat in estadisticas:
-        status = stat['pStatus']
-        cantidad = stat['cantidad']
-        
-        if status == 1:  # Activo
-            conteos['activos'] = cantidad
-        elif status == 2:  # Inactivo
-            conteos['inactivos'] = cantidad
-        elif status == 3:  # De baja
-            conteos['de_baja'] = cantidad
-    
-    return conteos
 
 #Obtener la distancia del recorrido de un crucero en particular
 def cruceros_dashboard_data(request, crucero_id):
@@ -146,12 +126,13 @@ def cruceros_dashboard_data(request, crucero_id):
         dashboard = Dashboard.objects.get(crucero=crucero)
     except Dashboard.DoesNotExist:
         # Si no existe un registro de administración para este crucero, crear uno con valores por defecto
+        # El precio_combustible se debe configurar manualmente por el administrador
         dashboard = Dashboard.objects.create(
             crucero=crucero,
             costos_totales=0.00,
             ganancias_totales=0.00,
             presupuesto_estimado=0.00,
-            precio_combustible=0.00,
+            precio_combustible=0.00,  # Debe ser configurado por el administrador
             num_pasajeros_actual=0,
             num_empleados_actual=0
         )

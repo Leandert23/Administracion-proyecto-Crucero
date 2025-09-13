@@ -104,7 +104,7 @@ class Dashboard(models.Model):
 
     @property
     def num_empleados_actual(self):
-        return Personal.objects.count()
+        return 0  # Temporalmente sin conteo de empleados
     
     @num_empleados_actual.setter
     def num_empleados_actual(self, value):
