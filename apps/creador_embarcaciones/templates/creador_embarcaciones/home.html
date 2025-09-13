@@ -5,6 +5,42 @@
 {% block page_subtitle %}Gestión de embarcaciones y rutas{% endblock %}
 
 {% block content %}
+<!-- Botón para ir a la página principal -->
+<div style="margin-bottom: 24px; text-align: right;">
+    <a href="/" class="btn-custom secondary" style="background: #64748b; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; transition: all 0.3s ease;">
+        <i class="fas fa-home"></i> Ir a Página Principal
+    </a>
+</div>
+
+<!-- Acciones Rápidas - Movido al inicio -->
+<div class="actions-section" style="margin-bottom: 32px;">
+    <h3 style="color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-bolt"></i> Acciones Rápidas
+    </h3>
+    <div class="actions-grid">
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:embarcacion_create' %}'" {% if total_rutas == 0 %}class="disabled" title="Primero debe crear una ruta"{% endif %}>
+            <i class="fas fa-ship action-icon" style="color: #3b82f6;"></i>
+            <h4 class="action-title">Nueva Embarcación</h4>
+            <p class="action-description">{% if total_rutas == 0 %}Requiere rutas{% else %}Crear nueva embarcación{% endif %}</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:ruta_create' %}'">
+            <i class="fas fa-route action-icon" style="color: #10b981;"></i>
+            <h4 class="action-title">Nueva Ruta</h4>
+            <p class="action-description">Crear nueva ruta de viaje</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:embarcacion_list' %}'">
+            <i class="fas fa-list action-icon" style="color: #06b6d4;"></i>
+            <h4 class="action-title">Lista Embarcaciones</h4>
+            <p class="action-description">Ver todas las embarcaciones</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:ruta_list' %}'">
+            <i class="fas fa-list action-icon" style="color: #f59e0b;"></i>
+            <h4 class="action-title">Lista Rutas</h4>
+            <p class="action-description">Ver todas las rutas</p>
+        </div>
+    </div>
+</div>
+
 <style>
     /* Estilos específicos para el dashboard */
     .stats-grid {
@@ -737,51 +773,6 @@
     </div>
 </div>
 
-<!-- Enlaces rápidos -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3">
-                        {% if total_rutas == 0 %}
-                            <button class="btn btn-outline-secondary w-100 mb-2" disabled title="Primero debe crear una ruta">
-                                <i class="fas fa-ship"></i><br>
-                                <small>Nueva Embarcación<br>(Requiere rutas)</small>
-                            </button>
-                        {% else %}
-                            <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-outline-primary w-100 mb-2">
-                                <i class="fas fa-ship"></i><br>
-                                <small>Nueva Embarcación</small>
-                            </a>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-outline-info w-100 mb-2">
-                            <i class="fas fa-route"></i><br>
-                            <small>Nueva Ruta</small>
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-outline-success w-100 mb-2">
-                            <i class="fas fa-list"></i><br>
-                            <small>Lista Embarcaciones</small>
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn btn-outline-warning w-100 mb-2">
-                            <i class="fas fa-list"></i><br>
-                            <small>Lista Rutas</small>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- JavaScript para manejar los modales -->
 <script>
