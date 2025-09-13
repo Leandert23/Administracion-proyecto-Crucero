@@ -60,6 +60,12 @@ def panel_servicio_medico(request,):
     else:
         cuartos = []
     
+    # Calcular contadores de cuartos
+    total_cuartos = len(cuartos)
+    cuartos_disponibles = len([c for c in cuartos if c.estado == 'D'])
+    cuartos_ocupados = len([c for c in cuartos if c.estado == 'O'])
+    cuartos_mantenimiento = len([c for c in cuartos if c.estado == 'M'])
+    
     # Datos de ejemplo, reemplazar por consultas reales
     medico = Medico.objects.first()
     pacientes = Paciente.objects.all()[:5]
@@ -71,6 +77,10 @@ def panel_servicio_medico(request,):
         'inventario': inventario,
         'cuartos': cuartos,
         'crucero_activo': crucero_activo,
+        'total_cuartos': total_cuartos,
+        'cuartos_disponibles': cuartos_disponibles,
+        'cuartos_ocupados': cuartos_ocupados,
+        'cuartos_mantenimiento': cuartos_mantenimiento,
     }
     return render(request, 'servicio_medico.html', context)
 
