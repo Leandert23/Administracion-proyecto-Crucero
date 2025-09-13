@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.administracion",
     "apps.servicio_medico",
     "apps.restaurante",
+    "apps.recursos_humanos",
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ TEMPLATES = [
             BASE_DIR / 'apps' / 'entretenimiento' / 'templates',
             BASE_DIR / 'apps' / 'mantenimiento' / 'templates',
             BASE_DIR / 'apps' / 'administracion' / 'templates',
+            BASE_DIR / 'apps' / 'recursos_humanos' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {

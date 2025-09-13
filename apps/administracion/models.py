@@ -26,13 +26,10 @@ class Dashboard(models.Model):
     # Agregar método para calcular presupuesto
     @property
     def presupuesto_estimado(self):
-        pasajeros = self.num_pasajeros_actual
-        empleados = self.num_empleados_actual
         dias = getattr(self.crucero, "dia_actual_de_viaje", 0) if (hasattr(self.crucero, "dia_actual_de_viaje") and 
                 isinstance(getattr(self.crucero, "dia_actual_de_viaje", 0), int)) else 0
-        distancia = 1000  # valor por defecto
         
-        costo_combustible = distancia * self.precio_combustible * self.crucero.consumo_combustible * dias
+        costo_combustible = self.precio_combustible * self.crucero.consumo_combustible * dias
         costo_operacional = Personal.objects.aggregate(Sum('salario'))['salario__sum'] * dias
         
         return costo_combustible + costo_operacional
