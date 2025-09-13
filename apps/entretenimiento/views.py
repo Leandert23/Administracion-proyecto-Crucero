@@ -1213,3 +1213,150 @@ def api_get_reservas(request, crucero_id):
             'success': False,
             'message': 'Ocurrió un error al obtener las reservas.'
         })
+
+
+@require_POST
+@csrf_exempt
+def cargar_datos_precargados(request, crucero_id):
+    """Vista para cargar datos precargados desde archivos JSON a las tablas de actividades"""
+    try:
+        # Obtener la embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+
+        # Obtener el tipo de actividad desde el POST
+        tipo_actividad = request.POST.get('tipo_actividad')
+
+        if not tipo_actividad:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad no especificado.'
+            })
+
+        # Definir rutas de archivos JSON según el tipo
+        base_path = os.path.join(settings.BASE_DIR, 'apps', 'entretenimiento', 'json')
+
+        if tipo_actividad == 'pago':
+            json_file = os.path.join(base_path, 'actividades_pago_grande.json')
+            modelo = Actividad
+            campos_mapeo = {
+                'titulo': 'titulo',
+                'descripcion': 'descripcion',
+                'dia_crucero': 'dia_crucero',
+                'coste': 'coste',
+                'hora_inicio': 'hora_inicio',
+                'hora_fin': 'hora_fin',
+                'maximoActividad': 'maximoActividad',
+                'img_src': 'img_src'
+            }
+        elif tipo_actividad == 'rutinaria':
+            json_file = os.path.join(base_path, 'actividades_rutinarias_grande.json')
+            modelo = ActividadRutinaria
+            campos_mapeo = {
+                'titulo': 'titulo',
+                'descripcion': 'descripcion',
+                'dia_crucero': 'dia_crucero',
+                'hora_inicio': 'hora_inicio',
+                'hora_fin': 'hora_fin',
+                'maximo_actividad': 'maximo_actividad',
+                'ubicacion': 'ubicacion',
+                'img_src': 'img_src'
+            }
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad inválido. Use "pago" o "rutinaria".'
+            })
+
+        # Verificar que el archivo JSON existe
+        if not os.path.exists(json_file):
+            return JsonResponse({
+                'success': False,
+                'message': f'Archivo JSON no encontrado: {os.path.basename(json_file)}'
+            })
+
+        # Leer el archivo JSON
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # Verificar estructura del JSON
+        if 'actividades' not in data:
+            return JsonResponse({
+                'success': False,
+                'message': 'Estructura del archivo JSON inválida.'
+            })
+
+        actividades = data['actividades']
+        actividades_creadas = 0
+        actividades_actualizadas = 0
+
+        # Procesar cada actividad
+        for actividad_data in actividades:
+            try:
+                # Preparar datos para el modelo
+                datos_modelo = {'embarcacion': embarcacion}
+
+                for json_field, model_field in campos_mapeo.items():
+                    if json_field in actividad_data:
+                        if json_field == 'coste':
+                            # Convertir a Decimal para campos de precio
+                            datos_modelo[model_field] = Decimal(str(actividad_data[json_field]))
+                        else:
+                            datos_modelo[model_field] = actividad_data[json_field]
+
+                # Verificar si ya existe una actividad con el mismo título y día
+                actividad_existente = modelo.objects.filter(
+                    embarcacion=embarcacion,
+                    titulo=datos_modelo['titulo'],
+                    dia_crucero=datos_modelo['dia_crucero']
+                ).first()
+
+                if actividad_existente:
+                    # Actualizar actividad existente
+                    for field, value in datos_modelo.items():
+                        setattr(actividad_existente, field, value)
+                    actividad_existente.save()
+                    actividades_actualizadas += 1
+                else:
+                    # Crear nueva actividad
+                    modelo.objects.create(**datos_modelo)
+                    actividades_creadas += 1
+
+            except Exception as e:
+                print(f"Error al procesar actividad {actividad_data.get('titulo', 'desconocida')}: {str(e)}")
+                continue
+
+        # Preparar mensaje de resultado
+        mensaje = f"Datos cargados exitosamente. "
+        if actividades_creadas > 0:
+            mensaje += f"{actividades_creadas} actividades creadas. "
+        if actividades_actualizadas > 0:
+            mensaje += f"{actividades_actualizadas} actividades actualizadas."
+
+        return JsonResponse({
+            'success': True,
+            'message': mensaje,
+            'creadas': actividades_creadas,
+            'actualizadas': actividades_actualizadas
+        })
+
+    except Embarcacion.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Embarcación no encontrada.'
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error al leer el archivo JSON.'
+        })
+
+    except Exception as e:
+        print(f"Error en cargar_datos_precargados: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al cargar los datos.'
+        })
