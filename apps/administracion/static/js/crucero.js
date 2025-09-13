@@ -4,6 +4,27 @@ var selectedShipId = null;
 let mainChart = null;
 let secondaryChart = null;
 
+// Función para generar colores dinámicamente para las gráficas
+function generateColors(count) {
+  const baseColors = [
+    '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1',
+    '#14B8A6', '#F43F5E', '#8B5A2B', '#059669', '#DC2626'
+  ];
+  
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    if (i < baseColors.length) {
+      colors.push(baseColors[i]);
+    } else {
+      // Generar colores adicionales si necesitamos más
+      const hue = (i * 137.5) % 360; // Usar ángulo dorado para distribución
+      colors.push(`hsl(${hue}, 70%, 50%)`);
+    }
+  }
+  return colors;
+}
+
 // Asegurar disponibilidad de getCsrfToken sin depender de otros archivos
 if (typeof getCsrfToken === 'undefined') {
   function getCsrfToken() {
@@ -42,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
       gasPrice: Number(contextData.gasPrice || 0),
       costs: contextData.costs || { total: 0, categories: {} },
       earnings: contextData.earnings || { total: 0, real: 0, categories: {} },
-      alerts: Array.isArray(contextData.alerts) ? contextData.alerts : []
+      alerts: Array.isArray(contextData.alerts) ? contextData.alerts : [],
+      compras_por_tipo: Array.isArray(contextData.compras_por_tipo) ? contextData.compras_por_tipo : []
     };
     ships = [shipObject];
   } else {
@@ -274,26 +296,51 @@ function renderModal(){
 
 // Renderiza los gráficos de un solo barco
 function renderSingleShipCharts(ship) {
-  // Costos por categoría
+  // Costos por tipo de proveedor (compras)
   const ctx1 = document.getElementById('mainChart').getContext('2d');
   if (mainChart) mainChart.destroy();
+  
+  // Usar datos de compras por tipo si están disponibles, sino usar categorías de costos
+  let chartLabels, chartData, chartTitle;
+  
+  if (ship.compras_por_tipo && ship.compras_por_tipo.length > 0) {
+    chartLabels = ship.compras_por_tipo.map(item => item.tipo_nombre);
+    chartData = ship.compras_por_tipo.map(item => item.total);
+    chartTitle = 'Costos por Tipo de Proveedor';
+  } else {
+    chartLabels = Object.keys(ship.costs?.categories || {});
+    chartData = Object.values(ship.costs?.categories || {}).map(v => v || 0);
+    chartTitle = 'Costos por Categoría';
+  }
+  
+  // Generar colores dinámicamente para mejor visualización
+  const colors = generateColors(chartLabels.length);
+  
   mainChart = new Chart(ctx1, {
     type: 'pie',
     data: {
-      labels: Object.keys(ship.costs?.categories || {}),
+      labels: chartLabels,
       datasets: [{
         label: 'Costos',
-        data: Object.values(ship.costs?.categories || {}).map(v => v || 0),
-        backgroundColor: ['#b3dafe', '#aaf2b2', '#f9c2c2'],
+        data: chartData,
+        backgroundColor: colors,
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'bottom' },
+        legend: { 
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            usePointStyle: true
+          }
+        },
         title: {
           display: true,
-          text: 'Costos por Categoría',
+          text: chartTitle,
           font: { size: 16 }
         }
       }

@@ -101,30 +101,29 @@ class Dashboard(models.Model):
             self._ganancias_totales_value = None
 
     @property
-    def num_empleados_actual(self):
-        return len(Cliente.objects.all())
+    def num_pasajeros_actual(self):
+        """Cuenta el número total de clientes (pasajeros) en el sistema"""
+        return Cliente.objects.count()
     
-    @num_empleados_actual.setter
+    @num_pasajeros_actual.setter
     def num_pasajeros_actual(self, value):
-        """Setter para ganancias_totales que permite asignar valores directamente."""
+        """Setter para num_pasajeros_actual."""
         if value is not None:
-            self.num_pasajeros_actual = Decimal(str(value))
+            self._num_pasajeros_actual_value = int(value)
         else:
-            self.num_pasajeros_actual = None
+            self._num_pasajeros_actual_value = None
 
-    '''''''''
     @property
     def num_empleados_actual(self):
-        return len(Personal.objects.all().filter(pStatus=1))
+        return Cliente.objects.count()
     
     @num_empleados_actual.setter
     def num_empleados_actual(self, value):
         """Setter para ganancias_totales que permite asignar valores directamente."""
         if value is not None:
-            self.num_empleados_actual = Decimal(str(value))
+            self._num_empleados_actual_value = Decimal(str(value))
         else:
-            self.num_empleados_actual = None
-    '''''''''
+            self._num_empleados_actual_value = None
 
     def clean(self):
         if self.costos_totales and self.costos_totales < 0:

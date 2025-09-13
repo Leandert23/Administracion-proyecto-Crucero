@@ -54,7 +54,7 @@
         <strong>Días en viaje:</strong> {{ days }}<br>
         <strong>Distancia del viaje:</strong> {{ distance|default:"0" }}
       </div>
-
+      
       <div class="flex-row">
         <div class="stats-block">
           <strong>Número de pasajeros actual:</strong> {{ passengers }}<br>
@@ -150,22 +150,6 @@
     </div>
   {% endif %}
   </div>
-  
-  <!-- Botones para gestión de habitaciones -->
-  <div style="padding-bottom: 50px;">
-    <div class="dashboard-box">
-      <h2 class="dashboard-title" style="text-align: center;">Gestión de Habitaciones</h2>
-      <p>Administra las habitaciones del crucero y sus solicitudes de mantenimiento</p>
-      <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-        <a href="{% url 'administracion:registrar_habitacion' %}" class="btn-primary">
-          <i class="fas fa-bed"></i> Registrar Habitación
-        </a>
-        <a href="{% url 'administracion:solicitar_mantenimiento_habitacion' %}" class="btn-primary">
-          <i class="fas fa-tools"></i> Solicitar Mantenimiento
-        </a>
-      </div>
-    </div>
-  </div>
 
   <!-- Botón para ver solicitudes de salida -->
   <div style="padding-bottom: 50px;">
@@ -185,14 +169,20 @@
 {% block extra_js %}
   {{ ships|json_script:"ship-data" }}
   {{ purchase_requests|json_script:"purchase-requests-data" }}
+  {{ compras_por_tipo|json_script:"compras-por-tipo-data" }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{% static 'js/sidebar.js' %}"></script>
   <script src="{% static 'js/crucero.js' %}"></script>
   <script>
     (function inyectarContextoYRender(){
       const shipObj = JSON.parse(document.getElementById('ship-data').textContent);
       const prList = JSON.parse(document.getElementById('purchase-requests-data').textContent);
+      const comprasPorTipo = JSON.parse(document.getElementById('compras-por-tipo-data').textContent);
       // Inyectar contexto en formato plano para que el JS pueda normalizar
-      window.djangoContext = Object.assign({}, shipObj, { purchase_requests: prList });
+      window.djangoContext = Object.assign({}, shipObj, { 
+        purchase_requests: prList,
+        compras_por_tipo: comprasPorTipo
+      });
 
       // Normalizar y exponer un arreglo ships con la estructura esperada
       const normalizedShip = {
@@ -215,7 +205,8 @@
         gasPrice: Number(shipObj.gasPrice || 0),
         costs: shipObj.costs || { total: 0, categories: {} },
         earnings: shipObj.earnings || { total: 0, real: 0, categories: {} },
-        alerts: Array.isArray(shipObj.alerts) ? shipObj.alerts : []
+        alerts: Array.isArray(shipObj.alerts) ? shipObj.alerts : [],
+        compras_por_tipo: Array.isArray(comprasPorTipo) ? comprasPorTipo : []
       };
       window.ships = [normalizedShip];
       window.purchaseRequests = Array.isArray(prList) ? prList : [];

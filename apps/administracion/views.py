@@ -5,9 +5,102 @@ from django.contrib import messages
 from django.http import JsonResponse
 from apps.cruceros.models import Crucero
 from .models import Dashboard, Alerta
-from .forms import SolicitudMantenimientoHabitacionForm, HabitacionForm
 from .signals import decision_solicitud, obtener_solicitudes_compra
-from django.db.models import Count
+from apps.compras.models import CompraLote, Proveedores
+from apps.ventas.models import Venta
+from django.db.models import Count, Sum
+
+def obtener_totales_compras_por_tipo(crucero_id):
+    """
+    Obtiene el total de compras agrupadas por tipo de proveedor para un crucero específico.
+    
+    Args:
+        crucero_id (int): ID del crucero
+        
+    Returns:
+        list: Lista de diccionarios con el tipo de proveedor y su total de compras
+    """
+    # Obtener todas las compras del crucero con sus proveedores
+    compras = CompraLote.objects.filter(
+        crucero_id=crucero_id
+    ).select_related('proveedor').values(
+        'proveedor__tipo',
+        'presupuesto_lote'
+    )
+    
+    # Agrupar por tipo de proveedor y sumar los presupuestos
+    totales_por_tipo = {}
+    for compra in compras:
+        tipo = compra['proveedor__tipo']
+        presupuesto = compra['presupuesto_lote'] or 0
+        
+        if tipo in totales_por_tipo:
+            totales_por_tipo[tipo] += presupuesto
+        else:
+            totales_por_tipo[tipo] = presupuesto
+    
+    # Convertir a lista de diccionarios para facilitar el uso en el template
+    lista_totales = []
+    for tipo, total in totales_por_tipo.items():
+        # Obtener el nombre legible del tipo
+        tipo_nombre = dict(Proveedores.TIPO_CHOICES).get(tipo, tipo)
+        lista_totales.append({
+            'tipo': tipo,
+            'tipo_nombre': tipo_nombre,
+            'total': float(total)
+        })
+    
+    # Ordenar por total descendente
+    lista_totales.sort(key=lambda x: x['total'], reverse=True)
+    
+    return lista_totales
+
+def obtener_totales_ventas_por_tipo(crucero_id=None):
+    """
+    Obtiene una lista con el total de ventas por cada tipo de venta
+    Retorna una lista de diccionarios con: tipo_venta, total, cantidad, porcentaje
+    
+    Args:
+        crucero_id (int, optional): ID del crucero. Si no se proporciona, obtiene de todos los cruceros
+        
+    Returns:
+        list: Lista de diccionarios con información detallada por tipo de venta
+    """
+    queryset = Venta.objects.all()
+    if crucero_id:
+        queryset = queryset.filter(crucero_id=crucero_id)
+    
+    # Obtener totales por tipo
+    totales_por_tipo = queryset.values('tipo_venta').annotate(
+        total=Sum('monto_total'),
+        cantidad=Count('id')
+    ).order_by('-total')
+    
+    # Calcular total general para porcentajes
+    total_general = queryset.aggregate(total=Sum('monto_total'))['total'] or 0
+    
+    # Crear lista con información completa
+    lista_totales = []
+    for item in totales_por_tipo:
+        tipo_venta = item['tipo_venta']
+        total = item['total'] or 0
+        cantidad = item['cantidad']
+        
+        # Obtener el nombre legible del tipo de venta
+        tipo_display = dict(Venta.TIPO_VENTA_CHOICES).get(tipo_venta, tipo_venta)
+        
+        # Calcular porcentaje
+        porcentaje = (total / total_general * 100) if total_general > 0 else 0
+        
+        lista_totales.append({
+            'tipo_venta': tipo_venta,
+            'tipo_display': tipo_display,
+            'total': total,
+            'cantidad': cantidad,
+            'porcentaje': round(porcentaje, 2)
+        })
+    
+    return lista_totales
 
 #Obtener la distancia del recorrido de un crucero en particular
 def cruceros_dashboard_data(request, crucero_id):
@@ -15,7 +108,7 @@ def cruceros_dashboard_data(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
 
     try:
-        dashboard = Dashboard.objects.get(pk=crucero_id)
+        dashboard = Dashboard.objects.get(crucero=crucero)
     except Dashboard.DoesNotExist:
         # Si no existe un registro de administración para este crucero, crear uno con valores por defecto
         dashboard = Dashboard.objects.create(
@@ -39,7 +132,11 @@ def cruceros_dashboard_data(request, crucero_id):
     precio_gasolina = dashboard.precio_combustible
     earnings_total = dashboard.ganancias_totales
     purchase_requests = obtener_solicitudes_compra(crucero_id)
-        
+    
+    # Obtener totales de compras por tipo de proveedor
+    compras_por_tipo = obtener_totales_compras_por_tipo(crucero_id)
+    ventas_por_tipo = obtener_totales_ventas_por_tipo(crucero_id)
+
     context = {
         "crucero": crucero,
         "name": crucero.nombre,
@@ -54,7 +151,9 @@ def cruceros_dashboard_data(request, crucero_id):
             },
         },
         "location": crucero.puerto_base,
-        "days": getattr(crucero, "dia_actual_de_viaje", 0) if hasattr(crucero, "dia_actual_de_viaje") else 0,
+        "days": getattr(crucero, "dia_actual_de_viaje", 0) if (hasattr(crucero, "dia_actual_de_viaje") and 
+                                                               isinstance(getattr(crucero, "dia_actual_de_viaje", 0), int)) 
+                                                            else 0,
         "distance": 0,
         "gas_price": precio_gasolina,
         "budget": budget,
@@ -68,7 +167,9 @@ def cruceros_dashboard_data(request, crucero_id):
             "categories": {}
         },
         "alerts": alertas_list,
-        "purchase_requests": purchase_requests
+        "purchase_requests": purchase_requests,
+        "compras_por_tipo": compras_por_tipo,
+        "ventas_por_tipo": ventas_por_tipo,
     }
 
     return render(request, 'dashboard_crucero.html', context)
@@ -112,41 +213,13 @@ def dashboard_empresa(request):
         'total_costos': total_costos,
         'costos_por_crucero': costos_por_crucero,
         'total_ganancias': total_ganancias,
+        'real_ganancias': total_ganancias - total_costos,
         'ganancias_por_crucero': ganancias_por_crucero,
         'ubicaciones_cruceros': ubicaciones,
         'alertas': alertas,
         'conteo_cruceros_por_estado': estados_counts,
     }
     return render(request, 'dashboard_principal.html', contexto)
-
-def solicitar_mantenimiento_habitacion(request):
-    """Vista para crear una TareaMantenimiento desde administración para una habitación."""
-    cruceros = Crucero.objects.all()
-    habitacion_id = request.GET.get('habitacion')
-    form_kwargs = {}
-    if habitacion_id:
-        form_kwargs['habitacion'] = habitacion_id
-    if request.method == 'POST':
-        form = SolicitudMantenimientoHabitacionForm(request.POST, **form_kwargs)
-        if form.is_valid():
-            tarea = form.save(usuario=request.user)
-            messages.success(request, 'Solicitud de mantenimiento creada correctamente.')
-            try:
-                crucero_id = tarea.crucero.id if tarea.crucero else None
-                if crucero_id:
-                    return redirect('dashboard', crucero_id=crucero_id)
-            except Exception:
-                pass
-            return redirect('dashboard', crucero_id=1)
-    else:
-        form = SolicitudMantenimientoHabitacionForm(**form_kwargs)
-
-    contexto = {
-        'form': form,
-        'titulo': 'Solicitar mantenimiento de habitación',
-        'crucero': cruceros
-    }
-    return render(request, 'administracion/solicitar_mantenimiento_habitacion.html', contexto)
 
 # Agregar vista para manejar solicitudes de compra
 @csrf_exempt
@@ -185,61 +258,3 @@ def decision_solicitud_view(request):
             'success': False,
             'message': f'Error interno del servidor: {str(e)}'
         }, status=500)
-
-def registrar_habitacion(request):
-    """Vista para registrar una nueva habitación."""
-    cruceros = Crucero.objects.all()
-    if request.method == 'POST':
-        form = HabitacionForm(request.POST)
-        if form.is_valid():
-            try:
-                # Guardar la habitación en la base de datos
-                habitacion = form.save()
-                
-                # Mensaje de éxito con información detallada
-                messages.success(
-                    request, 
-                    f'¡Habitación registrada exitosamente! '
-                    f'ID: {habitacion.id}, Nombre: "{habitacion.nombre_usuario}", '
-                    f'Ubicación: {habitacion.ubicacion}, Tipo: {habitacion.get_tipo_display()}, '
-                    f'Costo final: ${habitacion.costo_final:,.2f}'
-                )
-                
-                # Redirigir para limpiar el formulario
-                return redirect('registrar_habitacion')
-            except Exception as e:
-                # Manejar otros errores
-                messages.error(
-                    request, 
-                    f'Error al registrar la habitación: {str(e)}. '
-                    'Por favor, verifique los datos e intente nuevamente.'
-                )
-        else:
-            # El formulario no es válido, mostrar errores
-            messages.error(
-                request, 
-                'Por favor, corrija los errores en el formulario antes de continuar.'
-            )
-    else:
-        form = HabitacionForm()
-    
-    contexto = {
-        'form': form,
-        'titulo': 'Registrar Nueva Habitación',
-        'crucero': cruceros
-    }
-    return render(request, 'administracion/registrar_habitacion.html', contexto)
-
-def listar_habitaciones(request):
-    """Vista para listar todas las habitaciones registradas."""
-    cruceros = Crucero.objects.all()
-    from .models import Habitaciones
-    
-    habitaciones = Habitaciones.objects.select_related('cubierta', 'cubierta__crucero').all().order_by('-id')
-    
-    contexto = {
-        'habitaciones': habitaciones,
-        'titulo': 'Lista de Habitaciones Registradas',
-        'crucero': cruceros
-    }
-    return render(request, 'administracion/listar_habitaciones.html', contexto)
