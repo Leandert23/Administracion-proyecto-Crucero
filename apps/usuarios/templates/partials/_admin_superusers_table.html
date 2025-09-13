@@ -1,0 +1,90 @@
+<div>
+    <div class="table-container">
+        <table id="um-users-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Último acceso</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="um-users-tbody">
+                                    {{ u.ultimo_acceso|date:'d/m/Y' }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                    {% for u in page_obj.object_list %}
+                    <tr>
+                        <td>
+                            <div class="user-avatar">
+                                <span class="avatar-initial">{{ u.username|slice:":1"|upper }}</span>
+                                <div class="user-details">
+                                    <span class="username">{{ u.username }}</span>
+                                    <span class="user-email">{{ u.email|default:"Sin email" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.nombre|default:"-" }}</td>
+                        <td>
+                            <span class="role-badge">{{ u.rol_nombre|default:"Usuario" }}</span>
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="status-badge active">Activo</span>
+                            {% else %}
+                                <span class="status-badge inactive">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="last-access">
+                                {% if u.ultimo_acceso %}{{ u.ultimo_acceso|date:'d/m/Y' }}{% else %}-{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <button type="button" class="btn-action btn-edit" data-action="edit" data-user-id="{{ u.id }}" title="Editar"><i class="fas fa-edit"></i></button>
+                                {% if u.is_active %}
+                                    <button type="button" class="btn-action btn-deactivate" data-action="deactivate" data-user-id="{{ u.id }}" title="Desactivar"><i class="fas fa-user-slash"></i></button>
+                                {% else %}
+                                    <button type="button" class="btn-action btn-activate" data-action="activate" data-user-id="{{ u.id }}" title="Activar"><i class="fas fa-user-check"></i></button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5" class="empty">No hay superusuarios sin crucero asignado.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="um-pagination" aria-label="Paginación" style="margin-top:12px; display:flex; gap:6px; align-items:center;">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">← Anterior</a>
+        {% else %}
+            <button class="btn btn-secondary" disabled>← Anterior</button>
+        {% endif %}
+
+        <div style="display:flex; gap:6px; align-items:center;">
+        {% for p in page_obj.paginator.page_range %}
+            {% if p == page_obj.number %}
+                <button class="btn btn-primary" disabled>{{ p }}</button>
+            {% else %}
+                <a href="?page={{ p }}" class="btn btn-secondary">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        </div>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Siguiente →</a>
+        {% else %}
+            <button class="btn btn-secondary" disabled>Siguiente →</button>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>

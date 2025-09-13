@@ -41,6 +41,7 @@
                         <input type="text" id="edit_username" name="username" class="form-control" required maxlength="150" />
                         <small class="form-text">Cambiar el nombre de usuario.</small>
                     </div>
+                    {% if not hide_role_field %}
                     <div class="form-group">
                         <label for="edit_rol">Rol</label>
                         <select id="edit_rol" name="rol" class="form-control">
@@ -48,6 +49,7 @@
                         </select>
                         <small class="form-text">Asignar rol al usuario.</small>
                     </div>
+                    {% endif %}
                     <hr />
                     <div class="form-group">
                         <label for="edit_password">Nueva contraseña (opcional)</label>
@@ -95,7 +97,7 @@
     }
 
     // Helper: populate and open modal with user data
-    function openEditUser_prefill(user){
+    window.openEditUser_prefill = function(user){
         // user is an object with fields: id, username, rol_nombre, rol_id(optional)
         document.getElementById('edit_user_id').value = user.id || '';
         document.getElementById('edit_username').value = user.username || '';

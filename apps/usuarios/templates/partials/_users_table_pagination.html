@@ -26,14 +26,14 @@
                             <span class="badge badge-muted">Inactivo</span>
                         {% endif %}
                     </td>
-                    <td>{{ u.ultimo_acceso|default:'-' }}</td>
+                    <td>{% if u.ultimo_acceso %}{{ u.ultimo_acceso|date:'d/m/Y' }}{% else %}-{% endif %}</td>
                     <td>
                         <div class="row-actions">
                             <button class="btn btn-secondary btn-sm" onclick="openEditUser({{ u.id }})">Editar</button>
                             {% if u.is_active %}
-                                <button class="btn btn-danger btn-action btn-sm" onclick="deactivateUser({{ u.id }})">Desactivar</button>
+                                <button type="button" class="btn btn-danger btn-action btn-sm" data-action="deactivate" data-user-id="{{ u.id }}">Desactivar</button>
                             {% else %}
-                                <button class="btn btn-success btn-action btn-sm" onclick="activateUser({{ u.id }})">Activar</button>
+                                <button type="button" class="btn btn-success btn-action btn-sm" data-action="activate" data-user-id="{{ u.id }}">Activar</button>
                             {% endif %}
                         </div>
                     </td>

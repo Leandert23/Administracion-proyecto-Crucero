@@ -34,6 +34,20 @@ class ModuleAccessMiddleware:
         }
     
     def __call__(self, request):
+        # Actualizar fecha_ultimo_acceso si el usuario está autenticado y es un Empleado
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated and hasattr(user, 'actualizar_ultimo_acceso'):
+            # Evitar actualizar en peticiones AJAX, static, media y public_paths
+            if not (
+                request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
+                any(request.path.startswith(path) for path in self.public_paths) or
+                request.path.startswith('/static/') or
+                request.path.startswith('/media/')
+            ):
+                try:
+                    user.actualizar_ultimo_acceso()
+                except Exception as e:
+                    pass  # No romper el flujo si hay error
         response = self.get_response(request)
         return response
     
@@ -51,6 +65,27 @@ class ModuleAccessMiddleware:
             except Exception:
                 return HttpResponseRedirect(f"{settings.LOGIN_URL}?next={request.path}")
             
+        # Si el usuario está autenticado y es el usuario administrador 'admin', redireccionar
+        # a la vista de administración de superusuarios. Evitar bucles: permitir el acceso
+        # a la propia ruta de administración y a peticiones AJAX, static, media y public_paths.
+        try:
+            is_admin_user = getattr(request.user, 'username', None) == 'admin'
+        except Exception:
+            is_admin_user = False
+
+        admin_prefix = '/usuarios/admin/superusers'
+        # Si el usuario literal 'admin' está autenticado, restringir sus accesos
+        if request.user.is_authenticated and is_admin_user:
+            # Permitir AJAX y recursos públicos
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return None
+            if any(request.path.startswith(p) for p in self.public_paths) or request.path.startswith('/static/') or request.path.startswith('/media/'):
+                return None
+            # Permitir acceso al panel de superusuarios y al admin de Django
+            if request.path.startswith(admin_prefix) or request.path.startswith('/admin/'):
+                return None
+            # En cualquier otro caso, redirigir al panel de superusuarios
+            return HttpResponseRedirect(reverse('admin_superusers'))
         if request.user.is_superuser:
             return None
             

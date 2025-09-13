@@ -709,13 +709,6 @@
     </div>
     <nav class="sidebar-nav">
         <ul class="nav-list">
-            <!-- Botón público de Cerrar sesión (visible para cualquier usuario) -->
-            <li class="nav-item home-item logout-item">
-                <a href="{% url 'logout' %}" class="nav-link home-link">
-                    <img src="{% static 'svg/casita.svg' %}" alt="Icono cerrar sesión" class="nav-icon">
-                    <span class="nav-text">Cerrar sesión</span>
-                </a>
-            </li>
 
             {% if request.user.is_superuser or request.user.is_administrativo %}
             <li class="nav-item home-item">

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Permission
 from django.db import models
+from ..cruceros.Services.fecha_general import obtener_fecha_actual
 
 class ModuloSistema(models.Model):
     # Sólo almacenamos el código; las etiquetas quedan en las opciones
@@ -53,22 +54,33 @@ class Rol(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Empleado(AbstractUser):
     # Campos básicos
     telefono = models.CharField(max_length=15, blank=True)
     fecha_contratacion = models.DateField(null=True, blank=True)
     activo = models.BooleanField(default=True)
     fecha_ultimo_acceso = models.DateTimeField(null=True, blank=True)
-    
+
     # Relación con rol
     rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True)
     # Posible enlace a un crucero (puede ser null para empleados administrativos que gestionan todos)
     crucero = models.ForeignKey('cruceros.Crucero', on_delete=models.SET_NULL, null=True, blank=True, related_name='empleados')
-    
+
     def save(self, *args, **kwargs):
         self.is_staff = True
+        # Si se va a actualizar el último acceso, usar obtener_fecha_actual
+        if hasattr(self, '_set_ultimo_acceso') and self._set_ultimo_acceso:
+            from cruceros.Services.fecha_general import obtener_fecha_actual
+            self.fecha_ultimo_acceso = obtener_fecha_actual()
+            del self._set_ultimo_acceso
         super().save(*args, **kwargs)
-    
+
+    def actualizar_ultimo_acceso(self):
+        """Actualiza la fecha_ultimo_acceso usando obtener_fecha_actual y guarda."""
+        self.fecha_ultimo_acceso = obtener_fecha_actual()
+        self.save(update_fields=['fecha_ultimo_acceso'])
+
     def tiene_acceso_modulo(self, codigo_modulo):
         if self.is_superuser:
             return True

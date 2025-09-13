@@ -1,0 +1,163 @@
+{% load static %}
+{# Modal simple para crear usuario (sin rol ni crucero) #}
+{% url 'create_user_simple' as default_create_url %}
+{% with action_url=create_user_url|default:default_create_url modal_id=modal_id|default:'modalCrearUsuarioSimple' %}
+<style>
+    /* Modal simple - estilos embebidos */
+    .modal-simple { display:none; position:fixed; inset:0; z-index:2200; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); }
+    .modal-simple.active { display:flex; }
+    .modal-simple .dialog { width:100%; max-width:640px; margin:24px; }
+    .modal-simple .panel { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 18px 40px rgba(2,6,23,0.2); }
+    .modal-simple .panel header { padding:14px 18px; border-bottom:1px solid #eef2ff; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; }
+    .modal-simple .panel header h4 { margin:0; font-size:1.05rem; color:#0f172a; }
+    .modal-simple .panel .close { background:transparent; border:0; font-size:1.2rem; cursor:pointer; color:#4b5563; padding:6px; border-radius:6px; }
+    .modal-simple .panel .close:hover { background:#eef2ff; }
+    .modal-simple .panel .body { padding:16px 18px; }
+    .modal-simple .form-row { display:flex; flex-direction:column; gap:12px; }
+    .modal-simple .form-row .form-group { flex: none; width: 100%; }
+    /* add right margin to inputs/form-groups for spacing when they are side-by-side */
+    .modal-simple .form-row .form-group { margin-right: 12px; }
+    .modal-simple .form-row .form-group:last-child { margin-right: 0; }
+    .modal-simple .form-group { margin-bottom:12px; }
+    .modal-simple label { display:block; margin-bottom:6px; font-size:0.9rem; color:#0f172a; }
+    .modal-simple input[type="text"], .modal-simple input[type="email"], .modal-simple input[type="password"] { width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem; margin-right:8px; box-sizing:border-box; }
+    /* password visibility toggle */
+    .pw-wrapper{ position:relative; }
+    .pw-toggle{ position:absolute; right:8px; top:50%; transform:translateY(-50%); background:transparent; border:0; cursor:pointer; padding:6px; color:#475569; border-radius:6px; }
+    .pw-toggle:focus{ outline:2px solid rgba(37,99,235,0.2); }
+    .modal-simple .footer { padding:12px 18px; border-top:1px solid #eef2ff; display:flex; gap:10px; justify-content:flex-end; background:#fbfdff; }
+    .btn-simple { appearance:none; border:0; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; }
+    .btn-cancel { background:#eef2ff; color:#1e40af; }
+    .btn-primary-simple { background:#2563eb; color:#fff; }
+    .feedback { display:none; margin-bottom:10px; color:#b91c1c; font-size:0.9rem; }
+    /* Inputs are stacked vertically on all sizes */
+    @media (max-width:560px) { .modal-simple .form-row { flex-direction:column; } }
+</style>
+
+<div id="{{ modal_id }}" class="modal-simple" role="dialog" aria-hidden="true">
+    <div class="dialog">
+        <div class="panel" role="document">
+            <header>
+                <h4>Crear usuario</h4>
+                <button type="button" class="close" aria-label="Cerrar" onclick="closeModalCreateUsuarioSimple('{{ modal_id }}')">&times;</button>
+            </header>
+            <div class="body">
+                <div id="create-user-simple-feedback" class="feedback"></div>
+                <form id="form-create-user-simple" action="{{ action_url }}" method="post">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1">
+                            <label for="cs_first_name">Nombre</label>
+                            <input id="cs_first_name" name="first_name" type="text" required maxlength="100" />
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label for="cs_last_name">Apellido</label>
+                            <input id="cs_last_name" name="last_name" type="text" required maxlength="100" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cs_username">Usuario</label>
+                        <input id="cs_username" name="username" type="text" required maxlength="150" />
+                    </div>
+                    <div class="form-group">
+                        <label for="cs_email">Email</label>
+                        <input id="cs_email" name="email" type="email" required maxlength="150" />
+                    </div>
+                    <div class="form-group">
+                        <label for="cs_password">Contraseña</label>
+                        <div class="pw-wrapper">
+                            <input id="cs_password" name="password" type="password" required minlength="6" />
+                            <button type="button" class="pw-toggle" aria-label="Mostrar contraseña" title="Mostrar contraseña" tabindex="0">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="footer">
+                <button type="button" class="btn-simple btn-cancel" onclick="closeModalCreateUsuarioSimple('{{ modal_id }}')">Cancelar</button>
+                <button type="button" class="btn-simple btn-primary-simple" id="cs-submit">Crear usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* JavaScript local para el modal simple */
+    function openModalCreateUsuarioSimple(modalId){
+        var id = modalId || 'modalCrearUsuarioSimple';
+        var el = document.getElementById(id);
+        if(!el) return console.warn('Modal simple no encontrado', id);
+        el.classList.add('active');
+        el.setAttribute('aria-hidden','false');
+        // focus first input
+        try{ el.querySelector('input').focus(); }catch(e){}
+    }
+    function closeModalCreateUsuarioSimple(modalId){
+        var id = modalId || 'modalCrearUsuarioSimple';
+        var el = document.getElementById(id);
+        if(!el) return;
+        el.classList.remove('active');
+        el.setAttribute('aria-hidden','true');
+    }
+    
+    document.addEventListener('click', function(e){
+        var modal = document.getElementById('modalCrearUsuarioSimple');
+        if(!modal) return;
+        if(modal.classList.contains('active') && e.target === modal) closeModalCreateUsuarioSimple('modalCrearUsuarioSimple');
+    });
+    
+    function getCookie(name){
+        var v = document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function(){
+        var btn = document.getElementById('cs-submit');
+        var form = document.getElementById('form-create-user-simple');
+        var feedback = document.getElementById('create-user-simple-feedback');
+        if(!btn || !form) return;
+        btn.addEventListener('click', function(){
+            feedback.style.display='none'; feedback.textContent='';
+            var fd = new FormData(form);
+            // ensure no crucero or rol are sent (omit those fields)
+            var csrftoken = getCookie('csrftoken');
+            fetch(form.action, {
+                method: 'POST',
+                body: fd,
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            }).then(function(r){ return r.json(); })
+            .then(function(data){
+                if(data && data.ok){
+                    // dispatch event so other scripts can refresh lists
+                    try{ document.dispatchEvent(new CustomEvent('userCreated', { detail: data })); }catch(e){}
+                    closeModalCreateUsuarioSimple('modalCrearUsuarioSimple');
+                    form.reset();
+                } else {
+                    feedback.style.display='block';
+                    feedback.textContent = (data && data.error) ? data.error : 'Error creando usuario';
+                }
+            }).catch(function(err){
+                feedback.style.display='block'; feedback.textContent = 'Error de red o servidor';
+                console.error(err);
+            });
+        });
+        // password toggle
+        var pwToggle = document.querySelector('#{{ modal_id }} .pw-toggle');
+        var pwInput = document.getElementById('cs_password');
+        if(pwToggle && pwInput){
+            pwToggle.addEventListener('click', function(){
+                var isPw = pwInput.getAttribute('type') === 'password';
+                pwInput.setAttribute('type', isPw ? 'text' : 'password');
+                this.innerHTML = isPw ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+                this.setAttribute('aria-label', isPw ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            });
+        }
+    });
+</script>
+
+{% endwith %}

@@ -54,6 +54,44 @@ def create_user(request):
         return JsonResponse({'ok': False, 'error': 'Ya existe un usuario con ese nombre de usuario o email'}, status=400)
     except Exception as exc:
         return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
+@login_required
+def create_user_simple(request):
+    """Crea un usuario básico (sin rol ni crucero) y lo marca como staff.
+    Responde JSON y está pensado para usarse desde un modal.
+    """
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+
+    first_name = (request.POST.get('first_name') or '').strip()
+    last_name = (request.POST.get('last_name') or '').strip()
+    username = (request.POST.get('username') or '').strip()
+    email = (request.POST.get('email') or '').strip()
+    password = (request.POST.get('password') or '').strip()
+
+    if not (first_name and last_name and username and email and password):
+        return JsonResponse({'ok': False, 'error': 'Todos los campos son obligatorios'}, status=400)
+
+    try:
+        empleado = Empleado.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            activo=True
+        )
+        # mark as staff (but not superuser)
+        empleado.is_staff = True
+        empleado.is_superuser = True
+        empleado.save()
+        data = {'ok': True, 'id': empleado.id, 'username': empleado.username}
+        return JsonResponse(data, status=201)
+    except IntegrityError:
+        return JsonResponse({'ok': False, 'error': 'Ya existe un usuario con ese nombre o email'}, status=400)
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
 # usuarios/views.py
 
 def custom_login(request):
@@ -77,14 +115,17 @@ def custom_login(request):
                 if user.is_active:
                     login(request, user)
                     
-                    # Registrar último acceso
-                    user.fecha_ultimo_acceso = timezone.now()
-                    user.save(update_fields=['fecha_ultimo_acceso'])
+                    # Registrar último acceso usando obtener_fecha_actual
+                    if hasattr(user, 'actualizar_ultimo_acceso'):
+                        user.actualizar_ultimo_acceso()
 
                     # Redireccionar según reglas:
+                    # - usuario con username 'admin' -> vista de administración global
                     # - superusuario o administrativo -> raiz '/' (lista de cruceros)
                     # - si tiene crucero asignado -> '/<crucero_id>/'
                     # - en otro caso, respetar next o 'dashboard'
+                    if user.username == 'admin':
+                        return redirect('admin_superusers')
                     if user.is_superuser or getattr(user, 'is_administrativo', False):
                         return redirect('/')
                     if getattr(user, 'crucero_id', None):
@@ -185,6 +226,82 @@ def modules_list(request):
     return JsonResponse({'ok': True, 'modulos': data})
 
 
+@login_required
+def admin_superusers(request):
+    """Página que lista superusuarios sin crucero asignado. Solo accesible por el usuario con username 'admin'."""
+    if request.user.username != 'admin':
+        return HttpResponseForbidden('No autorizado')
+
+    page_num = request.GET.get('page', '1')
+    q = (request.GET.get('q') or '').strip()
+
+    qs = Empleado.objects.filter(is_superuser=True, crucero__isnull=True).exclude(username='admin').order_by('username')
+    if q:
+        qs = qs.filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(email__icontains=q))
+
+    data_list = []
+    for u in qs:
+        # pasar solo la fecha (date) o None
+        ultimo_dt = getattr(u, 'fecha_ultimo_acceso', None)
+        if ultimo_dt and hasattr(ultimo_dt, 'date'):
+            ultimo_val = ultimo_dt.date()
+        else:
+            ultimo_val = None
+        data_list.append({
+            'id': u.id,
+            'nombre': f"{u.first_name} {u.last_name}",
+            'username': u.username,
+            'email': u.email,
+            'is_active': u.is_active,
+            'ultimo_acceso': ultimo_val,
+        })
+
+    per_page = 10
+    paginator = Paginator(data_list, per_page)
+    try:
+        page_obj = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.page(1)
+
+    # If AJAX requested (from front-end fetch), render the partial similar to users table
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        html = render_to_string('partials/_admin_superusers_table.html', {'page_obj': page_obj}, request=request)
+        return JsonResponse({'ok': True, 'html': html})
+
+    return render(request, 'admin_superusers.html', {'page_obj': page_obj})
+
+
+@login_required
+def create_superuser_admin(request):
+    """Crea un superusuario sin crucero asignado. Solo 'admin' puede ejecutar."""
+    if request.user.username != 'admin':
+        return HttpResponseForbidden('No autorizado')
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+
+    username = (request.POST.get('username') or '').strip()
+    email = (request.POST.get('email') or '').strip()
+    first_name = (request.POST.get('first_name') or '').strip()
+    last_name = (request.POST.get('last_name') or '').strip()
+    password = (request.POST.get('password') or '').strip()
+
+    if not (username and email and first_name and last_name and password):
+        return JsonResponse({'ok': False, 'error': 'Todos los campos son obligatorios'}, status=400)
+
+    try:
+        user = Empleado.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name, activo=True)
+        # marcar como superuser/staff
+        user.is_superuser = True
+        user.is_staff = True
+        user.crucero = None
+        user.save()
+        return JsonResponse({'ok': True, 'id': user.id, 'username': user.username}, status=201)
+    except IntegrityError:
+        return JsonResponse({'ok': False, 'error': 'Nombre de usuario o email ya en uso'}, status=400)
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+
 def role_detail(request, role_id):
     """Devuelve JSON con detalles de un rol (incluye modulos asignados)"""
     if request.method != 'GET':
@@ -214,12 +331,7 @@ def users_by_crucero(request):
     for u in usuarios_qs:
         rol_obj = getattr(u, 'rol', None)
         rol_nombre = rol_obj.nombre if rol_obj else ''
-        ultimo = None
-        try:
-            if getattr(u, 'fecha_ultimo_acceso', None):
-                ultimo = u.fecha_ultimo_acceso.strftime('%Y-%m-%d %H:%M')
-        except Exception:
-            ultimo = str(getattr(u, 'fecha_ultimo_acceso', ''))
+        ultimo = getattr(u, 'fecha_ultimo_acceso', None)
         data_list.append({
             'id': u.id,
             'nombre': f"{u.first_name} {u.last_name}",
@@ -280,12 +392,7 @@ def search_users(request):
     for u in usuarios_qs:
         rol_obj = getattr(u, 'rol', None)
         rol_nombre = rol_obj.nombre if rol_obj else ''
-        ultimo = None
-        try:
-            if getattr(u, 'fecha_ultimo_acceso', None):
-                ultimo = u.fecha_ultimo_acceso.strftime('%Y-%m-%d %H:%M')
-        except Exception:
-            ultimo = str(getattr(u, 'fecha_ultimo_acceso', ''))
+        ultimo = getattr(u, 'fecha_ultimo_acceso', None)
         data_list.append({
             'id': u.id,
             'nombre': f"{u.first_name} {u.last_name}",
