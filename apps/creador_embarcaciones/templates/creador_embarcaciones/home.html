@@ -1,279 +1,547 @@
 {% extends 'creador_embarcaciones/base_embarcaciones.html' %}
 
 {% block title %}Sistema de Embarcaciones y Rutas{% endblock %}
+{% block page_title %}Dashboard Principal{% endblock %}
+{% block page_subtitle %}Gestión de embarcaciones y rutas{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Mensaje de flujo de trabajo -->
-    {% if total_rutas == 0 %}
-        <div class="col-12 mb-4">
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <h4 class="alert-heading">
-                    <i class="fas fa-exclamation-triangle"></i> ¡Bienvenido al Sistema!
-                </h4>
-                <p>Para comenzar, necesitas crear al menos una ruta antes de poder registrar embarcaciones.</p>
-                <hr>
-                <p class="mb-0">
-                    <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-warning">
-                        <i class="fas fa-plus"></i> Crear Primera Ruta
-                    </a>
-                </p>
-            </div>
-        </div>
-    {% endif %}
+<style>
+    /* Estilos específicos para el dashboard */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
 
-    <!-- Estadísticas generales -->
-    <div class="col-12 mb-4">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card text-center {% if total_rutas == 0 %}opacity-50{% endif %}">
-                    <div class="card-body">
-                        <i class="fas fa-ship fa-2x {% if total_rutas == 0 %}text-secondary{% else %}text-primary{% endif %} mb-2"></i>
-                        <h4 class="card-title">{{ total_embarcaciones }}</h4>
-                        <p class="card-text text-muted">
-                            {% if total_rutas == 0 %}
-                                Embarcaciones (Requiere rutas)
-                            {% else %}
-                                Total Embarcaciones
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                        <h4 class="card-title">{{ embarcaciones_operativas }}</h4>
-                        <p class="card-text text-muted">Embarcaciones Operativas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-route fa-2x text-info mb-2"></i>
-                        <h4 class="card-title">{{ total_rutas }}</h4>
-                        <p class="card-text text-muted">Total Rutas</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-plus fa-2x text-warning mb-2"></i>
-                        <h4 class="card-title">{{ total_embarcaciones|add:total_rutas }}</h4>
-                        <p class="card-text text-muted">Total Registros</p>
-                    </div>
-                </div>
-            </div>
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+        color: white;
+    }
+
+    .stat-icon.primary { background: #3b82f6; }
+    .stat-icon.success { background: #10b981; }
+    .stat-icon.info { background: #06b6d4; }
+    .stat-icon.warning { background: #f59e0b; }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .content-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .content-card-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .content-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .content-card-body {
+        padding: 20px;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom th {
+        background: #f8fafc;
+        color: #1e293b;
+        font-weight: 600;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+    }
+
+    .table-custom td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .btn-custom {
+        background: #3b82f6;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-custom:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    .btn-custom.secondary {
+        background: #64748b;
+    }
+
+    .btn-custom.secondary:hover {
+        background: #475569;
+    }
+
+    .btn-custom:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        margin-bottom: 16px;
+    }
+
+    .actions-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .action-card {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .action-card:hover {
+        background: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .action-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .action-card.disabled:hover {
+        transform: none;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .action-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .action-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+    }
+
+    .action-description {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+    }
+
+    .warning-alert {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        color: #92400e;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .warning-alert h4 {
+        color: #92400e;
+        margin: 0 0 8px 0;
+        font-size: 16px;
+    }
+
+    .warning-alert p {
+        margin: 0 0 12px 0;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<!-- Mensaje de flujo de trabajo -->
+{% if total_rutas == 0 %}
+    <div class="warning-alert">
+        <h4>
+            <i class="fas fa-exclamation-triangle"></i> ¡Bienvenido al Sistema!
+        </h4>
+        <p>Para comenzar, necesitas crear al menos una ruta antes de poder registrar embarcaciones.</p>
+        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+            <i class="fas fa-plus"></i> Crear Primera Ruta
+        </a>
+    </div>
+{% endif %}
+
+<!-- Estadísticas generales -->
+<div class="stats-grid">
+    <div class="stat-card {% if total_rutas == 0 %}disabled{% endif %}">
+        <div class="stat-icon {% if total_rutas == 0 %}warning{% else %}primary{% endif %}">
+            <i class="fas fa-ship"></i>
+        </div>
+        <div class="stat-number">{{ total_embarcaciones }}</div>
+        <div class="stat-label">
+            {% if total_rutas == 0 %}
+                Embarcaciones (Requiere rutas)
+            {% else %}
+                Total Embarcaciones
+            {% endif %}
         </div>
     </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-number">{{ embarcaciones_operativas }}</div>
+        <div class="stat-label">Embarcaciones Operativas</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon info">
+            <i class="fas fa-route"></i>
+        </div>
+        <div class="stat-number">{{ total_rutas }}</div>
+        <div class="stat-label">Total Rutas</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="stat-number">{{ total_embarcaciones|add:total_rutas }}</div>
+        <div class="stat-label">Total Registros</div>
+    </div>
+</div>
 
+<!-- Grid de contenido -->
+<div class="content-grid">
     <!-- Tabla de Embarcaciones -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-ship"></i> Embarcaciones Recientes</h5>
-                {% if total_rutas == 0 %}
-                    <button class="btn btn-sm btn-secondary" disabled title="Primero debe crear una ruta">
-                        <i class="fas fa-plus"></i> Nueva (Requiere rutas)
-                    </button>
-                {% else %}
-                    <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-plus"></i> Nueva
+    <div class="content-card">
+        <div class="content-card-header">
+            <h3 class="content-card-title">
+                <i class="fas fa-ship"></i> Embarcaciones Recientes
+            </h3>
+            {% if total_rutas == 0 %}
+                <button class="btn-custom secondary" disabled title="Primero debe crear una ruta">
+                    <i class="fas fa-plus"></i> Nueva (Requiere rutas)
+                </button>
+            {% else %}
+                <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn-custom">
+                    <i class="fas fa-plus"></i> Nueva
+                </a>
+            {% endif %}
+        </div>
+        <div class="content-card-body">
+            {% if embarcaciones %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Identificador</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Puerto Base</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for embarcacion in embarcaciones %}
+                            <tr>
+                                <td>
+                                    <code>{{ embarcacion.identificador }}</code>
+                                </td>
+                                <td>
+                                    <strong>{{ embarcacion.nombre }}</strong>
+                                </td>
+                                <td>{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</td>
+                                <td>{{ embarcacion.puerto_base }}</td>
+                                <td>
+                                    <span class="status-operativo {{ embarcacion.estado_operativo }}">
+                                        {{ embarcacion.get_estado_operativo_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-center mt-3">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn-custom secondary">
+                        <i class="fas fa-list"></i> Ver todas las embarcaciones
                     </a>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if embarcaciones %}
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Identificador</th>
-                                    <th>Nombre</th>
-                                    <th>Tipo</th>
-                                    <th>Puerto Base</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for embarcacion in embarcaciones %}
-                                    <tr>
-                                        <td>
-                                            <code class="small">{{ embarcacion.identificador }}</code>
-                                        </td>
-                                        <td>
-                                            <strong class="small">{{ embarcacion.nombre }}</strong>
-                                        </td>
-                                        <td class="small">{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</td>
-                                        <td class="small">{{ embarcacion.puerto_base }}</td>
-                                        <td>
-                                            <span class="status-operativo {{ embarcacion.estado_operativo }} small">
-                                                {{ embarcacion.get_estado_operativo_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-list"></i> Ver todas las embarcaciones
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-ship"></i>
+                    {% if total_rutas == 0 %}
+                        <h4>No hay embarcaciones registradas</h4>
+                        <p>Primero debe crear al menos una ruta</p>
+                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                            <i class="fas fa-route"></i> Crear Ruta Primero
                         </a>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-ship fa-2x text-muted mb-2"></i>
-                        {% if total_rutas == 0 %}
-                            <p class="text-muted small">No hay embarcaciones registradas</p>
-                            <p class="text-warning small">Primero debe crear al menos una ruta</p>
-                            <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-warning btn-sm">
-                                <i class="fas fa-route"></i> Crear Ruta Primero
-                            </a>
-                        {% else %}
-                            <p class="text-muted small">No hay embarcaciones registradas</p>
-                            <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-plus"></i> Registrar primera embarcación
-                            </a>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </div>
+                    {% else %}
+                        <h4>No hay embarcaciones registradas</h4>
+                        <p>Comienza registrando tu primera embarcación</p>
+                        <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn-custom">
+                            <i class="fas fa-plus"></i> Registrar primera embarcación
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     </div>
 
     <!-- Tabla de Rutas -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-route"></i> Rutas Recientes</h5>
-                <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-plus"></i> Nueva
-                </a>
-            </div>
-            <div class="card-body">
-                {% if rutas %}
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Título</th>
-                                    <th>Número de Días</th>
-                                    <th>Días Configurados</th>
-                                    <th>Descripción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for ruta in rutas %}
-                                    <tr>
-                                        <td>
-                                            <strong class="small">{{ ruta.titulo }}</strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary small">{{ ruta.numero_dias }} días</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-info small">{{ ruta.dias.count }}/{{ ruta.numero_dias }} días</span>
-                                        </td>
-                                        <td class="small">
-                                            {% if ruta.descripcion %}
-                                                {{ ruta.descripcion|truncatechars:30 }}
-                                            {% else %}
-                                                <span class="text-muted">Sin descripción</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-list"></i> Ver todas las rutas
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-route fa-2x text-muted mb-2"></i>
-                        <p class="text-muted small">No hay rutas registradas</p>
-                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Registrar primera ruta
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
+    <div class="content-card">
+        <div class="content-card-header">
+            <h3 class="content-card-title">
+                <i class="fas fa-route"></i> Rutas Recientes
+            </h3>
+            <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                <i class="fas fa-plus"></i> Nueva
+            </a>
+        </div>
+        <div class="content-card-body">
+            {% if rutas %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Número de Días</th>
+                            <th>Días Configurados</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ruta in rutas %}
+                            <tr>
+                                <td>
+                                    <strong>{{ ruta.titulo }}</strong>
+                                </td>
+                                <td>
+                                    <span class="status-operativo operativo">{{ ruta.numero_dias }} días</span>
+                                </td>
+                                <td>
+                                    <span class="status-operativo info">{{ ruta.dias.count }}/{{ ruta.numero_dias }} días</span>
+                                </td>
+                                <td>
+                                    {% if ruta.descripcion %}
+                                        {{ ruta.descripcion|truncatechars:30 }}
+                                    {% else %}
+                                        <span style="color: #94a3b8;">Sin descripción</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-center mt-3">
+                    <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn-custom secondary">
+                        <i class="fas fa-list"></i> Ver todas las rutas
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-route"></i>
+                    <h4>No hay rutas registradas</h4>
+                    <p>Comienza creando tu primera ruta</p>
+                    <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                        <i class="fas fa-plus"></i> Registrar primera ruta
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <!-- Creadores de Estándares -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-primary">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-cogs"></i> Creadores de Estándares</h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Información:</strong> Crea tipos estándar de habitaciones y locales para reutilizarlos fácilmente al configurar las cubiertas de tus embarcaciones.
-                </div>
-                <div class="row text-center">
-                    <div class="col-md-6">
-                        <button type="button" class="btn btn-success w-100 mb-2" onclick="abrirModalTipoHabitacion()">
-                            <i class="fas fa-bed"></i><br>
-                            <strong>Crear Tipo de Habitación</strong><br>
-                            <small>Define estándares para habitaciones</small>
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        <button type="button" class="btn btn-info w-100 mb-2" onclick="abrirModalTipoLocal()">
-                            <i class="fas fa-store"></i><br>
-                            <strong>Crear Tipo de Local</strong><br>
-                            <small>Define estándares para locales</small>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3 text-center">
-                    <small class="text-muted">
-                        <i class="fas fa-lightbulb"></i>
-                        Los tipos creados estarán disponibles para seleccionar al crear habitaciones y locales en las cubiertas.
-                    </small>
-                </div>
-            </div>
+<div class="actions-section">
+    <h3 style="color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-cogs"></i> Creadores de Estándares
+    </h3>
+    <div style="background: #dbeafe; border: 1px solid #3b82f6; color: #1e40af; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+        <i class="fas fa-info-circle"></i>
+        <strong>Información:</strong> Crea tipos estándar de habitaciones y locales para reutilizarlos fácilmente al configurar las cubiertas de tus embarcaciones.
+    </div>
+    <div class="actions-grid">
+        <div class="action-card" onclick="abrirModalTipoHabitacion()">
+            <i class="fas fa-bed action-icon" style="color: #10b981;"></i>
+            <h4 class="action-title">Crear Tipo de Habitación</h4>
+            <p class="action-description">Define estándares para habitaciones</p>
         </div>
+        <div class="action-card" onclick="abrirModalTipoLocal()">
+            <i class="fas fa-store action-icon" style="color: #06b6d4;"></i>
+            <h4 class="action-title">Crear Tipo de Local</h4>
+            <p class="action-description">Define estándares para locales</p>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 16px;">
+        <small style="color: #64748b;">
+            <i class="fas fa-lightbulb"></i>
+            Los tipos creados estarán disponibles para seleccionar al crear habitaciones y locales en las cubiertas.
+        </small>
     </div>
 </div>
 
 <!-- Modales de Confirmación de Eliminación -->
 <div class="modal fade" id="modalConfirmarEliminarEmbarcaciones" tabindex="-1" aria-labelledby="modalEliminarEmbarcacionesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalEliminarEmbarcacionesLabel">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #fee2e2; border-bottom: 1px solid #fecaca; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="modalEliminarEmbarcacionesLabel" style="color: #991b1b; font-weight: 600;">
                     <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 24px;">
                 <div class="text-center mb-3">
-                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                    <h5>¿Eliminar TODAS las embarcaciones?</h5>
+                    <i class="fas fa-trash-alt fa-3x" style="color: #dc2626; margin-bottom: 16px;"></i>
+                    <h5 style="color: #1e293b;">¿Eliminar TODAS las embarcaciones?</h5>
                 </div>
-                <p class="text-muted">
+                <p style="color: #64748b;">
                     Esta acción eliminará <strong>{{ total_embarcaciones }} embarcaciones</strong> del sistema.
                     <br><br>
-                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                    <span style="color: #dc2626;"><strong>Esta operación no se puede deshacer.</strong></span>
                 </p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 16px 24px;">
+                <button type="button" class="btn-custom secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
-                <button type="button" class="btn btn-danger" onclick="confirmarEliminarEmbarcaciones()">
+                <button type="button" class="btn-custom" onclick="confirmarEliminarEmbarcaciones()" style="background: #dc2626;">
                     <i class="fas fa-trash-alt"></i> Eliminar Embarcaciones
                 </button>
             </div>
@@ -283,29 +551,29 @@
 
 <div class="modal fade" id="modalConfirmarEliminarRutas" tabindex="-1" aria-labelledby="modalEliminarRutasLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalEliminarRutasLabel">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #fee2e2; border-bottom: 1px solid #fecaca; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="modalEliminarRutasLabel" style="color: #991b1b; font-weight: 600;">
                     <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 24px;">
                 <div class="text-center mb-3">
-                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                    <h5>¿Eliminar TODAS las rutas?</h5>
+                    <i class="fas fa-trash-alt fa-3x" style="color: #dc2626; margin-bottom: 16px;"></i>
+                    <h5 style="color: #1e293b;">¿Eliminar TODAS las rutas?</h5>
                 </div>
-                <p class="text-muted">
+                <p style="color: #64748b;">
                     Esta acción eliminará <strong>{{ total_rutas }} rutas y todos sus días</strong> del sistema.
                     <br><br>
-                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                    <span style="color: #dc2626;"><strong>Esta operación no se puede deshacer.</strong></span>
                 </p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 16px 24px;">
+                <button type="button" class="btn-custom secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
-                <button type="button" class="btn btn-danger" onclick="confirmarEliminarRutas()">
+                <button type="button" class="btn-custom" onclick="confirmarEliminarRutas()" style="background: #dc2626;">
                     <i class="fas fa-trash-alt"></i> Eliminar Rutas
                 </button>
             </div>
