@@ -41,12 +41,9 @@ def crear_producto(request):
         )
         producto.save()
 
-        # Disparar signal de producto individual (falta stock) solo si la embarcación no está en planificación
-        almacen = getattr(seccion, 'almacen', None)
-        embarcacion_obj = getattr(almacen, 'embarcacion', None) if almacen else None
-        if embarcacion_obj and getattr(embarcacion_obj, 'estado_operativo', None) == 'operativo':
-            from apps.almacen.signals import emitir_señal_si_falta_stock_de
-            emitir_señal_si_falta_stock_de(producto)
+        # Disparar signal de producto individual (falta stock)
+        from apps.almacen.signals import emitir_señal_si_falta_stock_de
+        emitir_señal_si_falta_stock_de(producto)
 
 
         movimiento = MovimientoAlmacen.objects.create(

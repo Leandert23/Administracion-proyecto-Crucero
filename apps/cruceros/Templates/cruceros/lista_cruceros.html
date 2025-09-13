@@ -18,10 +18,7 @@
                 <span class="sistema-fecha__label">Fecha del sistema:</span>
                 <span class="sistema-fecha__valor">{{ fecha_sistema }}</span>
             </div>
-            <form method="post" class="sistema-fecha__form">
-                {% csrf_token %}
-                <button name="advance_day" value="1" class="sistema-fecha__btn" type="submit">Avanzar día</button>
-            </form>
+           
         </div>
 
         <div class="cruceros-list__actions">
