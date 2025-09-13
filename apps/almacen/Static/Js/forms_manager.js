@@ -133,26 +133,26 @@
 
         try {
             const root = document.getElementById('almacen-root');
-            const cruceroId = root ? root.dataset.cruceroId : null;
-            if (!cruceroId) return console.warn('No se encontró crucero-id en el root');
-            fetch('/almacen/instalaciones/' + cruceroId + '/')
+            const embarcacionId = root ? root.dataset.embarcacionId : null;
+            if (!embarcacionId) return console.warn('No se encontró embarcacion_id en el root');
+            fetch('/almacen/locales-tipo-almacen/' + embarcacionId + '/')
                 .then(resp => resp.json())
                 .then(data => {
-                    if (!data || !Array.isArray(data.instalaciones)) return;
+                    if (!data || !Array.isArray(data.locales)) return;
                     const select = document.getElementById('select-almacen');
                     if (!select) return;
                     // conservar la primera opción por defecto
                     const defaultOpt = select.querySelector('option');
                     select.innerHTML = '';
                     if (defaultOpt) select.appendChild(defaultOpt);
-                    data.instalaciones.forEach(inst => {
+                    data.locales.forEach(local => {
                         const opt = document.createElement('option');
-                        opt.value = inst.id;
-                        opt.textContent = inst.nombre;
+                        opt.value = local.id;
+                        opt.textContent = local.nombre;
                         select.appendChild(opt);
                     });
                 })
-                .catch(err => console.error('Error cargando instalaciones:', err));
+                .catch(err => console.error('Error cargando locales:', err));
         } catch (e) { console.error(e); }
     }
 

@@ -22,7 +22,7 @@ def obtener_productos_para_solicitud(request):
 
     if embarcacion_id:
         try:
-            secciones = SeccionAlmacen.objects.filter(almacen_id=embarcacion_id)
+            secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
             productos = productos.filter(seccion__in=secciones)
         except Exception:
             pass
@@ -64,7 +64,7 @@ def obtener_pagina_inventario_productos(request):
     productos = Producto.objects.all()
 
     if embarcacion_id:
-        secciones = SeccionAlmacen.objects.filter(almacen_id=embarcacion_id)
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         productos = productos.filter(seccion__in=secciones)
     
     productos = productos.order_by('nombre')
@@ -120,7 +120,7 @@ def buscar_productos(request):
     productos = Producto.objects.all()
 
     if embarcacion_id:
-        secciones = SeccionAlmacen.objects.filter(almacen_id=embarcacion_id)
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         productos = productos.filter(seccion__in=secciones)
     
     productos = productos.order_by('nombre')
@@ -146,7 +146,7 @@ def obtener_movimientos_inventario(request):
     movimientos = MovimientoAlmacen.objects.select_related('producto', 'producto__seccion', 'lote')
 
     if embarcacion_id:
-        secciones = SeccionAlmacen.objects.filter(almacen_id=embarcacion_id)
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         movimientos = movimientos.filter(producto__seccion__in=secciones)
     
     tipo_movimiento = request.GET.get('tipo')

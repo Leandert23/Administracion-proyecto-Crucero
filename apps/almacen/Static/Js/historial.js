@@ -27,10 +27,10 @@
 
         construirParametros(pagina) {
             const raiz = document.getElementById('almacen-root');
-            const idCrucero = raiz ? raiz.dataset.cruceroId : '';
-            const parametros = new URLSearchParams({ 
-                page: pagina, 
-                crucero_id: idCrucero 
+            const embarcacionId = raiz ? raiz.dataset.embarcacionId : '';
+            const parametros = new URLSearchParams({
+                page: pagina,
+                embarcacion_id: embarcacionId
             });
             
             const texto = this.campoBusqueda?.value.trim() || '';

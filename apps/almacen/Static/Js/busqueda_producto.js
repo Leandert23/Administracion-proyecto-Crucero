@@ -4,16 +4,16 @@
 
     const SELECTOR_WRAPPER = '.js-buscador-producto';
 
-    function obtenerCruceroId() {
+    function obtenerEmbarcacionId() {
         const raiz = document.getElementById('almacen-root');
-        return raiz ? raiz.dataset.cruceroId || '' : '';
+        return raiz ? raiz.dataset.embarcacionId || '' : '';
     }
 
     function buscarProductos(urlBase, termino, signal) {
         const parametros = new URLSearchParams();
-        const cruceroId = obtenerCruceroId();
-        
-        if (cruceroId) parametros.append('crucero_id', cruceroId);
+        const embarcacionId = obtenerEmbarcacionId();
+
+        if (embarcacionId) parametros.append('embarcacion_id', embarcacionId);
         if (termino) parametros.append('busqueda', termino);
         
         const url = `${urlBase}?${parametros.toString()}`;

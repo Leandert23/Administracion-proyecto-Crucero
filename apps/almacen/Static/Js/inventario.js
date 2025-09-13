@@ -103,11 +103,11 @@
 
         buildParameters(page, searchText) {
             const rootElement = document.getElementById('almacen-root');
-            const cruiseId = rootElement ? rootElement.dataset.cruceroId : '';
-            
+            const embarcacionId = rootElement ? rootElement.dataset.embarcacionId : '';
+
             const parameters = new URLSearchParams({
                 page: page,
-                crucero_id: cruiseId
+                embarcacion_id: embarcacionId
             });
 
             if (searchText) parameters.append('busqueda', searchText);

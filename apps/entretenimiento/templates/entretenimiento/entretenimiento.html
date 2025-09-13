@@ -2111,15 +2111,21 @@
                 const urlParts = window.location.pathname.split('/');
                 const cruceroId = urlParts[2]; // El ID del crucero está en la posición 2 de la URL
     
+                // Obtener el token CSRF
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
                 // Hacer petición AJAX para cargar datos precargados
                 fetch(`/entretenimiento/${cruceroId}/cargar-datos-precargados/`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
-                    body: JSON.stringify({
-                        tipo_actividad: type
+                    body: new URLSearchParams({
+                        'tipo_actividad': type,
+                        'csrfmiddlewaretoken': csrfToken
                     })
                 })
                 .then(response => response.json())

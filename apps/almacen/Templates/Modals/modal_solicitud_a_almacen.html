@@ -1215,10 +1215,10 @@ const InterfazSolicitud = {
         const descripcion = document.querySelector(SELECTORES.DESCRIPCION) ? document.querySelector(SELECTORES.DESCRIPCION).value : '';
         const payload = new FormData();
         payload.append('descripcion', descripcion);
-        const cruceroElem = document.querySelector('[data-crucero-id], [data-current-crucero-id]');
-        if (cruceroElem) {
-            const cid = cruceroElem.dataset.cruceroId || cruceroElem.dataset.currentCruceroId;
-            if (cid) payload.append('crucero_id', cid);
+        const embarcacionElem = document.querySelector('[data-embarcacion-id], [data-crucero-id], [data-current-crucero-id]');
+        if (embarcacionElem) {
+            const eid = embarcacionElem.dataset.embarcacionId || embarcacionElem.dataset.cruceroId || embarcacionElem.dataset.currentCruceroId;
+            if (eid) payload.append('embarcacion_id', eid);
         }
         payload.append('productos', JSON.stringify(lista));
         try {

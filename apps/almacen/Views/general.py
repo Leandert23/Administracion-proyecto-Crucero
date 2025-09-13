@@ -16,7 +16,7 @@ from datetime import timedelta
 
 def mostrar_vista_almacen(request, embarcacion_id):
     embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
-    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion, esta_activa=True).select_related('local_tipo_almacen__cubierta__embarcacion')
+    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion).select_related('local_tipo_almacen')
     try:
         fecha_actual = obtener_fecha_actual()
     except Exception:
@@ -33,10 +33,10 @@ def mostrar_vista_almacen(request, embarcacion_id):
 
 @require_GET
 def obtener_locales_tipo_almacen(request, embarcacion_id):
-    """Devuelve JSON con las secciones de almacén para la embarcación dada."""
+    """Devuelve JSON con los locales de tipo almacén para la embarcación dada."""
     embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
-    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion, esta_activa=True).values('id', 'nombre')
-    return JsonResponse({'success': True, 'secciones': list(secciones)})
+    locales_almacen = Locales.objects.filter(cubierta__embarcacion=embarcacion, tipo='almacen').values('id', 'nombre')
+    return JsonResponse({'success': True, 'locales': list(locales_almacen)})
 
 
 
@@ -316,9 +316,9 @@ def obtener_solicitudes_aprobadas(request):
     """
     embarcacion_id = request.GET.get('embarcacion_id')
     qs = SolicitudSalida.objects.filter(estado='APROBADA')
-    # Si se proporciona embarcacion_id intentamos filtrar por relación a través de productos->seccion->almacen->embarcacion
+    # Si se proporciona embarcacion_id intentamos filtrar por relación a través de productos->seccion->local_tipo_almacen->cubierta->embarcacion
     if embarcacion_id:
-        qs = qs.filter(productos_solicitados__producto__seccion__almacen_id=embarcacion_id).distinct()
+        qs = qs.filter(productos_solicitados__producto__seccion__local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id).distinct()
     qs = qs.annotate(total_unidades=Sum('productos_solicitados__cantidad')).order_by('-fecha_creacion')
 
     page_number = int(request.GET.get('page', 1))

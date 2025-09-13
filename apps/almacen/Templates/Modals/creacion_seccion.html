@@ -9,10 +9,10 @@
 
         <form id="form-crear-seccion" class="form-grid" method="post" action="crear-seccion/">
             {% csrf_token %}
-            <div class="form-field" data-field="almacen">
-                <label for="select-almacen">Almacén</label>
-                <select id="select-almacen" name="almacen_id" required>
-                    <option value="">Seleccione un almacén</option>
+            <div class="form-field" data-field="local_tipo_almacen">
+                <label for="select-almacen">Local tipo almacén</label>
+                <select id="select-almacen" name="local_tipo_almacen_id" required>
+                    <option value="">Seleccione un local tipo almacén</option>
                 </select>
                 <span class="error-text" hidden></span>
             </div>
