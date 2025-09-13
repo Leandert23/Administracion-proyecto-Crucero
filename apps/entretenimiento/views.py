@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
-from apps.cruceros.models import Crucero, Viaje
+from apps.creador_embarcaciones.models import Embarcacion
 from apps.reservaciones.models import Reserva
 from django.db.models import Q
 from datetime import timedelta
@@ -25,9 +25,11 @@ def entretenimiento_view(request, crucero_id):
     Filtra actividades por el viaje activo o en planificación del crucero.
     """
     
-    # Esto se agregó para solo mostrar las actividades de un crucero específico, así se diferencia entre pequeño, mediano, grande
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+    # Buscar la embarcación en lugar del crucero
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+
+    # Las actividades ahora están relacionadas directamente con la embarcación
+    # No necesitamos viaje ya que las actividades pertenecen directamente a la embarcación
     # Obtener fecha del sistema (creando registro si no existe)
     fecha_actual_sistema = obtener_fecha_actual()
     if not fecha_actual_sistema:
@@ -39,32 +41,42 @@ def entretenimiento_view(request, crucero_id):
     # Obtener el día seleccionado desde los parámetros GET
     dia_seleccionado = request.GET.get('dia')
 
-    # Base queryset filtrada por viaje si existe
-    actividades_base = Actividad.objects.filter(viaje=viaje) if viaje else Actividad.objects.none()
-    rutinarias_base = ActividadRutinaria.objects.filter(viaje=viaje) if viaje else ActividadRutinaria.objects.none()
+    # Base queryset filtrada por embarcación
+    actividades_base = Actividad.objects.filter(embarcacion=embarcacion)
+    rutinarias_base = ActividadRutinaria.objects.filter(embarcacion=embarcacion)
 
-    dias_pago = actividades_base.values_list('dia_crucero', flat=True).distinct()
-    dias_rutinarias = rutinarias_base.values_list('dia_crucero', flat=True).distinct()
-    dias_disponibles = sorted(set(list(dias_pago) + list(dias_rutinarias)))
+    # Inicializar todas_actividades como lista vacía
+    todas_actividades = []
 
+    # Debug: Imprimir información sobre las actividades encontradas (después de crear ejemplos si es necesario)
+    print(f"Embarcación ID: {embarcacion.id}")
+    print(f"Actividades de pago encontradas: {actividades_base.count()}")
+    print(f"Actividades rutinarias encontradas: {rutinarias_base.count()}")
+    print(f"Total actividades combinadas: {len(todas_actividades)}")
+
+    # Si no hay actividades, buscar todas las actividades para debug
+    if actividades_base.count() == 0:
+        print(f"Todas las actividades en BD: {Actividad.objects.all().count()}")
+        print(f"Actividades sin embarcacion asignada: {Actividad.objects.filter(embarcacion__isnull=True).count()}")
+
+    if rutinarias_base.count() == 0:
+        print(f"Todas las actividades rutinarias en BD: {ActividadRutinaria.objects.all().count()}")
+        print(f"Actividades rutinarias sin embarcacion asignada: {ActividadRutinaria.objects.filter(embarcacion__isnull=True).count()}")
+
+    # Procesar actividades por día seleccionado
     fecha_dia_seleccionado = None
     if dia_seleccionado and dia_seleccionado.isdigit():
         dia_seleccionado = int(dia_seleccionado)
         actividades_pago = actividades_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
         actividades_rutinarias = rutinarias_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
-        if viaje and viaje.fecha_inicio:
-            try:
-                fecha_dia_seleccionado = viaje.fecha_inicio + timedelta(days=dia_seleccionado - 1)
-            except Exception:
-                fecha_dia_seleccionado = None
+        # Para embarcaciones, usamos la fecha del sistema
+        fecha_dia_seleccionado = fecha_actual_sistema
     else:
         actividades_pago = actividades_base.order_by('id_actividad')
         actividades_rutinarias = rutinarias_base.order_by('id_actividad')
         dia_seleccionado = None
 
     # Combinar ambas listas para mostrar las actividades
-    todas_actividades = []
-
     # Agregar actividades de pago
     for actividad in actividades_pago:
         todas_actividades.append({
@@ -75,9 +87,10 @@ def entretenimiento_view(request, crucero_id):
             'dia_crucero': actividad.dia_crucero,
             'hora_inicio': actividad.hora_inicio,
             'hora_fin': actividad.hora_fin,
-            'coste': actividad.coste if hasattr(actividad, 'coste') else None,
+            'coste': actividad.coste,
+            'maximo_participantes': actividad.maximoActividad,
             'ubicacion': None,
-            'img_src': actividad.img_src if actividad.img_src else None
+            'img_src': actividad.img_src or 'clasedebaile.jpg'
         })
 
     # Agregar actividades rutinarias
@@ -91,12 +104,98 @@ def entretenimiento_view(request, crucero_id):
             'hora_inicio': actividad.hora_inicio,
             'hora_fin': actividad.hora_fin,
             'coste': None,
-            'ubicacion': actividad.ubicacion if hasattr(actividad, 'ubicacion') else None,
-            'img_src': actividad.img_src if actividad.img_src else None
+            'ubicacion': getattr(actividad, 'ubicacion', None),
+            'img_src': actividad.img_src or 'yogacrucero.jpg'
         })
 
     # Ordenar actividades por ID
     todas_actividades.sort(key=lambda x: x['id'])
+
+    # Actualizar debug con información correcta
+    print(f"Total actividades combinadas: {len(todas_actividades)}")
+    if todas_actividades:
+        print(f"Primeras 3 actividades: {[act['titulo'] for act in todas_actividades[:3]]}")
+
+    # Si no hay actividades, crear algunas de ejemplo para esta embarcación
+    if not todas_actividades:
+        print("No hay actividades, creando actividades de ejemplo...")
+        try:
+            # Crear actividad de pago de ejemplo
+            actividad_pago = Actividad.objects.create(
+                embarcacion=embarcacion,
+                titulo="Clase de Baile Latino",
+                descripcion="Aprende los ritmos más calientes del baile latino con nuestros instructores profesionales",
+                dia_crucero=1,
+                coste=25.00,
+                hora_inicio="20:00:00",
+                hora_fin="22:00:00",
+                maximoActividad=20,
+                img_src="clasedebaile.jpg"
+            )
+
+            # Crear actividad rutinaria de ejemplo
+            actividad_rutinaria = ActividadRutinaria.objects.create(
+                embarcacion=embarcacion,
+                titulo="Yoga Matutino",
+                descripcion="Comienza tu día con tranquilidad en nuestra sesión de yoga al amanecer",
+                dia_crucero=1,
+                hora_inicio="07:00:00",
+                hora_fin="08:30:00",
+                maximo_actividad=20,
+                ubicacion="Cubierta Principal",
+                img_src="yogacrucero.jpg"
+            )
+
+            print(f"Actividades de ejemplo creadas: {actividad_pago.titulo}, {actividad_rutinaria.titulo}")
+            # Recargar las actividades después de crear las de ejemplo
+            actividades_base = Actividad.objects.filter(embarcacion=embarcacion)
+            rutinarias_base = ActividadRutinaria.objects.filter(embarcacion=embarcacion)
+
+            # Recrear la lista combinada
+            todas_actividades = []
+
+            # Agregar actividades de pago
+            for actividad in actividades_base:
+                todas_actividades.append({
+                    'id': actividad.id_actividad,
+                    'titulo': actividad.titulo,
+                    'descripcion': actividad.descripcion,
+                    'tipo': 'pago',
+                    'dia_crucero': actividad.dia_crucero,
+                    'hora_inicio': actividad.hora_inicio,
+                    'hora_fin': actividad.hora_fin,
+                    'coste': actividad.coste,
+                    'maximo_participantes': actividad.maximoActividad,
+                    'ubicacion': None,
+                    'img_src': actividad.img_src or 'clasedebaile.jpg'
+                })
+
+            # Agregar actividades rutinarias
+            for actividad in rutinarias_base:
+                todas_actividades.append({
+                    'id': actividad.id_actividad,
+                    'titulo': actividad.titulo,
+                    'descripcion': actividad.descripcion,
+                    'tipo': 'rutinaria',
+                    'dia_crucero': actividad.dia_crucero,
+                    'hora_inicio': actividad.hora_inicio,
+                    'hora_fin': actividad.hora_fin,
+                    'coste': None,
+                    'ubicacion': actividad.ubicacion,
+                    'img_src': actividad.img_src or 'yogacrucero.jpg'
+                })
+
+            # Ordenar actividades por ID
+            todas_actividades.sort(key=lambda x: x['id'])
+            print(f"Lista recreada con {len(todas_actividades)} actividades")
+
+        except Exception as e:
+            print(f"Error creando actividades de ejemplo: {e}")
+
+    # Calcular días disponibles
+    dias_pago = actividades_base.values_list('dia_crucero', flat=True).distinct()
+    dias_rutinarias = rutinarias_base.values_list('dia_crucero', flat=True).distinct()
+    dias_disponibles = sorted(set(list(dias_pago) + list(dias_rutinarias)))
 
     context = {
         'actividades': todas_actividades,
@@ -104,8 +203,9 @@ def entretenimiento_view(request, crucero_id):
         'dia_seleccionado': dia_seleccionado,
         'fecha_actual_sistema': fecha_actual_sistema,
         'fecha_dia_seleccionado': fecha_dia_seleccionado,
-        'crucero': crucero,
-        'viaje': viaje,
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
+        'viaje': None,  # No hay viaje para embarcaciones
     }
 
     return render(request, 'entretenimiento/entretenimiento.html', context)
@@ -430,21 +530,22 @@ def cargar_datos_precargados(request, crucero_id):
                 'message': 'El tipo de actividad debe ser "rutinaria" o "pago".'
             })
 
-        # Obtener el crucero
+        # Obtener la embarcación
         try:
-            crucero = Crucero.objects.get(pk=crucero_id)
-        except Crucero.DoesNotExist:
+            embarcacion = Embarcacion.objects.get(pk=crucero_id)
+        except Embarcacion.DoesNotExist:
             return JsonResponse({
                 'success': False,
-                'message': 'El crucero especificado no existe.'
+                'message': 'La embarcación especificada no existe.'
             })
 
-        # Obtener el viaje activo o en planificación
-        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+        # Por ahora, no podemos cargar actividades sin viajes
+        viaje = None
         if not viaje:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
             })
 
         # Llamar a la función para cargar actividades
@@ -463,7 +564,7 @@ def cargar_datos_precargados(request, crucero_id):
                 'success': True,
                 'message': mensaje,
                 'actividades_creadas': actividades_creadas,
-                'tipo_crucero': crucero.tipo_crucero,
+                'tipo_embarcacion': embarcacion.tipo.nombre if embarcacion.tipo else 'No especificado',
                 'tipo_actividad': tipo_actividad
             })
 
@@ -490,17 +591,18 @@ def cargar_datos_precargados(request, crucero_id):
 def crear_actividad_rutinaria_view(request, crucero_id):
     """Vista para mostrar el formulario de creación de actividades rutinarias"""
 
-    # Obtener el crucero
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
+    # Obtener la embarcación
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
 
-    # Obtener el viaje activo o en planificación
-    viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+    # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+    viaje = None
 
     if request.method == 'POST':
-        return crear_actividad_rutinaria_post(request, crucero, viaje)
+        return crear_actividad_rutinaria_post(request, embarcacion, viaje)
 
     context = {
-        'crucero': crucero,
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
         'viaje': viaje,
         'dias_opciones': [(i, f"Día {i}") for i in range(1, 9)],
     }
@@ -509,7 +611,7 @@ def crear_actividad_rutinaria_view(request, crucero_id):
 
 
 @csrf_exempt
-def crear_actividad_rutinaria_post(request, crucero, viaje):
+def crear_actividad_rutinaria_post(request, embarcacion, viaje):
     """Vista para procesar la creación de actividades rutinarias"""
 
     try:
@@ -639,14 +741,15 @@ def crear_actividad_rutinaria_post(request, crucero, viaje):
 
 def crear_actividad_pago_view(request, crucero_id):
     """Vista para mostrar y procesar el formulario de creación de actividades de pago"""
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+    viaje = None  # No hay viajes en el modelo Embarcacion
 
     if request.method == 'POST':
         return crear_actividad_pago_post(request, crucero_id)
 
     context = {
-        'crucero': crucero,
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
         'viaje': viaje,
         'tipo_actividad': 'pago'
     }
@@ -658,14 +761,14 @@ def crear_actividad_pago_post(request, crucero_id):
     """Vista para procesar la creación de actividades de pago"""
 
     try:
-        # Obtener crucero y viaje
-        crucero = get_object_or_404(Crucero, pk=crucero_id)
-        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
 
         if not viaje:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
             })
         # Validar datos requeridos
         required_fields = ['titulo', 'descripcion', 'dia_crucero', 'coste', 'hora_inicio', 'hora_fin', 'maximoActividad']
@@ -813,14 +916,14 @@ def api_get_activities(request, crucero_id):
         return JsonResponse({'success': False, 'message': 'Método no permitido'})
 
     try:
-        # Obtener crucero y viaje
-        crucero = get_object_or_404(Crucero, pk=crucero_id)
-        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
 
         if not viaje:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
             })
 
         activities_data = []
@@ -894,14 +997,14 @@ def api_delete_activity(request, crucero_id):
                 'message': 'ID de actividad y tipo son requeridos.'
             })
 
-        # Obtener crucero y viaje
-        crucero = get_object_or_404(Crucero, pk=crucero_id)
-        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
 
         if not viaje:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
             })
 
         # Eliminar la actividad según su tipo
@@ -955,14 +1058,14 @@ def api_get_reservas(request, crucero_id):
         return JsonResponse({'success': False, 'message': 'Método no permitido'})
 
     try:
-        # Obtener crucero y viaje
-        crucero = get_object_or_404(Crucero, pk=crucero_id)
-        viaje = crucero.viajes.filter(estado__in=["planificacion", "activo"]).order_by('fecha_inicio').first()
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
 
         if not viaje:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontró un viaje activo o en planificación para este crucero.'
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
             })
 
         reservas_data = []
