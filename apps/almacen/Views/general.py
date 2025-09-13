@@ -5,7 +5,7 @@ import json
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.db import transaction
-from apps.creador_embarcaciones.models import Embarcacion
+from apps.creador_embarcaciones.models import Embarcacion, Locales
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
 from apps.almacen.models import MensajeParaCompras
 from apps.almacen.models import SolicitudSalida
@@ -16,7 +16,7 @@ from datetime import timedelta
 
 def mostrar_vista_almacen(request, embarcacion_id):
     embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
-    secciones = SeccionAlmacen.objects.filter(almacen=embarcacion, esta_activa=True).select_related('almacen')
+    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion, esta_activa=True).select_related('local_tipo_almacen__cubierta__embarcacion')
     try:
         fecha_actual = obtener_fecha_actual()
     except Exception:
@@ -32,10 +32,10 @@ def mostrar_vista_almacen(request, embarcacion_id):
 
 
 @require_GET
-def obtener_instalaciones_almacen(request, embarcacion_id):
+def obtener_locales_tipo_almacen(request, embarcacion_id):
     """Devuelve JSON con las secciones de almacén para la embarcación dada."""
     embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
-    secciones = SeccionAlmacen.objects.filter(almacen=embarcacion, esta_activa=True).values('id', 'nombre')
+    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion, esta_activa=True).values('id', 'nombre')
     return JsonResponse({'success': True, 'secciones': list(secciones)})
 
 
@@ -44,14 +44,14 @@ def obtener_instalaciones_almacen(request, embarcacion_id):
 def crear_seccion(request):
     """Crea una SeccionAlmacen a partir de un POST form-encoded.
 
-    Espera los campos simplificados: almacen_id, nombre, tipo.
+    Espera los campos simplificados: local_tipo_almacen_id, nombre, tipo.
     No se solicita capacidad/temperatura/humedad desde el formulario; la vista
     usará valores por defecto (capacidad=1, temperatura/humedad=None).
     Responde JSON: {'success': True, 'id': <pk>} o {'success': False, 'errores': {campo: mensaje}, 'error': 'codigo'}
     """
     try:
         data = request.POST
-        almacen_id = data.get('almacen_id')
+        local_tipo_almacen_id = data.get('local_tipo_almacen_id')
         nombre = (data.get('nombre') or '').strip()
         tipo = data.get('tipo')
         # Not requesting capacidad/temperatura/humedad from the simplified form
@@ -61,14 +61,15 @@ def crear_seccion(request):
 
         errores = {}
 
-        if not almacen_id:
-            errores['almacen'] = 'Almacén requerido.'
+        if not local_tipo_almacen_id:
+            errores['local_tipo_almacen'] = 'Local tipo almacén requerido.'
         else:
             try:
-                almacen = Embarcacion.objects.get(pk=int(almacen_id))
+                local_tipo_almacen = Locales.objects.get(pk=int(local_tipo_almacen_id), tipo='almacen')
+            except Locales.DoesNotExist:
+                errores['local_tipo_almacen'] = 'Local tipo almacén no encontrado.'
             except Exception:
-                almacen = None
-                errores['almacen'] = 'Embarcación no encontrada.'
+                errores['local_tipo_almacen'] = 'Error al obtener local tipo almacén.'
 
         if not nombre:
             errores['nombre'] = 'Nombre requerido.'
@@ -87,7 +88,7 @@ def crear_seccion(request):
 
         # Crear sección
         seccion = SeccionAlmacen(
-            almacen=almacen,
+            local_tipo_almacen=local_tipo_almacen,
             nombre=nombre,
             tipo=tipo,
             capacidad=capacidad_int,
