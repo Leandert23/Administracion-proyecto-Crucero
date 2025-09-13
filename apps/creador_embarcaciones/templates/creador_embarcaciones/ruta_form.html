@@ -1,0 +1,108 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}
+    {% if ruta %}Editar Ruta{% else %}Nueva Ruta{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    {% if ruta %}
+                        <i class="fas fa-edit"></i> Editar Ruta: {{ ruta.titulo }}
+                    {% else %}
+                        <i class="fas fa-plus"></i> Nueva Ruta
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Información Básica -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-info-circle"></i> Información de la Ruta
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.titulo.label_tag }}
+                            {{ form.titulo }}
+                            {% if form.titulo.errors %}
+                                <div class="text-danger">{{ form.titulo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Duración -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-clock"></i> Duración
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.numero_dias.label_tag }}
+                            {{ form.numero_dias }}
+                            {% if form.numero_dias.errors %}
+                                <div class="text-danger">{{ form.numero_dias.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Número de días que dura la ruta</small>
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-file-alt"></i> Descripción
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Describe detalladamente la ruta</small>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="row">
+                        <div class="col-12">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'creador_embarcaciones:home' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    {% if ruta %}Actualizar Ruta{% else %}Crear Ruta{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Validación del lado del cliente para campos numéricos
+document.addEventListener('DOMContentLoaded', function() {
+    const numericFields = ['id_numero_dias', 'id_max_dias'];
+
+    numericFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                if (this.value < 0) {
+                    this.value = 0;
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

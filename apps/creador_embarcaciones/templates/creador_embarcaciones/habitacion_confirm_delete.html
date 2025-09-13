@@ -1,0 +1,77 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Eliminar Habitación {{ habitacion.numero }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:habitacion_detail' habitacion.pk %}">Habitación {{ habitacion.numero }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Eliminar</li>
+            </ol>
+        </nav>
+
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </div>
+
+                <p>¿Estás seguro de que deseas eliminar la siguiente habitación?</p>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-bed"></i> Habitación {{ habitacion.numero }}
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li><strong>ID Local:</strong> <code>{{ habitacion.ID_local }}</code></li>
+                            <li><strong>Posición:</strong> {{ habitacion.get_posicion_display }}</li>
+                            <li><strong>Cubierta:</strong> {{ cubierta.nombre }} ({{ cubierta.numero }})</li>
+                            <li><strong>Estado:</strong> {{ habitacion.get_estado_display }}</li>
+                            {% if habitacion.precio %}
+                            <li><strong>Precio:</strong> {{ habitacion.precio }}€ por noche</li>
+                            {% endif %}
+                            <li><strong>Área:</strong> {{ habitacion.area_metros_cuadrados }} m²</li>
+                            {% if habitacion.id_persona %}
+                            <li><strong>Persona asignada:</strong> {{ habitacion.id_persona }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'creador_embarcaciones:habitacion_detail' habitacion.pk %}"
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sí, Eliminar Habitación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

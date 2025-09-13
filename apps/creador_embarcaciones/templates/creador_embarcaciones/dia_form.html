@@ -1,0 +1,243 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Editar Día {{ dia.numero_dia }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Migas de pan -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:ruta_detail' dia.ruta.pk %}">{{ dia.ruta.titulo }}</a>
+                </li>
+                <li class="breadcrumb-item active">Día {{ dia.numero_dia }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-calendar-day"></i> Configurar Día {{ dia.numero_dia }}</h2>
+                <p class="text-muted">Ruta: {{ dia.ruta.titulo }}</p>
+            </div>
+            <div>
+                <a href="{% url 'creador_embarcaciones:ruta_detail' dia.ruta.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a la ruta
+                </a>
+            </div>
+        </div>
+
+        <!-- Barra de progreso -->
+        
+
+        <!-- Formulario -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit"></i> Información del Día
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Información Básica -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.titulo_dia.id_for_label }}" class="form-label">
+                                Título del Día <span class="text-danger">*</span>
+                            </label>
+                            {{ form.titulo_dia }}
+                            {% if form.titulo_dia.errors %}
+                                <div class="text-danger">{{ form.titulo_dia.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.ubicacion.id_for_label }}" class="form-label">
+                                Ubicación <span class="text-danger">*</span>
+                            </label>
+                            {{ form.ubicacion }}
+                            {% if form.ubicacion.errors %}
+                                <div class="text-danger">{{ form.ubicacion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                                Descripción del Día
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Describe las características principales de este día del viaje
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Horarios -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.hora_llegada.id_for_label }}" class="form-label">
+                                Hora de Llegada
+                            </label>
+                            {{ form.hora_llegada }}
+                            {% if form.hora_llegada.errors %}
+                                <div class="text-danger">{{ form.hora_llegada.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.hora_salida.id_for_label }}" class="form-label">
+                                Hora de Salida
+                            </label>
+                            {{ form.hora_salida }}
+                            {% if form.hora_salida.errors %}
+                                <div class="text-danger">{{ form.hora_salida.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Notas Especiales -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <label for="{{ form.notas_especiales.id_for_label }}" class="form-label">
+                                Notas Especiales
+                            </label>
+                            {{ form.notas_especiales }}
+                            {% if form.notas_especiales.errors %}
+                                <div class="text-danger">{{ form.notas_especiales.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Información adicional importante como restricciones, requisitos especiales, etc.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Errores generales del formulario -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Botones -->
+                    <div class="row">
+                        <div class="col-12">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'creador_embarcaciones:ruta_detail' dia.ruta.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Navegación entre días -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">Navegación por Días</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    {% if dia_anterior %}
+                        <a href="{% url 'creador_embarcaciones:dia_update' dia_anterior.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-chevron-left"></i> Día {{ dia.numero_dia|add:-1 }}
+                        </a>
+                    {% else %}
+                        <div></div>
+                    {% endif %}
+
+                    <span class="align-self-center fw-bold">
+                        Día {{ dia.numero_dia }} de {{ ruta.numero_dias }}
+                    </span>
+
+                    {% if dia_siguiente %}
+                        <a href="{% url 'creador_embarcaciones:dia_update' dia_siguiente.pk %}" class="btn btn-outline-primary">
+                            Día {{ dia.numero_dia|add:1 }} <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <div></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Actualizar progreso en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const progressBar = document.querySelector('.progress-bar');
+    const progressBadge = document.querySelector('.badge');
+
+    function updateProgress() {
+        const requiredFields = ['titulo_dia', 'ubicacion'];
+        const optionalFields = ['descripcion', 'hora_llegada', 'hora_salida', 'notas_especiales'];
+        let completedFields = 0;
+        let totalFields = requiredFields.length + optionalFields.length;
+
+        // Contar campos requeridos completos
+        requiredFields.forEach(fieldName => {
+            const field = document.getElementById('id_' + fieldName);
+            if (field && field.value.trim() !== '' &&
+                field.value !== 'Día pendiente de configuración' &&
+                field.value !== 'Ubicación pendiente') {
+                completedFields++;
+            }
+        });
+
+        // Contar campos opcionales completos
+        optionalFields.forEach(fieldName => {
+            const field = document.getElementById('id_' + fieldName);
+            if (field && field.value.trim() !== '') {
+                completedFields++;
+            }
+        });
+
+        const progressPercent = Math.round((completedFields / totalFields) * 100);
+
+        // Actualizar barra de progreso
+        progressBar.style.width = progressPercent + '%';
+        progressBar.setAttribute('aria-valuenow', progressPercent);
+
+        // Actualizar color según progreso
+        progressBar.className = 'progress-bar bg-' +
+            (progressPercent === 100 ? 'success' :
+             progressPercent > 50 ? 'warning' : 'info');
+
+        // Actualizar badge
+        progressBadge.textContent = progressPercent + '%';
+        progressBadge.className = 'badge bg-' +
+            (progressPercent === 100 ? 'success' :
+             progressPercent > 50 ? 'warning' : 'secondary');
+    }
+
+    // Escuchar cambios en todos los campos
+    form.querySelectorAll('input, textarea, select').forEach(field => {
+        field.addEventListener('input', updateProgress);
+        field.addEventListener('change', updateProgress);
+    });
+});
+</script>
+{% endblock %}

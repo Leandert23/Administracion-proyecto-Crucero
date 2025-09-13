@@ -37,6 +37,7 @@ urlpatterns = [
     path('registro/', registro_usuario, name='registro'),
     path('servicio-medico/', include('apps.servicio_medico.urls')),
     path('restaurante/', include('apps.restaurante.urls')),
+    path('embarcaciones/', include('apps.creador_embarcaciones.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

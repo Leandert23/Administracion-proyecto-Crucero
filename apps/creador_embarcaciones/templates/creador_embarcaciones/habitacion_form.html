@@ -1,0 +1,430 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}
+    {% if habitacion %}Editar Habitación{% else %}Nueva Habitación{% endif %} - {{ cubierta.nombre }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {% if habitacion %}Editar Habitación{% else %}Nueva Habitación{% endif %}
+                </li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-bed"></i>
+                    {% if habitacion %}Editar Habitación{% else %}Nueva Habitación{% endif %}
+                    <small class="text-white-50">en {{ cubierta.nombre }}</small>
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Campo oculto para el ID del tipo seleccionado -->
+                    <input type="hidden" id="tipo_habitacion_id" name="tipo_habitacion_id" value="{% if habitacion %}{{ habitacion.tipo_habitacion_estandar.pk }}{% endif %}">
+
+                    <!-- Información Básica -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-info-circle"></i> Información Básica
+                    </h5>
+
+                    <!-- Selector de Tipo de Habitación -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-list-alt"></i> Tipo de Habitación <span class="text-danger">*</span>
+                        </label>
+                        <select id="id_tipo" name="tipo_habitacion_estandar" class="form-select" onchange="tipoSeleccionado(this.value)" required>
+                            <option value="">-- Seleccionar Tipo de Habitación --</option>
+                            <optgroup id="tiposEstandarGroup" label="📋 Tipos de Habitación Estándar">
+                                <!-- Los tipos estándar se cargarán aquí dinámicamente -->
+                            </optgroup>
+                        </select>
+                        <div class="form-text">
+                            <small class="text-muted">
+                                Selecciona un tipo de habitación estándar para completar automáticamente los campos
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Información Detallada del Tipo Seleccionado -->
+                    <div id="infoTipoSeleccionado" class="mb-4" style="display: none;">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-info-circle"></i> Información del Tipo Seleccionado
+                                </h6>
+                            </div>
+                            <div class="card-body" id="infoTipoContenido">
+                                <!-- La información se cargará aquí dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="numero" class="form-label">
+                                Número de Habitación <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" name="numero" class="form-control"
+                                   value="{% if habitacion %}{{ habitacion.numero }}{% endif %}"
+                                   min="1" placeholder="101" required>
+                            <div class="form-text">
+                                Número único de la habitación (máximo 3 dígitos)
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="posicion" class="form-label">
+                                Posición <span class="text-danger">*</span>
+                            </label>
+                            <select name="posicion" class="form-select" required>
+                                {% if habitacion %}
+                                    {% for value, display in posicion_choices %}
+                                        <option value="{{ value }}" {% if habitacion.posicion == value %}selected{% endif %}>
+                                            {{ display }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">-- Seleccionar Posición --</option>
+                                    <option value="babor">Babor</option>
+                                    <option value="estribor">Estribor</option>
+                                {% endif %}
+                            </select>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    Babor = 0, Estribor = 1 en el ID de habitación
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ID Generado -->
+                    <div class="mb-4">
+                        <label class="form-label">ID de Habitación (Generado Automáticamente)</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="id_preview" readonly
+                                   value="{% if habitacion %}{{ habitacion.ID_local }}{% else %}Se generará automáticamente{% endif %}">
+                            <span class="input-group-text">
+                                <i class="fas fa-calculator"></i>
+                            </span>
+                        </div>
+                        <div class="form-text">
+                            <small class="text-muted">
+                                Formato: XACCC donde X=cubierta, A=posición(0/1), CCC=número(3 dígitos)
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Información de Estado y Precio -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-euro-sign"></i> Información de Estado y Precio
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label">
+                                Estado <span class="text-danger">*</span>
+                            </label>
+                            <select name="estado" class="form-select" required>
+                                {% if habitacion %}
+                                    {% for value, display in estado_choices %}
+                                        <option value="{{ value }}" {% if habitacion.estado == value %}selected{% endif %}>
+                                            {{ display }}
+                                        </option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="disponible" selected>Disponible</option>
+                                    <option value="ocupada">Ocupada</option>
+                                    <option value="mantenimiento">En mantenimiento</option>
+                                    <option value="cerrada">Cerrada</option>
+                                    <option value="construccion">En construcción</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="precio" class="form-label">
+                                Precio por Noche (€) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" name="precio" class="form-control"
+                                   value="{% if habitacion %}{{ habitacion.precio }}{% endif %}"
+                                   step="0.01" min="0" placeholder="150.00" required>
+                        </div>
+                    </div>
+
+                    <!-- Asignación de Persona -->
+                    <div class="mb-4">
+                        <label for="id_persona" class="form-label">
+                            ID de Persona Asignada
+                        </label>
+                        <input type="text" name="id_persona" class="form-control"
+                               value="{% if habitacion %}{{ habitacion.id_persona }}{% endif %}"
+                               placeholder="Opcional">
+                        <small class="form-text text-muted">
+                            Dejar vacío si la habitación está disponible
+                        </small>
+                    </div>
+
+                    <!-- Información de Mantenimiento -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-tools"></i> Información de Mantenimiento
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="ultimo_mantenimiento" class="form-label">
+                                Último Mantenimiento <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="ultimo_mantenimiento" class="form-control"
+                                   value="{% if habitacion %}{{ habitacion.ultimo_mantenimiento|date:'Y-m-d' }}{% else %}{{ 'now'|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="proximo_mantenimiento" class="form-label">
+                                Próximo Mantenimiento <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="proximo_mantenimiento" class="form-control"
+                                   value="{% if habitacion %}{{ habitacion.proximo_mantenimiento|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                    </div>
+
+                    <!-- Ubicación Generada -->
+                    <div class="mb-4">
+                        <label class="form-label">Ubicación (Generada Automáticamente)</label>
+                        <input type="text" class="form-control" readonly
+                               value="{% if habitacion %}{{ habitacion.ubicacion }}{% else %}Se generará automáticamente{% endif %}">
+                        <small class="form-text text-muted">
+                            Ubicación única en el sistema
+                        </small>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i>
+                                    {% if habitacion %}Actualizar Habitación{% else %}Crear Habitación{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tiposEstandarHabitaciones = [];
+
+// Cargar tipos estándar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarTiposEstandar();
+});
+
+function cargarTiposEstandar() {
+    fetch('{% url "creador_embarcaciones:obtener_tipos_habitacion" %}')
+        .then(response => response.json())
+        .then(data => {
+            tiposEstandarHabitaciones = data.tipos;
+            actualizarSelectTipos();
+        })
+        .catch(error => {
+            console.error('Error cargando tipos estándar:', error);
+        });
+}
+
+function actualizarSelectTipos() {
+    const tiposEstandarGroup = document.getElementById('tiposEstandarGroup');
+
+    // Limpiar opciones existentes
+    tiposEstandarGroup.innerHTML = '';
+
+    if (tiposEstandarHabitaciones.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No hay tipos de habitación estándar disponibles';
+        option.disabled = true;
+        tiposEstandarGroup.appendChild(option);
+        return;
+    }
+
+    // Agregar tipos estándar
+    tiposEstandarHabitaciones.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = `estandar_${tipo.id}`;
+        option.textContent = `${tipo.nombre} - ${tipo.tipo} (${tipo.area} m²)`;
+        if (tipo.precio) {
+            option.textContent += ` - €${tipo.precio}`;
+        }
+        tiposEstandarGroup.appendChild(option);
+    });
+
+    // Si estamos editando, seleccionar el tipo actual
+    {% if habitacion and habitacion.tipo_habitacion_estandar %}
+        const select = document.getElementById('id_tipo');
+        select.value = `estandar_${habitacion.tipo_habitacion_estandar.pk}`;
+        tipoSeleccionado(select.value);
+    {% endif %}
+}
+
+function tipoSeleccionado(valor) {
+    if (valor && valor.startsWith('estandar_')) {
+        const tipoId = valor.replace('estandar_', '');
+        const tipo = tiposEstandarHabitaciones.find(t => t.id == tipoId);
+
+        if (tipo) {
+            // Establecer el ID del tipo seleccionado en el campo oculto
+            document.getElementById('tipo_habitacion_id').value = tipoId;
+
+            // Rellenar campos con información del tipo estándar
+            document.getElementById('id_area_metros_cuadrados').value = tipo.area;
+            document.getElementById('id_precio').value = tipo.precio || '';
+            document.getElementById('id_estado').value = tipo.estado_default;
+
+            // Rellenar fechas de mantenimiento
+            const hoy = new Date();
+            const diasAtras = tipo.ultimo_mantenimiento_dias;
+            const diasFuturo = tipo.proximo_mantenimiento_dias;
+
+            const fechaUltimo = new Date(hoy.getTime() - (diasAtras * 24 * 60 * 60 * 1000));
+            const fechaProximo = new Date(hoy.getTime() + (diasFuturo * 24 * 60 * 60 * 1000));
+
+            document.getElementById('id_ultimo_mantenimiento').value = fechaUltimo.toISOString().split('T')[0];
+            document.getElementById('id_proximo_mantenimiento').value = fechaProximo.toISOString().split('T')[0];
+
+            // Generar preview del ID
+            generarPreviewID();
+
+            // Mostrar información detallada del tipo seleccionado
+            mostrarInformacionDetalladaTipo(tipo);
+        }
+    } else {
+        // Limpiar información cuando no se selecciona ningún tipo
+        ocultarInformacionDetalladaTipo();
+        document.getElementById('tipo_habitacion_id').value = '';
+    }
+}
+
+// Función para mostrar información detallada del tipo seleccionado
+function mostrarInformacionDetalladaTipo(tipo) {
+    const infoDiv = document.getElementById('infoTipoSeleccionado');
+    const infoContenido = document.getElementById('infoTipoContenido');
+
+    if (infoDiv && infoContenido) {
+        // Crear contenido detallado
+        let especificaciones = [];
+        if (tipo.capacidad_personas) especificaciones.push(`👥 ${tipo.capacidad_personas} personas`);
+        if (tipo.numero_camas) especificaciones.push(`🛏️ ${tipo.numero_camas} camas`);
+        if (tipo.tiene_bano_privado) especificaciones.push(`🚿 Baño privado`);
+        if (tipo.tiene_balcon) especificaciones.push(`🌅 Balcón`);
+        if (tipo.tiene_vista_mar) especificaciones.push(`🌊 Vista al mar`);
+
+        const especHtml = especificaciones.length > 0 ?
+            `<div class="row mt-2">
+                <div class="col-12">
+                    <strong>Especificaciones:</strong>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        ${especificaciones.map(espec => `<span class="badge bg-primary">${espec}</span>`).join('')}
+                    </div>
+                </div>
+            </div>` : '';
+
+        const precioHtml = tipo.precio ?
+            `<div class="col-md-6">
+                <strong>Precio sugerido:</strong><br>
+                <span class="text-success fs-5">€${tipo.precio}</span> por noche
+            </div>` :
+            `<div class="col-md-6">
+                <strong>Precio:</strong><br>
+                <span class="text-muted">Sin precio sugerido</span>
+            </div>`;
+
+        infoContenido.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Tipo de habitación:</strong><br>
+                    <span class="badge bg-info fs-6">${tipo.tipo}</span>
+                </div>
+                ${precioHtml}
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <strong>Área estándar:</strong><br>
+                    <span class="text-primary">${tipo.area} m²</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>Estado por defecto:</strong><br>
+                    <span class="badge bg-secondary">${tipo.estado_default}</span>
+                </div>
+            </div>
+            ${especHtml}
+            <div class="row mt-2">
+                <div class="col-12">
+                    <strong>Información de mantenimiento:</strong>
+                    <div class="d-flex gap-3 mt-1">
+                        <small><i class="fas fa-calendar-alt"></i> Último mantenimiento: ${tipo.ultimo_mantenimiento_dias} días atrás</small>
+                        <small><i class="fas fa-clock"></i> Próximo mantenimiento: ${tipo.proximo_mantenimiento_dias} días adelante</small>
+                    </div>
+                </div>
+            </div>
+            ${tipo.descripcion ? `<div class="row mt-2">
+                <div class="col-12">
+                    <strong>Descripción:</strong><br>
+                    <small class="text-muted">${tipo.descripcion}</small>
+                </div>
+            </div>` : ''}
+        `;
+
+        infoDiv.style.display = 'block';
+    }
+}
+
+// Función para ocultar la información detallada del tipo
+function ocultarInformacionDetalladaTipo() {
+    const infoDiv = document.getElementById('infoTipoSeleccionado');
+    if (infoDiv) {
+        infoDiv.style.display = 'none';
+    }
+}
+
+// Función para generar preview del ID
+function generarPreviewID() {
+    const numero = document.querySelector('input[name="numero"]').value;
+    const posicion = document.querySelector('select[name="posicion"]').value;
+
+    if (numero && posicion) {
+        const cubierta = {{ cubierta.numero }};
+        const posicionCode = posicion === 'babor' ? '0' : '1';
+        const numeroFormateado = numero.toString().padStart(3, '0');
+
+        const previewID = `${cubierta}${posicionCode}${numeroFormateado}`;
+        document.getElementById('id_preview').value = previewID;
+    } else {
+        document.getElementById('id_preview').value = 'Se generará automáticamente';
+    }
+}
+
+// Agregar event listeners para actualizar el preview del ID
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('input[name="numero"]').addEventListener('input', generarPreviewID);
+    document.querySelector('select[name="posicion"]').addEventListener('change', generarPreviewID);
+});
+</script>
+{% endblock %}

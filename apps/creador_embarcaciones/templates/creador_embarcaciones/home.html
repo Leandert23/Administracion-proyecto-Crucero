@@ -1,0 +1,672 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Sistema de Embarcaciones y Rutas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Mensaje de flujo de trabajo -->
+    {% if total_rutas == 0 %}
+        <div class="col-12 mb-4">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle"></i> ¡Bienvenido al Sistema!
+                </h4>
+                <p>Para comenzar, necesitas crear al menos una ruta antes de poder registrar embarcaciones.</p>
+                <hr>
+                <p class="mb-0">
+                    <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-warning">
+                        <i class="fas fa-plus"></i> Crear Primera Ruta
+                    </a>
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Estadísticas generales -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-center {% if total_rutas == 0 %}opacity-50{% endif %}">
+                    <div class="card-body">
+                        <i class="fas fa-ship fa-2x {% if total_rutas == 0 %}text-secondary{% else %}text-primary{% endif %} mb-2"></i>
+                        <h4 class="card-title">{{ total_embarcaciones }}</h4>
+                        <p class="card-text text-muted">
+                            {% if total_rutas == 0 %}
+                                Embarcaciones (Requiere rutas)
+                            {% else %}
+                                Total Embarcaciones
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h4 class="card-title">{{ embarcaciones_operativas }}</h4>
+                        <p class="card-text text-muted">Embarcaciones Operativas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-route fa-2x text-info mb-2"></i>
+                        <h4 class="card-title">{{ total_rutas }}</h4>
+                        <p class="card-text text-muted">Total Rutas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-plus fa-2x text-warning mb-2"></i>
+                        <h4 class="card-title">{{ total_embarcaciones|add:total_rutas }}</h4>
+                        <p class="card-text text-muted">Total Registros</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Embarcaciones -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-ship"></i> Embarcaciones Recientes</h5>
+                {% if total_rutas == 0 %}
+                    <button class="btn btn-sm btn-secondary" disabled title="Primero debe crear una ruta">
+                        <i class="fas fa-plus"></i> Nueva (Requiere rutas)
+                    </button>
+                {% else %}
+                    <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nueva
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if embarcaciones %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Identificador</th>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Puerto Base</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for embarcacion in embarcaciones %}
+                                    <tr>
+                                        <td>
+                                            <code class="small">{{ embarcacion.identificador }}</code>
+                                        </td>
+                                        <td>
+                                            <strong class="small">{{ embarcacion.nombre }}</strong>
+                                        </td>
+                                        <td class="small">{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</td>
+                                        <td class="small">{{ embarcacion.puerto_base }}</td>
+                                        <td>
+                                            <span class="status-operativo {{ embarcacion.estado_operativo }} small">
+                                                {{ embarcacion.get_estado_operativo_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> Ver todas las embarcaciones
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-ship fa-2x text-muted mb-2"></i>
+                        {% if total_rutas == 0 %}
+                            <p class="text-muted small">No hay embarcaciones registradas</p>
+                            <p class="text-warning small">Primero debe crear al menos una ruta</p>
+                            <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-route"></i> Crear Ruta Primero
+                            </a>
+                        {% else %}
+                            <p class="text-muted small">No hay embarcaciones registradas</p>
+                            <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Registrar primera embarcación
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Rutas -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-route"></i> Rutas Recientes</h5>
+                <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Nueva
+                </a>
+            </div>
+            <div class="card-body">
+                {% if rutas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Número de Días</th>
+                                    <th>Días Configurados</th>
+                                    <th>Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ruta in rutas %}
+                                    <tr>
+                                        <td>
+                                            <strong class="small">{{ ruta.titulo }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary small">{{ ruta.numero_dias }} días</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info small">{{ ruta.dias.count }}/{{ ruta.numero_dias }} días</span>
+                                        </td>
+                                        <td class="small">
+                                            {% if ruta.descripcion %}
+                                                {{ ruta.descripcion|truncatechars:30 }}
+                                            {% else %}
+                                                <span class="text-muted">Sin descripción</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> Ver todas las rutas
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-route fa-2x text-muted mb-2"></i>
+                        <p class="text-muted small">No hay rutas registradas</p>
+                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Registrar primera ruta
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Creadores de Estándares -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-cogs"></i> Creadores de Estándares</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Información:</strong> Crea tipos estándar de habitaciones y locales para reutilizarlos fácilmente al configurar las cubiertas de tus embarcaciones.
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success w-100 mb-2" onclick="abrirModalTipoHabitacion()">
+                            <i class="fas fa-bed"></i><br>
+                            <strong>Crear Tipo de Habitación</strong><br>
+                            <small>Define estándares para habitaciones</small>
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-info w-100 mb-2" onclick="abrirModalTipoLocal()">
+                            <i class="fas fa-store"></i><br>
+                            <strong>Crear Tipo de Local</strong><br>
+                            <small>Define estándares para locales</small>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-lightbulb"></i>
+                        Los tipos creados estarán disponibles para seleccionar al crear habitaciones y locales en las cubiertas.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales de Confirmación de Eliminación -->
+<div class="modal fade" id="modalConfirmarEliminarEmbarcaciones" tabindex="-1" aria-labelledby="modalEliminarEmbarcacionesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarEmbarcacionesLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODAS las embarcaciones?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_embarcaciones }} embarcaciones</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarEmbarcaciones()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Embarcaciones
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarRutas" tabindex="-1" aria-labelledby="modalEliminarRutasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarRutasLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODAS las rutas?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_rutas }} rutas y todos sus días</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarRutas()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Rutas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarTiposHabitacion" tabindex="-1" aria-labelledby="modalEliminarTiposHabitacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarTiposHabitacionLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODOS los tipos de habitación?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_tipos_habitacion }} tipos de habitación</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarTiposHabitacion()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Tipos Habitación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarTiposLocal" tabindex="-1" aria-labelledby="modalEliminarTiposLocalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarTiposLocalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODOS los tipos de local?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_tipos_local }} tipos de local</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarTiposLocal()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Tipos Local
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+<div class="modal fade" id="modalTipoHabitacion" tabindex="-1" aria-labelledby="modalTipoHabitacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalTipoHabitacionLabel">
+                    <i class="fas fa-bed"></i> Crear Tipo de Habitación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalTipoHabitacionContent">
+                <!-- El contenido se cargará aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTipoLocal" tabindex="-1" aria-labelledby="modalTipoLocalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalTipoLocalLabel">
+                    <i class="fas fa-store"></i> Crear Tipo de Local
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalTipoLocalContent">
+                <!-- El contenido se cargará aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones de Eliminación Masiva -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Acciones de Eliminación Masiva</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡Atención!</strong> Estas acciones eliminarán TODOS los registros del sistema. Esta operación no se puede deshacer.
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_embarcaciones' %}" id="formEliminarEmbarcaciones" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarEmbarcaciones()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODAS las<br>Embarcaciones</small><br>
+                                <small class="text-muted">({{ total_embarcaciones }} registros)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_rutas' %}" id="formEliminarRutas" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarRutas()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODAS las<br>Rutas</small><br>
+                                <small class="text-muted">({{ total_rutas }} rutas y días)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_tipos_habitacion' %}" id="formEliminarTiposHabitacion" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarTiposHabitacion()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODOS los<br>Tipos Habitación</small><br>
+                                <small class="text-muted">({{ total_tipos_habitacion }} tipos)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_tipos_local' %}" id="formEliminarTiposLocal" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarTiposLocal()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODOS los<br>Tipos Local</small><br>
+                                <small class="text-muted">({{ total_tipos_local }} tipos)</small>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enlaces rápidos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        {% if total_rutas == 0 %}
+                            <button class="btn btn-outline-secondary w-100 mb-2" disabled title="Primero debe crear una ruta">
+                                <i class="fas fa-ship"></i><br>
+                                <small>Nueva Embarcación<br>(Requiere rutas)</small>
+                            </button>
+                        {% else %}
+                            <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-ship"></i><br>
+                                <small>Nueva Embarcación</small>
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="fas fa-route"></i><br>
+                            <small>Nueva Ruta</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-list"></i><br>
+                            <small>Lista Embarcaciones</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="fas fa-list"></i><br>
+                            <small>Lista Rutas</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para manejar los modales -->
+<script>
+function abrirModalTipoHabitacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalTipoHabitacion'));
+    const content = document.getElementById('modalTipoHabitacionContent');
+
+    // Cargar el contenido del modal
+    fetch('{% url "creador_embarcaciones:crear_tipo_habitacion" %}')
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+
+            // Configurar validación del formulario
+            const form = content.querySelector('#tipoHabitacionForm');
+            if (form) {
+                // Validación del formulario
+                form.addEventListener('submit', function(e) {
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } else {
+                        // Mostrar indicador de carga
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+                        }
+                        console.log('Enviando formulario a:', form.action);
+                    }
+                    this.classList.add('was-validated');
+                });
+
+                // Configurar función para cerrar modal
+                window.cerrarModal = function() {
+                    modal.hide();
+                };
+            }
+
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error cargando modal:', error);
+            alert('Error al cargar el formulario. Intente nuevamente.');
+        });
+}
+
+function abrirModalTipoLocal() {
+    const modal = new bootstrap.Modal(document.getElementById('modalTipoLocal'));
+    const content = document.getElementById('modalTipoLocalContent');
+
+    // Cargar el contenido del modal
+    fetch('{% url "creador_embarcaciones:crear_tipo_local" %}')
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+
+            // Configurar el formulario para recargar la página después de submit exitoso
+            const form = content.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // El formulario ahora tiene action correcto, dejar que se envíe normalmente
+                    // El modal se cerrará automáticamente cuando se recargue la página
+                    console.log('Enviando formulario a:', form.action);
+                });
+            }
+
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error cargando modal:', error);
+            alert('Error al cargar el formulario. Intente nuevamente.');
+        });
+}
+
+// Función para cerrar modales desde dentro del modal
+window.addEventListener('message', function(event) {
+    if (event.data.action === 'cerrarModal') {
+        // Cerrar todos los modales
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+    }
+});
+
+// Funciones para modales de eliminación
+function abrirModalEliminarEmbarcaciones() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarEmbarcaciones'));
+    modal.show();
+}
+
+function abrirModalEliminarRutas() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarRutas'));
+    modal.show();
+}
+
+function abrirModalEliminarTiposHabitacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarTiposHabitacion'));
+    modal.show();
+}
+
+function abrirModalEliminarTiposLocal() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarTiposLocal'));
+    modal.show();
+}
+
+// Funciones para confirmar eliminación
+function confirmarEliminarEmbarcaciones() {
+    const form = document.getElementById('formEliminarEmbarcaciones');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarEmbarcaciones'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarRutas() {
+    const form = document.getElementById('formEliminarRutas');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarRutas'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarTiposHabitacion() {
+    const form = document.getElementById('formEliminarTiposHabitacion');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarTiposHabitacion'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarTiposLocal() {
+    const form = document.getElementById('formEliminarTiposLocal');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarTiposLocal'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+</script>
+{% endblock %}

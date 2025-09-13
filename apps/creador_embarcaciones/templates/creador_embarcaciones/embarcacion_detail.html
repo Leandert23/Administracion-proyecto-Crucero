@@ -1,0 +1,143 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Detalles de {{ embarcacion.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Información de la Embarcación -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-ship"></i> {{ embarcacion.nombre }}
+                    <small class="text-muted">({{ embarcacion.identificador }})</small>
+                </h4>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                    <a href="{% url 'creador_embarcaciones:embarcacion_update' embarcacion.pk %}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Información General</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nombre:</strong></td>
+                                <td>{{ embarcacion.nombre }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Identificador:</strong></td>
+                                <td><code>{{ embarcacion.identificador }}</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo:</strong></td>
+                                <td>{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if embarcacion.estado_operativo == 'operativo' %}success{% elif embarcacion.estado_operativo == 'mantenimiento' %}warning{% else %}secondary{% endif %}">
+                                        {{ embarcacion.get_estado_operativo_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Estadísticas de Estructura</h6>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="card bg-light">
+                                    <div class="card-body p-2">
+                                        <h5 class="mb-1">{{ total_cubiertas }}</h5>
+                                        <small class="text-muted">Cubiertas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-info">
+                                    <div class="card-body p-2">
+                                        <h5 class="mb-1 text-white">{{ total_locales }}</h5>
+                                        <small class="text-white">Locales</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-success">
+                                    <div class="card-body p-2">
+                                        <h5 class="mb-1 text-white">{{ total_habitaciones }}</h5>
+                                        <small class="text-white">Habitaciones</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cubiertas -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-layer-group"></i> Cubiertas de la Embarcación
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if cubiertas %}
+                    <div class="row">
+                        {% for cubierta in cubiertas %}
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-layer-group"></i> {{ cubierta.nombre }}
+                                            <small class="float-end">Cubierta {{ cubierta.numero }}</small>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center mb-3">
+                                            <div class="col-6">
+                                                <strong class="text-info">{{ cubierta.locales.count }}</strong><br>
+                                                <small class="text-muted">Locales</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <strong class="text-success">{{ cubierta.habitaciones.count }}</strong><br>
+                                                <small class="text-muted">Habitaciones</small>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-ruler-combined"></i> Área disponible: {{ cubierta.area_disponible }} m²
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}"
+                                           class="btn btn-primary btn-sm w-100">
+                                            <i class="fas fa-cog"></i> Gestionar Cubierta
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay cubiertas configuradas</h5>
+                        <p class="text-muted">Las cubiertas se crean automáticamente al crear la embarcación.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

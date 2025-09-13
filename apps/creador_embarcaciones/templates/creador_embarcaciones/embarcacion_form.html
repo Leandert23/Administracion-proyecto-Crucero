@@ -1,0 +1,407 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}
+    {% if embarcacion %}Editar Embarcación{% else %}Nueva Embarcación{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    {% if embarcacion %}
+                        <i class="fas fa-edit"></i> Editar Embarcación: {{ embarcacion.nombre }}
+                    {% else %}
+                        <i class="fas fa-plus"></i> Nueva Embarcación
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Información Básica -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-info-circle"></i> Información Básica
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger">{{ form.nombre.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div id="tipo-selector">
+                                <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                                    Tipo de Embarcación <span class="text-danger">*</span>
+                                </label>
+                                {{ form.tipo }}
+                                {% if form.tipo.errors %}
+                                    <div class="text-danger">{{ form.tipo.errors.0 }}</div>
+                                {% endif %}
+
+                                <!-- Checkbox para añadir nuevo tipo -->
+                                <div class="form-check mt-2" id="agregar-nuevo-container">
+                                    {{ form.agregar_nuevo_tipo }}
+                                    {{ form.agregar_nuevo_tipo.label_tag }}
+                                </div>
+
+                                <!-- Campo para nuevo tipo -->
+                                <div class="mt-2" id="nuevo-tipo-container">
+                                    {{ form.nuevo_tipo.label_tag }}
+                                    {{ form.nuevo_tipo }}
+                                    {% if form.nuevo_tipo.errors %}
+                                        <div class="text-danger">{{ form.nuevo_tipo.errors.0 }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Ingrese el nombre del nuevo tipo de embarcación
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Identificador único</label>
+                            <input type="text" class="form-control" value="{% if embarcacion.identificador %}{{ embarcacion.identificador }}{% else %}Se generará automáticamente al guardar{% endif %}" readonly>
+                            <small class="form-text text-muted">
+                                El identificador se genera automáticamente basado en el tipo de embarcación
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.estado_operativo.label_tag }}
+                            {{ form.estado_operativo }}
+                            {% if form.estado_operativo.errors %}
+                                <div class="text-danger">{{ form.estado_operativo.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-calendar-alt"></i> Fechas Importantes
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.fecha_botadura.label_tag }}
+                            {{ form.fecha_botadura }}
+                            <small class="form-text text-muted">Formato: DD/MM/YYYY (ej: 25/12/2023) o YYYY-MM-DD (ej: 2023-12-25)</small>
+                            {% if form.fecha_botadura.errors %}
+                                <div class="text-danger">{{ form.fecha_botadura.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.fecha_adquisicion.label_tag }}
+                            {{ form.fecha_adquisicion }}
+                            <small class="form-text text-muted">Formato: DD/MM/YYYY (ej: 25/12/2023) o YYYY-MM-DD (ej: 2023-12-25)</small>
+                            {% if form.fecha_adquisicion.errors %}
+                                <div class="text-danger">{{ form.fecha_adquisicion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Capacidades -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-users"></i> Capacidades
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.capacidad_pasajeros.label_tag }}
+                            {{ form.capacidad_pasajeros }}
+                            {% if form.capacidad_pasajeros.errors %}
+                                <div class="text-danger">{{ form.capacidad_pasajeros.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.capacidad_tripulacion.label_tag }}
+                            {{ form.capacidad_tripulacion }}
+                            {% if form.capacidad_tripulacion.errors %}
+                                <div class="text-danger">{{ form.capacidad_tripulacion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.maximo_habitacion_pasajeros.label_tag }}
+                            {{ form.maximo_habitacion_pasajeros }}
+                            {% if form.maximo_habitacion_pasajeros.errors %}
+                                <div class="text-danger">{{ form.maximo_habitacion_pasajeros.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.maximo_habitacion_tripulantes.label_tag }}
+                            {{ form.maximo_habitacion_tripulantes }}
+                            {% if form.maximo_habitacion_tripulantes.errors %}
+                                <div class="text-danger">{{ form.maximo_habitacion_tripulantes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Dimensiones Físicas -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-ruler-combined"></i> Dimensiones Físicas
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {{ form.eslora.label_tag }}
+                            {{ form.eslora }}
+                            {% if form.eslora.errors %}
+                                <div class="text-danger">{{ form.eslora.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.manga.label_tag }}
+                            {{ form.manga }}
+                            {% if form.manga.errors %}
+                                <div class="text-danger">{{ form.manga.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.altura.label_tag }}
+                            {{ form.altura }}
+                            {% if form.altura.errors %}
+                                <div class="text-danger">{{ form.altura.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.numero_cubiertas.label_tag }}
+                            {{ form.numero_cubiertas }}
+                            {% if form.numero_cubiertas.errors %}
+                                <div class="text-danger">{{ form.numero_cubiertas.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.tonelaje.label_tag }}
+                            {{ form.tonelaje }}
+                            {% if form.tonelaje.errors %}
+                                <div class="text-danger">{{ form.tonelaje.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Información de Registro -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-flag"></i> Información de Registro
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.bandera.label_tag }}
+                            {{ form.bandera }}
+                            {% if form.bandera.errors %}
+                                <div class="text-danger">{{ form.bandera.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.puerto_base.label_tag }}
+                            {{ form.puerto_base }}
+                            {% if form.puerto_base.errors %}
+                                <div class="text-danger">{{ form.puerto_base.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Información Técnica del Motor -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-cogs"></i> Información Técnica del Motor
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.modelo_motor.label_tag }}
+                            {{ form.modelo_motor }}
+                            {% if form.modelo_motor.errors %}
+                                <div class="text-danger">{{ form.modelo_motor.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.velocidad_maxima.label_tag }}
+                            {{ form.velocidad_maxima }}
+                            {% if form.velocidad_maxima.errors %}
+                                <div class="text-danger">{{ form.velocidad_maxima.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Mantenimiento -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-tools"></i> Mantenimiento
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form.ultimo_mantenimiento.label_tag }}
+                            {{ form.ultimo_mantenimiento }}
+                            {% if form.ultimo_mantenimiento.errors %}
+                                <div class="text-danger">{{ form.ultimo_mantenimiento.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.proximo_mantenimiento.label_tag }}
+                            {{ form.proximo_mantenimiento }}
+                            {% if form.proximo_mantenimiento.errors %}
+                                <div class="text-danger">{{ form.proximo_mantenimiento.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Información de Combustible -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-gas-pump"></i> Información de Combustible
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {{ form.tipo_combustible.label_tag }}
+                            {{ form.tipo_combustible }}
+                            {% if form.tipo_combustible.errors %}
+                                <div class="text-danger">{{ form.tipo_combustible.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.consumo_combustible.label_tag }}
+                            {{ form.consumo_combustible }}
+                            {% if form.consumo_combustible.errors %}
+                                <div class="text-danger">{{ form.consumo_combustible.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.capacidad_combustible.label_tag }}
+                            {{ form.capacidad_combustible }}
+                            {% if form.capacidad_combustible.errors %}
+                                <div class="text-danger">{{ form.capacidad_combustible.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Ruta y Descripción -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-route"></i> Ruta y Descripción
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.ruta.label_tag }}
+                            {{ form.ruta }}
+                            {% if form.ruta.errors %}
+                                <div class="text-danger">{{ form.ruta.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            {{ form.descripcion.label_tag }}
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger">{{ form.descripcion.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="row">
+                        <div class="col-12">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    {% if embarcacion %}Actualizar Embarcación{% else %}Crear Embarcación{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Validación del lado del cliente para campos numéricos
+document.addEventListener('DOMContentLoaded', function() {
+    const numericFields = [
+        'id_capacidad_pasajeros', 'id_capacidad_tripulacion', 'id_tonelaje',
+        'id_eslora', 'id_manga', 'id_altura', 'id_numero_cubiertas',
+        'id_maximo_habitacion_pasajeros', 'id_maximo_habitacion_tripulantes',
+        'id_velocidad_maxima', 'id_consumo_combustible', 'id_capacidad_combustible'
+    ];
+
+    numericFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                if (this.value < 0) {
+                    this.value = 0;
+                }
+            });
+        }
+    });
+
+    // JavaScript para el selector de tipos de embarcación
+    function inicializarSelectorTipos() {
+        const checkboxAgregarNuevo = document.getElementById('id_agregar_nuevo_tipo');
+        const nuevoTipoContainer = document.getElementById('nuevo-tipo-container');
+        const selectorTipo = document.getElementById('id_tipo');
+
+        if (!checkboxAgregarNuevo || !nuevoTipoContainer || !selectorTipo) {
+            console.log('Esperando elementos del DOM...');
+            setTimeout(inicializarSelectorTipos, 100);
+            return;
+        }
+
+        // Función para actualizar la visibilidad de los elementos
+        function actualizarVisibilidadTipo() {
+            const agregarNuevo = checkboxAgregarNuevo.checked;
+
+            if (agregarNuevo) {
+                // Mostrar campo de nuevo tipo, ocultar selector
+                nuevoTipoContainer.style.display = 'block';
+                nuevoTipoContainer.style.visibility = 'visible';
+                selectorTipo.style.display = 'none';
+                selectorTipo.required = false;
+
+                const nuevoTipoField = document.getElementById('id_nuevo_tipo');
+                if (nuevoTipoField) {
+                    nuevoTipoField.required = true;
+                    nuevoTipoField.style.display = 'block';
+                    nuevoTipoField.style.visibility = 'visible';
+                }
+            } else {
+                // Mostrar selector, ocultar campo de nuevo tipo
+                nuevoTipoContainer.style.display = 'none';
+                selectorTipo.style.display = 'block';
+                selectorTipo.required = true;
+
+                const nuevoTipoField = document.getElementById('id_nuevo_tipo');
+                if (nuevoTipoField) {
+                    nuevoTipoField.required = false;
+                    nuevoTipoField.style.display = 'none';
+                }
+            }
+        }
+
+        // Event listener para el checkbox
+        checkboxAgregarNuevo.addEventListener('change', actualizarVisibilidadTipo);
+
+        // Inicializar estado (ocultar campo nuevo tipo por defecto)
+        actualizarVisibilidadTipo();
+    }
+
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializarSelectorTipos);
+    } else {
+        inicializarSelectorTipos();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Detalles de Ruta{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-route"></i> Detalles de Ruta</h2>
+                <p class="text-muted">{{ ruta.titulo }}</p>
+            </div>
+            <div>
+                <a href="{% url 'creador_embarcaciones:ruta_update' ruta.pk %}" class="btn btn-warning me-2">
+                    <i class="fas fa-edit"></i> Editar Ruta
+                </a>
+                <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Información de la Ruta -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información General</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Título</h6>
+                        <p class="text-primary">{{ ruta.titulo }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Número de Días</h6>
+                        <p class="text-success">
+                            <i class="fas fa-calendar"></i> {{ ruta.numero_dias }} días
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Progreso de Configuración</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                <div class="progress-bar bg-{% if ruta.progreso_configuracion == 100 %}success{% elif ruta.progreso_configuracion > 50 %}warning{% else %}info{% endif %}"
+                                     role="progressbar"
+                                     style="width: {{ ruta.progreso_configuracion }}%"
+                                     aria-valuenow="{{ ruta.progreso_configuracion }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <span class="badge bg-{% if ruta.progreso_configuracion == 100 %}success{% elif ruta.progreso_configuracion > 50 %}warning{% else %}secondary{% endif %}">
+                                {{ ruta.progreso_configuracion }}%
+                            </span>
+                        </div>
+                        <small class="text-muted">
+                            {{ ruta.dias_configurados }}/{{ ruta.numero_dias }} días configurados
+                        </small>
+                    </div>
+                </div>
+                {% if ruta.descripcion %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Descripción</h6>
+                        <p>{{ ruta.descripcion }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Fecha de Creación</h6>
+                        <p><i class="fas fa-clock"></i> {{ ruta.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Estado General</h6>
+                        <p>
+                            {% if ruta.esta_completamente_configurada %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Completamente Configurada
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> En Configuración
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información sobre configuración de días -->
+        {% if ruta.dias_configurados == 0 %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle"></i> ¡Configura tu itinerario!
+                </h6>
+                <p>Los días de tu ruta se han generado automáticamente. Haz clic en "Configurar Día" en cada tarjeta para personalizar cada día del itinerario.</p>
+                <hr>
+                <p class="mb-0">Puedes configurar: ubicación, descripción, actividades, horarios y notas especiales para cada día.</p>
+            </div>
+        {% endif %}
+
+        <!-- Días de la Ruta -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-calendar-day"></i> Itinerario Detallado</h5>
+                <div>
+                    <span class="badge bg-primary me-2">{{ ruta.dias_configurados }}/{{ ruta.numero_dias }} días configurados</span>
+                    {% if ruta.esta_completamente_configurada %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> Completo
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-clock"></i> En Progreso
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if ruta.dias.all %}
+                    <div class="row">
+                        {% for dia in ruta.dias.all %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 {% if dia.esta_configurado %}border-success{% else %}border-warning{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center {% if dia.esta_configurado %}bg-success{% else %}bg-warning{% endif %} text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-calendar-day"></i> Día {{ dia.numero_dia }}
+                                        </h6>
+                                        <small class="badge bg-light text-dark">{{ dia.progreso_configuracion }}%</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            {% if dia.titulo_dia and dia.titulo_dia != "Día pendiente de configuración" %}
+                                                {{ dia.titulo_dia }}
+                                            {% else %}
+                                                <em class="text-muted">Sin título</em>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="card-text mb-2">
+                                            <strong>Ubicación:</strong>
+                                            {% if dia.ubicacion and dia.ubicacion != "Ubicación pendiente" %}
+                                                {{ dia.ubicacion }}
+                                            {% else %}
+                                                <em class="text-muted">Pendiente</em>
+                                            {% endif %}
+                                        </p>
+
+                                        {% if dia.hora_llegada or dia.hora_salida %}
+                                            <p class="card-text mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i>
+                                                    {% if dia.hora_llegada %}Llegada: {{ dia.hora_llegada|time:"H:i" }}{% endif %}
+                                                    {% if dia.hora_llegada and dia.hora_salida %} | {% endif %}
+                                                    {% if dia.hora_salida %}Salida: {{ dia.hora_salida|time:"H:i" }}{% endif %}
+                                                </small>
+                                            </p>
+                                        {% endif %}
+
+                                        {% if dia.descripcion %}
+                                            <p class="card-text mb-2">
+                                                <small>{{ dia.descripcion|truncatechars:80 }}</small>
+                                            </p>
+                                        {% endif %}
+
+                                        <div class="mb-2">
+                                            {% if dia.esta_configurado %}
+                                                <span class="badge bg-success">Configurado</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <a href="{% url 'creador_embarcaciones:dia_update' dia.pk %}" class="btn btn-sm btn-primary w-100">
+                                            <i class="fas fa-edit"></i> {% if dia.esta_configurado %}Editar Día{% else %}Configurar Día{% endif %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Resumen del progreso -->
+                    <div class="mt-4">
+                        <h6>Resumen del Progreso:</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-{% if ruta.progreso_configuracion == 100 %}success{% elif ruta.progreso_configuracion > 50 %}warning{% else %}info{% endif %}"
+                                 role="progressbar"
+                                 style="width: {{ ruta.progreso_configuracion }}%"
+                                 aria-valuenow="{{ ruta.progreso_configuracion }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                {{ ruta.progreso_configuracion }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            Has configurado {{ ruta.dias_configurados }} de {{ ruta.numero_dias }} días.
+                            {% if not ruta.esta_completamente_configurada %}
+                                Haz clic en "Configurar Día" para completar la ruta.
+                            {% endif %}
+                        </small>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h4>No hay días configurados</h4>
+                        <p class="text-muted">Los días deberían haberse creado automáticamente al crear la ruta.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
+                        <h4 class="card-title">{{ ruta.dias.count }}</h4>
+                        <p class="card-text text-muted">Días Configurados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                        <h4 class="card-title">{{ ruta.numero_dias }}</h4>
+                        <p class="card-text text-muted">Días Totales</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

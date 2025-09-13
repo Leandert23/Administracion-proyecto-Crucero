@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.administracion",
     "apps.servicio_medico",
     "apps.restaurante",
+    "apps.creador_embarcaciones"
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,22 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+# Formatos de fecha personalizados para aceptar DD/MM/YYYY
+DATE_INPUT_FORMATS = [
+    '%d/%m/%Y',  # 25/12/2023
+    '%d/%m/%y',  # 25/12/23
+    '%Y-%m-%d',  # 2023-12-25 (ISO)
+    '%m/%d/%Y',  # 12/25/2023 (US)
+    '%m/%d/%y',  # 12/25/23 (US)
+    '%d-%m-%Y',  # 25-12-2023
+    '%d-%m-%y',  # 25-12-23
+    '%Y/%m/%d',  # 2023/12/25
+]
+
+# Formatos de fecha para mostrar
+DATE_FORMAT = 'd/m/Y'  # Mostrar como 25/12/2023
+SHORT_DATE_FORMAT = 'd/m/Y'
 
 
 

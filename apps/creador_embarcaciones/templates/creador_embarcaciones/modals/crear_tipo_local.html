@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Tipo de Local</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-store"></i> Crear Tipo de Local Estándar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="tipoLocalForm" method="post" action="{% url 'creador_embarcaciones:crear_tipo_local' %}" novalidate>
+                            {% csrf_token %}
+
+                            <!-- Información Básica -->
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle"></i> Información Básica
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_nombre" class="form-label">
+                                        Nombre del Tipo <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="nombre" id="id_nombre" class="form-control"
+                                           placeholder="Ej: Restaurante Principal, Bar Lounge" required>
+                                    <div class="invalid-feedback">
+                                        Este campo es obligatorio.
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_tipo" class="form-label">
+                                        Tipo de Local <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="tipo" id="id_tipo" class="form-control" required>
+                                        <option value="">-- Seleccionar tipo --</option>
+                                        {% for tipo_value, tipo_display in tipo_choices %}
+                                            <option value="{{ tipo_value }}">{{ tipo_display }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Seleccione un tipo de local.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_descripcion" class="form-label">
+                                    Descripción
+                                </label>
+                                <textarea name="descripcion" id="id_descripcion" class="form-control"
+                                          rows="2" placeholder="Descripción opcional del tipo de local"></textarea>
+                            </div>
+
+                            <!-- Especificaciones del Local -->
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-cog"></i> Especificaciones del Local
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_area_metros_cuadrados" class="form-label">
+                                        Área Estándar (m²) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="area_metros_cuadrados" id="id_area_metros_cuadrados"
+                                           class="form-control" step="0.01" min="0" placeholder="100.00" required>
+                                    <div class="invalid-feedback">
+                                        Ingrese un área válida.
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_capacidad_personas" class="form-label">
+                                        Capacidad de Personas <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="capacidad_personas" id="id_capacidad_personas"
+                                           class="form-control" min="1" max="500" value="50" required>
+                                    <div class="form-text">
+                                        Número máximo de personas
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tiene_ventilacion" id="id_tiene_ventilacion" checked>
+                                        <label class="form-check-label" for="id_tiene_ventilacion">
+                                            Tiene Ventilación
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tiene_iluminacion_especial" id="id_tiene_iluminacion_especial">
+                                        <label class="form-check-label" for="id_tiene_iluminacion_especial">
+                                            Tiene Iluminación Especial
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información de Mantenimiento -->
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tools"></i> Información de Mantenimiento
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_ultimo_mantenimiento_dias" class="form-label">
+                                        Días para Último Mantenimiento <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="ultimo_mantenimiento_dias" id="id_ultimo_mantenimiento_dias"
+                                           class="form-control" min="0" max="365" value="30" required>
+                                    <div class="form-text">
+                                        Días desde el último mantenimiento
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_proximo_mantenimiento_dias" class="form-label">
+                                        Días para Próximo Mantenimiento <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="proximo_mantenimiento_dias" id="id_proximo_mantenimiento_dias"
+                                           class="form-control" min="0" max="730" value="90" required>
+                                    <div class="form-text">
+                                        Días hasta el próximo mantenimiento
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_estado_default" class="form-label">
+                                    Estado por Defecto <span class="text-danger">*</span>
+                                </label>
+                                <select name="estado_default" id="id_estado_default" class="form-control" required>
+                                    {% for estado_value, estado_display in estado_choices %}
+                                        <option value="{{ estado_value }}"
+                                                {% if estado_value == 'operativo' %}selected{% endif %}>
+                                            {{ estado_display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    Estado que tendrán los locales creados con este tipo
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="cerrarModal()">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-save"></i> Crear Tipo de Local
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validación del formulario
+        document.getElementById('tipoLocalForm').addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                // Mostrar indicador de carga
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+            }
+            this.classList.add('was-validated');
+        });
+
+        // Función para cerrar el modal
+        function cerrarModal() {
+            // Si está en un modal de Bootstrap
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({action: 'cerrarModal'}, '*');
+            } else {
+                window.close();
+            }
+        }
+
+        // Manejar errores del servidor
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    alert('{{ message }}');
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+</body>
+</html>

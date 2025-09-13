@@ -1,0 +1,102 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Eliminar Local{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Eliminar Local</li>
+            </ol>
+        </nav>
+
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5 class="mb-3">
+                        <i class="fas fa-trash"></i> ¿Estás seguro de que quieres eliminar este local?
+                    </h5>
+                    <p class="mb-0">Esta acción no se puede deshacer.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Información del Local</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Nombre:</strong></td>
+                                <td>{{ local.nombre }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ID:</strong></td>
+                                <td>{{ local.ID_local }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo:</strong></td>
+                                <td>{{ local.get_tipo_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>{{ local.get_estado_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Área:</strong></td>
+                                <td>{{ local.area_metros_cuadrados }} m²</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ubicación:</strong></td>
+                                <td>{{ local.ubicacion }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Información de Ubicación</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Embarcación:</strong></td>
+                                <td>{{ embarcacion.nombre }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cubierta:</strong></td>
+                                <td>{{ cubierta.nombre }} ({{ cubierta.numero }})</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Número de Cubierta:</strong></td>
+                                <td>{{ local.n_cubierta }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}"
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Eliminar Local
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

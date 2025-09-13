@@ -1,0 +1,291 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}
+    {% if local %}Editar Local{% else %}Nuevo Local{% endif %} - {{ cubierta.nombre }}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {% if local %}Editar Local{% else %}Nuevo Local{% endif %}
+                </li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-store"></i>
+                    {% if local %}Editar Local{% else %}Nuevo Local{% endif %}
+                    <small class="text-white-50">en {{ cubierta.nombre }}</small>
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Información Básica -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-info-circle"></i> Información Básica
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                Nombre del Local <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="nombre" class="form-control"
+                                   value="{% if local %}{{ local.nombre }}{% endif %}"
+                                   placeholder="Ej: Restaurante Principal" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.ID_local.id_for_label }}" class="form-label">
+                                ID del Local <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="ID_local" class="form-control"
+                                   value="{% if local %}{{ local.ID_local }}{% endif %}"
+                                   placeholder="Ej: REST001" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                                Tipo de Local <span class="text-danger">*</span>
+                            </label>
+                            <select name="tipo" id="id_tipo" class="form-control" required onchange="tipoSeleccionado(this.value)">
+                                <option value="">-- Seleccionar tipo --</option>
+                                <optgroup label="📋 Tipos Estándar">
+                                    <!-- Los tipos estándar se cargarán aquí vía JavaScript -->
+                                </optgroup>
+                                <optgroup label="✏️ Tipos Manuales">
+                                    {% for tipo_value, tipo_display in tipo_choices %}
+                                        <option value="{{ tipo_value }}"
+                                                {% if local and local.tipo == tipo_value %}selected{% endif %}>
+                                            {{ tipo_display }}
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Selecciona un tipo estándar o crea uno manualmente.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                Estado <span class="text-danger">*</span>
+                            </label>
+                            <select name="estado" class="form-control" required>
+                                {% for estado_value, estado_display in estado_choices %}
+                                    <option value="{{ estado_value }}"
+                                            {% if local and local.estado == estado_value %}selected{% elif not local and estado_value == 'operativo' %}selected{% endif %}>
+                                        {{ estado_display }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Especificaciones -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-ruler-combined"></i> Especificaciones
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.area_metros_cuadrados.id_for_label }}" class="form-label">
+                                Área (m²) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" name="area_metros_cuadrados" class="form-control"
+                                   value="{% if local %}{{ local.area_metros_cuadrados }}{% endif %}"
+                                   step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ubicación</label>
+                            <input type="text" class="form-control" readonly
+                                   value="{% if local %}{{ local.ubicacion }}{% else %}Se generará automáticamente{% endif %}">
+                            <small class="form-text text-muted">
+                                Formato: {cubierta}{tipo}{ID_local} (Ej: 1L001 para Lobby en cubierta 1)
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Información de Mantenimiento -->
+                    <h5 class="mb-3 text-primary">
+                        <i class="fas fa-tools"></i> Información de Mantenimiento
+                    </h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.ultimo_mantenimiento.id_for_label }}" class="form-label">
+                                Último Mantenimiento <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="ultimo_mantenimiento" class="form-control"
+                                   value="{% if local %}{{ local.ultimo_mantenimiento|date:'Y-m-d' }}{% else %}{{ 'now'|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.proximo_mantenimiento.id_for_label }}" class="form-label">
+                                Próximo Mantenimiento <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="proximo_mantenimiento" class="form-control"
+                                   value="{% if local %}{{ local.proximo_mantenimiento|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-save"></i>
+                                    {% if local %}Actualizar Local{% else %}Crear Local{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tiposEstandarLocales = [];
+
+// Cargar tipos estándar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarTiposEstandar();
+});
+
+function cargarTiposEstandar() {
+    fetch('{% url "creador_embarcaciones:obtener_tipos_local" %}')
+        .then(response => response.json())
+        .then(data => {
+            tiposEstandarLocales = data.tipos;
+            actualizarSelectTipos();
+        })
+        .catch(error => {
+            console.error('Error cargando tipos estándar:', error);
+        });
+}
+
+function actualizarSelectTipos() {
+    const select = document.getElementById('id_tipo');
+    const optgroupEstandar = select.querySelector('optgroup[label="📋 Tipos Estándar"]');
+
+    // Limpiar opciones existentes
+    optgroupEstandar.innerHTML = '';
+
+    // Agregar tipos estándar
+    tiposEstandarLocales.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = `estandar_${tipo.id}`;
+        option.textContent = `${tipo.nombre} - ${tipo.tipo} (${tipo.area} m²)`;
+        option.setAttribute('data-estandar', 'true');
+        option.setAttribute('data-tipo', tipo);
+        optgroupEstandar.appendChild(option);
+    });
+}
+
+function tipoSeleccionado(valor) {
+    if (valor && valor.startsWith('estandar_')) {
+        const tipoId = valor.replace('estandar_', '');
+        const tipo = tiposEstandarLocales.find(t => t.id == tipoId);
+
+        if (tipo) {
+            // Rellenar automáticamente los campos con los valores estándar
+            document.getElementById('id_area_metros_cuadrados').value = tipo.area;
+            document.getElementById('id_estado_default').value = tipo.estado_default;
+
+            // Rellenar campos adicionales de especificaciones
+            if (document.getElementById('id_capacidad_personas')) {
+                document.getElementById('id_capacidad_personas').value = tipo.capacidad_personas;
+            }
+            if (document.getElementById('id_tiene_ventilacion')) {
+                document.getElementById('id_tiene_ventilacion').checked = tipo.tiene_ventilacion;
+            }
+            if (document.getElementById('id_tiene_iluminacion_especial')) {
+                document.getElementById('id_tiene_iluminacion_especial').checked = tipo.tiene_iluminacion_especial;
+            }
+
+            // Rellenar campos de mantenimiento
+            if (document.getElementById('id_ultimo_mantenimiento')) {
+                // Calcular fecha basada en días
+                const hoy = new Date();
+                const diasAtras = tipo.ultimo_mantenimiento_dias;
+                const fechaUltimo = new Date(hoy.getTime() - (diasAtras * 24 * 60 * 60 * 1000));
+                document.getElementById('id_ultimo_mantenimiento').value = fechaUltimo.toISOString().split('T')[0];
+            }
+            if (document.getElementById('id_proximo_mantenimiento')) {
+                // Calcular fecha basada en días
+                const hoy = new Date();
+                const diasFuturo = tipo.proximo_mantenimiento_dias;
+                const fechaProximo = new Date(hoy.getTime() + (diasFuturo * 24 * 60 * 60 * 1000));
+                document.getElementById('id_proximo_mantenimiento').value = fechaProximo.toISOString().split('T')[0];
+            }
+
+            // Mostrar información del tipo seleccionado
+            mostrarInfoTipoEstandar(tipo);
+        }
+    } else {
+        // Limpiar información cuando se selecciona un tipo manual
+        ocultarInfoTipoEstandar();
+    }
+}
+
+function mostrarInfoTipoEstandar(tipo) {
+    // Buscar si ya existe un elemento de información
+    let infoDiv = document.getElementById('infoTipoEstandar');
+    if (!infoDiv) {
+        // Crear el elemento de información
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'infoTipoEstandar';
+        infoDiv.className = 'alert alert-info mt-2';
+
+        // Insertar después del select
+        const select = document.getElementById('id_tipo');
+        select.parentNode.insertBefore(infoDiv, select.nextSibling);
+    }
+
+    let especificaciones = [];
+
+    if (tipo.capacidad_personas) especificaciones.push(`👥 ${tipo.capacidad_personas} personas`);
+    if (tipo.tiene_ventilacion) especificaciones.push(`💨 Ventilación`);
+    if (tipo.tiene_iluminacion_especial) especificaciones.push(`💡 Iluminación especial`);
+
+    let especInfo = especificaciones.length > 0 ? `<br>Especificaciones: ${especificaciones.join(' • ')}` : '';
+
+    infoDiv.innerHTML = `
+        <small>
+            <i class="fas fa-info-circle"></i>
+            <strong>Tipo Estándar Seleccionado:</strong> ${tipo.nombre}<br>
+            Área recomendada: ${tipo.area} m² | Estado por defecto: ${tipo.estado_default}${especInfo}<br>
+            <strong>Mantenimiento:</strong> Último ${tipo.ultimo_mantenimiento_dias} días | Próximo ${tipo.proximo_mantenimiento_dias} días
+        </small>
+    `;
+}
+
+function ocultarInfoTipoEstandar() {
+    const infoDiv = document.getElementById('infoTipoEstandar');
+    if (infoDiv) {
+        infoDiv.remove();
+    }
+}
+</script>
+{% endblock %}
