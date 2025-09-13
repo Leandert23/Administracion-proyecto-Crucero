@@ -13,638 +13,2614 @@
             margin-bottom: 25px !important;
         }
     </style>
+    <style>
+        /* Estilos para aumentar la separación entre botones de filtro y cards */
+        .filter-buttons {
+            margin-bottom: 25px !important;
+        }
+
+        /* ===== ESTILOS PARA LA SECCIÓN DE BOTONES MÚLTIPLES ===== */
+
+        .action-buttons-section {
+            margin-bottom: 32px;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .action-buttons-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            min-width: 160px;
+        }
+
+        .action-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-text {
+            white-space: nowrap;
+        }
+
+        /* Estilos específicos para el botón de eliminar */
+        .action-btn[data-action="eliminar-registro"] {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+            cursor: pointer;
+        }
+
+        .action-btn[data-action="eliminar-registro"]:hover {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Estilos específicos para el botón de cargar datos precargados */
+        .action-btn[data-action="cargar-datos-precargados"] {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .action-btn[data-action="cargar-datos-precargados"]:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #3b82f6;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            color: white;
+        }
+
+        /* Estilos responsivos para la sección de botones */
+        @media (max-width: 768px) {
+            .action-buttons-section {
+                padding: 20px;
+                margin-bottom: 24px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 16px;
+            }
+
+            .action-buttons-row {
+                gap: 8px;
+            }
+
+            .action-btn {
+                flex: 1;
+                min-width: 0;
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+
+            .action-text {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-buttons-section {
+                padding: 16px;
+            }
+
+            .action-buttons-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 14px 16px;
+            }
+
+            /* Mantener color rojo en móviles */
+            .action-btn[data-action="eliminar-registro"] {
+                background: #dc2626;
+                color: white;
+                border-color: #dc2626;
+            }
+
+            /* Mantener color azul en móviles */
+            .action-btn[data-action="cargar-datos-precargados"] {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                color: white;
+                border-color: #3b82f6;
+            }
+
+            /* Mantener sin hover en móviles */
+            .action-btn[data-action="cargar-datos-precargados"]:hover {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                border-color: #3b82f6;
+                transform: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+                color: white;
+            }
+
+        /* ===== ESTILOS PARA EL MODAL DE ELIMINAR ACTIVIDADES v2.1 ===== */
+        .activity-type-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        #delete-activities-modal .activity-type-btn {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+            padding: 24px !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            cursor: pointer !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            text-align: left !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        #delete-activities-modal .activity-type-btn::before {
+            content: '' !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: -100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent) !important;
+            transition: left 0.5s ease !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:hover::before {
+            left: 100% !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+            border-color: #3b82f6 !important;
+            transform: translateY(-4px) scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            border-color: #3b82f6 !important;
+            color: white !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3) !important;
+        }
+
+        #delete-activities-modal .activity-type-btn:active {
+            transform: translateY(-1px) scale(0.98) !important;
+            transition: all 0.1s ease !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected .type-description {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        #delete-activities-modal .type-title {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            margin-bottom: 6px !important;
+            letter-spacing: -0.025em !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        #delete-activities-modal .activity-type-btn.selected .type-title {
+            color: white !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        #delete-activities-modal .type-description {
+            font-size: 14px !important;
+            color: #64748b !important;
+            line-height: 1.5 !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        /* Estilos responsivos para el modal */
+        @media (max-width: 768px) {
+            .activity-type-selection {
+                gap: 12px;
+            }
+
+            .activity-type-btn {
+                padding: 20px;
+                gap: 8px;
+                border-radius: 14px;
+            }
+
+            .type-title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .type-description {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .activity-type-btn {
+                padding: 18px;
+                gap: 6px;
+            }
+
+            .type-title {
+                font-size: 15px;
+            }
+
+            .type-description {
+                font-size: 12px;
+            }
+        }
+
+        /* Estilos para el modal de eliminar actividad */
+        .large-modal {
+            max-width: 900px;
+            width: 90vw;
+        }
+
+        .modal-description {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .activity-delete-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+        }
+
+        .activity-delete-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .activity-delete-card.selected {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .activity-card-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .activity-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .activity-card-type {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .activity-card-body {
+            padding: 20px;
+        }
+
+        .activity-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .activity-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .activity-info-icon {
+            width: 16px;
+            text-align: center;
+        }
+
+        .activity-card-footer {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-delete-activity {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete-activity:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .loading-activities {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .no-activities-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .no-activities-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .no-activities-message h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        /* Estilos para las cards del modal de eliminar */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-id {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            color: #475569;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .card-price {
+            color: #059669;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-location {
+            color: #7c3aed;
+            margin-bottom: 8px;
+        }
+
+        .card-schedule {
+            color: #475569;
+            font-size: 14px;
+        }
+
+        /* Estilos para el botón de eliminar en las cards */
+        .delete-action {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-delete-card {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border: 2px solid #dc2626;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-delete-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-delete-card:hover::before {
+            left: 100%;
+        }
+
+        .btn-delete-card:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            border-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-delete-card:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-delete-card:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Estilos modernos para el modal de ayuda */
+        .help-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .help-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .help-content::-webkit-scrollbar-track {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 10px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+            border-radius: 10px;
+            border: 2px solid #f8fafc;
+        }
+
+        .help-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        .help-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .help-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .help-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 2px;
+        }
+
+        .help-description {
+            color: #64748b;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .help-item {
+            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .help-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .help-item:hover::before {
+            opacity: 1;
+        }
+
+        .help-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .help-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-item-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .help-item-description {
+            color: #64748b;
+            line-height: 1.7;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .help-item-description strong {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .limitations-list, .tips-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .limitation-item {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fef3f2 100%);
+            border: 1px solid rgba(252, 165, 165, 0.3);
+            border-radius: 10px;
+            color: #dc2626;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .limitation-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.1);
+        }
+
+        .limitation-item strong {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .tip-item {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f7fefa 100%);
+            border: 1px solid rgba(187, 247, 208, 0.3);
+            border-radius: 10px;
+            color: #16a34a;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tip-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.1);
+        }
+
+        .tip-item strong {
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .controls-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .control-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .control-item kbd {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-item span {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* ===== ESTILOS PARA EL MODAL DE RESERVAS ===== */
+        .reservas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .reserva-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+
+        .reserva-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .reserva-card-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .reserva-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+        }
+
+        .reserva-card-type {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .reserva-card-body {
+            padding: 20px;
+        }
+
+        .reserva-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .reserva-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .reserva-info-icon {
+            width: 16px;
+            text-align: center;
+            color: #3b82f6;
+        }
+
+        .loading-reservas {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            grid-column: 1 / -1;
+        }
+
+        .no-reservas-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            grid-column: 1 / -1;
+        }
+
+        .no-reservas-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .no-reservas-message h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        /* Responsive para el modal de reservas */
+        @media (max-width: 768px) {
+            .reservas-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        /* Responsive para el modal de eliminar */
+        @media (max-width: 768px) {
+            .activities-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .large-modal {
+                width: 95vw;
+                margin: 10px;
+            }
+
+            .btn-delete-card {
+                font-size: 13px;
+                padding: 10px 16px;
+                letter-spacing: 0.3px;
+            }
+
+            .help-content {
+                max-height: 60vh;
+            }
+
+            .help-item {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
 
     {% include "sidebar.html" with active_module="entretenimiento" %}
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <div class="header-content">
-                        <h1 class="page-title">Entretenimiento</h1>
-                        <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
-                    </div>
-                </div>
-            </header>
+            <!-- Overlay para móviles -->
+            <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
 
-            <!-- Dashboard Content -->
-            <div class="dashboard-content">
-                <!-- Date Display -->
-                <div class="date-container">
-                    <div class="date-display">
-                        <span class="date-text" id="current-date">
-                            {% if dia_seleccionado %}
-                                Día {{ dia_seleccionado }} del Crucero
-                            {% else %}
-                                Todos los Días
-                            {% endif %}
-                        </span>
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Header -->
+                <header class="main-header">
+                    <div class="header-left">
+                        <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <div class="header-content">
+                            <h1 class="page-title">Entretenimiento</h1>
+                            <p class="page-subtitle">Gestión de actividades y eventos de entretenimiento</p>
+                        </div>
                     </div>
-                    <div class="day-selector">
-                        <select id="day-selector-btn" onchange="selectDay()" style="background: #3b82f6 !important; color: white !important; border: none !important; padding: 12px 18px !important; border-radius: 8px !important; font-size: 14px !important; font-weight: 600 !important; cursor: pointer !important; font-family: inherit !important; min-width: 160px !important; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; transition: all 0.3s ease !important;">
-                            <option value="" style="color: #1e293b !important; background: white !important;">Todos los Días</option>
-                            {% for dia in dias_disponibles %}
-                            <option value="{{ dia }}" {% if dia_seleccionado == dia %}selected{% endif %} style="color: #1e293b !important; background: white !important;">
-                                Día {{ dia }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                </header>
+    
+                <!-- Dashboard Content -->
+                <div class="dashboard-content">
+                    <!-- Date Display -->
+                    <div class="date-container">
+                        <div class="date-display">
+                            <span class="date-text" id="current-date" data-server="1">
+                                {% if dia_seleccionado %}
+                                    Día {{ dia_seleccionado }} del Crucero
+                                    {% if fecha_dia_seleccionado %}- Fecha viaje: {{ fecha_dia_seleccionado|date:"Y-m-d" }}{% endif %}
+                                    {% if fecha_actual_sistema %}<br><small style="font-weight:400;color:#64748b">Fecha sistema: {{ fecha_actual_sistema|date:"Y-m-d" }}</small>{% endif %}
+                                {% else %}
+                                    {% if fecha_actual_sistema %}
+                                        {{ fecha_actual_sistema|date:"Y-m-d" }}
+                                    {% else %}
+                                        Todos los Días
+                                    {% endif %}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="day-selector">
+                            <select id="day-selector-btn" onchange="selectDay()" style="background: #3b82f6 !important; color: white !important; border: none !important; padding: 12px 18px !important; border-radius: 8px !important; font-size: 14px !important; font-weight: 600 !important; cursor: pointer !important; font-family: inherit !important; min-width: 160px !important; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important; transition: all 0.3s ease !important;">
+                                <option value="" style="color: #1e293b !important; background: white !important;">Todos los Días</option>
+                                {% for dia in dias_disponibles %}
+                                <option value="{{ dia }}" {% if dia_seleccionado == dia %}selected{% endif %} style="color: #1e293b !important; background: white !important;">
+                                    Día {{ dia }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Filter Buttons -->
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all" onclick="filterActivities('all')" style="background: #3b82f6; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
-                        Todas las Actividades
-                    </button>
-                    <button class="filter-btn" data-filter="pago" onclick="filterActivities('pago')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
-                        Solo Actividades de Pago
-                    </button>
-                    <button class="filter-btn" data-filter="gratuito" onclick="filterActivities('gratuito')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
-                        Solo Actividades Gratuitas
-                    </button>
-                </div>
-
-                <!-- Content Cards Grid -->
-                <div class="content-grid">
-                    {% for actividad in actividades %}
-                    <div class="content-card" data-type="{{ actividad.tipo }}">
-                        <div class="image-placeholder">
-                            
-                               
-                                    <img src="{% static 'entretenimiento/img/' %}{{ actividad.img_src }}" alt="{{ actividad.titulo }}" class="activity-image">
+    
+                    <!-- Filter Buttons -->
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all" onclick="filterActivities('all')" style="background: #3b82f6; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                            Todas las Actividades
+                        </button>
+                        <button class="filter-btn" data-filter="pago" onclick="filterActivities('pago')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                            Solo Actividades de Pago
+                        </button>
+                        <button class="filter-btn" data-filter="gratuito" onclick="filterActivities('gratuito')" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: inherit;">
+                            Solo Actividades Gratuitas
+                        </button>
+                    </div>
+    
+                    <!-- Sección de Botones Múltiples -->
+                    <div class="action-buttons-section">
+                        <h3 class="section-title">Acciones Rápidas</h3>
+                        <div class="action-buttons-grid">
+                            <div class="action-buttons-row">
+                                <button class="action-btn" data-action="nueva-actividad">
+                                    <span class="action-text">Nueva Actividad</span>
+                                </button>
+                                <button class="action-btn" data-action="eliminar-actividad">
+                                    <span class="action-text">Eliminar Actividad</span>
+                                </button>
+                            </div>
+                            <div class="action-buttons-row">
+                                <button class="action-btn" data-action="ayuda">
+                                    <span class="action-text">Ayuda</span>
+                                </button>
+                                <button class="action-btn" data-action="ver-reservas">
+                                    <span class="action-text">Ver Reservas</span>
+                                </button>
+                            </div>
+                            <div class="action-buttons-row">
+                                <button class="action-btn" data-action="cargar-datos-precargados">
+                                    <span class="action-text">Cargar datos precargados</span>
+                                </button>
+                                <button class="action-btn" data-action="eliminar-registro">
+                                    <span class="action-text">Eliminar registro de actividades</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Content Cards Grid -->
+                    <div class="content-grid">
+                        {% for actividad in actividades %}
+                        <div class="content-card" data-type="{{ actividad.tipo }}">
+                            <div class="image-placeholder">
                                 
-                            
+                                   
+                                        <img src="{% static 'entretenimiento/img/' %}{{ actividad.img_src }}" alt="{{ actividad.titulo }}" class="activity-image">
+                                    
                                 
-                            
+                                    
+                                
+                            </div>
+                            <div class="card-content">
+                                <div class="card-id">ID: {{ actividad.id }}</div>
+                                <h3 class="card-title">{{ actividad.titulo }}</h3>
+                                <p class="card-description">{{ actividad.descripcion }}</p>
+                                {% if actividad.tipo == 'pago' and actividad.coste %}
+                                <p class="card-price">Precio: {{ actividad.coste }}$</p>
+                                {% endif %}
+                                {% if actividad.tipo == 'rutinaria' and actividad.ubicacion %}
+                                <p class="card-location">Ubicación: {{ actividad.ubicacion }}</p>
+                                {% endif %}
+                                <p class="card-schedule">Día {{ actividad.dia_crucero }} - {{ actividad.hora_inicio|time:"H:i" }} a {{ actividad.hora_fin|time:"H:i" }}</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <div class="card-id">ID: {{ actividad.id }}</div>
-                            <h3 class="card-title">{{ actividad.titulo }}</h3>
-                            <p class="card-description">{{ actividad.descripcion }}</p>
-                            {% if actividad.tipo == 'pago' and actividad.coste %}
-                            <p class="card-price">Precio: {{ actividad.coste }}$</p>
-                            {% endif %}
-                            {% if actividad.tipo == 'rutinaria' and actividad.ubicacion %}
-                            <p class="card-location">Ubicación: {{ actividad.ubicacion }}</p>
-                            {% endif %}
-                            <p class="card-schedule">Día {{ actividad.dia_crucero }} - {{ actividad.hora_inicio|time:"H:i" }} a {{ actividad.hora_fin|time:"H:i" }}</p>
+                        {% empty %}
+                        <div class="content-card">
+                            <div class="card-content">
+                                <h3 class="card-title">No hay actividades disponibles</h3>
+                                <p class="card-description">No se encontraron actividades en la base de datos.</p>
+                            </div>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="content-card">
-                        <div class="card-content">
-                            <h3 class="card-title">No hay actividades disponibles</h3>
-                            <p class="card-description">No se encontraron actividades en la base de datos.</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal de Confirmación -->
-    <div id="confirmation-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Términos y Condiciones</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-text">
-                    <h3>Términos y Condiciones de Participación en Actividades del Barco</h3>
-
-                    <h4>1. Aceptación del Riesgo:</h4>
-                    <p>Al participar en cualquier actividad ofrecida en este crucero, incluyendo, pero no limitándose a, talleres, eventos deportivos, espectáculos, concursos o excursiones, usted reconoce que existen riesgos inherentes asociados con dichas actividades. Usted acepta y asume voluntariamente todos los riesgos de lesión, daño, pérdida, o perjuicio, ya sean para usted o para su propiedad, que puedan surgir de su participación.</p>
-
-                    <h4>2. Exoneración y Liberación de Responsabilidad:</h4>
-                    <p>Por la presente, usted libera, exonera y exime de toda responsabilidad a la compañía de cruceros, a sus subsidiarias, a sus directores, oficiales, empleados, agentes y contratistas, de cualquier reclamación, demanda, daño, costo o gasto que pueda resultar de su participación en las actividades, incluso si dichos daños o perjuicios son causados, en su totalidad o en parte, por la negligencia de la compañía o sus representantes.</p>
-
-                    <h4>3. Condición Física:</h4>
-                    <p>Usted declara y garantiza que se encuentra en un estado de salud física y mental adecuado para participar en las actividades. Usted asume la total responsabilidad de asegurarse de que su participación no pondrá en riesgo su salud ni la de otros pasajeros.</p>
-
-                    <h4>4. Consentimiento para Uso de Imagen:</h4>
-                    <p>Usted otorga a la compañía de cruceros el permiso irrevocable para usar y reproducir, con fines promocionales o publicitarios, cualquier fotografía, video o grabación de su persona capturada durante las actividades, sin derecho a recibir compensación alguna.</p>
-
-                    <div class="terms-highlight">
-                        <p><strong>Al hacer clic en el botón "Aceptar", usted confirma que ha leído, entendido y aceptado todos los términos y condiciones de este acuerdo.</strong></p>
+                        {% endfor %}
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Rechazar</button>
-                <button class="modal-btn modal-btn-confirm" onclick="openNextModal()">Aceptar</button>
+            </main>
+        </div>
+    
+        <!-- Modal de Confirmación -->
+        <div id="confirmation-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Términos y Condiciones</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-text">
+                        <h3>Términos y Condiciones de Participación en Actividades del Barco</h3>
+    
+                        <h4>1. Aceptación del Riesgo:</h4>
+                        <p>Al participar en cualquier actividad ofrecida en este crucero, incluyendo, pero no limitándose a, talleres, eventos deportivos, espectáculos, concursos o excursiones, usted reconoce que existen riesgos inherentes asociados con dichas actividades. Usted acepta y asume voluntariamente todos los riesgos de lesión, daño, pérdida, o perjuicio, ya sean para usted o para su propiedad, que puedan surgir de su participación.</p>
+    
+                        <h4>2. Exoneración y Liberación de Responsabilidad:</h4>
+                        <p>Por la presente, usted libera, exonera y exime de toda responsabilidad a la compañía de cruceros, a sus subsidiarias, a sus directores, oficiales, empleados, agentes y contratistas, de cualquier reclamación, demanda, daño, costo o gasto que pueda resultar de su participación en las actividades, incluso si dichos daños o perjuicios son causados, en su totalidad o en parte, por la negligencia de la compañía o sus representantes.</p>
+    
+                        <h4>3. Condición Física:</h4>
+                        <p>Usted declara y garantiza que se encuentra en un estado de salud física y mental adecuado para participar en las actividades. Usted asume la total responsabilidad de asegurarse de que su participación no pondrá en riesgo su salud ni la de otros pasajeros.</p>
+    
+                        <h4>4. Consentimiento para Uso de Imagen:</h4>
+                        <p>Usted otorga a la compañía de cruceros el permiso irrevocable para usar y reproducir, con fines promocionales o publicitarios, cualquier fotografía, video o grabación de su persona capturada durante las actividades, sin derecho a recibir compensación alguna.</p>
+    
+                        <div class="terms-highlight">
+                            <p><strong>Al hacer clic en el botón "Aceptar", usted confirma que ha leído, entendido y aceptado todos los términos y condiciones de este acuerdo.</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Rechazar</button>
+                    <button class="modal-btn modal-btn-confirm" onclick="openNextModal()">Aceptar</button>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Modal de Formulario de Registro -->
-    <div id="processing-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Registro de Participación</h2>
-                <button class="modal-close" onclick="closeAllModals()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="activity-info" class="activity-info-section">
-                    <h3 class="activity-title" id="form-activity-title"></h3>
-                    <p class="activity-details" id="form-activity-details"></p>
+    
+        <!-- Modal para Eliminar Registro de Actividades -->
+        <div id="delete-activities-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Eliminar Registro de Actividades</h2>
+                    <button class="modal-close" onclick="closeDeleteActivitiesModal()">&times;</button>
                 </div>
-
-                <form id="registration-form" class="registration-form">
-                    <div class="form-group">
-                        <label for="nombre" class="form-label">Nombre *</label>
-                        <input type="text" id="nombre" name="nombre" class="form-input" required maxlength="100">
+                <div class="modal-body">
+                    <p class="modal-text">Seleccione el tipo de actividades que desea eliminar:</p>
+                    <div class="activity-type-selection">
+                        <button class="activity-type-btn" data-type="rutinaria" onclick="selectActivityType('rutinaria')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades Rutinarias</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Actividades diarias y gratuitas del crucero</div>
+                        </button>
+                        <button class="activity-type-btn" data-type="pago" onclick="selectActivityType('pago')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades de Pago</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Actividades especiales con costo adicional</div>
+                        </button>
                     </div>
-
-                    <div class="form-group">
-                        <label for="apellido" class="form-label">Apellido *</label>
-                        <input type="text" id="apellido" name="apellido" class="form-input" required maxlength="100">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="n_habitacion" class="form-label">Número de Habitación *</label>
-                        <input type="text" id="n_habitacion" name="n_habitacion" class="form-input" required maxlength="20" placeholder="Ej: 101, 205A">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="n_personas" class="form-label">Número de Personas *</label>
-                        <select id="n_personas" name="n_personas" class="form-input" required>
-                            <option value="">Seleccionar...</option>
-                            <option value="1">1 persona</option>
-                            <option value="2">2 personas</option>
-                            <option value="3">3 personas</option>
-                            <option value="4">4 personas</option>
-                            <option value="5">5 personas</option>
-                            <option value="6">6 personas</option>
-                        </select>
-                    </div>
-
-                    <div id="form-errors" class="form-errors" style="display: none;"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-cancel" onclick="closeAllModals()">Cancelar</button>
-                <button class="modal-btn modal-btn-confirm" onclick="submitRegistration()" id="submit-btn">
-                    <span id="submit-text">Registrar</span>
-                    <div id="submit-spinner" class="submit-spinner" style="display: none;"></div>
-                </button>
+                </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        // Función para actualizar la fecha automáticamente
-        function updateDate() {
-            const dateElement = document.getElementById('current-date');
-            const now = new Date();
-            
-            // Array con los nombres de los meses en español
-            const months = [
-                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-            ];
-            
-            // Obtener día, mes y año
-            const day = now.getDate();
-            const month = months[now.getMonth()];
-            const year = now.getFullYear();
-            
-            // Formatear la fecha
-            const formattedDate = `Hoy, ${day} de ${month} de ${year}`;
-            
-            // Actualizar el elemento
-            dateElement.textContent = formattedDate;
-        }
-
-        // Función para seleccionar día del crucero
-        function selectDay() {
-            const daySelect = document.getElementById('day-selector-btn');
-            const selectedDay = daySelect.value;
-
-            // Construir la nueva URL con el parámetro del día
-            const currentUrl = window.location.pathname;
-            let newUrl = currentUrl;
-
-            if (selectedDay) {
-                newUrl += '?dia=' + selectedDay;
+    
+        <!-- Modal para Cargar Datos Precargados -->
+        <div id="load-preloaded-data-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Cargar Datos Precargados</h2>
+                    <button class="modal-close" onclick="closeLoadPreloadedDataModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-text">Seleccione el tipo de actividades para cargar datos precargados:</p>
+                    <div class="activity-type-selection">
+                        <button class="activity-type-btn" data-type="rutinaria" onclick="loadPreloadedData('rutinaria')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades Rutinarias</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Cargar datos precargados de actividades diarias y gratuitas</div>
+                        </button>
+                        <button class="activity-type-btn" data-type="pago" onclick="loadPreloadedData('pago')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividades de Pago</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Cargar datos precargados de actividades con costo adicional</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Modal para Nueva Actividad -->
+        <div id="new-activity-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Nueva Actividad</h2>
+                    <button class="modal-close" onclick="closeNewActivityModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-text">Seleccione el tipo de actividad que desea crear:</p>
+                    <div class="activity-type-selection">
+                        <button class="activity-type-btn" data-type="rutinaria" onclick="createNewActivity('rutinaria')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividad Rutinaria</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Crear una nueva actividad diaria y gratuita para el crucero</div>
+                        </button>
+                        <button class="activity-type-btn" data-type="pago" onclick="createNewActivity('pago')"
+                                style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); position: relative; overflow: hidden;">
+                            <div class="type-title" style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; letter-spacing: -0.025em; position: relative; z-index: 1;">Actividad de Pago</div>
+                            <div class="type-description" style="font-size: 14px; color: #64748b; line-height: 1.5; position: relative; z-index: 1;">Crear una nueva actividad especial con costo adicional</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Modal de Formulario de Registro -->
+        <div id="processing-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Registro de Participación</h2>
+                    <button class="modal-close" onclick="closeAllModals()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="activity-info" class="activity-info-section">
+                        <h3 class="activity-title" id="form-activity-title"></h3>
+                        <p class="activity-details" id="form-activity-details"></p>
+                    </div>
+    
+                    <form id="registration-form" class="registration-form">
+                        <div class="form-group">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" id="nombre" name="nombre" class="form-input" required maxlength="100">
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="apellido" class="form-label">Apellido *</label>
+                            <input type="text" id="apellido" name="apellido" class="form-input" required maxlength="100">
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="n_habitacion" class="form-label">Número de Habitación *</label>
+                            <input type="text" id="n_habitacion" name="n_habitacion" class="form-input" required maxlength="20" placeholder="Ej: 101, 205A">
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="n_personas" class="form-label">Número de Personas *</label>
+                            <select id="n_personas" name="n_personas" class="form-input" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="1">1 persona</option>
+                                <option value="2">2 personas</option>
+                                <option value="3">3 personas</option>
+                                <option value="4">4 personas</option>
+                                <option value="5">5 personas</option>
+                                <option value="6">6 personas</option>
+                            </select>
+                        </div>
+    
+                        <div id="form-errors" class="form-errors" style="display: none;"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeAllModals()">Cancelar</button>
+                    <button class="modal-btn modal-btn-confirm" onclick="submitRegistration()" id="submit-btn">
+                        <span id="submit-text">Registrar</span>
+                        <div id="submit-spinner" class="submit-spinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Modal para Eliminar Actividad -->
+        <div id="delete-activity-modal" class="modal-overlay">
+            <div class="modal-content large-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Eliminar Actividad</h2>
+                    <button class="modal-close" onclick="closeDeleteActivityModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">Selecciona la actividad que deseas eliminar:</p>
+    
+                    <div id="activities-grid" class="activities-grid">
+                        <!-- Las actividades se cargarán aquí dinámicamente -->
+                        <div class="loading-activities">
+                            <div class="loading-spinner"></div>
+                            <p>Cargando actividades...</p>
+                        </div>
+                    </div>
+    
+                    <div id="no-activities-message" class="no-activities-message" style="display: none;">
+                        <div class="no-activities-icon">[INFO]</div>
+                        <h3>No hay actividades disponibles</h3>
+                        <p>No se encontraron actividades para eliminar.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeDeleteActivityModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Modal para Ver Reservas -->
+        <div id="reservas-modal" class="modal-overlay">
+            <div class="modal-content large-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Reservas de Actividades de Entretenimiento</h2>
+                    <button class="modal-close" onclick="closeReservasModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-description">Aquí se muestran todas las reservas relacionadas con actividades de entretenimiento:</p>
+    
+                    <div id="reservas-grid" class="reservas-grid">
+                        <!-- Las reservas se cargarán aquí dinámicamente -->
+                        <div class="loading-reservas">
+                            <div class="loading-spinner"></div>
+                            <p>Cargando reservas...</p>
+                        </div>
+                    </div>
+    
+                    <div id="no-reservas-message" class="no-reservas-message" style="display: none;">
+                        <div class="no-reservas-icon">[INFO]</div>
+                        <h3>No hay reservas disponibles</h3>
+                        <p>No se encontraron reservas para actividades de entretenimiento.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeReservasModal()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="modal-overlay">
+            <div class="modal-content large-modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Ayuda - Modulo de Entretenimiento</h2>
+                    <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-content">
+    
+                        <!-- Introducción -->
+                        <section class="help-section">
+                            <h3 class="help-section-title">Acerca del Modulo de Entretenimiento</h3>
+                            <p class="help-description">
+                                Este módulo te permite gestionar todas las actividades de entretenimiento disponibles en el crucero.
+                                Puedes crear nuevas actividades, eliminar las existentes y gestionar los datos del sistema.
+                            </p>
+                        </section>
+    
+                        <!-- Botones principales -->
+                        <section class="help-section">
+                            <h3 class="help-section-title">Funciones Disponibles</h3>
+    
+                            <div class="help-item">
+                                <h4 class="help-item-title">Nueva Actividad</h4>
+                                <p class="help-item-description">
+                                    <strong>¿Qué hace?</strong> Te permite crear nuevas actividades de entretenimiento para el crucero.<br>
+                                    <strong>Actividades soportadas:</strong> Rutinarias (gratuitas) y de Pago<br>
+                                    <strong>Información requerida:</strong> Título, descripción, día, horario, ubicación/coste, imagen<br>
+                                    <strong>Validaciones:</strong> Horarios lógicos, imágenes válidas, campos completos
+                                </p>
+                            </div>
+    
+                            <div class="help-item">
+                                <h4 class="help-item-title">Eliminar Actividad</h4>
+                                <p class="help-item-description">
+                                    <strong>¿Qué hace?</strong> Muestra todas las actividades existentes para que puedas eliminarlas individualmente.<br>
+                                    <strong>Actividades mostradas:</strong> Tanto rutinarias como de pago<br>
+                                    <strong>Confirmación:</strong> Requiere confirmación antes de eliminar<br>
+                                    <strong>Irreversible:</strong> La eliminación no se puede deshacer
+                                </p>
+                            </div>
+    
+                            <div class="help-item">
+                                <h4 class="help-item-title">Cargar Datos Precargados</h4>
+                                <p class="help-item-description">
+                                    <strong>¿Qué hace?</strong> Carga automáticamente actividades prediseñadas según el tipo de crucero.<br>
+                                    <strong>Tipos soportados:</strong> Crucero pequeño, mediano y grande<br>
+                                    <strong>Actividades incluidas:</strong> Actividades rutinarias predefinidas<br>
+                                    <strong>Proceso:</strong> Automático, no requiere intervención manual
+                                </p>
+                            </div>
+    
+                            <div class="help-item">
+                                <h4 class="help-item-title">Eliminar Registro de Actividades</h4>
+                                <p class="help-item-description">
+                                    <strong>¿Qué hace?</strong> Elimina todos los registros de actividades de manera masiva.<br>
+                                    <strong>Opciones:</strong> Eliminar solo actividades rutinarias o solo actividades de pago<br>
+                                    <strong>Confirmación:</strong> Requiere confirmación múltiple<br>
+                                    <strong>Irreversible:</strong> Elimina todos los datos del tipo seleccionado
+                                </p>
+                            </div>
+                        </section>
+    
+                        <!-- Limitaciones -->
+                        <section class="help-section">
+                            <h3 class="help-section-title">Lo Que NO Puedes Hacer</h3>
+                            <div class="limitations-list">
+                                <div class="limitation-item">
+                                    <strong>Modificar actividades existentes:</strong> Solo puedes crear o eliminar
+                                </div>
+                                <div class="limitation-item">
+                                    <strong>Ver actividades de otros cruceros:</strong> Solo del crucero actual
+                                </div>
+                                <div class="limitation-item">
+                                    <strong>Recuperar actividades eliminadas:</strong> La eliminación es permanente
+                                </div>
+                                <div class="limitation-item">
+                                    <strong>Subir imágenes de otros formatos:</strong> Solo JPG permitido
+                                </div>
+                                <div class="limitation-item">
+                                    <strong>Crear actividades sin horario válido:</strong> Debe ser al menos 30 minutos
+                                </div>
+                            </div>
+                        </section>
+    
+                        <!-- Consejos -->
+                        <section class="help-section">
+                            <h3 class="help-section-title">Consejos Utiles</h3>
+                            <div class="tips-list">
+                                <div class="tip-item">
+                                    <strong>Planifica con anticipacion:</strong> Crea actividades con tiempo suficiente
+                                </div>
+                                <div class="tip-item">
+                                    <strong>Usa imagenes descriptivas:</strong> JPG de maximo 500KB
+                                </div>
+                                <div class="tip-item">
+                                    <strong>Verifica horarios:</strong> Asegurate de que no se superpongan
+                                </div>
+                                <div class="tip-item">
+                                    <strong>Revisa antes de eliminar:</strong> La eliminacion es irreversible
+                                </div>
+                            </div>
+                        </section>
+    
+                        <!-- Controles -->
+                        <section class="help-section">
+                            <h3 class="help-section-title">Controles de la Interfaz</h3>
+                            <div class="controls-list">
+                                <div class="control-item">
+                                    <kbd>ESC</kbd> <span>Cierra cualquier ventana modal</span>
+                                </div>
+                                <div class="control-item">
+                                    <kbd>Click fuera</kbd> <span>Cierra la ventana actual</span>
+                                </div>
+                                <div class="control-item">
+                                    <kbd>Botón X</kbd> <span>Cierra la ventana actual</span>
+                                </div>
+                            </div>
+                        </section>
+    
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-primary" onclick="closeHelpModal()">Entendido</button>
+                </div>
+            </div>
+        </div>
+    
+        <script>
+            // Funciones básicas para el sidebar
+            function toggleSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('collapsed');
             }
-
-            // Redirigir a la nueva URL
-            window.location.href = newUrl;
-        }
-
-        // Función para agregar estilos hover al selector
-        function addSelectorStyles() {
-            const selector = document.getElementById('day-selector-btn');
-
-            selector.addEventListener('mouseenter', function() {
-                this.style.background = '#2563eb !important';
-                this.style.transform = 'translateY(-2px) !important';
-                this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6) !important';
-            });
-
-            selector.addEventListener('mouseleave', function() {
-                this.style.background = '#3b82f6 !important';
-                this.style.transform = 'translateY(0px) !important';
-                this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4) !important';
-            });
-
-            selector.addEventListener('focus', function() {
-                this.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3) !important';
-            });
-        }
-
-        // Función para filtrar actividades
-        function filterActivities(filterType) {
-            // Obtener todas las tarjetas de actividades
-            const cards = document.querySelectorAll('.content-card');
-            const buttons = document.querySelectorAll('.filter-btn');
-
-            // Remover clase active y aplicar estilos de botones no seleccionados
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-                btn.style.background = '#f8fafc';
-                btn.style.color = '#475569';
-                btn.style.border = '1px solid #e2e8f0';
-            });
-
-            // Agregar clase active y aplicar estilos del botón seleccionado
-            const activeButton = document.querySelector(`[data-filter="${filterType}"]`);
-            if (activeButton) {
-                activeButton.classList.add('active');
-                activeButton.style.background = '#3b82f6';
-                activeButton.style.color = 'white';
-                activeButton.style.border = 'none';
+    
+            function toggleMobileSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                const toggle = document.querySelector('.mobile-menu-toggle');
+                
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+                toggle.classList.toggle('active');
             }
-
-            // Filtrar las tarjetas
-            cards.forEach(card => {
-                const cardType = card.getAttribute('data-type');
-
-                if (filterType === 'all') {
-                    // Mostrar todas las tarjetas
-                    card.style.display = 'block';
-                } else if (filterType === 'pago' && cardType === 'pago') {
-                    // Mostrar solo actividades de pago
-                    card.style.display = 'block';
-                } else if (filterType === 'gratuito' && cardType === 'rutinaria') {
-                    // Mostrar solo actividades gratuitas (rutinaria)
-                    card.style.display = 'block';
-                } else {
-                    // Ocultar tarjetas que no coinciden con el filtro
-                    card.style.display = 'none';
+    
+            function closeMobileSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                const toggle = document.querySelector('.mobile-menu-toggle');
+                
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                toggle.classList.remove('active');
+            }
+    
+            // Función para actualizar la fecha automáticamente
+            function updateDate() {
+                const dateElement = document.getElementById('current-date');
+                if (!dateElement) return;
+                // Si el servidor ya colocó la fecha del sistema / viaje, no sobreescribir
+                if (dateElement.dataset.server === '1') return;
+                const now = new Date();
+                const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                const formattedDate = `Hoy, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
+                dateElement.textContent = formattedDate;
+            }
+    
+            // Función para seleccionar día del crucero
+            function selectDay() {
+                const daySelect = document.getElementById('day-selector-btn');
+                const selectedDay = daySelect.value;
+    
+                // Construir la nueva URL con el parámetro del día
+                const currentUrl = window.location.pathname;
+                let newUrl = currentUrl;
+    
+                if (selectedDay) {
+                    newUrl += '?dia=' + selectedDay;
+                }
+    
+                // Redirigir a la nueva URL
+                window.location.href = newUrl;
+            }
+    
+            // Función para agregar estilos hover al selector
+            function addSelectorStyles() {
+                const selector = document.getElementById('day-selector-btn');
+    
+                selector.addEventListener('mouseenter', function() {
+                    this.style.background = '#2563eb !important';
+                    this.style.transform = 'translateY(-2px) !important';
+                    this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6) !important';
+                });
+    
+                selector.addEventListener('mouseleave', function() {
+                    this.style.background = '#3b82f6 !important';
+                    this.style.transform = 'translateY(0px) !important';
+                    this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4) !important';
+                });
+    
+                selector.addEventListener('focus', function() {
+                    this.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.3) !important';
+                });
+            }
+    
+            // Función para filtrar actividades
+            function filterActivities(filterType) {
+                // Obtener todas las tarjetas de actividades
+                const cards = document.querySelectorAll('.content-card');
+                const buttons = document.querySelectorAll('.filter-btn');
+    
+                // Remover clase active y aplicar estilos de botones no seleccionados
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.background = '#f8fafc';
+                    btn.style.color = '#475569';
+                    btn.style.border = '1px solid #e2e8f0';
+                });
+    
+                // Agregar clase active y aplicar estilos del botón seleccionado
+                const activeButton = document.querySelector(`[data-filter="${filterType}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                    activeButton.style.background = '#3b82f6';
+                    activeButton.style.color = 'white';
+                    activeButton.style.border = 'none';
+                }
+    
+                // Filtrar las tarjetas
+                cards.forEach(card => {
+                    const cardType = card.getAttribute('data-type');
+    
+                    if (filterType === 'all') {
+                        // Mostrar todas las tarjetas
+                        card.style.display = 'block';
+                    } else if (filterType === 'pago' && cardType === 'pago') {
+                        // Mostrar solo actividades de pago
+                        card.style.display = 'block';
+                    } else if (filterType === 'gratuito' && cardType === 'rutinaria') {
+                        // Mostrar solo actividades gratuitas (rutinaria)
+                        card.style.display = 'block';
+                    } else {
+                        // Ocultar tarjetas que no coinciden con el filtro
+                        card.style.display = 'none';
+                    }
+                });
+            }
+    
+            // Función para manejar efectos hover en los botones de filtro
+            function addFilterButtonHoverEffects() {
+                const buttons = document.querySelectorAll('.filter-btn');
+    
+                buttons.forEach(button => {
+                    button.addEventListener('mouseenter', function() {
+                        if (!this.classList.contains('active')) {
+                            this.style.background = '#e2e8f0';
+                            this.style.borderColor = '#cbd5e1';
+                            this.style.transform = 'translateY(-1px)';
+                            this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                        } else {
+                            this.style.background = '#2563eb';
+                            this.style.transform = 'translateY(-2px)';
+                            this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                        }
+                    });
+    
+                    button.addEventListener('mouseleave', function() {
+                        if (!this.classList.contains('active')) {
+                            this.style.background = '#f8fafc';
+                            this.style.borderColor = '#e2e8f0';
+                            this.style.transform = 'translateY(0)';
+                            this.style.boxShadow = 'none';
+                        } else {
+                            this.style.background = '#3b82f6';
+                            this.style.transform = 'translateY(0)';
+                            this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+                        }
+                    });
+                });
+            }
+    
+            // Función para abrir el modal de confirmación
+            function openModal(activityId, activityTitle) {
+                const modal = document.getElementById('confirmation-modal');
+                const modalTitle = modal.querySelector('.modal-title');
+                const modalText = modal.querySelector('.modal-text');
+    
+                // Actualizar el título del modal con el nombre de la actividad
+                modalTitle.textContent = `Confirmar Reserva: ${activityTitle}`;
+    
+                // Mostrar el modal
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+            }
+    
+            // Función para cerrar el modal de confirmación
+            function closeModal() {
+                const modal = document.getElementById('confirmation-modal');
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto'; // Restaurar scroll del body
+            }
+    
+            // Variable global para almacenar la actividad seleccionada
+            let selectedActivity = null;
+    
+            // Función para abrir el segundo modal
+            function openNextModal() {
+                // Cerrar el primer modal
+                closeModal();
+    
+                // Abrir el segundo modal
+                const nextModal = document.getElementById('processing-modal');
+                nextModal.style.display = 'flex';
+                nextModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+    
+                // Actualizar la información de la actividad en el formulario
+                updateFormWithActivityInfo();
+            }
+    
+            // Función para actualizar la información del formulario con los datos de la actividad
+            function updateFormWithActivityInfo() {
+                if (!selectedActivity) return;
+    
+                const activityTitle = document.getElementById('form-activity-title');
+                const activityDetails = document.getElementById('form-activity-details');
+    
+                activityTitle.textContent = selectedActivity.title;
+                activityDetails.textContent = `Día ${selectedActivity.dia} - ${selectedActivity.hora_inicio} a ${selectedActivity.hora_fin}${selectedActivity.ubicacion ? ' - ' + selectedActivity.ubicacion : ''}${selectedActivity.coste ? ' - ' + selectedActivity.coste + '$' : ''}`;
+            }
+    
+            // Función para cerrar todos los modales
+            function closeAllModals() {
+                const confirmationModal = document.getElementById('confirmation-modal');
+                const processingModal = document.getElementById('processing-modal');
+                const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+                const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+                const newActivityModal = document.getElementById('new-activity-modal');
+                const reservasModal = document.getElementById('reservas-modal');
+    
+                confirmationModal.style.display = 'none';
+                confirmationModal.classList.remove('active');
+    
+                processingModal.style.display = 'none';
+                processingModal.classList.remove('active');
+    
+                deleteActivitiesModal.style.display = 'none';
+                deleteActivitiesModal.classList.remove('active');
+    
+                loadPreloadedDataModal.style.display = 'none';
+                loadPreloadedDataModal.classList.remove('active');
+    
+                newActivityModal.style.display = 'none';
+                newActivityModal.classList.remove('active');
+    
+                reservasModal.style.display = 'none';
+    
+                document.body.style.overflow = 'auto';
+            }
+    
+            // Función para inicializar los eventos de las cards
+            function initializeCardClicks() {
+                const cards = document.querySelectorAll('.content-card');
+    
+                cards.forEach(card => {
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', function() {
+                        const activityId = this.querySelector('.card-id').textContent.replace('ID: ', '');
+                        const activityTitle = this.querySelector('.card-title').textContent;
+                        const activityDesc = this.querySelector('.card-description').textContent;
+                        const activitySchedule = this.querySelector('.card-schedule').textContent;
+                        const activityCost = this.querySelector('.card-price') ? this.querySelector('.card-price').textContent : null;
+                        const activityLocation = this.querySelector('.card-location') ? this.querySelector('.card-location').textContent : null;
+                        const activityType = this.getAttribute('data-type');
+    
+                        // Extraer información de la hora del schedule
+                        const scheduleMatch = activitySchedule.match(/Día (\d+) - (\d{1,2}:\d{2}) a (\d{1,2}:\d{2})/);
+                        const dia = scheduleMatch ? scheduleMatch[1] : '';
+                        const hora_inicio = scheduleMatch ? scheduleMatch[2] : '';
+                        const hora_fin = scheduleMatch ? scheduleMatch[3] : '';
+    
+                        // Almacenar la información de la actividad seleccionada
+                        selectedActivity = {
+                            id: activityId,
+                            title: activityTitle,
+                            description: activityDesc,
+                            dia: dia,
+                            hora_inicio: hora_inicio,
+                            hora_fin: hora_fin,
+                            coste: activityCost ? activityCost.replace('Precio: ', '').replace('$', '') : null,
+                            ubicacion: activityLocation ? activityLocation.replace('Ubicación: ', '') : null,
+                            tipo: activityType
+                        };
+    
+                        openModal(activityId, activityTitle);
+                    });
+                });
+            }
+    
+            // Cerrar modales al hacer click fuera del contenido
+            document.addEventListener('click', function(event) {
+                const confirmationModal = document.getElementById('confirmation-modal');
+                const processingModal = document.getElementById('processing-modal');
+                const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+                const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+                const newActivityModal = document.getElementById('new-activity-modal');
+                const reservasModal = document.getElementById('reservas-modal');
+    
+                if (event.target === confirmationModal) {
+                    closeModal();
+                }
+    
+                if (event.target === processingModal) {
+                    closeAllModals();
+                }
+    
+                if (event.target === deleteActivitiesModal) {
+                    closeDeleteActivitiesModal();
+                }
+    
+                if (event.target === loadPreloadedDataModal) {
+                    closeLoadPreloadedDataModal();
+                }
+    
+                if (event.target === newActivityModal) {
+                    closeNewActivityModal();
+                }
+    
+                if (event.target === reservasModal) {
+                    closeReservasModal();
                 }
             });
-        }
-
-        // Función para manejar efectos hover en los botones de filtro
-        function addFilterButtonHoverEffects() {
-            const buttons = document.querySelectorAll('.filter-btn');
-
-            buttons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    if (!this.classList.contains('active')) {
-                        this.style.background = '#e2e8f0';
-                        this.style.borderColor = '#cbd5e1';
-                        this.style.transform = 'translateY(-1px)';
-                        this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+    
+            // Función para enviar el formulario de registro
+            function submitRegistration() {
+                const form = document.getElementById('registration-form');
+                const submitBtn = document.getElementById('submit-btn');
+                const submitText = document.getElementById('submit-text');
+                const submitSpinner = document.getElementById('submit-spinner');
+                const formErrors = document.getElementById('form-errors');
+    
+                // Validar formulario
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+    
+                // Mostrar loading state
+                submitBtn.disabled = true;
+                submitText.textContent = 'Registrando...';
+                submitSpinner.style.display = 'block';
+                formErrors.style.display = 'none';
+    
+                // Obtener datos del formulario
+                const formData = new FormData(form);
+                const n_personas_raw = formData.get('n_personas');
+    
+                // Validar que n_personas sea un número válido
+                if (!n_personas_raw || isNaN(parseInt(n_personas_raw))) {
+                    showFormErrors(['El número de personas debe ser un número válido.']);
+                    submitBtn.disabled = false;
+                    submitText.textContent = 'Registrar';
+                    submitSpinner.style.display = 'none';
+                    return;
+                }
+    
+                const data = {
+                    nombre: formData.get('nombre'),
+                    apellido: formData.get('apellido'),
+                    n_habitacion: formData.get('n_habitacion'),
+                    n_personas: parseInt(n_personas_raw),
+                    actividad_id: selectedActivity.id,
+                    actividad_tipo: selectedActivity.tipo
+                };
+    
+                // Validar que todos los campos requeridos estén presentes
+                if (!data.nombre || !data.apellido || !data.n_habitacion || !data.n_personas) {
+                    showFormErrors(['Todos los campos son obligatorios.']);
+                    submitBtn.disabled = false;
+                    submitText.textContent = 'Registrar';
+                    submitSpinner.style.display = 'none';
+                    return;
+                }
+    
+                // Enviar datos al servidor
+                fetch('/entretenimiento/registro/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    // Obtener el texto de la respuesta
+                    return response.text().then(text => {
+                        try {
+                            // Intentar parsear como JSON
+                            const data = JSON.parse(text);
+    
+                            // Si la respuesta no es exitosa, mostrar el error
+                            if (!response.ok || !data.success) {
+                                throw new Error(data.message || 'Error en la solicitud');
+                            }
+    
+                            return data;
+                        } catch (jsonError) {
+                            // Si no es JSON válido, mostrar el error
+                            console.error('Respuesta del servidor:', text);
+                            throw new Error('Error del servidor: respuesta no válida');
+                        }
+                    });
+                })
+                .then(result => {
+                    if (result.success) {
+                        // Mostrar mensaje de éxito
+                        showSuccessMessage(result.message);
+                        closeAllModals();
+                        // Limpiar formulario
+                        form.reset();
                     } else {
-                        this.style.background = '#2563eb';
-                        this.style.transform = 'translateY(-2px)';
-                        this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)';
+                        // Mostrar errores específicos del servidor
+                        showFormErrors([result.message]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en registro:', error);
+    
+                    // Determinar el tipo de error y mostrar mensaje apropiado
+                    let errorMessage = 'Ocurrió un error al procesar la solicitud.';
+    
+                    if (error.message) {
+                        errorMessage = error.message;
+                    } else if (error.name === 'TypeError') {
+                        errorMessage = 'Error de conexión. Verifique su conexión a internet.';
+                    } else if (error.name === 'NetworkError') {
+                        errorMessage = 'Error de red. Intente nuevamente.';
+                    }
+    
+                    showFormErrors([errorMessage]);
+                })
+                .finally(() => {
+                    // Restaurar estado del botón
+                    submitBtn.disabled = false;
+                    submitText.textContent = 'Registrar';
+                    submitSpinner.style.display = 'none';
+                });
+            }
+    
+            // Función para obtener el token CSRF
+            function getCSRFToken() {
+                const name = 'csrftoken';
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+    
+            // Función para mostrar errores en el formulario
+            function showFormErrors(errors) {
+                const formErrors = document.getElementById('form-errors');
+                formErrors.innerHTML = '';
+    
+                if (typeof errors === 'string') {
+                    errors = [errors];
+                }
+    
+                errors.forEach(error => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = error;
+                    formErrors.appendChild(errorDiv);
+                });
+    
+                formErrors.style.display = 'block';
+            }
+    
+            // Función para mostrar mensaje de éxito
+            function showSuccessMessage(message) {
+                // Crear un toast o alert temporal
+                const toast = document.createElement('div');
+                toast.className = 'success-toast';
+                toast.textContent = message;
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #10b981;
+                    color: white;
+                    padding: 16px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    font-weight: 500;
+                    animation: slideInRight 0.3s ease-out;
+                `;
+    
+                document.body.appendChild(toast);
+    
+                setTimeout(() => {
+                    toast.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }
+    
+            // Cerrar modales con la tecla Escape
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    const deleteActivitiesModal = document.getElementById('delete-activities-modal');
+                    const deleteActivityModal = document.getElementById('delete-activity-modal');
+                    const helpModal = document.getElementById('help-modal');
+                    const loadPreloadedDataModal = document.getElementById('load-preloaded-data-modal');
+                    const newActivityModal = document.getElementById('new-activity-modal');
+                    const reservasModal = document.getElementById('reservas-modal');
+    
+                    if (newActivityModal.style.display === 'flex') {
+                        closeNewActivityModal();
+                    } else if (loadPreloadedDataModal.style.display === 'flex') {
+                        closeLoadPreloadedDataModal();
+                    } else if (deleteActivitiesModal.style.display === 'flex') {
+                        closeDeleteActivitiesModal();
+                    } else if (deleteActivityModal.style.display === 'flex') {
+                        closeDeleteActivityModal();
+                    } else if (helpModal.style.display === 'flex') {
+                        closeHelpModal();
+                    } else if (reservasModal.style.display === 'flex') {
+                        closeReservasModal();
+                    } else {
+                    closeAllModals();
+                    }
+                }
+            });
+    
+            // Función para abrir el modal de eliminar actividades
+            function openDeleteActivitiesModal() {
+                const modal = document.getElementById('delete-activities-modal');
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+    
+                // Limpiar selección previa
+                document.querySelectorAll('.activity-type-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }
+    
+            // Función para cerrar el modal de eliminar actividades
+            function closeDeleteActivitiesModal() {
+                const modal = document.getElementById('delete-activities-modal');
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+    
+            // Función para seleccionar tipo de actividad
+            function selectActivityType(type) {
+                // Remover selección previa
+                document.querySelectorAll('.activity-type-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                    // Resetear estilos
+                    btn.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+                    btn.style.borderColor = '#e2e8f0';
+                    btn.style.color = '';
+                    btn.style.transform = 'translateY(0) scale(1)';
+                    btn.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+    
+                    // Resetear estilos de texto
+                    const title = btn.querySelector('.type-title');
+                    const description = btn.querySelector('.type-description');
+                    if (title) {
+                        title.style.color = '#1e293b';
+                    }
+                    if (description) {
+                        description.style.color = '#64748b';
                     }
                 });
-
-                button.addEventListener('mouseleave', function() {
-                    if (!this.classList.contains('active')) {
-                        this.style.background = '#f8fafc';
-                        this.style.borderColor = '#e2e8f0';
-                        this.style.transform = 'translateY(0)';
-                        this.style.boxShadow = 'none';
-                    } else {
-                        this.style.background = '#3b82f6';
-                        this.style.transform = 'translateY(0)';
-                        this.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)';
+    
+                // Agregar selección al botón clickeado
+                const selectedBtn = document.querySelector(`[data-type="${type}"]`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('selected');
+                    // Aplicar estilos de selección
+                    selectedBtn.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                    selectedBtn.style.borderColor = '#3b82f6';
+                    selectedBtn.style.color = 'white';
+                    selectedBtn.style.transform = 'translateY(-2px)';
+                    selectedBtn.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.3)';
+    
+                    // Aplicar estilos a los textos
+                    const title = selectedBtn.querySelector('.type-title');
+                    const description = selectedBtn.querySelector('.type-description');
+                    if (title) {
+                        title.style.color = 'white';
                     }
-                });
-            });
-        }
-
-        // Función para abrir el modal de confirmación
-        function openModal(activityId, activityTitle) {
-            const modal = document.getElementById('confirmation-modal');
-            const modalTitle = modal.querySelector('.modal-title');
-            const modalText = modal.querySelector('.modal-text');
-
-            // Actualizar el título del modal con el nombre de la actividad
-            modalTitle.textContent = `Confirmar Reserva: ${activityTitle}`;
-
-            // Mostrar el modal
-            modal.style.display = 'flex';
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevenir scroll del body
-        }
-
-        // Función para cerrar el modal de confirmación
-        function closeModal() {
-            const modal = document.getElementById('confirmation-modal');
-            modal.style.display = 'none';
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto'; // Restaurar scroll del body
-        }
-
-        // Variable global para almacenar la actividad seleccionada
-        let selectedActivity = null;
-
-        // Función para abrir el segundo modal
-        function openNextModal() {
-            // Cerrar el primer modal
-            closeModal();
-
-            // Abrir el segundo modal
-            const nextModal = document.getElementById('processing-modal');
-            nextModal.style.display = 'flex';
-            nextModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-
-            // Actualizar la información de la actividad en el formulario
-            updateFormWithActivityInfo();
-        }
-
-        // Función para actualizar la información del formulario con los datos de la actividad
-        function updateFormWithActivityInfo() {
-            if (!selectedActivity) return;
-
-            const activityTitle = document.getElementById('form-activity-title');
-            const activityDetails = document.getElementById('form-activity-details');
-
-            activityTitle.textContent = selectedActivity.title;
-            activityDetails.textContent = `Día ${selectedActivity.dia} - ${selectedActivity.hora_inicio} a ${selectedActivity.hora_fin}${selectedActivity.ubicacion ? ' - ' + selectedActivity.ubicacion : ''}${selectedActivity.coste ? ' - ' + selectedActivity.coste + '€' : ''}`;
-        }
-
-        // Función para cerrar todos los modales
-        function closeAllModals() {
-            const confirmationModal = document.getElementById('confirmation-modal');
-            const processingModal = document.getElementById('processing-modal');
-
-            confirmationModal.style.display = 'none';
-            confirmationModal.classList.remove('active');
-
-            processingModal.style.display = 'none';
-            processingModal.classList.remove('active');
-
-            document.body.style.overflow = 'auto';
-        }
-
-        // Función para inicializar los eventos de las cards
-        function initializeCardClicks() {
-            const cards = document.querySelectorAll('.content-card');
-
-            cards.forEach(card => {
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', function() {
-                    const activityId = this.querySelector('.card-id').textContent.replace('ID: ', '');
-                    const activityTitle = this.querySelector('.card-title').textContent;
-                    const activityDesc = this.querySelector('.card-description').textContent;
-                    const activitySchedule = this.querySelector('.card-schedule').textContent;
-                    const activityCost = this.querySelector('.card-price') ? this.querySelector('.card-price').textContent : null;
-                    const activityLocation = this.querySelector('.card-location') ? this.querySelector('.card-location').textContent : null;
-                    const activityType = this.getAttribute('data-type');
-
-                    // Extraer información de la hora del schedule
-                    const scheduleMatch = activitySchedule.match(/Día (\d+) - (\d{1,2}:\d{2}) a (\d{1,2}:\d{2})/);
-                    const dia = scheduleMatch ? scheduleMatch[1] : '';
-                    const hora_inicio = scheduleMatch ? scheduleMatch[2] : '';
-                    const hora_fin = scheduleMatch ? scheduleMatch[3] : '';
-
-                    // Almacenar la información de la actividad seleccionada
-                    selectedActivity = {
-                        id: activityId,
-                        title: activityTitle,
-                        description: activityDesc,
-                        dia: dia,
-                        hora_inicio: hora_inicio,
-                        hora_fin: hora_fin,
-                        coste: activityCost ? activityCost.replace('Precio: ', '').replace('€', '') : null,
-                        ubicacion: activityLocation ? activityLocation.replace('Ubicación: ', '') : null,
-                        tipo: activityType
-                    };
-
-                    openModal(activityId, activityTitle);
-                });
-            });
-        }
-
-        // Cerrar modales al hacer click fuera del contenido
-        document.addEventListener('click', function(event) {
-            const confirmationModal = document.getElementById('confirmation-modal');
-            const processingModal = document.getElementById('processing-modal');
-
-            if (event.target === confirmationModal) {
-                closeModal();
-            }
-
-            if (event.target === processingModal) {
-                closeAllModals();
-            }
-        });
-
-        // Función para enviar el formulario de registro
-        function submitRegistration() {
-            const form = document.getElementById('registration-form');
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const submitSpinner = document.getElementById('submit-spinner');
-            const formErrors = document.getElementById('form-errors');
-
-            // Validar formulario
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            // Mostrar loading state
-            submitBtn.disabled = true;
-            submitText.textContent = 'Registrando...';
-            submitSpinner.style.display = 'block';
-            formErrors.style.display = 'none';
-
-            // Obtener datos del formulario
-            const formData = new FormData(form);
-            const n_personas_raw = formData.get('n_personas');
-
-            // Validar que n_personas sea un número válido
-            if (!n_personas_raw || isNaN(parseInt(n_personas_raw))) {
-                showFormErrors(['El número de personas debe ser un número válido.']);
-                submitBtn.disabled = false;
-                submitText.textContent = 'Registrar';
-                submitSpinner.style.display = 'none';
-                return;
-            }
-
-            const data = {
-                nombre: formData.get('nombre'),
-                apellido: formData.get('apellido'),
-                n_habitacion: formData.get('n_habitacion'),
-                n_personas: parseInt(n_personas_raw),
-                actividad_id: selectedActivity.id,
-                actividad_tipo: selectedActivity.tipo
-            };
-
-            // Validar que todos los campos requeridos estén presentes
-            if (!data.nombre || !data.apellido || !data.n_habitacion || !data.n_personas) {
-                showFormErrors(['Todos los campos son obligatorios.']);
-                submitBtn.disabled = false;
-                submitText.textContent = 'Registrar';
-                submitSpinner.style.display = 'none';
-                return;
-            }
-
-            // Enviar datos al servidor
-            fetch('/registro/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    // Si la respuesta no es exitosa, intentar obtener el mensaje de error
-                    return response.json().then(err => {
-                        throw new Error(err.message || 'Error en la solicitud');
+                    if (description) {
+                        description.style.color = 'rgba(255, 255, 255, 0.8)';
+                    }
+                }
+    
+                // Aquí puedes agregar la lógica para procesar la selección
+                console.log('Tipo de actividad seleccionada:', type);
+    
+                // Ejecutar la eliminación según el tipo seleccionado
+                if (type === 'rutinaria') {
+                    // Hacer petición AJAX para eliminar actividades rutinarias
+                    fetch('/entretenimiento/eliminar-actividades-rutinarias/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Actividades rutinarias eliminadas:', data.message);
+                            // Mostrar mensaje de éxito temporal
+                            showSuccessMessage(data.message);
+                            // Refrescar la página después de 250ms
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 250);
+                        } else {
+                            console.error('Error al eliminar actividades:', data.message);
+                            showFormErrors([data.message]);
+                            closeDeleteActivitiesModal();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error en la petición:', error);
+                        showFormErrors(['Error de conexión al eliminar actividades']);
+                        closeDeleteActivitiesModal();
+                    });
+                } else if (type === 'pago') {
+                    // Hacer petición AJAX para eliminar actividades de pago
+                    fetch('/entretenimiento/eliminar-actividades-pago/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Actividades de pago eliminadas:', data.message);
+                            // Mostrar mensaje de éxito temporal
+                            showSuccessMessage(data.message);
+                            // Refrescar la página después de 250ms
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 250);
+                        } else {
+                            console.error('Error al eliminar actividades:', data.message);
+                            showFormErrors([data.message]);
+                            closeDeleteActivitiesModal();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error en la petición:', error);
+                        showFormErrors(['Error de conexión al eliminar actividades']);
+                        closeDeleteActivitiesModal();
                     });
                 }
-                return response.json();
-            })
-            .then(result => {
-                if (result.success) {
-                    // Mostrar mensaje de éxito
-                    showSuccessMessage(result.message);
-                    closeAllModals();
-                    // Limpiar formulario
-                    form.reset();
-                } else {
-                    // Mostrar errores específicos del servidor
-                    showFormErrors([result.message]);
-                }
-            })
-            .catch(error => {
-                console.error('Error en registro:', error);
-
-                // Determinar el tipo de error y mostrar mensaje apropiado
-                let errorMessage = 'Ocurrió un error al procesar la solicitud.';
-
-                if (error.message) {
-                    errorMessage = error.message;
-                } else if (error.name === 'TypeError') {
-                    errorMessage = 'Error de conexión. Verifique su conexión a internet.';
-                } else if (error.name === 'NetworkError') {
-                    errorMessage = 'Error de red. Intente nuevamente.';
-                }
-
-                showFormErrors([errorMessage]);
-            })
-            .finally(() => {
-                // Restaurar estado del botón
-                submitBtn.disabled = false;
-                submitText.textContent = 'Registrar';
-                submitSpinner.style.display = 'none';
-            });
-        }
-
-        // Función para obtener el token CSRF
-        function getCSRFToken() {
-            const name = 'csrftoken';
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            }
+    
+            // Función para abrir el modal de cargar datos precargados
+            function openLoadPreloadedDataModal() {
+                const modal = document.getElementById('load-preloaded-data-modal');
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+    
+            // Función para cerrar el modal de cargar datos precargados
+            function closeLoadPreloadedDataModal() {
+                const modal = document.getElementById('load-preloaded-data-modal');
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+    
+            // Función para abrir el modal de nueva actividad
+            function openNewActivityModal() {
+                const modal = document.getElementById('new-activity-modal');
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+    
+            // Función para cerrar el modal de nueva actividad
+            function closeNewActivityModal() {
+                const modal = document.getElementById('new-activity-modal');
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+    
+            // Función para cargar datos precargados
+            function loadPreloadedData(type) {
+                console.log('Cargando datos precargados para:', type);
+    
+                // Obtener el ID del crucero desde la URL
+                const urlParts = window.location.pathname.split('/');
+                const cruceroId = urlParts[2]; // El ID del crucero está en la posición 2 de la URL
+    
+                // Hacer petición AJAX para cargar datos precargados
+                fetch(`/entretenimiento/${cruceroId}/cargar-datos-precargados/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        tipo_actividad: type
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Datos precargados cargados:', data.message);
+                        // Mostrar mensaje de éxito temporal
+                        showSuccessMessage(data.message);
+                        // Refrescar la página después de 250ms
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 250);
+                    } else {
+                        console.error('Error al cargar datos:', data.message);
+                        showFormErrors([data.message]);
                     }
+                })
+                .catch(error => {
+                    console.error('Error en la petición:', error);
+                    showFormErrors(['Error de conexión al cargar datos']);
+                });
+            }
+    
+            // Función para crear nueva actividad
+            function createNewActivity(type) {
+                console.log('Creando nueva actividad:', type);
+    
+                // Obtener el ID del crucero desde la URL
+                const urlParts = window.location.pathname.split('/');
+                const cruceroId = urlParts[2]; // El ID del crucero está en la posición 2 de la URL
+    
+                // Construir la URL de redirección según el tipo de actividad
+                let redirectUrl;
+                if (type === 'rutinaria') {
+                    redirectUrl = `/entretenimiento/${cruceroId}/crear-actividad-rutinaria/`;
+                } else if (type === 'pago') {
+                    redirectUrl = `/entretenimiento/${cruceroId}/crear-actividad-pago/`;
+                }
+    
+                // Cerrar el modal y redirigir
+                closeNewActivityModal();
+                window.location.href = redirectUrl;
+            }
+    
+            // Funciones para el modal de ayuda
+            function openHelpModal() {
+                console.log('Abriendo modal de ayuda');
+                const modal = document.getElementById('help-modal');
+                modal.style.display = 'flex';
+    
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleHelpOutsideClick);
+            }
+    
+            function closeHelpModal() {
+                console.log('Cerrando modal de ayuda');
+                const modal = document.getElementById('help-modal');
+                modal.style.display = 'none';
+    
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleHelpOutsideClick);
+            }
+    
+            function handleHelpOutsideClick(event) {
+                const modal = document.getElementById('help-modal');
+                const modalContent = modal.querySelector('.modal-content');
+    
+                // Si el click fue fuera del contenido del modal, cerrar
+                if (event.target === modal && !modalContent.contains(event.target)) {
+                    closeHelpModal();
                 }
             }
-            return cookieValue;
-        }
-
-        // Función para mostrar errores en el formulario
-        function showFormErrors(errors) {
-            const formErrors = document.getElementById('form-errors');
-            formErrors.innerHTML = '';
-
-            if (typeof errors === 'string') {
-                errors = [errors];
+    
+            // Función para inicializar los eventos de los botones de acción
+            function initializeActionButtons() {
+                const deleteBtn = document.querySelector('[data-action="eliminar-registro"]');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', openDeleteActivitiesModal);
+                }
+    
+                const loadDataBtn = document.querySelector('[data-action="cargar-datos-precargados"]');
+                if (loadDataBtn) {
+                    loadDataBtn.addEventListener('click', function() {
+                        loadPreloadedData('rutinaria'); // Ejecutar directamente para actividades rutinarias
+                    });
+                }
+    
+                const newActivityBtn = document.querySelector('[data-action="nueva-actividad"]');
+                if (newActivityBtn) {
+                    newActivityBtn.addEventListener('click', openNewActivityModal);
+                }
+    
+                const deleteActivityBtn = document.querySelector('[data-action="eliminar-actividad"]');
+                if (deleteActivityBtn) {
+                    deleteActivityBtn.addEventListener('click', openDeleteActivityModal);
+                }
+    
+                const helpBtn = document.querySelector('[data-action="ayuda"]');
+                if (helpBtn) {
+                    helpBtn.addEventListener('click', openHelpModal);
+                }
+    
+                const verReservasBtn = document.querySelector('[data-action="ver-reservas"]');
+                if (verReservasBtn) {
+                    verReservasBtn.addEventListener('click', openReservasModal);
+                }
+    
+                // Agregar eventos de hover a los botones del modal
+                const activityButtons = document.querySelectorAll('.activity-type-btn');
+                activityButtons.forEach(button => {
+                    button.addEventListener('mouseenter', function() {
+                        this.style.background = 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)';
+                        this.style.borderColor = '#3b82f6';
+                        this.style.transform = 'translateY(-4px) scale(1.02)';
+                        this.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
+                    });
+    
+                    button.addEventListener('mouseleave', function() {
+                        if (!this.classList.contains('selected')) {
+                            this.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+                            this.style.borderColor = '#e2e8f0';
+                            this.style.transform = 'translateY(0) scale(1)';
+                            this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                        }
+                    });
+                });
             }
+    
+            // Funciones para el modal de reservas
+            function openReservasModal() {
+                console.log('Abriendo modal de reservas');
+                const modal = document.getElementById('reservas-modal');
+                modal.style.display = 'flex';
+    
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleReservasOutsideClick);
+    
+                // Cargar las reservas
+                loadReservas();
+            }
+    
+            function closeReservasModal() {
+                console.log('Cerrando modal de reservas');
+                const modal = document.getElementById('reservas-modal');
+                modal.style.display = 'none';
+    
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleReservasOutsideClick);
+            }
+    
+            function handleReservasOutsideClick(event) {
+                const modal = document.getElementById('reservas-modal');
+                const modalContent = modal.querySelector('.modal-content');
+    
+                // Si el click fue fuera del contenido del modal, cerrar
+                if (event.target === modal && !modalContent.contains(event.target)) {
+                    closeReservasModal();
+                }
+            }
+    
+            function loadReservas() {
+                const reservasGrid = document.getElementById('reservas-grid');
+                const loadingElement = reservasGrid.querySelector('.loading-reservas');
+                const noReservasElement = document.getElementById('no-reservas-message');
+    
+                // Mostrar loading
+                loadingElement.style.display = 'block';
+                noReservasElement.style.display = 'none';
+    
+                // Obtener el ID del crucero desde la URL
+                const urlParts = window.location.pathname.split('/');
+                const cruceroId = urlParts[2];
+    
+                // Hacer petición para obtener reservas
+                fetch(`/entretenimiento/${cruceroId}/api/reservas/`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingElement.style.display = 'none';
+    
+                    if (data.success && data.reservas && data.reservas.length > 0) {
+                        renderReservas(data.reservas);
+                    } else {
+                        noReservasElement.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar reservas:', error);
+                    loadingElement.style.display = 'none';
+                    noReservasElement.style.display = 'block';
+                });
+            }
+    
+            function renderReservas(reservas) {
+                const reservasGrid = document.getElementById('reservas-grid');
+    
+                // Limpiar el contenido actual (excepto el loading)
+                const loadingElement = reservasGrid.querySelector('.loading-reservas');
+                reservasGrid.innerHTML = '';
+                reservasGrid.appendChild(loadingElement);
+    
+                reservas.forEach(reserva => {
+                    const card = createReservaCard(reserva);
+                    reservasGrid.appendChild(card);
+                });
+            }
+    
+            function createReservaCard(reserva) {
+                const card = document.createElement('div');
+                card.className = 'reserva-card';
+    
+                // Formatear la fecha de la reserva
+                const fechaReserva = new Date(reserva.fecha_reserva).toLocaleDateString('es-ES');
+                const horaReserva = reserva.hora_reserva ? reserva.hora_reserva.substring(0, 5) : 'N/A';
+    
+                card.innerHTML = `
+                    <div class="reserva-card-header">
+                        <h3 class="reserva-card-title">${reserva.nombre_actividad}</h3>
+                        <span class="reserva-card-type">${reserva.tipo_actividad === 'pago' ? 'Actividad de Pago' : 'Actividad Gratuita'}</span>
+                    </div>
+                    <div class="reserva-card-body">
+                        <div class="reserva-card-info">
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span><strong>${reserva.nombre} ${reserva.apellido}</strong></span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Habitación: ${reserva.n_habitacion}</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Número de personas: ${reserva.n_personas}</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Fecha reserva: ${fechaReserva}</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Hora reserva: ${horaReserva}</span>
+                            </div>
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Día actividad: ${reserva.dia_actividad}</span>
+                            </div>
+                            ${reserva.coste ? `
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Costo: ${reserva.coste}$</span>
+                            </div>
+                            ` : ''}
+                            ${reserva.ubicacion ? `
+                            <div class="reserva-info-item">
+                                <span class="reserva-info-icon"></span>
+                                <span>Ubicación: ${reserva.ubicacion}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+    
+                return card;
+            }
+    
+            // Actualizar la fecha cuando se carga la página
+            // Funciones para el modal de eliminar actividad
+            function openDeleteActivityModal() {
+                console.log('Abriendo modal de eliminar actividad');
+                const modal = document.getElementById('delete-activity-modal');
+                modal.style.display = 'flex';
+    
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleOutsideClick);
+    
+                // Cargar las actividades disponibles
+                loadActivitiesForDeletion();
+            }
+    
+            function handleOutsideClick(event) {
+                const modal = document.getElementById('delete-activity-modal');
+                const modalContent = modal.querySelector('.modal-content');
+    
+                // Si el click fue fuera del contenido del modal, cerrar
+                if (event.target === modal && !modalContent.contains(event.target)) {
+                    closeDeleteActivityModal();
+                }
+            }
+    
+            function closeDeleteActivityModal() {
+                console.log('Cerrando modal de eliminar actividad');
+                const modal = document.getElementById('delete-activity-modal');
+                modal.style.display = 'none';
+    
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleOutsideClick);
+    
+                // Limpiar selección
+                document.querySelectorAll('.activity-delete-card.selected').forEach(card => {
+                    card.classList.remove('selected');
+                });
+            }
+    
+            function loadActivitiesForDeletion() {
+                const activitiesGrid = document.getElementById('activities-grid');
+                const loadingElement = activitiesGrid.querySelector('.loading-activities');
+                const noActivitiesElement = document.getElementById('no-activities-message');
+    
+                // Mostrar loading
+                loadingElement.style.display = 'block';
+                noActivitiesElement.style.display = 'none';
+    
+                // Obtener el ID del crucero desde la URL
+                const urlParts = window.location.pathname.split('/');
+                const cruceroId = urlParts[2];
+    
+                // Hacer petición para obtener actividades
+                fetch(`/entretenimiento/${cruceroId}/api/actividades/`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    console.log('Respuesta de la API:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos recibidos de la API:', data);
+                    loadingElement.style.display = 'none';
 
-            errors.forEach(error => {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
-                errorDiv.textContent = error;
-                formErrors.appendChild(errorDiv);
+                    if (data.success && data.activities && data.activities.length > 0) {
+                        console.log(`Actividades encontradas: ${data.activities.length}`);
+                        renderActivitiesForDeletion(data.activities);
+                    } else {
+                        console.log('No se encontraron actividades o la respuesta no fue exitosa');
+                        console.log('Success:', data.success);
+                        console.log('Activities:', data.activities);
+                        noActivitiesElement.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar actividades:', error);
+                    loadingElement.style.display = 'none';
+                    noActivitiesElement.style.display = 'block';
+                });
+            }
+    
+            function renderActivitiesForDeletion(activities) {
+                console.log('Renderizando actividades para eliminación:', activities);
+                const activitiesGrid = document.getElementById('activities-grid');
+
+                // Limpiar el contenido actual (excepto el loading)
+                const loadingElement = activitiesGrid.querySelector('.loading-activities');
+                activitiesGrid.innerHTML = '';
+                activitiesGrid.appendChild(loadingElement);
+
+                console.log(`Se encontraron ${activities.length} actividades para renderizar`);
+
+                activities.forEach((activity, index) => {
+                    console.log(`Creando tarjeta para actividad ${index + 1}:`, activity);
+                    const card = createActivityDeleteCard(activity);
+                    activitiesGrid.appendChild(card);
+                });
+
+                console.log('Finalizó el renderizado de actividades');
+            }
+    
+            function createActivityDeleteCard(activity) {
+                const card = document.createElement('div');
+                card.className = 'content-card';
+                card.dataset.activityId = activity.id_actividad;
+                card.dataset.activityType = activity.type;
+    
+                // Formatear la hora para mostrar solo HH:MM
+                const horaInicio = activity.hora_inicio.split('T')[1] ? activity.hora_inicio.split('T')[1].substring(0, 5) : activity.hora_inicio;
+                const horaFin = activity.hora_fin.split('T')[1] ? activity.hora_fin.split('T')[1].substring(0, 5) : activity.hora_fin;
+    
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-id">ID: ${activity.id_actividad}</div>
+                        <h3 class="card-title">${activity.titulo}</h3>
+                        <p class="card-description">${activity.descripcion}</p>
+                        ${activity.type === 'pago' ? `
+                        <p class="card-price">Precio: ${activity.coste}$</p>
+                        ` : `
+                        <p class="card-location">Ubicación: ${activity.ubicacion}</p>
+                        `}
+                        <p class="card-schedule">Día ${activity.dia_crucero} - ${horaInicio} a ${horaFin}</p>
+                        <div class="delete-action">
+                            <button style="
+                                width: 100%;
+                                padding: 12px 20px;
+                                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+                                color: white;
+                                border: 2px solid #dc2626;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                position: relative;
+                                overflow: hidden;
+                            " onclick="deleteActivity(${activity.id_actividad}, '${activity.type}', event)">
+                                Eliminar Actividad
+                            </button>
+                        </div>
+                    </div>
+                `;
+    
+                // Agregar estilos hover al botón usando JavaScript
+                const deleteBtn = card.querySelector('button');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('mouseenter', function() {
+                        this.style.background = 'linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)';
+                        this.style.borderColor = '#b91c1c';
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 8px 20px rgba(220, 38, 38, 0.4)';
+                    });
+    
+                    deleteBtn.addEventListener('mouseleave', function() {
+                        this.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+                        this.style.borderColor = '#dc2626';
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = 'none';
+                    });
+    
+                    deleteBtn.addEventListener('mousedown', function() {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
+                    });
+    
+                    deleteBtn.addEventListener('mouseup', function() {
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 8px 20px rgba(220, 38, 38, 0.4)';
+                    });
+                }
+    
+                return card;
+            }
+    
+            function deleteActivity(activityId, activityType, event) {
+                // Prevenir que el evento se propague
+                if (event) {
+                    event.stopPropagation();
+                }
+                if (!confirm(`¿Estás seguro de que quieres eliminar esta actividad? Esta acción no se puede deshacer.`)) {
+                    return;
+                }
+    
+                // Obtener el ID del crucero desde la URL
+                const urlParts = window.location.pathname.split('/');
+                const cruceroId = urlParts[2];
+    
+                // Hacer petición para eliminar la actividad
+                fetch(`/entretenimiento/${cruceroId}/api/eliminar-actividad/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        activity_id: activityId,
+                        activity_type: activityType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccessMessage(data.message);
+                        // Recargar las actividades después de 250ms
+                        setTimeout(() => {
+                            loadActivitiesForDeletion();
+                        }, 250);
+                    } else {
+                        showFormErrors([data.message]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al eliminar actividad:', error);
+                    showFormErrors(['Error de conexión. Intente nuevamente.']);
+                });
+            }
+    
+            document.addEventListener('DOMContentLoaded', function() {
+                updateDate();
+                addSelectorStyles();
+                addFilterButtonHoverEffects();
+                initializeCardClicks(); // Inicializar los clicks de las cards
+                initializeActionButtons(); // Inicializar los clicks de los botones de acción
             });
-
-            formErrors.style.display = 'block';
-        }
-
-        // Función para mostrar mensaje de éxito
-        function showSuccessMessage(message) {
-            // Crear un toast o alert temporal
-            const toast = document.createElement('div');
-            toast.className = 'success-toast';
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #10b981;
-                color: white;
-                padding: 16px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 10000;
-                font-weight: 500;
-                animation: slideInRight 0.3s ease-out;
-            `;
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => {
-                    document.body.removeChild(toast);
-                }, 300);
-            }, 3000);
-        }
-
-        // Cerrar modales con la tecla Escape
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeAllModals();
-            }
-        });
-
-        // Actualizar la fecha cuando se carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            updateDate();
-            addSelectorStyles();
-            addFilterButtonHoverEffects();
-            initializeCardClicks(); // Inicializar los clicks de las cards
-        });
-    </script>
-</body>
-</html>
+        </script>
+    </body>
+    </html>

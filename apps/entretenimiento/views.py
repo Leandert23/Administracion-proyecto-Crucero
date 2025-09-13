@@ -1,10 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
 from apps.creador_embarcaciones.models import Embarcacion
 from apps.reservaciones.models import Reserva
 from django.db.models import Q
-from datetime import timedelta
+from datetime import timedelta, time as dt_time
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -15,8 +15,25 @@ from django.conf import settings
 import json
 import uuid
 import os
+import time
+from decimal import Decimal
 
 # Create your views here.
+
+def entretenimiento_main_view(request):
+    """Vista principal de entretenimiento que redirige al primer crucero disponible."""
+    # Obtener el primer crucero disponible
+    primer_crucero = Embarcacion.objects.first()
+
+    if primer_crucero:
+        # Redirigir al entretenimiento del primer crucero
+        return redirect('entretenimiento:entretenimiento', crucero_id=primer_crucero.id)
+    else:
+        # Si no hay cruceros, mostrar mensaje de error o página de inicio
+        return render(request, 'entretenimiento/sin_cruceros.html', {
+            'mensaje': 'No hay cruceros disponibles en el sistema.',
+            'modulos_usuario': request.user.get_modulos_activos() if request.user.is_authenticated else []
+        })
 
 def entretenimiento_view(request, crucero_id):
     """Vista para mostrar la página de entretenimiento de un crucero específico.
@@ -70,9 +87,9 @@ def entretenimiento_view(request, crucero_id):
         # Para embarcaciones, usamos la fecha del sistema
         fecha_dia_seleccionado = fecha_actual_sistema
     else:
-        # Si no hay día seleccionado, mostrar todas las actividades
-        actividades_pago = Actividad.objects.all().order_by('id_actividad')
-        actividades_rutinarias = ActividadRutinaria.objects.all().order_by('id_actividad')
+        # Si no hay día seleccionado, mostrar todas las actividades de la embarcación
+        actividades_pago = actividades_base.order_by('id_actividad')
+        actividades_rutinarias = rutinarias_base.order_by('id_actividad')
         dia_seleccionado = None
 
     # Combinar ambas listas para mostrar las actividades
@@ -409,6 +426,62 @@ def eliminar_actividades_rutinarias(request):
 
 @csrf_exempt
 @require_POST
+def eliminar_actividad(request, crucero_id):
+    """Vista para eliminar una actividad específica (rutinaria o de pago)"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Obtener parámetros del POST
+        activity_id = request.POST.get('activity_id')
+        activity_type = request.POST.get('activity_type')
+
+        if not activity_id or not activity_type:
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan parámetros requeridos: activity_id y activity_type.'
+            })
+
+        # Eliminar según el tipo de actividad
+        if activity_type == 'rutinaria':
+            actividad = get_object_or_404(ActividadRutinaria, pk=activity_id)
+            actividad.delete()
+            message = 'Actividad rutinaria eliminada exitosamente.'
+
+        elif activity_type == 'pago':
+            actividad = get_object_or_404(Actividad, pk=activity_id)
+            actividad.delete()
+            message = 'Actividad de pago eliminada exitosamente.'
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': f'Tipo de actividad no válido: {activity_type}. Debe ser "rutinaria" o "pago".'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': message
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividad: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar la actividad.'
+        })
+
+
+@csrf_exempt
+@require_POST
 def eliminar_actividades_pago(request):
     """Vista para eliminar todos los registros de actividades de pago"""
 
@@ -553,7 +626,7 @@ def crear_actividad_rutinaria_view(request, crucero_id):
     viaje = None
 
     if request.method == 'POST':
-        return crear_actividad_rutinaria_post(request, embarcacion, viaje)
+        return crear_actividad_rutinaria_post(request, embarcacion)
 
     context = {
         'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
@@ -566,10 +639,12 @@ def crear_actividad_rutinaria_view(request, crucero_id):
 
 
 @csrf_exempt
-def crear_actividad_rutinaria_post(request, embarcacion, viaje):
+def crear_actividad_rutinaria_post(request, embarcacion):
     """Vista para procesar la creación de actividades rutinarias"""
 
     try:
+        # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+        viaje = None
         # Validar campos requeridos
         required_fields = ['titulo', 'descripcion', 'dia_crucero', 'hora_inicio', 'hora_fin', 'maximo_actividad', 'ubicacion']
         for field in required_fields:
@@ -602,8 +677,14 @@ def crear_actividad_rutinaria_post(request, embarcacion, viaje):
 
         # Convertir horas y validar minutos
         try:
-            hora_inicio = time.fromisoformat(hora_inicio_str)
-            hora_fin = time.fromisoformat(hora_fin_str)
+            # Usar dt_time.fromisoformat para mejor compatibilidad
+            if len(hora_inicio_str) == 5:  # Formato HH:MM
+                hora_inicio_str += ':00'  # Agregar segundos si no están presentes
+            if len(hora_fin_str) == 5:  # Formato HH:MM
+                hora_fin_str += ':00'  # Agregar segundos si no están presentes
+
+            hora_inicio = dt_time.fromisoformat(hora_inicio_str)
+            hora_fin = dt_time.fromisoformat(hora_fin_str)
 
             # Validar que los minutos estén entre 0 y 59
             if hora_inicio.minute < 0 or hora_inicio.minute > 59:
@@ -666,7 +747,7 @@ def crear_actividad_rutinaria_post(request, embarcacion, viaje):
 
         # Crear la actividad rutinaria
         actividad = ActividadRutinaria.objects.create(
-            viaje=viaje,
+            embarcacion=embarcacion,
             titulo=titulo,
             descripcion=descripcion,
             dia_crucero=dia_crucero,
@@ -684,10 +765,28 @@ def crear_actividad_rutinaria_post(request, embarcacion, viaje):
         })
 
     except Exception as e:
-        print(f"Error en registro_view: {e}")
+        print(f"Error al crear actividad rutinaria: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        # Debug: imprimir los datos que se están intentando guardar
+        print("Datos que se intentaron guardar:")
+        try:
+            print(f"- embarcacion: {embarcacion}")
+            print(f"- titulo: {titulo}")
+            print(f"- descripcion: {descripcion}")
+            print(f"- dia_crucero: {dia_crucero}")
+            print(f"- hora_inicio: {hora_inicio}")
+            print(f"- hora_fin: {hora_fin}")
+            print(f"- maximo_actividad: {maximo_actividad}")
+            print(f"- ubicacion: {ubicacion}")
+            print(f"- img_src: {img_src}")
+        except NameError:
+            print("Algunos datos no están definidos")
+
         return JsonResponse({
             'success': False,
-            'message': 'Ocurrió un error al crear la actividad rutinaria.'
+            'message': f'Ocurrió un error al crear la actividad rutinaria: {str(e)}'
         })
 
 
@@ -715,13 +814,7 @@ def crear_actividad_pago_post(request, crucero_id):
     try:
         # Obtener embarcación
         embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
-        viaje = None  # No hay viajes en el modelo Embarcacion
-
-        if not viaje:
-            return JsonResponse({
-                'success': False,
-                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
-            })
+        viaje = None  # No hay viajes en el modelo Embarcacion, usaremos embarcacion directamente
         # Validar datos requeridos
         required_fields = ['titulo', 'descripcion', 'dia_crucero', 'coste', 'hora_inicio', 'hora_fin', 'maximoActividad']
         for field in required_fields:
@@ -769,8 +862,14 @@ def crear_actividad_pago_post(request, crucero_id):
 
         # Convertir horas y validar minutos
         try:
-            hora_inicio = time.fromisoformat(hora_inicio_str)
-            hora_fin = time.fromisoformat(hora_fin_str)
+            # Usar dt_time.fromisoformat para mejor compatibilidad
+            if len(hora_inicio_str) == 5:  # Formato HH:MM
+                hora_inicio_str += ':00'  # Agregar segundos si no están presentes
+            if len(hora_fin_str) == 5:  # Formato HH:MM
+                hora_fin_str += ':00'  # Agregar segundos si no están presentes
+
+            hora_inicio = dt_time.fromisoformat(hora_inicio_str)
+            hora_fin = dt_time.fromisoformat(hora_fin_str)
 
             # Validar que los minutos estén entre 0 y 59
             if hora_inicio.minute < 0 or hora_inicio.minute > 59:
@@ -831,9 +930,19 @@ def crear_actividad_pago_post(request, crucero_id):
             # Guardar solo el nombre del archivo en img_src
             img_src = nombre_unico
 
+        # Debug: verificar que todos los campos sean válidos antes de crear
+        print("Verificando campos antes de crear actividad:")
+        print(f"embarcacion type: {type(embarcacion)}, value: {embarcacion}")
+        print(f"titulo type: {type(titulo)}, value: {titulo}")
+        print(f"dia_crucero type: {type(dia_crucero)}, value: {dia_crucero}")
+        print(f"coste type: {type(coste)}, value: {coste}")
+        print(f"hora_inicio type: {type(hora_inicio)}, value: {hora_inicio}")
+        print(f"hora_fin type: {type(hora_fin)}, value: {hora_fin}")
+        print(f"maximoActividad type: {type(maximoActividad)}, value: {maximoActividad}")
+
         # Crear la actividad de pago
         actividad = Actividad.objects.create(
-            viaje=viaje,
+            embarcacion=embarcacion,
             titulo=titulo,
             descripcion=descripcion,
             dia_crucero=dia_crucero,
@@ -855,9 +964,21 @@ def crear_actividad_pago_post(request, crucero_id):
         import traceback
         traceback.print_exc()
 
+        # Debug: imprimir los datos que se están intentando guardar
+        print("Datos que se intentaron guardar:")
+        print(f"- embarcacion: {embarcacion}")
+        print(f"- titulo: {titulo}")
+        print(f"- descripcion: {descripcion}")
+        print(f"- dia_crucero: {dia_crucero}")
+        print(f"- coste: {coste}")
+        print(f"- hora_inicio: {hora_inicio}")
+        print(f"- hora_fin: {hora_fin}")
+        print(f"- maximoActividad: {maximoActividad}")
+        print(f"- img_src: {img_src}")
+
         return JsonResponse({
             'success': False,
-            'message': 'Ocurrió un error al crear la actividad de pago.'
+            'message': f'Ocurrió un error al crear la actividad de pago: {str(e)}'
         })
 
 
@@ -870,18 +991,17 @@ def api_get_activities(request, crucero_id):
     try:
         # Obtener embarcación
         embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
-        viaje = None  # No hay viajes en el modelo Embarcacion
-
-        if not viaje:
-            return JsonResponse({
-                'success': False,
-                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
-            })
+        viaje = None  # No hay viajes en el modelo Embarcacion, usaremos embarcacion directamente
 
         activities_data = []
 
+        # Debug: imprimir información sobre las actividades que se van a cargar
+        print(f"Cargando actividades para embarcación ID: {crucero_id}")
+        print(f"Embarcación: {embarcacion.nombre}")
+
         # Obtener actividades de pago
-        actividades_pago = Actividad.objects.filter(viaje=viaje).order_by('dia_crucero', 'hora_inicio')
+        actividades_pago = Actividad.objects.filter(embarcacion=embarcacion).order_by('dia_crucero', 'hora_inicio')
+        print(f"Actividades de pago encontradas: {actividades_pago.count()}")
         for actividad in actividades_pago:
             activities_data.append({
                 'id_actividad': actividad.id_actividad,
@@ -898,7 +1018,14 @@ def api_get_activities(request, crucero_id):
             })
 
         # Obtener actividades rutinarias
-        actividades_rutinarias = ActividadRutinaria.objects.filter(viaje=viaje).order_by('dia_crucero', 'hora_inicio')
+        actividades_rutinarias = ActividadRutinaria.objects.filter(embarcacion=embarcacion).order_by('dia_crucero', 'hora_inicio')
+        print(f"Actividades rutinarias encontradas: {actividades_rutinarias.count()}")
+
+        # Debug: listar todas las actividades rutinarias encontradas
+        for act in actividades_rutinarias:
+            print(f"  - ID: {act.id_actividad}, Título: {act.titulo}, Día: {act.dia_crucero}")
+
+        print(f"Total de actividades encontradas: {len(activities_data) + actividades_rutinarias.count()}")
         for actividad in actividades_rutinarias:
             activities_data.append({
                 'id_actividad': actividad.id_actividad,

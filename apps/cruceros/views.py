@@ -79,7 +79,7 @@ def _procesar_asignacion_ruta(request, embarcacion):
         'crucero': embarcacion,
         'form_asignar': form,
         'abrir_modal_asignar': True,
-        'modulos_usuario': modulos_usuario,
+        'modulos_usuario': request.user.get_modulos_activos(),
     })
 
 def _mostrar_formulario_asignacion(request, embarcacion):
@@ -87,7 +87,7 @@ def _mostrar_formulario_asignacion(request, embarcacion):
     return render(request, "inicio/inicio_sin_ruta.html", {
         'crucero': embarcacion,
         'form_asignar': form,
-        'modulos_usuario': modulos_usuario,
+        'modulos_usuario': request.user.get_modulos_activos(),
     })
 
 def _mostrar_vista_inicio(request, embarcacion, form_edit):
@@ -105,5 +105,5 @@ def _mostrar_vista_inicio(request, embarcacion, form_edit):
     }
 
     contexto['form_crucero_edit'] = form_edit
-    contexto['modulos_usuario'] = modulos_usuario
+    contexto['modulos_usuario'] = request.user.get_modulos_activos()
     return render(request, 'inicio/inicio.html', contexto)
