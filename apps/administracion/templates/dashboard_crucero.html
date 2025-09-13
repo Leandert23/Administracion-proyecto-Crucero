@@ -42,7 +42,18 @@
           </button>
         </div>
       <div>
-        <h2>Estado: <strong>{{ status }}</strong> &nbsp;|&nbsp; Precio de la gasolina: <strong>{{ gas_price|default:"0" }}</strong></h2>
+        <h2>Estado: <strong>{{ status }}</strong> &nbsp;|&nbsp; Precio de la gasolina: 
+          {% if gas_price and gas_price > 0 %}
+            <strong style="color: #059669;">${{ gas_price }}</strong>
+          {% else %}
+            <strong style="color: #dc2626;">No configurado</strong>
+          {% endif %}
+          {% if user.is_staff %}
+            <a href="/admin/administracion/dashboard/{{ crucero.id }}/change/" class="btn btn-sm btn-outline-primary ms-2" title="Configurar precio de combustible">
+              <i class="fas fa-edit"></i> Configurar Precio
+            </a>
+          {% endif %}
+        </h2>
         <h3>Presupuesto por parada para compras: {{ budget|default:"0" }}</h3>
         <strong>Ubicación actual:</strong> {{ location }}<br>
         <strong>Días en viaje:</strong> {{ days }}<br>

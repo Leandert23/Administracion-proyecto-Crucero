@@ -2,7 +2,7 @@ from django.db import models
 from apps.cruceros.models import Crucero
 from apps.compras.models import ProveedorMaterial, CompraLote
 from apps.ventas.models import Venta, Cliente
-from apps.recursos_humanos.models import Personal
+# from apps.recursos_humanos.models import Personal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
@@ -33,7 +33,7 @@ class Dashboard(models.Model):
         distancia = 1000  # valor por defecto
         
         costo_combustible = distancia * self.precio_combustible * self.crucero.consumo_combustible * dias
-        costo_operacional = Personal.objects.aggregate(Sum('salario'))['salario__sum'] * dias
+        costo_operacional = 0  # Temporalmente sin cálculo de salarios
         
         return costo_combustible + costo_operacional
     
@@ -107,7 +107,7 @@ class Dashboard(models.Model):
 
     @property
     def num_empleados_actual(self):
-        return Personal.objects.count()
+        return 0  # Temporalmente sin conteo de empleados
     
     @num_empleados_actual.setter
     def num_empleados_actual(self, value):
