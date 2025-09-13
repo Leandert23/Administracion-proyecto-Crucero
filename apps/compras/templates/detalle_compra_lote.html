@@ -9,6 +9,8 @@
 <body>
     {% if from_param == 'historial' %}
         <a href="{% url 'compras:historial_compras' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
+    {% elif from_param == 'revision' %}
+        <a href="{% url 'compras:revision_problemas' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
     {% else %}
         <a href="{% url 'compras:lista_solicitudes' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
     {% endif %}
@@ -59,9 +61,18 @@
     </fieldset>
     <form method="post" style="margin-top: 30px; text-align: center;">
         {% csrf_token %}
-    <button type="submit" name="accion" value="aceptar" style="background: #4CAF50; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Aceptar</button>
-    <button type="submit" name="accion" value="rechazar" style="background: #f44336; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Rechazar</button>
-    <!-- <button type="submit" name="accion" value="finalizar" style="background: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Finalizar</button> -->
+        <button type="submit" name="accion" value="aceptar" style="background: #4CAF50; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Aceptar</button>
+        <button type="submit" name="accion" value="rechazar" style="background: #f44336; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Rechazar</button>
+        <!-- <button type="submit" name="accion" value="finalizar" style="background: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px;">Finalizar</button> -->
+        {% if compra.get_estado_display == 'Defectuosa' %}
+            <br><br>
+            <label for="monto_a_devolver">Monto a devolver:</label>
+            <input type="number" id="monto_a_devolver" name="monto_a_devolver" step="0.01" style="margin-right: 20px;">
+            <button type="submit" name="accion" value="aceptar_defectuosa" style="background: #4CAF50; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Aceptar con Devolución</button>
+            <label for="mensaje">Mensaje:</label>
+            <input type="text" id="mensaje" name="mensaje" placeholder="Mensaje para rechazar" style="margin-right: 20px;">
+            <button type="submit" name="accion" value="rechazar_defectuosa" style="background: #f44336; color: white; padding: 10px 20px; margin-right: 20px; border: none; border-radius: 4px;">Rechazar Defectuosa</button>
+        {% endif %}
     </form>
 </body>
 </html>

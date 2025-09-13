@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Historial de Compras</title>
+    <title>Revisión de Problemas</title>
     <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
     <link rel="stylesheet" href="{% static 'styles/historial_compras.css' %}">
 </head>
@@ -12,7 +12,7 @@
 <body>
     <div class="container">
 
-        <h1>Historial de Compras por Lote</h1>
+        <h1>Revisión de Problemas</h1>
         <table border="1">
             <thead>
                 <tr>
@@ -39,11 +39,11 @@
                     <td>${{ compra.presupuesto_lote }}</td>
                     <td>{{ compra.get_estado_display }}</td>
                     <td>
-                        <a href="{% url 'compras:detalle_compra_lote' crucero_id compra.id %}?from=historial"><button>Ver detalles</button></a>
+                        <a href="{% url 'compras:detalle_compra_lote' crucero_id compra.id %}?from=revision"><button style="background: #2196F3; color: white; padding: 5px 10px; border: none; border-radius: 4px;">Ver detalles</button></a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="10">No hay compras por lote procesadas.</td></tr>
+                <tr><td colspan="10">No hay compras defectuosas.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
