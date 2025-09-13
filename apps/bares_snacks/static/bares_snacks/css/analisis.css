@@ -1,0 +1,130 @@
+/* Paginación amigable para stock */
+.st-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 2px 0 0 0;
+	background: none !important;
+	border: none !important;
+	min-height: unset;
+}
+.st-puntos {
+	display: flex;
+	gap: 4px;
+	justify-content: center;
+	align-items: center;
+	margin: 0 2px;
+}
+.st-punto {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #e0e7ef;
+	display: inline-block;
+	transition: background .2s, box-shadow .2s;
+	box-shadow: 0 0 0 0 #0ea5e9;
+}
+.st-punto.active {
+	background: #0ea5e9;
+	box-shadow: 0 0 0 2px #38bdf8;
+	outline: 1px solid #0ea5e9;
+}
+.st-toggle-btn {
+	background: linear-gradient(90deg,#0ea5e9,#38bdf8);
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	width: 22px;
+	height: 22px;
+	font-size: 1rem;
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 8px -4px #0ea5e9a0;
+	transition: filter .2s, box-shadow .2s;
+	margin: 0 1px;
+}
+.st-toggle-btn[disabled] {
+	opacity: 0.5;
+	cursor: default;
+	background: #e0e7ef;
+	color: #94a3b8;
+}
+/* Elimina estilos antiguos de ver más, ahora usamos flechas y puntitos */
+.analisis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0 32px}
+.analisis-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 8px 22px -14px rgba(15,23,42,.15);overflow:hidden}
+.analisis-card .card-head{padding:12px 14px 8px;background:linear-gradient(180deg,#f8fafc,#fff);border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
+.analisis-card .card-head h3{margin:0;color:#0f172a;font-size:1rem}
+.analisis-card .card-head .sub{color:#64748b;font-size:.8rem}
+.analisis-card .card-body{padding:12px 14px}
+.analisis-empty{padding:30px 12px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px}
+
+/* Top vendidos */
+.mv-categoria{border:1px solid #e2e8f0;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.mv-title{margin:0;padding:8px 10px;background:#f1f5f9;color:#0f172a;font-size:.9rem}
+.mv-list{list-style:none;margin:0;padding:0}
+.mv-item{display:grid;grid-template-columns:52px 1fr 68px;align-items:center;padding:8px 10px;border-top:1px solid #e2e8f0}
+.mv-item:first-child{border-top:none}
+.mv-item .mv-rank{background:#0ea5e9;color:#fff;padding:3px 8px;border-radius:999px;font-weight:700;justify-self:start}
+.mv-item:nth-child(1) .mv-rank{background:#16a34a}
+.mv-item:nth-child(2) .mv-rank{background:#22c55e}
+.mv-item:nth-child(3) .mv-rank{background:#84cc16}
+.mv-item .mv-name{color:#334155;font-weight:600;font-size:.95rem}
+.mv-item .mv-total{justify-self:end;font-weight:800;color:#0f172a}
+.mv-item.empty{color:#64748b;display:block}
+
+/* Stock */
+.stock-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stock-col{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px}
+.stock-title{margin:0 0 6px;font-size:.9rem;color:#0f172a}
+.stock-title.critico{color:#b91c1c}
+.stock-title.ideal{color:#166534}
+.stock-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.st-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px;padding:2px 6px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;min-height:unset;}
+.st-item.st-low{border-color:#fecaca}
+.st-item.st-ideal{border-color:#bbf7d0}
+.st-item .st-name{color:#334155;font-weight:500;font-size:.88rem}
+.st-item .st-badge{background:#fee2e2;color:#991b1b;border-radius:999px;padding:1px 6px;font-weight:700;font-size:.85rem}
+
+.st-item .st-badge.good{background:#dcfce7;color:#166534}
+.st-item .st-bar{height:6px;background:#f1f5f9;border-radius:999px;overflow:hidden}
+.st-item .st-bar i{display:block;height:100%;background:linear-gradient(90deg,#ef4444,#f59e0b);border-radius:999px}
+
+/* Restock: header button */
+.btn-restock-head{margin-left:auto;background:linear-gradient(90deg,#0ea5e9,#38bdf8);color:#fff;border:none;border-radius:999px;padding:6px 10px;font-weight:700;cursor:pointer}
+.btn-restock-head:hover{filter:brightness(.95)}
+
+@media (max-width:720px){
+	.analisis-grid{grid-template-columns:1fr}
+	.st-item{grid-template-columns:1fr auto}
+	.st-item .st-bar{grid-column:1 / -1}
+}
+
+/* On larger screens, make Top vendidos narrower and Stock wider */
+@media (min-width: 980px){
+	.analisis-grid{
+		grid-template-columns: minmax(260px,0.9fr) minmax(380px,1.6fr);
+	}
+	#card-mas-vendidos{min-width:260px}
+	#card-stock{min-width:380px}
+}
+
+/* Keep analysis content clear of the fixed mini-menu on the right */
+@media (min-width: 701px){
+	#analisis .analisis-grid{ margin-right: 120px; }
+}
+@media (min-width: 980px){
+	.analisis-grid{
+		grid-template-columns: minmax(260px,0.9fr) minmax(380px,1.6fr);
+	}
+	#card-mas-vendidos{min-width:260px}
+	#card-stock{min-width:380px}
+}
+
+/* Keep analysis content clear of the fixed mini-menu on the right */
+@media (min-width: 701px){
+	#analisis .analisis-grid{ margin-right: 120px; }
+}

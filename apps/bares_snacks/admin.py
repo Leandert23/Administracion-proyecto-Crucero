@@ -44,7 +44,7 @@ class BarAdmin(admin.ModelAdmin):
 
 @admin.register(Pedidos)
 class PedidosAdmin(admin.ModelAdmin):
-	list_display = ("id", "estado", "fecha_hora", "lugarentrega")
+	list_display = ("id", "empleado", "cliente", "estado", "fecha_hora", "lugarentrega")
 	list_filter = ("estado", "lugarentrega")
 	search_fields = ("id",)
 
