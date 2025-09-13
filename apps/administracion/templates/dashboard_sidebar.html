@@ -17,73 +17,136 @@
     {% endblock %}
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <h5 class="text-white">Sistema Cruceros</h5>
-                    </div>
-                    
-                    <ul class="nav flex-column">
-                        <!-- Módulo Administración -->
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
-                                href="{% url 'dashboard' crucero_id=1 %}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                            
-                        <!-- Otros módulos -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'lista_cruceros' %}">
-                                <i class="fas fa-ship"></i> Cruceros
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/almacen/">
-                                <i class="fas fa-warehouse"></i> Almacén
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'entretenimiento:entretenimiento' 1 %}">
-                                <i class="fas fa-music"></i> Entretenimiento
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-            
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block page_title %}Dashboard{% endblock %}</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        {% block page_actions %}{% endblock %}
-                    </div>
-                </div>
-                
-                <!-- Mensajes -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                
-                <!-- Contenido principal -->
-                {% block content %}
-                    <p>Contenido del dashboard aquí...</p>
-                {% endblock %}
-            </main>
-        </div>
+{% block content %}
+    <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+        <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
+        <span class="logo-text">Panel de Control</span>
+      </div>
     </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+            
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/" class="nav-link">
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        
+        {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
+        {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
+        <li class="nav-item">
+          <a href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}" class="nav-link">
+            <span class="nav-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
+            <span class="nav-text">Entretenimiento</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Ventas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
+            <span class="nav-text">Reservas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Restaurante</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Bares</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
+            <span class="nav-text">Compras</span>
+          </a>
+        </li>
+        <li class="nav-item active">
+          <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
+            <span class="nav-text">Almacen</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Recursos Humanos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Servicios Medicos</span>
+        </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <span class="nav-text">Mantenimiento</span>
+          </a>
+        </li>
+        {% else %}
+        {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Entretenimiento</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Ventas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Reservas</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Restaurante</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Bares</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Compras</span>
+          </a>
+        </li>
+        <li class="nav-item active">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Almacen</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Recursos Humanos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Servicios Medicos</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
+            <span class="nav-text">Mantenimiento</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav> 
+  </aside>
+  {% endblock %}
 </body>
 </html>

@@ -12,147 +12,164 @@
   {% endblock %}
 </head>
 <body>
+{% include 'dashboard_sidebar.html' with active_module="dashboard"%}
+
 {% block content %}
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-        <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
-        <span class="logo-text">Panel de Control</span>
+  <script>inyectarContextoYRender()</script>
+  <script>
+    let shipImage = "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=200&fit=crop";
+    if (ship.status === "mantenimiento" || ship.status === "En mantenimiento") {
+      shipImage = "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&h=200&fit=crop";
+    } else if (ship.status === "inactivo" || ship.status === "Embarcado") {
+      shipImage = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=200&fit=crop";
+    }
+  </script>
+  <div id="dashboard" style="padding-bottom: 50px;">
+    <div class="dashboard-box">
+      <div id="image" style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('{{ ship_image_url }}'); background-size: cover; background-position: center; border-radius: 12px; padding: 30px; margin-bottom: 20px; text-align: center;">
+        <script>
+          document.getElementById("image").style.backgroundImage = url(shipImage)
+        </script>
+        <h1 style="color:white">Dashboard de {{ name }}</h1>
+      </div>
+      <div class="content-box">
+        <h1 style="color: white; font-size: 2em; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">{{ ship.name }}</h1>
+        {% if ship.alerts %}
+        <div class="alerts">
+          {% for alert in alerts %}
+          <div>
+            <div>{{ alert.mensaje|default:alert }}</div>
+            {% if alert.fecha %}
+              <small class="text-muted">{{ alert.fecha }}</small>
+            {% endif %}
+          </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <h2>Estado: <strong>{{ status }}</strong> &nbsp;|&nbsp; Precio de la gasolina: <strong>{{ gas_price|default:"0" }}</strong></h2>
+        <h3>Presupuesto por parada para compras: {{ budget|default:"0" }}</h3>
+        <strong>Ubicación actual:</strong> {{ location }}<br>
+        <strong>Días en viaje:</strong> {{ days }}<br>
+        <strong>Distancia del viaje:</strong> {{ distance|default:"0" }}
+      </div>
+
+      <div class="flex-row">
+        <div class="stats-block">
+          <strong>Número de pasajeros actual:</strong> {{ passengers }}<br>
+          <strong>Número de empleados actual:</strong> {{ employees.total }}
+        </div>
+        <div class="stats-block">
+          <strong>Número de empleados activos:</strong> {{ employees.status.active_employees }}<br>
+          <strong>Número de empleados inactivos:</strong> {{ employees.status.inactive_employees }}<br>
+          <strong>Número de empleados de baja:</strong> {{ employees.status.de_baja_employees }}
+        </div>
+      </div>
+      <div class="flex-row">
+        <div class="stats-block">
+          <h3><strong>Costos totales</strong></h3><br>
+          <strong>Total:</strong> {{ costs.total|default:"0" }}<br>
+            Distribución de costos por categorías y su cantidad<br>
+          <canvas id="mainChart"></canvas>
+        </div>
+        <div class="stats-block">
+          <h3><strong>Ganancias totales y reales</strong></h3><br>
+          <strong>Total:</strong> {{ earnings.total|default:"0" }}<br>
+          <strong>Real:</strong> {{ earnings.real|default:"0" }}<br>
+            Distribución de ganancias por categorías y su cantidad<br>
+          <canvas id="secondaryChart"></canvas>
+        </div>
       </div>
     </div>
-            
-    <nav class="sidebar-nav">
-      <ul class="nav-list">
-        <li class="nav-item">
-          <a href="/" class="nav-link">
-            <span class="nav-text">Inicio</span>
-          </a>
-        </li>
-        <!---->
-        {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
-        {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
-        <li class="nav-item">
-          <a href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}" class="nav-link">
-            <span class="nav-text">Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
-            <span class="nav-text">Entretenimiento</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Ventas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
-            <span class="nav-text">Reservas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Restaurante</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Bares</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
-            <span class="nav-text">Compras</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
-            <span class="nav-text">Almacen</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Recursos Humanos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Servicios Medicos</span>
-        </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <span class="nav-text">Mantenimiento</span>
-          </a>
-        </li>
-        {% else %}
-        {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Entretenimiento</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Ventas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Reservas</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Restaurante</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Bares</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Compras</span>
-          </a>
-        </li>
-        <li class="nav-item active">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Almacen</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Recursos Humanos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Servicios Medicos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-            <span class="nav-text">Mantenimiento</span>
-          </a>
-        </li>
-        {% endif %}
-      </ul>
-    </nav> 
-  </aside>
-
-  <div class="row g-3" style="padding-bottom: 30px;">
-    <div id="dashboard"></div>
-  </div>
-  <div class="row g-3 mt-1" style="padding-bottom: 30px;">
-    <div id="purchaseRequests"></div>
   </div>
   
+  <div id="purchaseRequests" style="padding-bottom: 50px;">
+    <div class="dashboard-box" style="padding-bottom: 50px;">
+      <h2 class="dashboard-title">Solicitudes de Compra</h2>
+      <p>Gestiona las solicitudes de compra del módulo de compras</p>
+    </div>
+    {% if purchase_requests %}
+      {% for request in purchase_requests %}
+        <div class="purchase-request-card {% if request.status == 'approved' %}approved{% elif request.status == 'rejected' %}rejected{% else %}pending{% endif %}" style="max-height: 100%; padding-bottom: 30px;">
+          <div class="purchase-request-title">
+            <h3 style="margin: 0; color: #1e293b;">{{ request.ship_name }}</h3>
+            <span class="purchase-request-date">
+              {{ request.created_at }}
+            </span>
+          </div>
+          <p class="purchase-request-info"><strong>Descripción:</strong> {{ request.description }}</p>
+          <p class="purchase-request-info"><strong>Monto:</strong> ${{ request.amount }}</p>
+          {% if request.status == "pending" %}
+          <div class="purchase-actions">
+            <button class="btn-approve" onclick="approvePurchaseRequest(request.id)">
+              Aprobar
+            </button>
+            <button class="btn-reject" onclick="showRejectModal(request.id)">
+              Rechazar
+            </button>
+          </div>
+        {% else %}
+          <div style="margin-top: 15px;">
+            <script>
+              const back = ffffff;
+              const text = 100000;
+            </script>
+            {% if request.status == 'approved' %}
+            <script>
+              back = dcfce7;
+              text = 166534;
+            </script>  
+            {% else %}
+            <script>
+              back = fee2e2;
+              text = dc2626;
+            </script> 
+            {% endif %}
+            <span id="purchase-text" class="purchase-status-text" style='background: #ffffff; color: #0000'>
+              <script>
+                document.getElementById("purchase-text").style.background = back
+                document.getElementById("purchase-text").style.color = text
+              </script>
+              {% if request.status == 'approved' %}
+                APROBADA
+              {% else %}
+                RECHAZADA
+              {% endif %}
+            </span>
+            {% if request.rejection_reason %}
+              <p style="margin-top: 10px; color: #dc2626;"><strong>Razón:</strong> {{ request.rejection_reason }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="dashboard-box">
+      <p>No hay solicitudes de compra pendientes</p>
+    </div>
+  {% endif %}
+  </div>
+  
+  <!-- Botones para gestión de habitaciones -->
+  <div style="padding-bottom: 50px;">
+    <div class="dashboard-box">
+      <h2 class="dashboard-title" style="text-align: center;">Gestión de Habitaciones</h2>
+      <p>Administra las habitaciones del crucero y sus solicitudes de mantenimiento</p>
+      <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'administracion:registrar_habitacion' %}" class="btn-primary">
+          <i class="fas fa-bed"></i> Registrar Habitación
+        </a>
+        <a href="{% url 'administracion:solicitar_mantenimiento_habitacion' %}" class="btn-primary">
+          <i class="fas fa-tools"></i> Solicitar Mantenimiento
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- Botón para ver solicitudes de salida -->
-  <div style="padding-bottom: 30px;">
-    <div class="dashboard-box" >
+  <div style="padding-bottom: 50px;">
+    <div class="dashboard-box">
       <h2 class="dashboard-title" style="text-align: center;">Solicitudes de Salida</h5>
       <p>Gestiona las solicitudes de salida de productos del almacén</p>
       <button type="button" class="btn-primary" onclick="abrirListadoSolicitudesAlmacen()">
@@ -203,12 +220,7 @@
       window.ships = [normalizedShip];
       window.purchaseRequests = Array.isArray(prList) ? prList : [];
 
-      if (typeof renderSingleShip === 'function') {
-        try { renderSingleShip(Number(shipObj.id || 0)); } catch (e) { /* noop */ }
-      }
-      if (typeof renderPurchaseRequests === 'function') {
-        try { renderPurchaseRequests(); } catch (e) { /* noop */ }
-      }
+      
     })();
     
     // Función para abrir el modal de solicitudes de salida

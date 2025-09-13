@@ -1,8 +1,11 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}{{ titulo }}{% endblock %}
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ titulo }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles_admin_dashboard.css' %}">
 {% block extra_css %}
 <style>
     .form-container {
@@ -148,9 +151,10 @@
     }
 </style>
 {% endblock %}
-
+</head>
+<body>
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" style="display: inline-flex; justify-content: center; align-items: center; text-align: center;">
     <div class="row">
         <div class="col-12">
             <div class="form-container">
@@ -383,11 +387,11 @@
                             <i class="fas fa-save"></i> <span id="btn-text">Registrar Habitación</span>
                             <span id="loading-spinner" class="spinner-border spinner-border-sm ml-2" role="status" aria-hidden="true" style="display: none;"></span>
                         </button>
-                        <a href="{% url 'listar_habitaciones' %}" class="btn btn-info mr-2">
+                        <a href="{% url 'administracion:listar_habitaciones' %}" class="btn btn-info mr-2">
                             <i class="fas fa-list"></i> Ver Habitaciones
                         </a>
-                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                        <a href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Dashboard del Crucero
                         </a>
                     </div>
                 </form>
@@ -527,3 +531,5 @@
     });
 </script>
 {% endblock %}
+</body>
+</html>

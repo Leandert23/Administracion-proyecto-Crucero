@@ -92,7 +92,9 @@
 
         <div class="d-flex gap-2">
             <button class="btn btn-primary" type="submit">Crear solicitud</button>
-            <a class="btn btn-secondary" href="javascript:history.back()">Cancelar</a>
+            <a class="btn btn-secondary" href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard del Crucero
+            </a>
         </div>
     </form>
 </body>

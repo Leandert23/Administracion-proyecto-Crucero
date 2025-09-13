@@ -2,6 +2,7 @@ from django.db import models
 from apps.cruceros.models import Crucero
 from apps.compras.models import ProveedorMaterial, CompraLote
 from apps.ventas.models import Venta
+from apps.recursos_humanos.models import Personal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
@@ -78,6 +79,8 @@ class Dashboard(models.Model):
         else:
             self._costos_totales_value = None
 
+    #Agregar para decidir el precio del combustible
+
     @property
     def ganancias_totales(self):
         # Suma el monto_total de todas las ventas completadas del crucero
@@ -97,7 +100,17 @@ class Dashboard(models.Model):
         else:
             self._ganancias_totales_value = None
 
-    #Agregar para decidir el precio del combustible
+    @property
+    def num_empleados_actual(self):
+        return len(Personal.objects.all().filter(pStatus=1))
+    
+    @num_empleados_actual.setter
+    def num_empleados_actual(self, value):
+        """Setter para ganancias_totales que permite asignar valores directamente."""
+        if value is not None:
+            self.num_empleados_actual = Decimal(str(value))
+        else:
+            self.num_empleados_actual = None
 
     def clean(self):
         if self.costos_totales and self.costos_totales < 0:

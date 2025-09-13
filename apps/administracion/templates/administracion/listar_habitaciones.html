@@ -1,8 +1,11 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}{{ titulo }}{% endblock %}
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ titulo }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles_admin_dashboard.css' %}">
 {% block extra_css %}
 <style>
     .table-container {
@@ -51,7 +54,9 @@
     }
 </style>
 {% endblock %}
+</head>
 
+<body>
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -116,11 +121,11 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button type="button" class="btn btn-sm btn-outline-info" 
-                                                    title="Ver detalles" onclick="verDetalles({{ habitacion.id }})">
+                                                    title="Ver detalles" onclick="verDetalles(habitacion.id)">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning" 
-                                                    title="Editar" onclick="editarHabitacion({{ habitacion.id }})">
+                                                    title="Editar" onclick="editarHabitacion(habitacion.id)">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         </div>
@@ -135,20 +140,11 @@
                         <i class="fas fa-bed"></i>
                         <h4>No hay habitaciones registradas</h4>
                         <p>Comience registrando una nueva habitación.</p>
-                        <a href="{% url 'registrar_habitacion' %}" class="btn btn-primary">
+                        <a href="{% url 'administracion:registrar_habitacion' %}" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Registrar Primera Habitación
                         </a>
                     </div>
                 {% endif %}
-            </div>
-            
-            <div class="text-center mt-4">
-                <a href="{% url 'registrar_habitacion' %}" class="btn btn-primary mr-2">
-                    <i class="fas fa-plus"></i> Registrar Nueva Habitación
-                </a>
-                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                </a>
             </div>
         </div>
     </div>
@@ -168,3 +164,5 @@
     }
 </script>
 {% endblock %}
+</body>
+</html>

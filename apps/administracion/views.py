@@ -32,22 +32,31 @@ def cruceros_dashboard_data(request, crucero_id):
         Alerta.objects.filter(crucero=dashboard)
         .values('id', 'mensaje', 'leida', 'fecha', 'crucero_id', 'crucero__crucero__nombre')
     )
-    data = []
     passengers = dashboard.num_pasajeros_actual
     employees = dashboard.num_empleados_actual
     budget = dashboard.presupuesto_estimado
     costs_total = dashboard.costos_totales
+    precio_gasolina = dashboard.precio_combustible
     earnings_total = dashboard.ganancias_totales
     purchase_requests = obtener_solicitudes_compra(crucero_id)
         
-    data = {
+    context = {
+        "crucero": crucero,
         "name": crucero.nombre,
         "status": crucero.estado_operativo,
         "passengers": passengers,
-        "employees": employees,
+        "employees": {
+            "total": employees,
+            "status" : {
+                "active_employees": 0,
+                "inactive_employees": 0,
+                "de_baja_employees": 0,
+            },
+        },
         "location": crucero.puerto_base,
         "days": getattr(crucero, "dia_actual_de_viaje", 0) if hasattr(crucero, "dia_actual_de_viaje") else 0,
         "distance": 0,
+        "gas_price": precio_gasolina,
         "budget": budget,
         "costs": {
             "total": costs_total,
@@ -62,7 +71,7 @@ def cruceros_dashboard_data(request, crucero_id):
         "purchase_requests": purchase_requests
     }
 
-    return render(request, 'dashboard_crucero.html', data)
+    return render(request, 'dashboard_crucero.html', context)
 
 #Obtener de alguna forma la ubicación actual de los barcos y no solo su puerto base 
 def dashboard_empresa(request):
@@ -113,6 +122,7 @@ def dashboard_empresa(request):
 
 def solicitar_mantenimiento_habitacion(request):
     """Vista para crear una TareaMantenimiento desde administración para una habitación."""
+    cruceros = Crucero.objects.all()
     habitacion_id = request.GET.get('habitacion')
     form_kwargs = {}
     if habitacion_id:
@@ -134,7 +144,8 @@ def solicitar_mantenimiento_habitacion(request):
 
     contexto = {
         'form': form,
-        'titulo': 'Solicitar mantenimiento de habitación'
+        'titulo': 'Solicitar mantenimiento de habitación',
+        'crucero': cruceros
     }
     return render(request, 'administracion/solicitar_mantenimiento_habitacion.html', contexto)
 
@@ -178,6 +189,7 @@ def decision_solicitud_view(request):
 
 def registrar_habitacion(request):
     """Vista para registrar una nueva habitación."""
+    cruceros = Crucero.objects.all()
     if request.method == 'POST':
         form = HabitacionForm(request.POST)
         if form.is_valid():
@@ -214,18 +226,21 @@ def registrar_habitacion(request):
     
     contexto = {
         'form': form,
-        'titulo': 'Registrar Nueva Habitación'
+        'titulo': 'Registrar Nueva Habitación',
+        'crucero': cruceros
     }
     return render(request, 'administracion/registrar_habitacion.html', contexto)
 
 def listar_habitaciones(request):
     """Vista para listar todas las habitaciones registradas."""
+    cruceros = Crucero.objects.all()
     from .models import Habitaciones
     
     habitaciones = Habitaciones.objects.select_related('cubierta', 'cubierta__crucero').all().order_by('-id')
     
     contexto = {
         'habitaciones': habitaciones,
-        'titulo': 'Lista de Habitaciones Registradas'
+        'titulo': 'Lista de Habitaciones Registradas',
+        'crucero': cruceros
     }
     return render(request, 'administracion/listar_habitaciones.html', contexto)
