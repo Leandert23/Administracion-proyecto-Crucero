@@ -26,6 +26,7 @@ urlpatterns = [
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma"),
     path("ordenes-compra/por-registrar/", general.obtener_ordenes_compra_por_registrar, name="ordenes_compra_por_registrar"),
     path("ordenes-compra/detalle/<int:orden_id>/", general.detalle_orden_compra, name="orden_compra_detalle"),
+    path("ordenes-compra/reportar-defecto/", general.reportar_defecto_orden, name="orden_compra_reportar_defecto"),
     path("solicitudes/listado/", general.obtener_listado_solicitudes, name="solicitudes_listado"),
     path("solicitudes/detalle/<int:solicitud_id>/", general.detalle_solicitud, name="solicitud_detalle"),
     path("solicitudes/aceptar/", general.aceptar_solicitud, name="solicitud_aceptar"),
