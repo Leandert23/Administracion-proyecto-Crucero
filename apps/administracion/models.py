@@ -2,7 +2,7 @@ from django.db import models
 from apps.cruceros.models import Crucero
 from apps.compras.models import ProveedorMaterial, CompraLote
 from apps.ventas.models import Venta, Cliente
-#from apps.recursos_humanos.models import Personal
+from apps.recursos_humanos.models import Personal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
@@ -101,30 +101,30 @@ class Dashboard(models.Model):
             self._ganancias_totales_value = None
 
     @property
-    def num_empleados_actual(self):
-        return len(Cliente.objects.all())
+    def num_pasajeros_actual(self):
+        """Cuenta el número total de clientes (pasajeros) en el sistema"""
+        return Cliente.objects.count()
     
-    @num_empleados_actual.setter
+    @num_pasajeros_actual.setter
     def num_pasajeros_actual(self, value):
-        """Setter para ganancias_totales que permite asignar valores directamente."""
+        """Setter para num_pasajeros_actual."""
         if value is not None:
-            self.num_pasajeros_actual = Decimal(str(value))
+            self._num_pasajeros_actual_value = int(value)
         else:
-            self.num_pasajeros_actual = None
+            self._num_pasajeros_actual_value = None
 
-    '''''''''
     @property
     def num_empleados_actual(self):
-        return len(Personal.objects.all().filter(pStatus=1))
+        """Cuenta el número total de empleados activos en el sistema"""
+        return Personal.objects.filter(pStatus=1).count()
     
     @num_empleados_actual.setter
     def num_empleados_actual(self, value):
-        """Setter para ganancias_totales que permite asignar valores directamente."""
+        """Setter para num_empleados_actual."""
         if value is not None:
-            self.num_empleados_actual = Decimal(str(value))
+            self._num_empleados_actual_value = int(value)
         else:
-            self.num_empleados_actual = None
-    '''''''''
+            self._num_empleados_actual_value = None
 
     def clean(self):
         if self.costos_totales and self.costos_totales < 0:
@@ -145,6 +145,12 @@ class Dashboard(models.Model):
         if hasattr(self, '_ganancias_totales_value') and self._ganancias_totales_value is not None:
             # Actualizar el campo de la base de datos con el valor asignado
             super(Dashboard, self).__setattr__('ganancias_totales', self._ganancias_totales_value)
+        
+        if hasattr(self, '_num_pasajeros_actual_value') and self._num_pasajeros_actual_value is not None:
+            super(Dashboard, self).__setattr__('num_pasajeros_actual', self._num_pasajeros_actual_value)
+        
+        if hasattr(self, '_num_empleados_actual_value') and self._num_empleados_actual_value is not None:
+            super(Dashboard, self).__setattr__('num_empleados_actual', self._num_empleados_actual_value)
         
         super().save(*args, **kwargs)
 

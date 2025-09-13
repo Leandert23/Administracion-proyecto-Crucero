@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.administracion",
     "apps.servicio_medico",
     "apps.restaurante",
+    "apps.recursos_humanos",  # ✅ AGREGAR ESTA LÍNEA
 ]
 
 MIDDLEWARE = [
