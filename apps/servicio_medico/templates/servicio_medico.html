@@ -110,19 +110,19 @@
                 <div class="rooms-summary">
                     <div class="summary-item">
                         <span class="summary-label">Total:</span>
-                        <span class="summary-value">{{ cuartos|length }}</span>
+                        <span class="summary-value">{{ total_cuartos }}</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Disponibles:</span>
-                        <span class="summary-value available">{{ cuartos|length }}</span>
+                        <span class="summary-value available">{{ cuartos_disponibles }}</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Ocupados:</span>
-                        <span class="summary-value occupied">0</span>
+                        <span class="summary-value occupied">{{ cuartos_ocupados }}</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Mantenimiento:</span>
-                        <span class="summary-value maintenance">0</span>
+                        <span class="summary-value maintenance">{{ cuartos_mantenimiento }}</span>
                     </div>
                 </div>
                 
@@ -189,7 +189,7 @@
                     <!-- Botón para mostrar/ocultar cuartos adicionales -->
                     {% if cuartos|length > 3 %}
                     <div class="expand-rooms-container">
-                        <button class="expand-rooms-btn" id="expandRoomsBtn" onclick="toggleAdditionalRooms()">
+                        <button class="expand-rooms-btn" id="expandRoomsBtn" onclick="simpleToggleRooms()">
                             <span class="btn-text">
                                 <span class="show-text">Ver {{ cuartos|length|add:"-3" }} cuartos adicionales</span>
                                 <span class="hide-text" style="display: none;">Ocultar cuartos adicionales</span>
@@ -684,26 +684,13 @@
     transform: rotate(180deg);
 }
 
-/* Estilos para cuartos ocultos */
+/* Estilos simplificados para cuartos ocultos */
 .hidden-room {
     display: none !important;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
 }
 
-.hidden-room.show {
-    display: table-row !important;
-    opacity: 1;
-    transform: translateY(0);
-    animation: slideInFromTop 0.6s ease-out;
-}
-
-.hidden-room.hide {
-    display: table-row !important;
-    opacity: 0;
-    transform: translateY(-30px);
-    animation: slideOutToTop 0.6s ease-in;
+.room-row {
+    display: table-row;
 }
 
 /* Animaciones */
@@ -1017,20 +1004,22 @@ document.head.appendChild(style);
 
 // Función para actualizar contadores de cuartos
 function updateRoomCounters() {
-    const roomRows = document.querySelectorAll('.room-row');
-    let total = roomRows.length;
+    // Contar TODOS los cuartos, no solo los visibles
+    const allRoomRows = document.querySelectorAll('.room-row');
+    let total = allRoomRows.length;
     let available = 0;
     let occupied = 0;
     let maintenance = 0;
     
-    roomRows.forEach(row => {
+    allRoomRows.forEach(row => {
         const statusBadge = row.querySelector('.status-badge');
         if (statusBadge) {
-            if (statusBadge.classList.contains('d')) {
+            const statusText = statusBadge.textContent.trim().toLowerCase();
+            if (statusText === 'disponible') {
                 available++;
-            } else if (statusBadge.classList.contains('o')) {
+            } else if (statusText === 'ocupado') {
                 occupied++;
-            } else if (statusBadge.classList.contains('m')) {
+            } else if (statusText === 'mantenimiento') {
                 maintenance++;
             }
         }
@@ -1049,113 +1038,156 @@ function updateRoomCounters() {
 }
 
 
-// Función para alternar la visualización de cuartos adicionales
+// Función simplificada para alternar la visualización de cuartos adicionales
 function toggleAdditionalRooms() {
-    // Seleccionar todos los cuartos que están ocultos (índice > 3)
+    console.log('=== toggleAdditionalRooms() INICIADA ===');
+    
+    // Buscar todos los cuartos con índice > 3
     const allRooms = document.querySelectorAll('.room-row[data-room-index]');
-    const hiddenRooms = Array.from(allRooms).filter(room => {
+    console.log('Total de cuartos encontrados:', allRooms.length);
+    
+    // Filtrar cuartos ocultos (índice > 3)
+    const hiddenRooms = [];
+    allRooms.forEach(room => {
         const index = parseInt(room.getAttribute('data-room-index'));
-        return index > 3;
-    });
-    
-    const expandBtn = document.getElementById('expandRoomsBtn');
-    const showText = expandBtn.querySelector('.show-text');
-    const hideText = expandBtn.querySelector('.hide-text');
-    
-    const isExpanded = expandBtn.classList.contains('expanded');
-    
-    if (!isExpanded) {
-        // Mostrar cuartos adicionales con animación
-        expandBtn.classList.add('expanded');
-        showText.style.display = 'none';
-        hideText.style.display = 'inline';
-        
-        hiddenRooms.forEach((room, index) => {
-            setTimeout(() => {
-                console.log(`Mostrando cuarto ${index + 1}`);
-                room.classList.remove('hidden-room');
-                room.classList.add('show');
-            }, index * 100); // Animación escalonada
-        });
-        
-        // Actualizar contadores después de mostrar todos los cuartos
-        setTimeout(() => {
-            updateRoomCounters();
-        }, hiddenRooms.length * 100 + 200);
-        
-    } else {
-        // Ocultar cuartos adicionales con animación escalonada
-        console.log('Ocultando cuartos con animación escalonada...');
-        
-        // Cambiar estado del botón inmediatamente
-        expandBtn.classList.remove('expanded');
-        showText.style.display = 'inline';
-        hideText.style.display = 'none';
-        
-        // Aplicar animación escalonada
-        hiddenRooms.forEach((room, index) => {
-            setTimeout(() => {
-                console.log(`Ocultando cuarto ${index + 1}`);
-                room.classList.add('hide');
-                room.classList.remove('show');
-            }, index * 100);
-        });
-        
-        // Ocultar completamente después de la animación
-        setTimeout(() => {
-            console.log('Ocultando completamente los cuartos...');
-            hiddenRooms.forEach((room) => {
-                room.classList.add('hidden-room');
-                room.classList.remove('hide');
-            });
-            updateRoomCounters();
-        }, hiddenRooms.length * 100 + 700); // Tiempo para animación de 0.6s
-    }
-}
-
-// Función mejorada para actualizar contadores de cuartos
-function updateRoomCounters() {
-    const allRoomRows = document.querySelectorAll('.room-row:not(.hidden-room)');
-    let total = allRoomRows.length;
-    let available = 0;
-    let occupied = 0;
-    let maintenance = 0;
-    
-    allRoomRows.forEach(row => {
-        const statusBadge = row.querySelector('.status-badge');
-        if (statusBadge) {
-            if (statusBadge.classList.contains('d')) {
-                available++;
-            } else if (statusBadge.classList.contains('o')) {
-                occupied++;
-            } else if (statusBadge.classList.contains('m')) {
-                maintenance++;
-            }
+        if (index > 3) {
+            hiddenRooms.push(room);
         }
     });
+    console.log('Cuartos ocultos encontrados:', hiddenRooms.length);
     
-    // Actualizar contadores si existen
-    const totalElement = document.querySelector('.summary-value:not(.available):not(.occupied):not(.maintenance)');
-    const availableElement = document.querySelector('.summary-value.available');
-    const occupiedElement = document.querySelector('.summary-value.occupied');
-    const maintenanceElement = document.querySelector('.summary-value.maintenance');
+    // Buscar el botón
+    const expandBtn = document.getElementById('expandRoomsBtn');
+    if (!expandBtn) {
+        console.error('❌ Botón expandRoomsBtn no encontrado');
+        return;
+    }
+    console.log('✅ Botón encontrado');
     
-    if (totalElement) {
-        totalElement.textContent = total;
-        // Animación de conteo
-        animateCounter(totalElement, total);
+    // Verificar si ya está expandido
+    const isExpanded = expandBtn.classList.contains('expanded');
+    console.log('¿Ya está expandido?', isExpanded);
+    
+    if (!isExpanded) {
+        // EXPANDIR: Mostrar todos los cuartos ocultos
+        console.log('🔄 EXPANDIENDO cuartos...');
+        
+        // Cambiar estado del botón
+        expandBtn.classList.add('expanded');
+        
+        // Cambiar texto del botón
+        const showText = expandBtn.querySelector('.show-text');
+        const hideText = expandBtn.querySelector('.hide-text');
+        if (showText) showText.style.display = 'none';
+        if (hideText) hideText.style.display = 'inline';
+        
+        // Mostrar TODOS los cuartos ocultos de una vez
+        hiddenRooms.forEach((room, index) => {
+            console.log(`Mostrando cuarto ${index + 1}:`, room);
+            room.style.display = 'table-row';
+            room.classList.remove('hidden-room');
+        });
+        
+        console.log('✅ Cuartos expandidos');
+        
+    } else {
+        // COLAPSAR: Ocultar cuartos adicionales
+        console.log('🔄 COLAPSANDO cuartos...');
+        
+        // Cambiar estado del botón
+        expandBtn.classList.remove('expanded');
+        
+        // Cambiar texto del botón
+        const showText = expandBtn.querySelector('.show-text');
+        const hideText = expandBtn.querySelector('.hide-text');
+        if (showText) showText.style.display = 'inline';
+        if (hideText) hideText.style.display = 'none';
+        
+        // Ocultar TODOS los cuartos adicionales de una vez
+        hiddenRooms.forEach((room, index) => {
+            console.log(`Ocultando cuarto ${index + 1}:`, room);
+            room.style.display = 'none';
+            room.classList.add('hidden-room');
+        });
+        
+        console.log('✅ Cuartos colapsados');
     }
-    if (availableElement) {
-        availableElement.textContent = available;
-        animateCounter(availableElement, available);
-    }
-    if (occupiedElement) {
-        occupiedElement.textContent = occupied;
-        animateCounter(occupiedElement, occupied);
-    }
-    if (maintenanceElement) {
-        maintenanceElement.textContent = maintenance;
-        animateCounter(maintenanceElement, maintenance);
+    
+    // Actualizar contadores
+    updateRoomCounters();
+    console.log('=== toggleAdditionalRooms() FINALIZADA ===');
+}
+
+// Función de test para verificar que todo funciona
+function testExpansionFunctionality() {
+    console.log('🧪 === INICIANDO TEST DE FUNCIONALIDAD ===');
+    
+    // Test 1: Verificar que la función existe
+    console.log('Test 1 - ¿Función existe?', typeof toggleAdditionalRooms === 'function');
+    
+    // Test 2: Verificar que el botón existe
+    const btn = document.getElementById('expandRoomsBtn');
+    console.log('Test 2 - ¿Botón existe?', btn !== null);
+    
+    // Test 3: Verificar cuartos ocultos
+    const hiddenRooms = document.querySelectorAll('.room-row.hidden-room');
+    console.log('Test 3 - Cuartos ocultos:', hiddenRooms.length);
+    
+    // Test 4: Verificar cuartos totales
+    const allRooms = document.querySelectorAll('.room-row[data-room-index]');
+    console.log('Test 4 - Total cuartos:', allRooms.length);
+    
+    console.log('🧪 === TEST COMPLETADO ===');
+}
+
+// Ejecutar test después de un pequeño delay
+setTimeout(testExpansionFunctionality, 1000);
+
+// FUNCIÓN DE RESPALDO ULTRA SIMPLE
+function simpleToggleRooms() {
+    console.log('🚨 USANDO FUNCIÓN DE RESPALDO SIMPLE');
+    
+    // Buscar todas las filas con clase hidden-room
+    const hiddenRows = document.querySelectorAll('.room-row.hidden-room');
+    console.log('Filas ocultas encontradas:', hiddenRows.length);
+    
+    if (hiddenRows.length > 0) {
+        // Si hay filas ocultas, mostrarlas
+        hiddenRows.forEach(row => {
+            row.style.display = 'table-row';
+            row.classList.remove('hidden-room');
+        });
+        console.log('✅ Filas mostradas');
+        
+        // Cambiar texto del botón
+        const btn = document.getElementById('expandRoomsBtn');
+        if (btn) {
+            const showText = btn.querySelector('.show-text');
+            const hideText = btn.querySelector('.hide-text');
+            if (showText) showText.style.display = 'none';
+            if (hideText) hideText.style.display = 'inline';
+        }
+        
+    } else {
+        // Si no hay filas ocultas, ocultar las que tienen índice > 3
+        const allRows = document.querySelectorAll('.room-row[data-room-index]');
+        allRows.forEach(row => {
+            const index = parseInt(row.getAttribute('data-room-index'));
+            if (index > 3) {
+                row.style.display = 'none';
+                row.classList.add('hidden-room');
+            }
+        });
+        console.log('✅ Filas ocultadas');
+        
+        // Cambiar texto del botón
+        const btn = document.getElementById('expandRoomsBtn');
+        if (btn) {
+            const showText = btn.querySelector('.show-text');
+            const hideText = btn.querySelector('.hide-text');
+            if (showText) showText.style.display = 'inline';
+            if (hideText) hideText.style.display = 'none';
+        }
     }
 }
 
@@ -1185,7 +1217,29 @@ function animateCounter(element, targetValue) {
 
 // Actualizar contadores al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, inicializando funcionalidades...');
     updateRoomCounters();
+    
+    // Inicializar botón de expansión
+    const expandBtn = document.getElementById('expandRoomsBtn');
+    if (expandBtn) {
+        console.log('✅ Botón de expansión encontrado, agregando event listener');
+        expandBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🖱️ Click en botón de expansión detectado');
+            toggleAdditionalRooms();
+        });
+        
+        // Test adicional: verificar que la función existe
+        console.log('🧪 Test: ¿toggleAdditionalRooms existe?', typeof toggleAdditionalRooms);
+        
+        // Test adicional: contar cuartos ocultos
+        const hiddenRooms = document.querySelectorAll('.room-row.hidden-room');
+        console.log('🧪 Test: Cuartos ocultos encontrados al cargar:', hiddenRooms.length);
+        
+    } else {
+        console.log('❌ Botón de expansión no encontrado');
+    }
     
     // Agregar efecto de hover a las filas de cuartos
     const roomRows = document.querySelectorAll('.room-row');

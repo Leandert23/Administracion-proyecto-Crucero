@@ -37,27 +37,34 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "apps.cruceros",
+    "apps.usuarios",
+    "apps.administracion",
     "apps.almacen",
+    "apps.bares_snacks",
+    "apps.compras",
+    "apps.cruceros",
     "apps.entretenimiento",
     "apps.mantenimiento",
+    "apps.recursos_humanos",
     "apps.reservaciones",
-    "apps.ventas",
-    "apps.compras",
-    "apps.administracion",
-    "apps.servicio_medico",
     "apps.restaurante",
+    "apps.servicio_medico",
+    "apps.ventas",
     "apps.creador_embarcaciones"
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # SessionMiddleware must come before AuthenticationMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Message middleware should come after AuthenticationMiddleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Project middleware
+    'Administrador_Cruceros.middleware.ModuleAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'Administrador_Cruceros.urls'
@@ -100,12 +107,22 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
+# settings.py
+# Authentication settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -114,6 +131,17 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Session settings
+SESSION_COOKIE_AGE = 3600  # 1 hora
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Security settings
+CSRF_COOKIE_SECURE = False  # True en producción con HTTPS
+SESSION_COOKIE_SECURE = False  # True en producción con HTTPS
+
+# Middleware definido más arriba; no duplicar la variable MIDDLEWARE
 
 
 # Internationalization
@@ -161,6 +189,16 @@ STATICFILES_DIRS = [
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+AUTH_USER_MODEL = 'usuarios.Empleado' 
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

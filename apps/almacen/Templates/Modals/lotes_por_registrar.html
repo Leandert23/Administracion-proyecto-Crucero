@@ -1,0 +1,57 @@
+<!-- Modal: Lotes pendientes por registrar -->
+<div id="modalLotesPorRegistrar" class="modal" role="dialog" aria-hidden="true" data-modal-key="lotes">
+    <div class="modal-overlay" data-close="true"></div>
+    <div class="modal-container">
+        <button class="modal-top-close" aria-label="Cerrar modal" onclick="cerrarModal('lotes')">×</button>
+        <div class="modal-header">
+            <h2 class="inventario-title"><i class="fa-solid fa-box-open icon-left"></i>Lotes Pendientes por Registrar</h2>
+        </div>
+
+        <div class="modal-body">
+            <div id="contenedor-ordenes-compra" class="inventory-container no-shadow">
+                <div class="table-container" id="tabla-ordenes-compra-wrapper"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal('lotes')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+    <script>
+    (function(){
+        // When the modal is opened (aria-hidden -> false) trigger the order-loader.
+        const modal = document.getElementById('modalLotesPorRegistrar');
+        function triggerLoad(){
+            // Prefer existing global loaders if present
+            if(typeof window.cargarOrdenesCompra === 'function') { try{ window.cargarOrdenesCompra(1); }catch(e){} return; }
+            if(typeof window.cargarPaginaOrdenes === 'function') { try{ window.cargarPaginaOrdenes(1); }catch(e){} return; }
+            if(typeof window.cargarPagina === 'function') { try{ window.cargarPagina(1); }catch(e){} return; }
+
+            // Fallback: simple fetch to the endpoint and inject tabla_html
+            const cont = document.getElementById('tabla-ordenes-compra-wrapper');
+            if(!cont) return;
+            cont.innerHTML = '<div class="cargando-historial" style="padding:24px; text-align:center; font-size:.85rem; color:#475569;">Cargando órdenes...</div>';
+            fetch('ordenes-compra/por-registrar/', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+                .then(r=>r.ok?r.json():Promise.reject())
+                .then(d=>{
+                    if(d && d.success && d.tabla_html){ cont.innerHTML = d.tabla_html; }
+                    else { cont.innerHTML = '<div style="padding:16px; color:#b91c1c;">No se pudieron cargar las órdenes.</div>'; }
+                }).catch(()=>{ cont.innerHTML = '<div style="padding:16px; color:#b91c1c;">Error de red al cargar órdenes.</div>'; });
+        }
+
+    if(!modal) return;
+    // Observe aria-hidden attribute changes to detect open
+    const mo = new MutationObserver(muts=>{
+        for(const m of muts){
+            if(m.attributeName === 'aria-hidden'){
+                if(modal.getAttribute('aria-hidden') === 'false') triggerLoad();
+            }
+        }
+    });
+    mo.observe(modal, {attributes: true});
+    // If modal is already visible on load, trigger immediately
+    if(modal.getAttribute('aria-hidden') === 'false') triggerLoad();
+    })();
+    </script>

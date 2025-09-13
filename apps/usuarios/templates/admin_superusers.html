@@ -1,0 +1,607 @@
+{% include 'usuarios/_modal_edit_user.html' with hide_role_field=True %}
+{% load static %}
+<!DOCTYPE HTML>
+
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel de Administración Global</title>
+
+    </head>
+<!-- Font Awesome (CDN) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<body>
+
+<div class="users-management-container">
+    <!-- Welcome banner for admin user -->
+    <div class="welcome-banner">
+        <div class="welcome-left">
+            <div class="welcome-icon"><i class="fas fa-crown" aria-hidden="true"></i></div>
+            <div class="welcome-content">
+                <h2 class="welcome-title">Bienvenido,
+                    {% if request.user.first_name %}{{ request.user.first_name }} {{ request.user.last_name }}{% else %}{{ request.user.username }}{% endif %}
+                </h2>
+                <p class="welcome-sub">Panel de administración global</p>
+                <div style="margin-top:12px; text-align:left;">
+                    <a href="{% url 'logout' %}" class="btn btn-secondary" style="padding:8px 12px;">Cerrar sesión</a>
+                </div>
+            </div>
+        </div>
+        <div class="welcome-right">
+            <p class="welcome-note">Este panel registra los usuarios que podrán acceder a la vista general del sistema. Estos usuarios son los que gestionarán la creación de los usuarios con sus respectivos permisos.</p>
+        </div>
+    </div>
+
+    {# Tabla de usuarios #}
+    <div class="table-card">
+        <div class="table-header">
+            <h3>Gestión de Usuarios</h3>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar usuarios..." id="users-search">
+                </div>
+                <button class="btn btn-primary" onclick="openModalCreateUsuarioSimple('modalCrearUsuarioSimple')">
+                    <i class="fas fa-plus"></i> Nuevo Usuario
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container" data-current-page="{{ page_obj.number }}" data-total-pages="{{ page_obj.paginator.num_pages }}">
+            <table id="um-users-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Último acceso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="um-users-tbody">
+                    {% if page_obj.object_list %}
+                        {% for u in page_obj.object_list %}
+                        <tr>
+                            <td>
+                                <div class="user-avatar">
+                                    <span class="avatar-initial">{{ u.username|slice:":1"|upper }}</span>
+                                    <div class="user-details">
+                                        <span class="username">{{ u.username }}</span>
+                                        <span class="user-email">{{ u.email|default:"Sin email" }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ u.nombre|default:"-" }}</td>
+                            <td>
+                                <span class="role-badge">{{ u.rol_nombre|default:"Usuario" }}</span>
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="status-badge active">Activo</span>
+                                {% else %}
+                                    <span class="status-badge inactive">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="last-access">
+                                    {{ u.ultimo_acceso|default:"-" }}
+                                    {% if u.ultimo_acceso %}
+                                        <span class="access-time">Hace {{ u.ultimo_acceso|timesince }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <button type="button" class="btn-action btn-edit" data-action="edit" data-user-id="{{ u.id }}" title="Editar usuario">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if u.is_active %}
+                                        <button type="button" class="btn-action btn-deactivate" data-action="deactivate" data-user-id="{{ u.id }}" title="Desactivar usuario">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn-action btn-activate" data-action="activate" data-user-id="{{ u.id }}" title="Activar usuario">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-content">
+                                    <i class="fas fa-users empty-icon"></i>
+                                    <h4>No hay usuarios registrados</h4>
+                                    <p>Comienza agregando el primer usuario al sistema.</p>
+                                    <button class="btn btn-primary" onclick="openModalCreateUsuarioSimple('modalCrearUsuarioSimple')">
+                                        <i class="fas fa-plus"></i> Crear Usuario
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+{# Include the simple create user modal partial (no rol ni crucero) #}
+{% include 'usuarios/_modal_create_user_simple.html' %}
+
+            {# Pagination controls #}
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} usuarios
+                </div>
+                <nav class="pagination" aria-label="Paginación usuarios">
+                    {% if page_obj.has_previous %}
+                        <button class="pagination-btn" onclick="changePage({{ page_obj.previous_page_number }})">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    {% else %}
+                        <button class="pagination-btn disabled">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    {% endif %}
+
+                    <div class="pagination-pages">
+                        {% for p in page_obj.paginator.page_range %}
+                            {% if p == page_obj.number %}
+                                <button class="pagination-btn active">{{ p }}</button>
+                            {% else %}
+                                <button class="pagination-btn" onclick="changePage({{ p }})">{{ p }}</button>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if page_obj.has_next %}
+                        <button class="pagination-btn" onclick="changePage({{ page_obj.next_page_number }})">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    {% else %}
+                        <button class="pagination-btn disabled">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<style>
+:root {
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --primary-start: #3b82f6;
+    --primary-end: #6366f1;
+    --text: #0f172a;
+    --muted: #64748b;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --card-radius: 12px;
+    --card-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* Use same font stack as login.css */
+html, body, .users-management-container {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.users-management-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+}
+
+/* Welcome banner styles */
+.welcome-banner{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    background: linear-gradient(90deg, rgba(59,130,246,0.06), rgba(99,102,241,0.03));
+    border: 1px solid rgba(14,165,233,0.06);
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+.welcome-left{ display:flex; align-items:center; gap:14px; }
+.welcome-icon{ width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; background: linear-gradient(180deg,#fff,#f8fafc); box-shadow:0 4px 14px rgba(15,23,42,0.06); }
+.welcome-icon i{ font-size:20px; color: linear-gradient(90deg, var(--primary-start), var(--primary-end)); }
+.welcome-icon i{ font-size:20px; color: var(--primary-end); }
+.welcome-title{ margin:0; font-size:1.25rem; font-weight:700; color:var(--text); }
+.welcome-sub{ margin:4px 0 0; color:var(--muted); font-size:0.95rem; }
+.welcome-right{ max-width:720px; }
+.welcome-note{ margin:0; color:var(--text); opacity:0.9; font-size:0.95rem; }
+
+
+/* stats summary removed */
+
+/* Tarjeta de tabla */
+.table-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.table-header h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    color: var(--muted);
+}
+
+.search-box input {
+    padding: 10px 12px 10px 38px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    min-width: 250px;
+    background: var(--card-bg);
+    transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-start);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    font-size: 14px;
+    transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.12);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.14);
+}
+
+.btn-secondary {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+/* Tabla */
+.table-container {
+    overflow-x: auto;
+}
+
+#um-users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#um-users-table th {
+    background: #f9fafb;
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+#um-users-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Avatar de usuario */
+.user-avatar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-initial {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.username {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+/* Badges */
+.role-badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.status-badge.inactive {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+/* Último acceso */
+.last-access {
+    display: flex;
+    flex-direction: column;
+}
+
+.access-time {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* Acciones */
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-edit {
+    background: #e0e7ff;
+    color: var(--primary-start);
+}
+
+.btn-edit:hover {
+    background: #c7d2fe;
+}
+
+.btn-deactivate {
+    background: #fee2e2;
+    color: var(--danger);
+}
+
+.btn-deactivate:hover {
+    background: #fecaca;
+}
+
+.btn-activate {
+    background: #d1fae5;
+    color: var(--success);
+}
+
+.btn-activate:hover {
+    background: #a7f3d0;
+}
+
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 16px;
+}
+
+.empty-state h4 {
+    margin: 0 0 8px 0;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+    color: var(--muted);
+}
+
+/* Paginación */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-top: 1px solid var(--card-border);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pagination-info {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.pagination-btn:hover:not(.disabled):not(.active) {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.pagination-btn.active {
+    background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+    color: white;
+    border-color: var(--primary-start);
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-panel {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+    }
+    
+    .search-box input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .pagination-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-panel {
+        grid-template-columns: 1fr;
+    }
+    
+    #um-users-table {
+        min-width: 700px;
+    }
+    
+    .users-management-container {
+        padding: 16px;
+    }
+}
+</style>
+<script>
+function changePage(page) {
+    // Implementar cambio de página
+    window.location.href = `?page=${page}`;
+}
+</script>
+<script src="{% static 'js/admin_superusers.js' %}"></script>
+</body>
+</html>

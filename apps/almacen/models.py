@@ -277,5 +277,43 @@ class OrdenCompra(models.Model):
 
     def __str__(self):
         return f"OC#{self.id or ''} - {self.producto.nombre} x {self.cantidad_productos} ({self.get_estado_display()})"
-        
+
     
+class SolicitudSalida(models.Model):
+    ESTADOS = [
+        ("PENDIENTE", "Pendiente"),
+        ("APROBADA", "Aprobada"),
+        ("RECHAZADA", "Rechazada"),
+        ("COMPLETADA", "Completada"),
+    ]
+
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateField(default=obtener_fecha_actual)
+    modulo = models.CharField(max_length=20, choices=MovimientoAlmacen.TIPO_MODULO, default='ALMACEN')
+    estado = models.CharField(max_length=12, choices=ESTADOS, default="PENDIENTE")
+
+    class Meta:
+        verbose_name = "Solicitud de Salida"
+        verbose_name_plural = "Solicitudes de Salida"
+        ordering = ["-fecha_creacion", "-id"]
+
+    def __str__(self):
+        short = (self.descripcion or '').strip()
+        if len(short) > 40:
+            short = short[:37] + '...'
+        return f"Solicitud#{self.id or ''} - {self.estado} - {short or 'sin descripción'}"
+
+
+class ProductoSolicitado(models.Model):
+    solicitud = models.ForeignKey(SolicitudSalida, on_delete=models.CASCADE, related_name='productos_solicitados')
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, related_name='solicitudes')
+    cantidad = models.PositiveIntegerField()
+    unidad = models.CharField(max_length=1, choices=Producto.UNIDADES_MEDIDA, default='U')
+
+    class Meta:
+        verbose_name = "Producto solicitado"
+        verbose_name_plural = "Productos solicitados"
+        unique_together = [['solicitud', 'producto']]
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre} (Solicitud#{self.solicitud_id})"

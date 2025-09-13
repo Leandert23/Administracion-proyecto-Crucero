@@ -397,6 +397,19 @@
             background: #dcfce7; 
             color: var(--success); 
         }
+        
+        /* Estado crítico: visual destacado (rojo) */
+        .stock-critical {
+            background: #fecaca; /* ligero rojo */
+            color: var(--danger);
+            box-shadow: 0 4px 10px -6px rgba(239,68,68,0.25);
+        }
+
+        /* Sin stock / no disponible */
+        .stock-none {
+            background: #f1f5f9; /* fondo neutro similar a headers */
+            color: var(--text-secondary);
+        }
 
     /* =================================================================== */
     /*  SECCIÓN J: ACCIONES DE FILA                                         */

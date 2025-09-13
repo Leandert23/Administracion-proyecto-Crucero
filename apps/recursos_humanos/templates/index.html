@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursos Humanos - Odyssey</title>
+    <link rel="stylesheet" href="{% static 'css/recursos_humanos.css' %}">
+</head>
+<body>
+    <div id="recursos-humanos-root" class="dashboard-container">
+        {% include "sidebar.html" with active_module="recursos_humanos" %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="page-title">Recursos Humanos</h1>
+                    <p class="page-subtitle">Gestión del personal y administración de empleados</p>
+                </div>
+                <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
+                    <button class="btn btn-success generar-plantel" onclick="mostrarModalGenerarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Generar Plantel
+                    </button>
+                    <button class="btn btn-primary actualizar-plantel" onclick="actualizarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Actualizar Plantel
+                    </button>
+                    <button class="btn btn-danger vaciar-plantel" onclick="vaciarPlantel()" style="padding: 8px 16px; font-size: 14px;">
+                        Vaciar Plantel
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+
+                <!-- Formulario de Registro -->
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <div class="section-icon">👤</div>
+                        <div>
+                            <h3>Registro de Personal</h3>
+                            <p>Complete los datos del nuevo empleado</p>
+                        </div>
+                    </div>
+                    <div class="form-section-body">
+                        <form method="POST" novalidate class="form-grid">
+                            {% csrf_token %}
+                            <div class="form-field">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" maxlength="10" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]+" title="Solo letras, primera mayúscula">
+                            </div>
+
+                            <div class="form-field">
+                                <label for="apellido">Apellido</label>
+                                <input type="text" id="apellido" name="apellido" maxlength="10" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]+" title="Solo letras, primera mayúscula">
+                            </div>
+
+                            <div class="form-field">
+                                <label for="salario">Salario</label>
+                                <input type="number" id="salario" name="salario" max="9999999999" min="0" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="edad">Edad (>=21)</label>
+                                <input type="number" id="edad" name="edad" min="21" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="anios_experiencia">Años Experiencia</label>
+                                <input type="number" id="anios_experiencia" name="anios_experiencia" min="0" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="categoria">Categoría</label>
+                                <select id="categoria" name="categoria" required>
+                                    <option value="" disabled selected>Seleccione</option>
+                                    <option value="Culinario">Culinario</option>
+                                    <option value="Medico">Medico</option>
+                                    <option value="Administrativo">Administrativo</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Entretenimiento">Entretenimiento</option>
+                                    <option value="Personal Extra">Personal Extra</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="puesto">Puesto de Trabajo</label>
+                                <select id="puesto" name="puesto" required>
+                                    <option value="" disabled selected>Seleccione categoría primero</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="pStatus">Estado</label>
+                                <select id="pStatus" name="pStatus" required>
+                                    <option value="1">Activo</option>
+                                    <option value="2">Inactivo</option>
+                                    <option value="3">De baja</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field" style="grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 16px;">Registrar Empleado</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de Personal -->
+                <div class="form-section" style="margin-top: 32px;">
+                    <div class="form-section-header">
+                        <div class="section-icon">📋</div>
+                        <div>
+                            <h3>Personal Contratado</h3>
+                            <p>Gestión y administración del personal registrado</p>
+                        </div>
+                    </div>
+                    <div class="form-section-body">
+                        {% if personal_list %}
+                        <div class="table-container" style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <table class="inst-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Apellido</th>
+                                        <th>Salario</th>
+                                        <th>Edad</th>
+                                        <th>Años Exp.</th>
+                                        <th>Categoría</th>
+                                        <th>Puesto</th>
+                                        <th>Estado</th>
+                                        <th>Amonestación</th>
+                                        <th>Detalle</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in personal_list %}
+                                    <tr data-id="{{ p.id }}">
+                                        <td>{{ p.id }}</td>
+                                        <td>{{ p.nombre }}</td>
+                                        <td>{{ p.apellido }}</td>
+                                        <td>${{ p.salario|floatformat:0 }}</td>
+                                        <td>{{ p.edad }}</td>
+                                        <td>{{ p.anios_experiencia }}</td>
+                                        <td>{{ p.categoria }}</td>
+                                        <td>{{ p.puesto }}</td>
+                                        <td>
+                                            {% if p.pStatus == 1 %}
+                                                <span class="badge-tipo tipo-restaurantes">Activo</span>
+                                            {% elif p.pStatus == 2 %}
+                                                <span class="badge-tipo tipo-bares_cafes">Inactivo</span>
+                                            {% else %}
+                                                <span class="badge-tipo tipo-otro">De baja</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" class="amonestacion-estado" {% if p.amonestacion and p.amonestacion.estado %} checked {% endif %} disabled />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="amonestacion-detalle" maxlength="50" value="{% if p.amonestacion %}{{ p.amonestacion.detalle }}{% endif %}" disabled style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
+                                        </td>
+                                        <td>
+                                            <button class="btn-editar btn btn-info" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Editar</button>
+                                            <button class="btn-eliminar btn btn-danger" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <p>No hay personal registrado.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                 <!-- Sección de Estadísticas -->
+                <div class="form-section" style="margin-top: 32px;">
+                    <div class="form-section-header">
+                        <div class="section-icon">📊</div>
+                        <div>
+                            <h3>Estadísticas del Personal</h3>
+                            <p>Resumen de la información del personal</p>
+                        </div>
+                    </div>
+                    <div class="form-section-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div class="info-box">
+                                Total Salarios: ${{ total_salarios|floatformat:0 }}
+                            </div>
+                            <div class="info-box">
+                                Personal Activo: {{ personal_activo }}
+                            </div>
+                            <div class="info-box">
+                                Personal Inactivo: {{ personal_inactivo }}
+                            </div>
+                            <div class="info-box">
+                                Personal de Baja: {{ personal_de_baja }}
+                            </div>
+                             <div class="info-box">
+                                Personal Amonestado: {{ personal_amonestado }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- dashboard-content -->
+        </main>
+    </div> <!-- dashboard-container -->
+
+    <!-- Popover para motivo de amonestación (invisible inicialmente) -->
+    <div id="popoverAmonestacion" style="display:none; position:absolute; z-index:10000; background:#fff; border:1px solid #3b82f6; border-radius:12px; padding:20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); width: 350px;">
+      <h3 style="margin:0 0 15px 0; font-weight:600; color:#1e293b; font-size:16px;">Indique el motivo de la amonestación</h3>
+      <textarea id="inputMotivoAmonestacion" maxlength="250" rows="6" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:12px; font-size:14px; font-family:inherit; resize:vertical;"></textarea>
+      <div style="margin-top:15px; text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+        <button id="btnGuardarMotivo" class="btn btn-primary" style="padding:8px 16px; font-size:14px;">Guardar</button>
+        <button id="btnCancelarMotivo" class="btn btn-secondary" style="padding:8px 16px; font-size:14px;">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Modal para generar plantel -->
+    <div id="modalGenerarPlantel" style="display:none; position:fixed; z-index:10001; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#fff; border-radius:12px; padding:30px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); width: 400px;">
+        <h3 style="margin:0 0 20px 0; font-weight:600; color:#1e293b; font-size:18px; text-align:center;">Generar Plantel Genérico</h3>
+
+        <div style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:10px; font-weight:500;">Seleccione cantidad de tripulantes:</label>
+          <select id="selectCantidadTripulantes" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+            <option value="630">630 Tripulantes</option>
+            <option value="1300">1300 Tripulantes</option>
+            <option value="1950">1950 Tripulantes</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:20px; padding:15px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+          <h4 style="margin:0 0 10px 0; font-size:14px; color:#374151;">Prioridad de módulos:</h4>
+          <ol style="margin:0; padding-left:20px; font-size:13px; color:#6b7280;">
+            <li>Mantenimiento</li>
+            <li>Restaurantes (Culinario)</li>
+            <li>Entretenimiento</li>
+            <li>Médico</li>
+            <li>Administrativo</li>
+          </ol>
+        </div>
+
+        <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+          <button id="btnCancelarGenerar" class="btn btn-secondary" style="padding:10px 20px; font-size:14px;">Cancelar</button>
+          <button id="btnConfirmarGenerar" class="btn btn-success" style="padding:10px 20px; font-size:14px;">Generar Plantel</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

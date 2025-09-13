@@ -89,3 +89,46 @@ def retirar_producto_fifo(producto_id, cantidad, modulo, descripcion=None):
 
 def retirar_producto_fefo(producto_id, cantidad, modulo, descripcion=None):
     _realizar_retiro(producto_id, cantidad, modulo, _obtener_lotes_fefo, descripcion=descripcion)
+
+
+def calcular_asignacion_lotes(producto_id: int, cantidad: int):
+    """Calcula y devuelve una asignación de lotes (sin modificar la BD).
+
+    Retorna una tupla (asignaciones, disponible_total) donde asignaciones es una
+    lista de dicts: { 'lote_id', 'numero_lote', 'cantidad', 'fecha_caducidad' }
+    El algoritmo usa FEFO cuando existen lotes con fecha_caducidad, en otro caso FIFO.
+    """
+    if cantidad <= 0:
+        return [], 0
+
+    producto = Producto.objects.select_related('seccion__almacen').get(pk=producto_id)
+
+    # Decidir método
+    lotes_con_fecha = list(producto.lotes.filter(cantidad_productos__gt=0, fecha_caducidad__isnull=False).order_by("fecha_caducidad", "fecha_ingreso", "id"))
+    if lotes_con_fecha:
+        lotes_ordenados = lotes_con_fecha + list(producto.lotes.filter(cantidad_productos__gt=0, fecha_caducidad__isnull=True).order_by("fecha_ingreso", "id"))
+    else:
+        lotes_ordenados = list(producto.lotes.filter(cantidad_productos__gt=0).order_by("fecha_ingreso", "id"))
+
+    asignaciones = []
+    restante = cantidad
+    disponible_total = sum(l.cantidad_productos for l in lotes_ordenados)
+
+    for lote in lotes_ordenados:
+        if restante <= 0:
+            break
+        dispo = lote.cantidad_productos
+        if dispo <= 0:
+            continue
+        tomar = min(restante, dispo)
+        asignaciones.append({
+            'lote_id': lote.id,
+            'numero_lote': getattr(lote, 'numero_lote', None),
+            'cantidad': int(tomar),
+            'fecha_caducidad': lote.fecha_caducidad.isoformat() if lote.fecha_caducidad else None,
+            # ubicación aproximada basada en la sección/almacén del producto
+            'ubicacion': f"{getattr(producto.seccion.almacen, 'nombre', '')} - {getattr(producto.seccion, 'nombre', '')}" if getattr(producto, 'seccion', None) else ''
+        })
+        restante -= tomar
+
+    return asignaciones, disponible_total

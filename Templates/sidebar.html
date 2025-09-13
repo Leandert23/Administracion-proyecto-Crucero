@@ -1,0 +1,877 @@
+{% load static %}
+{% load tags_globales %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Sistema de Personal - Estilos CSS */
+    
+    /* Estilos globales */
+    body {
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+    
+    /* ===== DASHBOARD LAYOUT ===== */
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+    }
+    
+    /* Overlay para móviles */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .sidebar-overlay.active {
+        opacity: 1;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+        width: 280px;
+        background: #1e293b;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Modern scrollbar that doesn't push content */
+        scrollbar-gutter: stable;
+        /* smoother, slightly slower transition for open/close */
+        transition: width 420ms cubic-bezier(.22,.9,.28,1), box-shadow 300ms ease;
+    }
+    
+    /* Modern Overlay Scrollbar - Ultra Subtle & Transparent */
+    .sidebar::-webkit-scrollbar {
+        width: 4px;
+        background: transparent;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 15px 0;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.15);
+        border-radius: 10px;
+        border: 1px solid rgba(30, 41, 59, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    
+    .sidebar:hover::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.25);
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.35);
+        transform: scale(1.1);
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:active {
+        background: rgba(148, 163, 184, 0.45);
+    }
+    
+    .sidebar::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+    
+    /* Firefox ultra subtle scrollbar */
+    .sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(71, 85, 105, 0.15) transparent;
+    }
+    
+    /* Collapsed sidebar scrollbar - even more subtle */
+    .sidebar.collapsed::-webkit-scrollbar {
+        width: 2px;
+    }
+    
+    .sidebar.collapsed::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 20px 0;
+    }
+    
+    .sidebar.collapsed::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.08);
+        border-radius: 10px;
+        border: none;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        transform: translateX(5px);
+    }
+    
+    .sidebar.collapsed:hover::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.12);
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .sidebar.collapsed::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.18);
+    }
+    
+    .sidebar.collapsed::-webkit-scrollbar-thumb:active {
+        background: rgba(148, 163, 184, 0.25);
+    }
+    
+    /* Firefox collapsed scrollbar */
+    .sidebar.collapsed {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(71, 85, 105, 0.08) transparent;
+    }
+    
+    .sidebar.collapsed {
+        width: 80px;
+    }
+    
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .nav-text {
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        width: 0;
+        overflow: hidden;
+    }
+    
+    .sidebar.collapsed .logo {
+        justify-content: center;
+        padding: 0;
+    }
+    
+    /* Keep vertical spacing identical when collapsed: same vertical padding as open state */
+    .sidebar.collapsed .nav-link {
+        justify-content: center;
+        padding: 12px 10px; /* vertical same as open (12px) */
+        margin-right: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+    
+    .sidebar.collapsed .nav-item.active .nav-link {
+        padding: 12px 0;
+        width: 100%;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0;
+        margin: 0;
+        background: #3b82f6;
+        position: relative;
+    }
+    
+    .sidebar.collapsed .sidebar-footer .nav-link {
+        justify-content: center;
+        padding: 15px 10px;
+        margin-right: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+    
+    .sidebar.collapsed .nav-icon {
+        margin: 0;
+        flex-shrink: 0;
+        width: 32px;
+        height: 28px;
+    }
+        /* Removed erroneous CSS rule */
+    .sidebar.collapsed .logo-icon {
+        /* keep default shrinking behavior for any leftover usage */
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    /* Specific logo variants: full (large) and cut (small) */
+    /* Logo sizing: make header a fixed height so both variants occupy same vertical space */
+    .sidebar-header {
+        padding: 0;
+        border-bottom: 1px solid #334155;
+        overflow: visible;
+        height: auto;
+        min-height: 80px; /* reduced from 120px */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sidebar.collapsed .sidebar-header {
+        padding: 0 10px;
+        min-height: 80px; /* reduced from 120px */
+    }
+
+    .logo-full,
+    .logo-cut {
+        display: block !important;
+        width: auto;
+        height: 100px !important; 
+        max-width: 100%;
+        object-fit: contain;
+        margin: 0 auto;
+    }
+
+    .logo-cut { display: none !important; }
+
+    /* Ensure both variants use same pixel height; toggle visibility only, no scale change */
+    .sidebar:not(.collapsed) .logo-full {
+        display: block !important;
+        height: 100px !important;
+    }
+
+    .sidebar:not(.collapsed) .logo-cut {
+        display: none !important;
+    }
+
+    .sidebar.collapsed .logo-full {
+        display: none !important;
+    }
+
+    .sidebar.collapsed .logo-cut {
+        display: block !important;
+        height: 100px !important;
+    }
+    
+    .sidebar-header {
+        padding: 10px;
+        border-bottom: 1px solid #334155;
+        overflow: visible;
+    }
+    
+    .sidebar.collapsed .sidebar-header {
+        padding: 10px;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    /* Generic logo icon: remove negative margins and let header control sizing */
+    .logo-icon {
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+        display: block;
+        margin: 0 auto;
+        object-fit: contain;
+        filter: none;
+        /* animate with transform + opacity for smoother GPU-accelerated transitions */
+        transform-origin: center center;
+        transition: transform 420ms cubic-bezier(.22,.9,.28,1), opacity 280ms ease;
+        will-change: transform, opacity;
+    }
+
+    /* Cross-fade + scale between full and cut logos for a smooth shrink effect */
+    /* Keep opacity transitions but avoid scaling so height stays identical */
+    .logo-full {
+        opacity: 1;
+        transform: none;
+        transition: opacity 320ms ease;
+    }
+
+    .logo-cut {
+        opacity: 0;
+        transform: none;
+        transition: opacity 320ms ease;
+    }
+
+    .sidebar.collapsed .logo-full {
+        opacity: 0;
+    }
+
+    .sidebar.collapsed .logo-cut {
+        opacity: 1 !important;
+    }
+    
+    .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+    }
+    
+    .sidebar-nav {
+        flex: 1;
+        padding: 0 0;
+    }
+    
+    .sidebar.collapsed .sidebar-nav {
+        padding: 0 0;
+    }
+    
+    .nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .nav-item {
+        margin: 0 0;
+    }
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 20px;
+        color: #cbd5e1;
+        text-decoration: none;
+        transition: all 0.3s ease, color 0.4s ease;
+        border-radius: 0 8px 8px 0;
+        margin-right: 12px;
+    }
+    
+    .nav-link:hover {
+        background: #334155;
+        color: white;
+    }
+    
+    .nav-link:hover .nav-text {
+        color: white;
+    }
+    
+    .nav-item.active .nav-link {
+        background: #3b82f6;
+        color: white;
+        margin-right: 0;
+        
+        padding: 6px 0;
+    }
+    
+    .nav-icon {
+        width: 36px;
+        height: 32px;
+        filter: invert(0) brightness(0) invert(1); /* forces white color */
+        transition: filter 0.3s ease;
+    }
+    
+    .nav-item.active .nav-icon,
+    .nav-link:hover .nav-icon {
+        filter: invert(1);
+    }    .nav-text {
+        font-weight: 500;
+        font-size: 14px;
+        transition: color 0.4s ease;
+    }
+
+    .home-item {
+        margin: 0 0;
+        border-bottom: 1px solid #334155;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    }
+
+    .home-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        color: #cbd5e1;
+        text-decoration: none;
+        transition: all 0.3s ease, color 0.4s ease;
+        border-radius: 0 8px 8px 0;
+        margin-right: 12px;
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 3px solid #3b82f6;
+    }
+
+    .home-link:hover {
+        background: rgba(59, 130, 246, 0.2);
+        color: white;
+        border-left-color: #60a5fa;
+    }
+
+    .sidebar.collapsed .home-link {
+        justify-content: center;
+        padding: 12px 10px;
+        margin-right: 0;
+        width: 100%;
+        border-radius: 0;
+        border-left: none;
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .sidebar.collapsed .home-link .nav-text {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+        overflow: hidden;
+    }
+
+    .home-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #334155;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 10px 20px 20px 20px;
+        width: calc(100% - 40px);
+        border-radius: 0 8px 8px 0;
+        margin-right: 12px;
+    }
+
+    .home-button:hover {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .home-icon {
+        width: 28px;
+        height: 24px;
+        filter: invert(0) brightness(0) invert(1); /* forces white color */
+        transition: filter 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .home-button:hover .home-icon {
+        filter: invert(1);
+    }
+
+    .home-text {
+        font-weight: 500;
+        font-size: 14px;
+        transition: color 0.4s ease;
+    }
+
+    .sidebar.collapsed .home-button {
+        justify-content: center;
+        margin: 10px 10px 20px 10px;
+        width: calc(100% - 20px);
+        padding: 12px 10px;
+        margin-right: 0;
+        border-radius: 0;
+    }
+
+    .sidebar.collapsed .home-text {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+        overflow: hidden;
+    }
+
+    /* Strongly-scoped overrides to prevent global/dashboard.css from
+       changing sidebar button spacing. These use the container + sidebar
+       selector to increase specificity and avoid touching global rules. */
+    .dashboard-container .sidebar .nav-item {
+        margin: 4px 0 !important;
+    }
+
+    .dashboard-container .sidebar .nav-link:not(.active) {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 12px 20px !important;
+        line-height: 1 !important;
+        color: #cbd5e1 !important;
+        margin-right: 12px !important;
+    }
+
+    .dashboard-container .sidebar .nav-link:hover {
+        background: #334155 !important;
+        color: white !important;
+    }
+    
+    /* Collapsed state overrides for dashboard container */
+    .dashboard-container .sidebar.collapsed .nav-link:not(.active) {
+        padding: 12px 10px !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+        justify-content: center !important;
+    }
+    
+    .dashboard-container .sidebar.collapsed .nav-item.active .nav-link {
+        width: 100% !important;
+        height: 48px !important;
+        padding: 12px 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        background: #3b82f6 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .dashboard-container .sidebar.collapsed .home-link {
+        width: 100% !important;
+        padding: 12px 10px !important;
+        margin-right: 0 !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        justify-content: center !important;
+    }
+    
+    .settings-link {
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        font-size: inherit;
+    }
+    
+    .sidebar-footer {
+        padding: 8px 12px;
+        border-top: 1px solid #334155;
+        font-size: 12px;
+        color: rgba(255,255,255,0.85);
+        text-align: center;
+    }
+    
+    .sidebar.collapsed .sidebar-footer {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+    
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        margin-left: 280px;
+        background: #f8fafc;
+        min-height: 100vh;
+        transition: margin-left 420ms cubic-bezier(.22,.9,.28,1);
+    }
+    
+    /* Cuando el sidebar está colapsado */
+    .dashboard-container .sidebar.collapsed ~ .main-content {
+        margin-left: 80px;
+    }
+    
+    /* Header */
+    .main-header {
+        background: white;
+        padding: 24px 32px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    /* Botón de hamburguesa para móviles */
+    .mobile-menu-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 30px;
+        height: 30px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
+    }
+    
+    .mobile-menu-toggle span {
+        width: 100%;
+        height: 3px;
+        background: #1e293b;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        transform-origin: center;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .mobile-menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+    }
+    
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .page-subtitle {
+        font-size: 16px;
+        color: #64748b;
+        margin: 0;
+    }
+    
+    /* Dashboard Content */
+    .dashboard-content {
+        padding: 32px;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        margin-bottom: 32px;
+    }
+    
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 24px 0;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .mobile-menu-toggle {
+            display: flex;
+        }
+        
+        .sidebar-overlay {
+            display: block;
+        }
+        
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+        }
+        
+        .main-content {
+            margin-left: 0;
+        }
+        
+        /* En móviles, ignorar el estado colapsado del sidebar */
+        .dashboard-container .sidebar.collapsed ~ .main-content {
+            margin-left: 0;
+        }
+        
+        .main-header {
+            padding: 16px 20px;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .dashboard-content {
+            padding: 20px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+            <img src="{% static 'bares_snacks/svg/logo/logo_Blanco.svg' %}" alt="Logo" class="logo-icon logo-full" />
+            <img src="{% static 'bares_snacks/svg/logo/cortado.svg' %}" alt="Logo corto" class="logo-icon logo-cut" />
+            <span class="logo-text"></span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav-list">
+
+            {% if request.user.is_superuser or request.user.is_administrativo %}
+            <li class="nav-item home-item">
+                <a href="/" class="nav-link home-link">
+                    <img src="{% static 'svg/casita.svg' %}" alt="Icono de inicio - volver al panel principal" class="nav-icon">
+                    <span class="nav-text">Inicio</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"administracion" %}
+                <li class="nav-item {% if active_module == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'administracion:dashboard' 1%}" class="nav-link">
+                        <img src="{% static 'svg/icono__admin.svg' %}" alt="Icono de dashboard - panel de administración" class="nav-icon">
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                <li class="nav-item {% if active_module == 'gestion_crucero' %}active{% endif %}">
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'gestion_crucero' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
+                    <a href="{% url 'gestion_crucero' 1 %}" class="nav-link">
+                    {% endif %}
+                        <img src="{% static 'svg/icono__gestion.svg' %}" alt="Icono de gestión de crucero" class="nav-icon">
+                        <span class="nav-text">Gestión Crucero</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"entretenimiento" %}
+                <li class="nav-item {% if active_module == 'entretenimiento' %}active{% endif %}">
+                    <a href="{% url 'entretenimiento:entretenimiento' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__entretenimiento.svg' %}" alt="Icono de entretenimiento" class="nav-icon">
+                        <span class="nav-text">Entretenimiento</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"ventas" %}
+                <li class="nav-item {% if active_module == 'ventas' %}active{% endif %}">
+                    <a href="{% url 'ventas:ventas' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas" class="nav-icon">
+                        <span class="nav-text">Ventas</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"reservas" %}
+                <li class="nav-item {% if active_module == 'reservas' %}active{% endif %}">
+                    <a href="{% url 'reservas' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__reserva.svg' %}" alt="Icono de reservas" class="nav-icon">
+                        <span class="nav-text">Reservas</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"restaurante" %}
+                <li class="nav-item {% if active_module == 'restaurante' %}active{% endif %}">
+                    <a href="{% url 'restaurantes:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__restaurant.svg' %}" alt="Icono de restaurante" class="nav-icon">
+                        <span class="nav-text">Restaurante</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"bares" %}
+                <li class="nav-item {% if active_module == 'bares' %}active{% endif %}">
+                    <a href="{% url 'bares_snacks:bares' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__bares.svg' %}" alt="Icono de bares" class="nav-icon">
+                        <span class="nav-text">Bares</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"compras" %}
+                <li class="nav-item {% if active_module == 'compras' %}active{% endif %}">
+                    <a href="{% url 'compras:compras' 1 %}" class="nav-link">
+                        <img src="{% static 'svg/icono__compras.svg' %}" alt="Icono de compras" class="nav-icon">
+                        <span class="nav-text">Compras</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"almacen" %}
+                <li class="nav-item {% if active_module == 'almacen' %}active{% endif %}">
+                    <a href="{% url 'vista_almacen' 1%}" class="nav-link">
+                        <img src="{% static 'svg/icono__almacen.svg' %}" alt="Icono de almacén" class="nav-icon">
+                        <span class="nav-text">Almacen</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"rh" %}
+                <li class="nav-item {% if active_module == 'recursos_humanos' %}active{% endif %}">
+                    <a href="{% url 'recursos_humanos:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__rrhh.svg' %}" alt="Icono de recursos humanos" class="nav-icon">
+                        <span class="nav-text">Recursos Humanos</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"medico" %}
+                <li class="nav-item {% if active_module == 'servicios_medicos' %}active{% endif %}">
+                    <a href="{% url 'panel_personal_medico' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__medico.svg' %}" alt="Icono de servicios médicos" class="nav-icon">
+                        <span class="nav-text">Servicios Medicos</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"mantenimiento" %}
+                <li class="nav-item {% if active_module == 'mantenimiento' %}active{% endif %}">
+                    <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
+                        <img src="{% static 'svg/icono__mantenimiento.svg' %}" alt="Icono de mantenimiento" class="nav-icon">
+                        <span class="nav-text">Mantenimiento</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="sidebar-footer">
+        <p>&copy; 2025 Odyssey Cruise Services. v1.0.0</p>
+    </div>
+</aside>
+<div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<script>
+    // Funciones básicas para el sidebar
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('collapsed');
+    }
+    
+    function toggleMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const toggle = document.querySelector('.mobile-menu-toggle');
+        
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+        toggle.classList.toggle('active');
+    }
+    
+    function closeMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const toggle = document.querySelector('.mobile-menu-toggle');
+        
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        toggle.classList.remove('active');
+    }
+</script>

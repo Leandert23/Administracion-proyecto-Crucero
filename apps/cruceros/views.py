@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import FechaDelSistema
 from apps.creador_embarcaciones.models import Embarcacion
+from apps.usuarios.models import ModuloSistema
 from .forms import AsignarRutaForm, CruceroEditForm
-from ..entretenimiento.utils import cargar_actividades_entretenimiento
 from ..reservaciones.utils import rellenar_entretenimiento, rellenar_restaurantes
 from .Services.creacion_rutas_por_plantilla import cargar_rutas_desde_json
 from .Services.creacion_productos_predeterminados import crear_productos_predeterminados
@@ -79,6 +79,7 @@ def _procesar_asignacion_ruta(request, embarcacion):
         'crucero': embarcacion,
         'form_asignar': form,
         'abrir_modal_asignar': True,
+        'modulos_usuario': modulos_usuario,
     })
 
 def _mostrar_formulario_asignacion(request, embarcacion):
@@ -86,6 +87,7 @@ def _mostrar_formulario_asignacion(request, embarcacion):
     return render(request, "inicio/inicio_sin_ruta.html", {
         'crucero': embarcacion,
         'form_asignar': form,
+        'modulos_usuario': modulos_usuario,
     })
 
 def _mostrar_vista_inicio(request, embarcacion, form_edit):
@@ -103,4 +105,5 @@ def _mostrar_vista_inicio(request, embarcacion, form_edit):
     }
 
     contexto['form_crucero_edit'] = form_edit
+    contexto['modulos_usuario'] = modulos_usuario
     return render(request, 'inicio/inicio.html', contexto)

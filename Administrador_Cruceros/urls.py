@@ -20,23 +20,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from apps.administracion.views import LoginPersonalizado,logout_usuario, registro_usuario
+from apps.usuarios.views import custom_login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.cruceros.urls')),
     path('almacen/', include('apps.almacen.urls')),
     path('entretenimiento/', include('apps.entretenimiento.urls')),
-    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),
+    path('mantenimiento/', include('apps.mantenimiento.urls')),
     path('reservaciones/', include('apps.reservaciones.urls')),
     path('ventas/', include('apps.ventas.urls')),
     path("compras/", include(("apps.compras.urls", "compras"), namespace="compras")),
     path('dashboard/', include(('apps.administracion.urls', 'administracion'), namespace='administracion')),
-    path("login/", LoginPersonalizado.as_view(), name="login"),
+    path('usuarios/', include('apps.usuarios.urls')),
+    path("login/", custom_login, name="login"),
     path("logout/", logout_usuario, name="logout"),
     path('registro/', registro_usuario, name='registro'),
+    # Página accesible cuando un usuario no tiene permisos
+    path('acceso-denegado/', TemplateView.as_view(template_name='administracion/sin_permisos.html'), name='acceso_denegado'),
     path('servicio-medico/', include('apps.servicio_medico.urls')),
-    path('restaurante/', include('apps.restaurante.urls')),
+    path('bares-snacks/', include(('apps.bares_snacks.urls', 'bares_snacks'), namespace='bares_snacks')),
+    path('recursos-humanos/', include(('apps.recursos_humanos.urls', 'recursos_humanos'), namespace='recursos_humanos')),
+    path("restaurantes/", include(("apps.restaurante.urls", "restaurantes"), namespace="restaurantes"))
     path('embarcaciones/', include('apps.creador_embarcaciones.urls')),
 ]
 

@@ -18,6 +18,9 @@ def solicitud_compra_administracion(id, monto, mensaje=None):
 		mensaje = "Solicitud de Compra"
 	solicitud_compra_administracion_signal.send(sender=None, id=id, monto=monto, mensaje=mensaje)
 
+def manejar_compra_defectuosa(id, monto, mensaje):
+    solicitud_compra_administracion_signal.send(sender=None, id=id, monto=monto, mensaje=mensaje)
+
 # Ejemplo de uso del sender:
 # solicitud_compra_administracion(id=123, monto=5000, mensaje="Nueva solicitud de compra")
 

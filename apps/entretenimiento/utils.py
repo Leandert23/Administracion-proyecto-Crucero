@@ -534,9 +534,8 @@ def actividadRutMedianoInit(viaje: Viaje):
     """
     Función que inicializa la tabla de actividades rutinarias con datos de ejemplo
     """
-    # Verificar si ya existen actividades rutinarias para este viaje
-    if ActividadRutinaria.objects.filter(viaje=viaje).exists():
-        return []
+    # Verificar si ya existen actividades rutinarias para evitar duplicados
+    
 
     # Crear actividades rutinarias de ejemplo (actividades diarias del crucero)
     actividades_rutinarias_data = [
@@ -700,7 +699,7 @@ def actividadRutMedianoInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "claseaerobics.jpg"
+            "img_src": "clasesaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
@@ -947,17 +946,21 @@ def actividadRutMedianoInit(viaje: Viaje):
     # Crear las actividades rutinarias en la base de datos
     actividades_rutinarias_creadas = []
     for actividad_data in actividades_rutinarias_data:
-        actividad_rutinaria = ActividadRutinaria.objects.create(viaje=viaje, **actividad_data)
+        actividad_rutinaria = ActividadRutinaria.objects.create(**actividad_data)
         actividades_rutinarias_creadas.append(actividad_rutinaria)
+        print(f"✓ Creada actividad rutinaria: {actividad_rutinaria.titulo}")
+
+    print(f"\n🎉 Se han creado {len(actividades_rutinarias_creadas)} actividades rutinarias exitosamente!")
     return actividades_rutinarias_creadas
 
-def actividadPagoPeqInit(viaje: Viaje):
+def actividadPagoPeqInit():
     """
     Función que inicializa la tabla de actividades con datos de ejemplo
     """
     # Verificar si ya existen actividades para evitar duplicados
-    if Actividad.objects.filter(viaje=viaje).exists():
-        return []
+    if Actividad.objects.exists():
+        print("ERROR:La tabla ya contiene actividades. No se crearán datos de ejemplo.")
+        return
 
     # Crear actividades de ejemplo
     actividades_data = [
@@ -1006,17 +1009,22 @@ def actividadPagoPeqInit(viaje: Viaje):
     # Crear las actividades en la base de datos
     actividades_creadas = []
     for actividad_data in actividades_data:
-        actividad = Actividad.objects.create(viaje=viaje, **actividad_data)
+        actividad = Actividad.objects.create(**actividad_data)
         actividades_creadas.append(actividad)
+        print(f"✓ Creada actividad: {actividad.titulo}")
+
+    print(f"\n🎉 Se han creado {len(actividades_creadas)} actividades exitosamente!")
     return actividades_creadas
 
-def actividadPagoMedianoInit(viaje: Viaje):
+
+def actividadPagoMedianoInit():
     """
     Función que inicializa la tabla de actividades con datos de ejemplo
     """
     # Verificar si ya existen actividades para evitar duplicados
-    if Actividad.objects.filter(viaje=viaje).exists():
-        return []
+    if Actividad.objects.exists():
+        print("ERROR:La tabla ya contiene actividades. No se crearán datos de ejemplo.")
+        return
 
     # Crear actividades de ejemplo
     actividades_data = [
@@ -1105,17 +1113,20 @@ def actividadPagoMedianoInit(viaje: Viaje):
     # Crear las actividades en la base de datos
     actividades_creadas = []
     for actividad_data in actividades_data:
-        actividad = Actividad.objects.create(viaje=viaje, **actividad_data)
+        actividad = Actividad.objects.create(**actividad_data)
         actividades_creadas.append(actividad)
+        print(f"✓ Creada actividad: {actividad.titulo}")
+
+    print(f"\n🎉 Se han creado {len(actividades_creadas)} actividades exitosamente!")
     return actividades_creadas
 
-def actividadRutGrandeInit(viaje: Viaje):
+
+def actividadRutGrandeInit():
     """
     Función que inicializa la tabla de actividades rutinarias con datos de ejemplo
     """
-    # Verificar si ya existen actividades rutinarias para este viaje
-    if ActividadRutinaria.objects.filter(viaje=viaje).exists():
-        return []
+    # Verificar si ya existen actividades rutinarias para evitar duplicados
+    
 
     # Crear actividades rutinarias de ejemplo (actividades diarias del crucero)
     actividades_rutinarias_data = [
@@ -1327,7 +1338,7 @@ def actividadRutGrandeInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "claseaerobics.jpg"
+            "img_src": "clasesaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
@@ -1644,17 +1655,19 @@ def actividadRutGrandeInit(viaje: Viaje):
     # Crear las actividades rutinarias en la base de datos
     actividades_rutinarias_creadas = []
     for actividad_data in actividades_rutinarias_data:
-        actividad_rutinaria = ActividadRutinaria.objects.create(viaje=viaje, **actividad_data)
+        actividad_rutinaria = ActividadRutinaria.objects.create(**actividad_data)
         actividades_rutinarias_creadas.append(actividad_rutinaria)
+        print(f"✓ Creada actividad rutinaria: {actividad_rutinaria.titulo}")
+
+    print(f"\n🎉 Se han creado {len(actividades_rutinarias_creadas)} actividades rutinarias exitosamente!")
     return actividades_rutinarias_creadas
 
-def actividadRutPequenoInit(viaje: Viaje):
+def actividadRutPequenoInit():
     """
     Función que inicializa la tabla de actividades rutinarias con datos de ejemplo
     """
-    # Verificar si ya existen actividades rutinarias para este viaje
-    if ActividadRutinaria.objects.filter(viaje=viaje).exists():
-        return []
+    # Verificar si ya existen actividades rutinarias para evitar duplicados
+    
 
     # Crear actividades rutinarias de ejemplo (actividades diarias del crucero)
     actividades_rutinarias_data = [
@@ -1791,7 +1804,7 @@ def actividadRutPequenoInit(viaje: Viaje):
             "hora_fin": time(11, 0),     # 4:00 PM
             "maximo_actividad": 150,
             "ubicacion": "Piscina",
-            "img_src": "claseaerobics.jpg"
+            "img_src": "clasesaerobics.jpg"
         },
         {
             "titulo": "Animadores en la piscina.",
@@ -1973,6 +1986,9 @@ def actividadRutPequenoInit(viaje: Viaje):
     # Crear las actividades rutinarias en la base de datos
     actividades_rutinarias_creadas = []
     for actividad_data in actividades_rutinarias_data:
-        actividad_rutinaria = ActividadRutinaria.objects.create(viaje=viaje, **actividad_data)
+        actividad_rutinaria = ActividadRutinaria.objects.create(**actividad_data)
         actividades_rutinarias_creadas.append(actividad_rutinaria)
+        print(f"✓ Creada actividad rutinaria: {actividad_rutinaria.titulo}")
+
+    print(f"\n🎉 Se han creado {len(actividades_rutinarias_creadas)} actividades rutinarias exitosamente!")
     return actividades_rutinarias_creadas

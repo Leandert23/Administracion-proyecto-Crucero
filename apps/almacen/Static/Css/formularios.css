@@ -167,10 +167,60 @@
     z-index: 1400;
     display: none;
     overflow: auto;
-    padding: 48px 20px;
+    padding: 0;
     background: rgba(15,23,42,.55);
     backdrop-filter: saturate(140%) blur(2px);
 }
+/* ***** Modal Crear Seccion (reusar estilos) *****/
+#modalCrearSeccion {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    display: none;
+    overflow: auto;
+    padding: 0;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: saturate(140%) blur(2px);
+}
+#modalCrearSeccion[aria-hidden="false"] { display: flex; }
+
+#modalCrearSeccion .modal-container {
+    width: 100%;
+    max-width: 660px;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 18px 55px -12px rgba(15,23,42,.35), 0 4px 12px -2px rgba(15,23,42,.18);
+    position: relative;
+    animation: modalIn .45s cubic-bezier(.4,0,.2,1);
+    padding: 0;
+}
+
+/* Botón de cierre en esquina superior derecha dentro del modal */
+.modal-container .modal-top-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .18s, color .18s, transform .12s;
+}
+.modal-container .modal-top-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+.modal-container .modal-top-close:active { transform: translateY(0); }
 #modalCrearProducto[aria-hidden="false"],
 #modalCrearLote[aria-hidden="false"],
 #modalCrearSalida[aria-hidden="false"],
@@ -178,6 +228,7 @@
 
 #modalCrearProducto .modal-container,
 #modalCrearLote .modal-container,
+#modalEntradaLote .modal-container,
 #modalCrearSalida .modal-container,
 #modalCrearMerma .modal-container {
     width: 100%;
@@ -188,6 +239,7 @@
     box-shadow: 0 18px 55px -12px rgba(15,23,42,.35), 0 4px 12px -2px rgba(15,23,42,.18);
     position: relative;
     animation: modalIn .45s cubic-bezier(.4,0,.2,1);
+    padding: 0;
 }
 
 #modalCrearProducto .modal-header,
@@ -283,3 +335,55 @@
 }
 .lista-resultados.vacio { padding: 12px 14px; font-size: .65rem; color:#64748b; }
 @keyframes fadeInResultados { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }
+
+/* ------------------------------------------------------------------ */
+/* Layout fixes: make forms and modal content height adaptive to content */
+/* Prevent large fixed heights from stretching forms and use scrolling in modals */
+/* These overrides are intentionally specific and placed last to avoid clashes. */
+
+/* Ensure form containers size to their content */
+.form-grid,
+.form-field {
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+/* Slightly reduce default textarea min height so short forms look tighter */
+.form-field textarea {
+    min-height: 64px; /* was 84px */
+}
+
+/* Modal containers should not force a fixed height; allow them to grow up to viewport */
+.modal-container {
+    height: auto !important;
+    max-height: 90vh !important;
+    overflow: auto !important;
+}
+
+/* Target specific create modals used by almacen */
+#modalCrearProducto .modal-container,
+#modalCrearLote .modal-container,
+#modalEntradaLote .modal-container,
+#modalCrearSalida .modal-container,
+#modalCrearMerma .modal-container,
+#modalCrearSeccion .modal-container,
+#modalLotesPorRegistrar .modal-container {
+    height: auto !important;
+    max-height: 90vh !important;
+    overflow: auto !important;
+}
+
+/* Keep select/inputs compact and let them determine row height */
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field input[type="date"],
+.form-field select,
+.form-field textarea {
+    height: auto !important;
+}
+
+/* Small screens: keep modal padding but keep adaptive heights */
+@media (max-width: 640px) {
+    .modal-container { max-height: 92vh !important; }
+}
+

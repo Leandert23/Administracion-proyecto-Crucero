@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Gestión de Cruceros</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/login.css' %}" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="auth-background"></div>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <img src="{% static 'bares_snacks/svg/logo/logo.svg' %}" alt="Logo Cruceros" class="crop-top">
+                </div>
+                <h2>Sistema de Gestión de Cruceros</h2>
+                <p>Ingrese sus credenciales para acceder al sistema</p>
+            </div>
+            
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> Usuario o contraseña incorrectos.
+                </div>
+                {% endif %}
+                
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div class="form-field">
+                    <label for="id_username">Usuario</label>
+                    <input type="text" name="username" id="id_username" 
+                    placeholder="Ingrese su usuario" required autofocus
+                    value="{{ form.username.value|default:'' }}">
+                </div>
+                
+                <div class="form-field">
+                    <label for="id_password">Contraseña</label>
+                    <input type="password" name="password" id="id_password" 
+                    placeholder="Ingrese su contraseña" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                </div>
+                
+                <div class="login-meta">
+                    <label class="remember">
+                        <!-- <input type="checkbox" name="remember" id="remember">
+                        <span>Recordar sesión</span> -->
+                    </label>
+                    
+                </div>
+            </form>
+            
+            <!-- <div class="login-links">
+                <a href="{% url 'admin:login' %}">Acceso Administrativo</a>
+            </div> -->
+        </div>
+        
+        <div class="login-footer">
+            <p>&copy; 2025 Odyssey Cruise Services. v1.0.0</p>
+        </div>
+    </div>
+</body>
+</html>

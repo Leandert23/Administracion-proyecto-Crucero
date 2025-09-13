@@ -1,0 +1,143 @@
+{% load static %}
+<!-- Modal para editar usuario (rol, username, reset password) -->
+<style>
+    /* Copiado y adaptado de _modal_create_user.html */
+    .modal { display:none; position:fixed; inset:0; z-index:2100; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); }
+    .modal.active { display:flex; }
+    .modal-dialog { max-width:720px; width:95%; margin:32px auto; }
+    .modal-content { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 12px 36px rgba(15,23,42,0.18); }
+    .modal-header { padding:14px 18px; border-bottom:1px solid #e9ecef; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; }
+    .modal-header h5 { margin:0; font-size:1.05rem; font-weight:600; color:#0f172a; }
+    .close { background:transparent; border:0; font-size:1.3rem; cursor:pointer; color:#4b5563; padding:6px 8px; border-radius:6px; }
+    .close:hover { background:#eef2ff; color:#0f172a; }
+    .modal-body { padding:16px 18px; max-height:70vh; overflow:auto; }
+    .form-group { margin-bottom:12px; }
+    .form-control { width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; font-family:inherit; font-size:0.95rem; color:#0f172a; }
+    .form-control:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,0.06); }
+    .form-text { display:block; margin-top:6px; font-size:0.82rem; color:#6b7280; }
+    .modal-footer { padding:12px 16px; border-top:1px solid #e9ecef; display:flex; gap:10px; justify-content:flex-end; background:#f8fafc; }
+    .btn { appearance:none; border:0; border-radius:8px; padding:8px 14px; font-size:0.92rem; font-weight:600; cursor:pointer; }
+    .btn-secondary { background:#edf2ff; color:#364fc7; }
+    .btn-secondary:hover { background:#e0e7ff; }
+    .btn-primary { background:linear-gradient(90deg,#3b82f6,#6366f1); color:#fff; box-shadow:0 4px 12px rgba(59,130,246,0.12); }
+    .btn-primary:hover { filter:brightness(1.03); }
+    @media (max-width:640px) { .modal-dialog { margin:20px; max-width:96%; } .modal-body { padding:12px; } .modal-header, .modal-footer { padding:12px; } }
+</style>
+
+<div id="modalEditarUsuario" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="form-edit-usuario" method="post" action="#">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="close" aria-label="Cerrar" onclick="closeModalEditarUsuario()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="edit-user-feedback" class="form-text" style="display:none; color:#ef4444; margin-bottom:8px;"></div>
+                    <input type="hidden" id="edit_user_id" name="user_id" value="" />
+                    <div class="form-group">
+                        <label for="edit_username">Usuario</label>
+                        <input type="text" id="edit_username" name="username" class="form-control" required maxlength="150" />
+                        <small class="form-text">Cambiar el nombre de usuario.</small>
+                    </div>
+                    {% if not hide_role_field %}
+                    <div class="form-group">
+                        <label for="edit_rol">Rol</label>
+                        <select id="edit_rol" name="rol" class="form-control">
+                            <option value="">Cargando...</option>
+                        </select>
+                        <small class="form-text">Asignar rol al usuario.</small>
+                    </div>
+                    {% endif %}
+                    <hr />
+                    <div class="form-group">
+                        <label for="edit_password">Nueva contraseña (opcional)</label>
+                        <input type="password" id="edit_password" name="password" class="form-control" minlength="6" />
+                        <small class="form-text">Si quieres resetear la contraseña, escribe la nueva aquí; si lo dejas vacío no se cambiará.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModalEditarUsuario()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModalEditarUsuario(){
+        const el = document.getElementById('modalEditarUsuario');
+        if(el) el.classList.add('active');
+    }
+    function closeModalEditarUsuario(){
+        const el = document.getElementById('modalEditarUsuario');
+        if(el) el.classList.remove('active');
+    }
+
+    // Prefill roles list into the edit modal
+    function loadRolesIntoEditUser(){
+        const sel = document.getElementById('edit_rol');
+        if(!sel) return;
+        sel.innerHTML = '<option value="">Cargando roles...</option>';
+        fetch('{% url "roles_list" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(data => {
+                if(data.ok && data.roles){
+                    sel.innerHTML = '<option value="">(Sin cambios)</option>';
+                    data.roles.forEach(r => {
+                        const o = document.createElement('option'); o.value = r.id; o.textContent = r.nombre; sel.appendChild(o);
+                    });
+                } else {
+                    sel.innerHTML = '<option value="">No hay roles</option>';
+                }
+            })
+            .catch(err => { console.error(err); sel.innerHTML = '<option value="">Error cargando roles</option>'; });
+    }
+
+    // Helper: populate and open modal with user data
+    window.openEditUser_prefill = function(user){
+        // user is an object with fields: id, username, rol_nombre, rol_id(optional)
+        document.getElementById('edit_user_id').value = user.id || '';
+        document.getElementById('edit_username').value = user.username || '';
+        // set role select after loading roles
+        loadRolesIntoEditUser();
+        // try to select role by name after small delay (roles loader will populate)
+        setTimeout(()=>{
+            const sel = document.getElementById('edit_rol');
+            if(!sel) return;
+            for(let i=0;i<sel.options.length;i++){
+                if(sel.options[i].text === (user.rol_nombre||'') || sel.options[i].value == (user.rol_id||'')){
+                    sel.selectedIndex = i; break;
+                }
+            }
+        }, 300);
+        document.getElementById('edit_password').value = '';
+        openModalEditarUsuario();
+    }
+
+    // Submit handler: sends AJAX POST to update user
+    document.getElementById('form-edit-usuario').addEventListener('submit', function(e){
+        e.preventDefault();
+        const form = this;
+        const userId = document.getElementById('edit_user_id').value;
+        const url = '/usuarios/' + encodeURIComponent(userId) + '/edit/'; // backend view should match
+        const fd = new FormData(form);
+        const csrftoken = (function(){ const v = document.cookie.split('; ').find(row=>row.startsWith('csrftoken=')); return v?decodeURIComponent(v.split('=')[1]):''; })();
+        fetch(url, { method:'POST', body: fd, headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With':'XMLHttpRequest' } })
+            .then(r=>{ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json().catch(()=>({ok:true})); })
+            .then(data=>{
+                const fb = document.getElementById('edit-user-feedback');
+                if(data && data.ok){
+                    // refresh management list if present
+                    if(typeof loadUsersIntoUserManagement === 'function') loadUsersIntoUserManagement();
+                    closeModalEditarUsuario();
+                } else {
+                    if(fb){ fb.style.display='block'; fb.textContent = data && data.error? data.error : 'Error al guardar'; }
+                    else console.error('Edit error', data);
+                }
+            })
+            .catch(err=>{ console.error(err); const fb = document.getElementById('edit-user-feedback'); if(fb){ fb.style.display='block'; fb.textContent='Error de red o servidor'; } });
+    });
+</script>

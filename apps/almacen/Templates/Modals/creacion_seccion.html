@@ -1,0 +1,49 @@
+<!-- Modal: Crear Sección de Almacén -->
+<div id="modalCrearSeccion" class="modal" role="dialog" aria-hidden="true" data-modal-key="seccion">
+    <div class="modal-container">
+        <!-- Botón de cierre visible en la esquina superior derecha -->
+        <button class="modal-top-close" aria-label="Cerrar modal" onclick="cerrarModal('seccion')">×</button>
+        <div class="modal-header">
+            <h2>Crear Sección del Almacén</h2>
+        </div>
+
+        <form id="form-crear-seccion" class="form-grid" method="post" action="crear-seccion/">
+            {% csrf_token %}
+            <div class="form-field" data-field="almacen">
+                <label for="select-almacen">Almacén</label>
+                <select id="select-almacen" name="almacen_id" required>
+                    <option value="">Seleccione un almacén</option>
+                </select>
+                <span class="error-text" hidden></span>
+            </div>
+
+            <div class="form-field" data-field="nombre">
+                <label for="seccion-nombre">Nombre</label>
+                <input id="seccion-nombre" name="nombre" type="text" required maxlength="100" placeholder="Nombre de la sección">
+                <span class="error-text" hidden></span>
+            </div>
+
+            <div class="form-field" data-field="tipo">
+                <label for="seccion-tipo">Tipo</label>
+                <select id="seccion-tipo" name="tipo" required>
+                    <option value="">Seleccione un tipo</option>
+                    <option value="REFRIGERACION">Cámara de Refrigeración</option>
+                    <option value="CONGELACION">Cámara de Congelación</option>
+                    <option value="SECO">Almacén Seco</option>
+                    <option value="ESTANTERIAS">Estanterías</option>
+                    <option value="CUARTO_FRIO">Cuarto Frío</option>
+                    <option value="SILOS">Silos</option>
+                    <option value="TANQUES">Tanques</option>
+                </select>
+                <span class="error-text" hidden></span>
+            </div>
+
+            <!-- Capacidad, temperatura y humedad no son requeridas en este formulario simplificado -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('seccion')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #3b82f6;">Crear sección</button>
+            </div>
+        </form>
+    </div>
+</div>

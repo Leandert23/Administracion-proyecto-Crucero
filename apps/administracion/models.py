@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from apps.cruceros.models import Crucero
 
 class Administracion(models.Model):
@@ -127,12 +127,12 @@ class Rol(models.Model):
 
 class UsuarioRol(models.Model):
     """Modelo para asignar roles a usuarios en módulos específicos"""
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='roles_asignados')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='roles_asignados')
     rol = models.ForeignKey(Rol, on_delete=models.CASCADE, related_name='usuarios')
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
     fecha_expiracion = models.DateTimeField(null=True, blank=True)
     activo = models.BooleanField(default=True)
-    asignado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='roles_asignados_por_mi')
+    asignado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='roles_asignados_por_mi')
     
     class Meta:
         verbose_name = "Rol de Usuario"

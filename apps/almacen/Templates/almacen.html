@@ -11,146 +11,13 @@
     <link rel="stylesheet" href="{% static 'Css/historial_modal.css' %}">
     <link rel="stylesheet" href="{% static 'Css/formularios.css' %}">
     <link rel="stylesheet" href="{% static 'Css/lotes.css' %}">
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <!--<img src="src/storage/vectors/browser-svgrepo-com.svg" alt="Logo" class="logo-icon">-->
-                    <span class="logo-text">Panel de Control</span>
-                </div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="/" class="nav-link">
-                            <span class="nav-text">Inicio</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Gestión Crucero</span>
-                        </a>
-                    </li>
-                    {# Determinar si el crucero está operativo (planificación o viaje). Suponemos atributo 'estado'. #}
-                    {% if crucero.se_encuentra_en_planificacion or crucero.se_encuentra_en_viaje %}
-                    <li class="nav-item">
-                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                    {% else %}
-                    {# Estado NO operativo: deshabilitar módulos (excepto Inicio y Gestión Crucero) #}
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="javascript:void(0)" class="nav-link disabled modulo-inactivo" aria-disabled="true" tabindex="-1" title="No disponible: crucero inactivo">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <!-- Footer del sidebar -->
-            </div>
-        </aside>
-
-        <!-- Overlay para móviles -->
-        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
-
+        {% include 'sidebar.html' with active_module="almacen" %}
+        
         <!-- Main Content -->
         <main class="main-content">
             <!-- Header -->
@@ -161,81 +28,117 @@
                         <span></span>
                         <span></span>
                     </button>
+                    <!-- Warehouse icon + title -->
                     <h1 class="page-title">Almacén</h1>
                     <p class="page-subtitle">Gestiona entradas, salidas e inventario del almacén</p>
                 </div>
-                <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
-                </div>
             </header>
-
+            
             <!-- Dashboard Content -->
             <div class="dashboard-content">
                 <!-- Tarjetas resumen superiores -->
                 <div class="quick-cards">
                     <div class="quick-card" id="inventario-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-boxes" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Inventario</h3>
                             <p class="quick-card__text">Maneja el inventario general</p>
                         </div>
                     </div>
                     <div class="quick-card" id="entrada-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-plus-circle" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Entrada de Lote</h3>
                             <p class="quick-card__text">Registrar manualmente la entrada de un lote</p>
                         </div>
                     </div>
                     <div class="quick-card" id="salida-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-truck" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Salida de producto</h3>
                             <p class="quick-card__text">Registrar manualmente la salida de un producto</p>
                         </div>
                     </div>
                     <div class="quick-card" id="historial-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-history" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Historial de Movimientos</h3>
                             <p class="quick-card__text">Ver historial de entradas y salidas</p>
                         </div>
                     </div>
                     <div class="quick-card" id="reportes-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Reportes de Mermas</h3>
                             <p class="quick-card__text">Reportar algún daño a productos</p>
                         </div>
                     </div>
+                    <div class="quick-card" id="solicitud-almacen-card" onclick="abrirModalSolicitudAlmacen()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Solicitud Almacen</h3>
+                            <p class="quick-card__text">Solicitar productos a almacen</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="solicitud-almacen-card_listado" onclick="abrirListadoSolicitudesAlmacen()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Solicitudes de Productos</h3>
+                            <p class="quick-card__text">Procesar solicitudes de salida en el almacen</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="solicitud-aprobadas-card" onclick="abrirSolicitudesAprobadas()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Salidas por Procesar</h3>
+                            <p class="quick-card__text">Procesar entregas de producto aprobadas</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="crear-seccion-card" onclick="abrirCrearSeccion()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Crear sección del almacén</h3>
+                            <p class="quick-card__text">Crea una sección en un almacén</p>
+                        </div>
+                    </div>
+                    <div class="quick-card" id="lotes-por-registrar-card" onclick="abrirLotesPorRegistrar()" role="button" style="cursor:pointer;">
+                        <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
+                        <div class="quick-card__body">
+                            <h3 class="quick-card__title">Lotes por Registrar</h3>
+                            <p class="quick-card__text">Ver y procesar órdenes pendientes</p>
+                        </div>
+                    </div>
                 </div> <!-- quick-cards -->
-                <div id="contenedor-ordenes-compra" class="inventory-container no-shadow" style="margin-top:10px;">
-                    <h3 class="inventario-title" style="margin:0 0 14px 0; font-size:1.15rem; font-weight:600;">Lotes Pendientes por Registrar</h3>
-                    <div class="table-container" id="tabla-ordenes-compra-wrapper"></div>
-                </div>
-            </div> <!-- dashboard-content -->
-        </main>
-    </div> <!-- dashboard-container -->
+            </div>
+        </div> <!-- dashboard-content -->
+    </main>
+</div> <!-- dashboard-container -->
 
-    <!-- MODALES OCULTAS -->
-    
-    {% include 'Modals/inventario.html' %}
-    {% include 'Modals/historial.html' %}
-    {% include 'Modals/creacion_producto.html' %}
-    {% include 'Modals/entrada_lote.html' %}
-    {% include 'Modals/salida_producto.html' %}
-    {% include 'Modals/registro_merma.html' %}
-    {% include 'Modals/lotes_de_producto.html' %}
+<!-- MODALES OCULTAS -->
+
+{% include 'Modals/inventario.html' %}
+{% include 'Modals/historial.html' %}
+{% include 'Modals/creacion_producto.html' %}
+{% include 'Modals/entrada_lote.html' %}
+{% include 'Modals/salida_producto.html' %}
+{% include 'Modals/creacion_seccion.html' %}
+{% include 'Modals/lotes_por_registrar.html' %}
+{% include 'Modals/registro_merma.html' %}
+{% include 'Modals/lotes_de_producto.html' %}
+{% include 'Modals/modal_solicitud_a_almacen.html' %}
+{% include 'Modals/modal_listado_solicitudes.html' %}
+{% include 'Modals/modal_solicitudes_aprobadas.html' %}
 
 
-    <script src="{% static 'Js/sidebar.js' %}"></script>
-    <script src="{% static 'Js/inventario.js' %}"></script>
-    <script src="{% static 'Js/historial.js' %}"></script>
-    <script src="{% static 'Js/forms_manager.js' %}"></script>
-    <script src="{% static 'Js/lotes.js' %}"></script>
-    <script src="{% static 'Js/modals_manager.js' %}"></script>
-    <script src="{% static 'Js/busqueda_producto.js' %}"></script>
-    <script src="{% static 'Js/init_almacen.js' %}"></script>
-    <script>
+<script src="{% static 'Js/sidebar.js' %}"></script>
+<script src="{% static 'Js/inventario.js' %}"></script>
+<script src="{% static 'Js/historial.js' %}"></script>
+<script src="{% static 'Js/forms_manager.js' %}"></script>
+<script src="{% static 'Js/lotes.js' %}"></script>
+<script src="{% static 'Js/modals_manager.js' %}"></script>
+<script src="{% static 'Js/busqueda_producto.js' %}"></script>
+<script src="{% static 'Js/init_almacen.js' %}"></script>
+<script>
     (function(){
         // Mostrar alert en módulos inactivos
         var inactivos = document.querySelectorAll('.modulo-inactivo');
@@ -249,6 +152,26 @@
             });
         }
     })();
-    </script>
+    // Fallback: asegurar que la función global exista para abrir el modal de solicitud
+    if(typeof window.abrirModalSolicitudAlmacen !== 'function'){
+        window.abrirModalSolicitudAlmacen = function(){
+            try{
+                var modal = document.getElementById('modalSolicitudAlmacen');
+                if(modal) {
+                    // usar la clase 'active' como en el modal original para mostrarlo
+                    modal.classList.add('active');
+                    // intentar enfocar el input de búsqueda si existe
+                    var input = modal.querySelector('#inputBusquedaProductos');
+                    if(input) input.focus();
+                }
+                // intentar usar la interfaz del modal si está disponible
+                if(window.InterfazSolicitud && typeof InterfazSolicitud.reiniciarEstado === 'function'){
+                    InterfazSolicitud.reiniciarEstado();
+                    InterfazSolicitud.cargarProductos();
+                }
+            }catch(e){ console.error('abrirModalSolicitudAlmacen fallback error', e); }
+        };
+    }
+</script>
 </body>
 </html>

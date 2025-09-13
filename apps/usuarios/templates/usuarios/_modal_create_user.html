@@ -1,0 +1,212 @@
+{% load static %}
+<!-- Modal para crear un Usuario -->
+{% with create_user_url|default:'#' as action_url %}
+{% with modal_id|default:'modalCrearUsuario' as modal_id %}
+<style>
+    /* Basado en _modal_create_role.html */
+    .modal { display:none; position:fixed; inset:0; z-index:2000; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); }
+    .modal.active { display:flex; }
+    .modal-dialog { max-width:680px; width:90%; margin:48px auto; }
+    .modal-content { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 12px 36px rgba(15,23,42,0.18); }
+    .modal-header { padding:14px 18px; border-bottom:1px solid #e9ecef; display:flex; align-items:center; justify-content:space-between; background:#f8fafc; }
+    .modal-header h5 { margin:0; font-size:1.05rem; font-weight:600; color:#0f172a; }
+    .close { background:transparent; border:0; font-size:1.3rem; cursor:pointer; color:#4b5563; padding:6px 8px; border-radius:6px; }
+    .close:hover { background:#eef2ff; color:#0f172a; }
+    .modal-body { padding:16px 18px; max-height:60vh; overflow:auto; }
+    .form-group { margin-bottom:12px; }
+    .form-control { width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; font-family:inherit; font-size:0.95rem; color:#0f172a; }
+    .form-control:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 4px rgba(59,130,246,0.06); }
+    .form-text { display:block; margin-top:6px; font-size:0.82rem; color:#6b7280; }
+    select.form-control { height:auto; min-height:44px; }
+    .modal-footer { padding:12px 16px; border-top:1px solid #e9ecef; display:flex; gap:10px; justify-content:flex-end; background:#f8fafc; }
+    .btn { appearance:none; border:0; border-radius:8px; padding:8px 14px; font-size:0.92rem; font-weight:600; cursor:pointer; }
+    .btn-secondary { background:#edf2ff; color:#364fc7; }
+    .btn-secondary:hover { background:#e0e7ff; }
+    .btn-primary { background:linear-gradient(90deg,#3b82f6,#6366f1); color:#fff; box-shadow:0 4px 12px rgba(59,130,246,0.12); }
+    .btn-primary:hover { filter:brightness(1.03); }
+    @media (max-width:640px) {
+        .modal-dialog { margin:20px; max-width:96%; }
+        .modal-body { padding:12px; }
+        .modal-header, .modal-footer { padding:12px; }
+    }
+    .modal[aria-hidden="true"] { display:none; }
+    .modal.show, .modal.block { display:flex; }
+</style>
+<div id="{{ modal_id }}" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{{ action_url }}" id="form-create-usuario">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Usuario</h5>
+                    <button type="button" class="close" aria-label="Cerrar" onclick="closeModalCreateUsuario('{{ modal_id }}')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="create-user-feedback" class="form-text" style="display:none; color:#ef4444; margin-bottom:8px;"></div>
+                    <div class="form-group">
+                        <label for="id_first_name">Nombre</label>
+                        <input type="text" name="first_name" id="id_first_name" class="form-control" required maxlength="100" />
+                    </div>
+                    <div class="form-group">
+                        <label for="id_last_name">Apellido</label>
+                        <input type="text" name="last_name" id="id_last_name" class="form-control" required maxlength="100" />
+                    </div>
+                    <div class="form-group">
+                        <label for="id_username">Usuario</label>
+                        <input type="text" name="username" id="id_username" class="form-control" required maxlength="150" />
+                    </div>
+                    <div class="form-group">
+                        <label for="id_email">Email</label>
+                        <input type="email" name="email" id="id_email" class="form-control" required maxlength="150" />
+                    </div>
+                    <div class="form-group">
+                        <label for="id_password">Contraseña</label>
+                        <input type="password" name="password" id="id_password" class="form-control" required minlength="6" />
+                    </div>
+                    <div class="form-group">
+                        <label for="id_rol">Rol</label>
+                        <select name="rol" id="id_rol" class="form-control" required>
+                            <option value="">Selecciona un rol...</option>
+                            {% for rol in roles %}
+                            <option value="{{ rol.id }}">{{ rol.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {# El crucero se asigna automáticamente al ID del crucero actual; usar campo oculto #}
+                    <input type="hidden" name="crucero" id="id_crucero" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModalCreateUsuario('{{ modal_id }}')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endwith %}
+{% endwith %}
+<script>
+    function openModalCreateUsuario(modalId) {
+        var id = modalId || 'modalCrearUsuario';
+        var el = document.getElementById(id);
+        if (el) el.classList.add('active');
+    // Cargar roles dinámicamente al abrir el modal
+    loadRolesForCreateUser();
+    // Rellenar crucero automáticamente si está disponible en la página
+    setCruceroForCreateUser();
+    }
+    function closeModalCreateUsuario(modalId) {
+        var id = modalId || 'modalCrearUsuario';
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    }
+    document.addEventListener('click', function(e){
+        var modal = document.getElementById('modalCrearUsuario');
+        if (!modal) return;
+        if (modal.classList.contains('active') && e.target === modal) {
+            closeModalCreateUsuario('modalCrearUsuario');
+        }
+    });
+    
+    // --- AJAX seguro con CSRF ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    document.getElementById('form-create-usuario').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        var url = form.action;
+        var formData = new FormData(form);
+        var csrftoken = getCookie('csrftoken');
+        var feedback = document.getElementById('create-user-feedback');
+        if(feedback){ feedback.style.display='none'; feedback.textContent=''; }
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                // Close modal quietly and reset
+                closeModalCreateUsuario('modalCrearUsuario');
+                form.reset();
+                // If management modal function exists, refresh its users list
+                if(typeof loadUsersIntoUserManagement === 'function'){
+                    try{ loadUsersIntoUserManagement(); }catch(e){ console.error('refresh error', e); }
+                }
+            } else {
+                if(feedback){ feedback.style.display='block'; feedback.textContent = data.error || 'Error desconocido'; }
+                else { console.error('Error creando usuario', data); }
+            }
+        })
+        .catch(err => {
+            if(feedback){ feedback.style.display='block'; feedback.textContent = 'Error de red o servidor'; }
+            else console.error('Error de red', err);
+        });
+    });
+
+    // Cargar roles dinámicamente desde el endpoint roles_list
+    function loadRolesForCreateUser(){
+        var select = document.getElementById('id_rol');
+        if(!select) return;
+        // mostrar estado de carga
+        select.innerHTML = '<option value="">Cargando roles...</option>';
+        fetch('{% url "roles_list" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(resp){
+                if(!resp.ok) throw new Error('HTTP ' + resp.status);
+                return resp.json();
+            })
+            .then(function(data){
+                if(data.ok && data.roles && data.roles.length){
+                    select.innerHTML = '<option value="">Selecciona un rol...</option>';
+                    data.roles.forEach(function(r){
+                        var opt = document.createElement('option');
+                        opt.value = r.id;
+                        opt.textContent = r.nombre;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">No hay roles disponibles</option>';
+                }
+            })
+            .catch(function(err){
+                console.error('Error cargando roles:', err);
+                select.innerHTML = '<option value="">Error cargando roles</option>';
+            });
+    }
+
+    function setCruceroForCreateUser(){
+        var hidden = document.getElementById('id_crucero');
+        if(!hidden) return;
+        // Prioridad: elemento con data-current-crucero-id, luego variable global window.currentCruceroId
+        var el = document.querySelector('[data-current-crucero-id]');
+        if(el && el.getAttribute('data-current-crucero-id')){
+            hidden.value = el.getAttribute('data-current-crucero-id');
+            return;
+        }
+        if(window.currentCruceroId){
+            hidden.value = window.currentCruceroId;
+            return;
+        }
+        // Si no hay información, dejamos vacío (sin asignar)
+        hidden.value = '';
+    }
+</script>

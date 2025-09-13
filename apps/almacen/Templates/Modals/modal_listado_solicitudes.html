@@ -1,0 +1,308 @@
+<style>
+    /* Modal listado de solicitudes - estilos basados en modal_solicitud_a_almacen.html */
+    .modal-listado-solicitudes { --bg-white:#fff; --border:#e2e8f0; --header-grad: linear-gradient(135deg,#f8fafc,#eef3f7); }
+    .modal-listado-solicitudes { position: fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1300; }
+    .modal-listado-solicitudes.active { display:flex; }
+    .modal-listado-solicitudes .overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:1; }
+    .modal-listado-solicitudes .dialog { position:relative; z-index:2; width:90vw; max-width:none; height:90vh; max-height:90vh; background:var(--bg-white); border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.25); display:flex; flex-direction:column; overflow:hidden; }
+    .modal-listado-solicitudes .header { padding:12px 18px; border-bottom:1px solid var(--border); background:var(--header-grad); display:flex; align-items:center; justify-content:space-between; }
+    .modal-listado-solicitudes .title { font-size:1.35rem; font-weight:800; color:#0f172a; }
+    .modal-listado-solicitudes .body { padding:12px 14px; display:flex; flex-direction:column; gap:12px; flex:1 1 auto; overflow:auto; background:#f8fafc; }
+    .modal-listado-solicitudes .table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 6px 18px rgba(2,6,23,0.04); }
+    .modal-listado-solicitudes table th, .modal-listado-solicitudes table td { padding:12px 14px; border-bottom:1px solid var(--border); text-align:left; font-size:0.98rem; }
+    .modal-listado-solicitudes table th { font-size:1.12rem; font-weight:700; color:#0b1220; }
+    /* Añadir padding al contenedor de la lista para separar del borde del modal */
+    .modal-listado-solicitudes .table-container { padding:14px; }
+    /* Estilos para el panel de detalle y sus títulos */
+    .detalle-solicitud h5 { font-size:1.15rem; margin-bottom:8px; }
+    .detalle-solicitud p { margin-bottom:10px; color:#475569; }
+    .detalle-solicitud table td, .detalle-solicitud table th { padding:10px 12px; }
+    .modal-listado-solicitudes .footer { padding:10px 14px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+    .mls-btn { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer; }
+    .mls-accept { background:linear-gradient(90deg,#16a34a,#059669); color:#fff; border-color:transparent; }
+    .mls-reject { background:#fff5f5; color:#b91c1c; border-color:rgba(239,68,68,0.2); }
+    .mls-view { background:#eef2ff; color:#3730a3; border-color:transparent; }
+    /* Ajustes específicos para el modal de detalle (modal-detalle) */
+    .modal-listado-solicitudes.modal-detalle .dialog {
+        width: 80vw !important;
+        max-width: none;
+        height: 90vh !important;
+        max-height: 90vh;
+        box-sizing: border-box;
+        overflow-x: hidden; /* evitar scroll horizontal */
+        overflow-y: auto;   /* permitir scroll vertical interno si hace falta */
+    }
+    .modal-listado-solicitudes.modal-detalle .body {
+        overflow-x: hidden; /* evitar scroll horizontal en el contenido */
+        overflow-y: auto;
+    }
+</style>
+
+<!-- Modal reutilizable: listado de solicitudes de salida -->
+<div id="modalListadoSolicitudes" class="modal-listado-solicitudes" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="overlay" data-close-listado="true"></div>
+    <div class="dialog" role="document">
+        <div class="header">
+            <div class="title">Listado de Solicitudes de Salida</div>
+            <div>
+                <button type="button" class="mls-btn" data-close-listado="true" aria-label="Cerrar">✕</button>
+            </div>
+        </div>
+        <div class="body">
+            <!-- Contenido dinámico: tabla de solicitudes -->
+            <div class="table-container">
+                <table id="tablaListadoSolicitudes" class="table" role="grid">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Solicitante</th>
+                            <th>Estado</th>
+                            <th>Unidades</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filas renderizadas por JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="listadoSolicitudDetalle" style="display:none; background:#fff; padding:12px; border-radius:8px;">
+                <!-- Panel para ver detalle de una solicitud seleccionada -->
+                <h4 style="margin:0 0 8px 0;">Detalle de solicitud</h4>
+                <div id="detalleContenido">Cargando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pequeño para mostrar detalle de solicitud (centrado sobre el modal principal) -->
+<div id="modalDetalleSolicitud" class="modal-listado-solicitudes modal-detalle" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
+    <div class="overlay" data-close-detalle="true"></div>
+    <div class="dialog" role="document" style="width:90vw; max-width:none; height:90vh; max-height:90vh;">
+        <div class="header">
+            <div class="title">Detalle de Solicitud</div>
+            <div>
+                <button type="button" class="mls-btn" data-close-detalle="true" aria-label="Cerrar">✕</button>
+            </div>
+        </div>
+        <div class="body" style="background:#fff;">
+            <div id="detalleContenidoModal">Cargando...</div>
+        </div>
+        <div class="footer">
+            <button type="button" class="mls-btn" data-close-detalle="true">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para abrir/cerrar el modal reutilizable
+window.abrirListadoSolicitudesAlmacen = function(){
+    const el = document.getElementById('modalListadoSolicitudes');
+    if (!el) return;
+    el.classList.add('active');
+    el.setAttribute('aria-hidden', 'false');
+    cargarListadoSolicitudes(1);
+};
+
+window.cerrarListadoSolicitudesAlmacen = function(){
+    const el = document.getElementById('modalListadoSolicitudes');
+    if (!el) return;
+    el.classList.remove('active');
+    el.setAttribute('aria-hidden', 'true');
+    // limpiar detalle
+    const detalle = document.getElementById('listadoSolicitudDetalle'); if (detalle) detalle.style.display='none';
+};
+
+document.addEventListener('click', function(e){
+    // Cerrar modal si se hace click en elementos con data-close-listado
+    const target = e.target;
+    if (target && (target.dataset && (target.dataset.closeListado === 'true' || target.getAttribute('data-close-listado') === 'true'))){
+        cerrarListadoSolicitudesAlmacen();
+    }
+});
+
+// Delegación para acciones dentro de la tabla
+document.addEventListener('click', function(e){
+    const btn = e.target.closest && e.target.closest('[data-mls-action]');
+    if (!btn) return;
+    const action = btn.dataset.mlsAction;
+    const id = btn.dataset.mlsId;
+    if (action === 'ver') {
+        mostrarDetalleSolicitud(id);
+    } else if (action === 'aceptar') {
+        // Lógica placeholder: enviar petición al backend para aceptar
+        cambiarEstadoSolicitud(id, 'ACEPTADA');
+    } else if (action === 'rechazar') {
+    // Confirmación ligera antes de rechazar
+    if (!confirm('¿Desea rechazar esta solicitud?')) return;
+    cambiarEstadoSolicitud(id, 'RECHAZADA');
+    }
+});
+
+function cargarListadoSolicitudes(page=1){
+    const cont = document.querySelector('#modalListadoSolicitudes .table-container');
+    if (!cont) return;
+    // show loading
+    cont.innerHTML = '<div style="padding:12px;">Cargando...</div>';
+    fetch(`/almacen/solicitudes/listado/?page=${page}`)
+        .then(r => {
+            if (!r.ok) {
+                // intentar leer texto para debug
+                return r.text().then(txt => {
+                    console.error('Respuesta no OK del servidor:', r.status, txt);
+                    cont.innerHTML = '<div style="padding:12px;color:#b91c1c;">Error del servidor al cargar solicitudes (ver consola)</div>';
+                    throw new Error('server error');
+                });
+            }
+            return r.text().then(txt => {
+                try {
+                    return JSON.parse(txt);
+                } catch (e) {
+                    console.error('Respuesta JSON inválida para listado de solicitudes:', txt);
+                    cont.innerHTML = '<div style="padding:12px;color:#b91c1c;">Respuesta inválida del servidor (ver consola)</div>';
+                    throw e;
+                }
+            });
+        })
+        .then(data => {
+            if (!data || !data.success) {
+                cont.innerHTML = '<div style="padding:12px;color:#b91c1c;">No se pudieron cargar las solicitudes.</div>';
+                console.warn('Datos recibidos no success:', data);
+                return;
+            }
+            // insertar tabla HTML: el partial puede devolver una tabla completa o solo las filas
+            const html = (data.tabla_html || '').trim();
+            if (html.startsWith('<table') || html.startsWith('<TABLE')) {
+                cont.innerHTML = html;
+            } else {
+                // intentar insertar en el tbody de la tabla existente
+                const existingTbody = cont.querySelector('tbody');
+                if (existingTbody) {
+                    existingTbody.innerHTML = html;
+                } else {
+                    cont.innerHTML = html;
+                }
+            }
+
+            // insertar / actualizar paginación
+            const pagHtml = data.paginacion_html || '';
+            let pagEl = document.getElementById('paginacionSolicitudes');
+            if (!pagEl) {
+                pagEl = document.createElement('div');
+                pagEl.id = 'paginacionSolicitudes';
+                cont.appendChild(pagEl);
+            }
+            pagEl.innerHTML = pagHtml;
+        })
+        .catch(err => {
+            console.error('Error al cargar listado de solicitudes:', err);
+        });
+}
+
+// función invocada por los botones de paginación (renderizados por el partial)
+window.cargarPaginaSolicitudes = function(page){
+    cargarListadoSolicitudes(page);
+}
+
+function mostrarDetalleSolicitud(id){
+    const modal = document.getElementById('modalDetalleSolicitud');
+    const contenidoModal = document.getElementById('detalleContenidoModal');
+    if (!modal || !contenidoModal) return;
+    contenidoModal.innerHTML = 'Cargando detalle...';
+    // abrir modal detalle
+    modal.style.display = '';
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    fetch(`/almacen/solicitudes/detalle/${id}/`)
+        .then(r => {
+            if (!r.ok) throw new Error('Error en la respuesta del servidor');
+            return r.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                contenidoModal.innerHTML = '<div style="color:#b91c1c;">No se pudo cargar el detalle.</div>';
+                return;
+            }
+            contenidoModal.innerHTML = data.html || '<div>No hay detalle disponible.</div>';
+        }).catch(err => {
+            console.error('Error al obtener detalle solicitud:', err);
+            contenidoModal.innerHTML = '<div style="color:#b91c1c;">Error cargando detalle (ver consola).</div>';
+        });
+}
+
+// cerrar modal detalle por delegación
+document.addEventListener('click', function(e){
+    const target = e.target;
+    if (target && (target.dataset && (target.dataset.closeDetalle === 'true' || target.getAttribute('data-close-detalle') === 'true'))){
+        const modal = document.getElementById('modalDetalleSolicitud');
+        if (!modal) return;
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.style.display = 'none';
+    }
+});
+
+function cambiarEstadoSolicitud(id, nuevoEstado){
+    // Implementación: actualmente sólo soportamos 'ACEPTADA' via endpoint POST
+    if (nuevoEstado === 'ACEPTADA'){
+        // obtener CSRF
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return v ? v.pop() : '';
+        }
+        const csrftoken = getCookie('csrftoken');
+        fetch('/almacen/solicitudes/aceptar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ id: id })
+        }).then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                // refrescar listado para mostrar nuevo estado
+                cargarListadoSolicitudes();
+            } else {
+                alert('No fue posible aceptar la solicitud: ' + (data && data.error ? data.error : 'error'));
+            }
+        }).catch(err => {
+            console.error('Error aceptando solicitud:', err);
+            alert('Error al aceptar la solicitud (ver consola)');
+        });
+        return;
+    }
+    // Manejo de rechazar
+    if (nuevoEstado === 'RECHAZADA'){
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return v ? v.pop() : '';
+        }
+        const csrftoken = getCookie('csrftoken');
+        fetch('/almacen/solicitudes/rechazar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ id: id })
+        }).then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                // refrescar listado para mostrar nuevo estado
+                cargarListadoSolicitudes();
+            } else {
+                alert('No fue posible rechazar la solicitud: ' + (data && data.error ? data.error : 'error'));
+            }
+        }).catch(err => {
+            console.error('Error rechazando solicitud:', err);
+            alert('Error al rechazar la solicitud (ver consola)');
+        });
+        return;
+    }
+
+    // Otros estados: placeholder
+    alert('Acción no implementada: ' + nuevoEstado);
+}
+</script>

@@ -1,0 +1,26 @@
+<div class="detalle-solicitud">
+    <h5 style="margin:0 0 8px 0;">Solicitud #{{ solicitud.id }} - {{ solicitud.get_estado_display }}</h5>
+    {% if solicitud.descripcion %}
+        <p style="margin:0 0 8px 0; color:#334155;">{{ solicitud.descripcion }}</p>
+    {% endif %}
+    <table class="table" style="margin-top:8px;">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for ps in solicitud.productos_solicitados.all %}
+            <tr>
+                <td>{{ ps.producto.nombre }}</td>
+                <td>{{ ps.cantidad }}</td>
+                <td>{{ ps.get_unidad_display }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3">No hay productos en esta solicitud.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

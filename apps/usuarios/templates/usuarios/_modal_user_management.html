@@ -1,0 +1,360 @@
+{% load static %}
+<link href="{% static 'css/user_management_modal.css' %}" rel="stylesheet">
+
+{% include 'usuarios/_modal_edit_user.html' %}
+{% include 'usuarios/_modal_edit_role.html' %}
+
+<!-- Modal: Centro de Gestión de Usuarios (diseño enriquecido) -->
+<div id="modalUserManagement" class="um-modal" aria-hidden="true">
+    <div class="um-overlay" onclick="closeModalUserManagement('modalUserManagement')"></div>
+    <div class="um-dialog" role="dialog" aria-modal="true" aria-labelledby="umTitle">
+        <button class="um-exit-top" aria-label="Cerrar" onclick="closeModalUserManagement('modalUserManagement')">×</button>
+        <header class="um-header">
+            <div class="um-header-content">
+                <div class="um-icon" aria-hidden="true">👥</div>
+                <div>
+                    <h2 id="umTitle" class="um-title">Centro de Gestión de Usuarios</h2>
+                    <p class="um-subtitle">Acciones rápidas para roles y usuarios</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="um-body">
+            <div class="um-actions" style="justify-content:space-between; align-items:center;">
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="openModalCreateUsuario('modalCrearUsuario')">Crear Usuario</button>
+                    <button type="button" class="btn btn-primary" onclick="openModalCreateRol('modalCrearRol')">Crear Rol</button>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input id="um-search" type="text" placeholder="Buscar usuarios..." style="padding:8px 10px; border-radius:8px; border:1px solid var(--border-color);" />
+                </div>
+            </div>
+
+            <div class="um-sections">
+                <section class="um-section um-section--users">
+                    <h3 class="section-title">Lista de Usuarios</h3>
+                    <div class="table-container" style="margin-top:8px;">
+                        <table id="um-users-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Nombre</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Último acceso</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="um-users-tbody">
+                                <tr><td colspan="6" class="empty">Cargando usuarios…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="um-section">
+                    <h3 class="section-title">Roles</h3>
+                    <div class="table-container" style="margin-top:8px;">
+                        <table id="um-roles-table">
+                            <thead>
+                                <tr><th>Rol</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="um-roles-tbody">
+                                <tr><td colspan="2" class="empty">Cargando roles…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Helpers para abrir/cerrar el modal global
+    function openModalUserManagement(modalId){
+        var id = modalId || 'modalUserManagement';
+        var el = document.getElementById(id);
+        if(el) el.classList.add('active');
+        // Al abrir, cargar roles y usuarios por AJAX
+        loadRolesIntoUserManagement();
+        loadUsersIntoUserManagement();
+    }
+    function closeModalUserManagement(modalId){
+        var id = modalId || 'modalUserManagement';
+        var el = document.getElementById(id);
+        if(el) el.classList.remove('active');
+    }
+    // Cerrar al pulsar ESC
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape'){
+            var el = document.getElementById('modalUserManagement');
+            if(el && el.classList.contains('active')) closeModalUserManagement('modalUserManagement');
+        }
+    });
+
+    // Búsqueda remota con debounce: llama a la vista search_users cuando haya 3+ caracteres
+    (function(){
+        let timer = null;
+        const MIN_LEN = 3;
+        const input = document.getElementById('um-search');
+        if(!input) return;
+
+        input.addEventListener('input', function(e){
+            const q = (e.target.value || '').trim();
+            if(timer) clearTimeout(timer);
+            timer = setTimeout(function(){
+                if(q.length >= MIN_LEN){
+                    // realizar búsqueda AJAX
+                    const el = document.querySelector('[data-current-crucero-id]');
+                    const cruceroId = el ? el.getAttribute('data-current-crucero-id') : null;
+                    let url = '{% url "search_users" %}';
+                    const params = new URLSearchParams();
+                    params.set('q', q);
+                    if(cruceroId) params.set('crucero_id', cruceroId);
+                    url += '?' + params.toString();
+                    safeFetchJson(url)
+                        .then(data => {
+                            if(data.ok && data.html){
+                                const container = document.querySelector('.um-sections .um-section--users .table-container');
+                                if(container){
+                                    container.innerHTML = data.html;
+                                    // attach pagination handlers
+                                    container.querySelectorAll('[data-page]').forEach(function(el){
+                                        el.addEventListener('click', function(ev){
+                                            ev.preventDefault();
+                                            const page = el.getAttribute('data-page');
+                                            const searchUrl = '{% url "search_users" %}' + '?q=' + encodeURIComponent(q) + (cruceroId ? '&crucero_id=' + encodeURIComponent(cruceroId) : '') + '&page=' + encodeURIComponent(page);
+                                            safeFetchJson(searchUrl).then(d2 => {
+                                                if(d2.ok && d2.html){
+                                                    container.innerHTML = d2.html;
+                                                }
+                                            }).catch(()=>{});
+                                        });
+                                    });
+                                }
+                            }
+                        })
+                        .catch(err => { console.error(err); });
+                } else {
+                    // si query es menor a 3, recargar lista normal
+                    loadUsersIntoUserManagement();
+                }
+            }, 350);
+        });
+    })();
+</script>
+
+<script>
+    // Utilidades fetch
+    function safeFetchJson(url){
+        return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+            .then(r => {
+                if(!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+    }
+
+    function loadRolesIntoUserManagement(){
+        // populate roles table in the aside and also role select in create-user modal if present
+        const rolesTbody = document.getElementById('um-roles-tbody');
+        const rolesSelect = document.querySelector('#modalCrearUsuario #id_rol');
+        if(rolesTbody) rolesTbody.innerHTML = '<tr><td colspan="2" class="empty">Cargando roles…</td></tr>';
+        if(rolesSelect) rolesSelect.innerHTML = '<option value="">Cargando roles…</option>';
+        safeFetchJson('{% url "roles_list" %}')
+            .then(data => {
+                if(data.ok && data.roles){
+                    if(rolesTbody){
+                        rolesTbody.innerHTML = '';
+                        data.roles.forEach(function(r){
+                            const tr = document.createElement('tr');
+                            const tdName = document.createElement('td'); tdName.textContent = r.nombre || '-';
+                            const tdActions = document.createElement('td');
+                            tdActions.innerHTML = '<button class="btn btn-secondary btn-sm" onclick="openEditRole('+ (r.id||0) +')">Editar</button>';
+                            tr.appendChild(tdName); tr.appendChild(tdActions);
+                            rolesTbody.appendChild(tr);
+                        });
+                    }
+                    if(rolesSelect){
+                        rolesSelect.innerHTML = '<option value="">Selecciona un rol...</option>';
+                        data.roles.forEach(function(r){
+                            var opt = document.createElement('option');
+                            opt.value = r.id;
+                            opt.textContent = r.nombre;
+                            rolesSelect.appendChild(opt);
+                        });
+                    }
+                } else {
+                    if(rolesTbody) rolesTbody.innerHTML = '<tr><td colspan="2" class="empty">No hay roles disponibles.</td></tr>';
+                    if(rolesSelect) rolesSelect.innerHTML = '<option value="">No hay roles</option>';
+                }
+            })
+            .catch(err => { if(rolesTbody) rolesTbody.innerHTML = '<tr><td colspan="2" class="empty">Error cargando roles</td></tr>'; console.error(err); });
+    }
+
+    function loadUsersIntoUserManagement(page){
+        const tbody = document.getElementById('um-users-tbody');
+        const totalEl = document.getElementById('um-total');
+        const activosEl = document.getElementById('um-activos');
+        const inactivosEl = document.getElementById('um-inactivos');
+        const bloqueadosEl = document.getElementById('um-bloqueados');
+        if(!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">Cargando usuarios…</td></tr>';
+
+        let cruceroId = null;
+        const el = document.querySelector('[data-current-crucero-id]');
+        if(el) cruceroId = el.getAttribute('data-current-crucero-id');
+    let url = '{% url "users_by_crucero" %}';
+    const params = new URLSearchParams();
+    if(cruceroId) params.set('crucero_id', cruceroId);
+    if(page) params.set('page', page);
+    const paramstr = params.toString();
+    if(paramstr) url += '?' + paramstr;
+
+        safeFetchJson(url)
+            .then(data => {
+                        if(data.ok && data.html){
+                            // Insert server-rendered HTML into the table container
+                            const container = document.querySelector('.um-sections .um-section--users .table-container');
+                            if(container){
+                                container.innerHTML = data.html;
+                                // Attach click handlers for pagination links (data-page)
+                                container.querySelectorAll('[data-page]').forEach(function(el){
+                                    el.addEventListener('click', function(ev){
+                                        ev.preventDefault();
+                                        const page = el.getAttribute('data-page');
+                                        // recall loader with ?page=page
+                                        loadUsersIntoUserManagement(page);
+                                    });
+                                });
+                            }
+                        } else {
+                            tbody.innerHTML = '<tr><td colspan="6" class="empty">No hay usuarios para este crucero.</td></tr>';
+                        }
+            })
+            .catch(err => { tbody.innerHTML = '<tr><td colspan="6" class="empty">Error cargando usuarios</td></tr>'; console.error(err); });
+    }
+
+    // Handler to open edit modal and prefill with user data
+    function openEditUser(id){
+        if(!id) return alert('Usuario inválido');
+        // Try to find the user in the currently loaded table (to avoid another request)
+        const rows = document.querySelectorAll('#um-users-tbody tr');
+        for(const r of rows){
+            const btn = r.querySelector('button[onclick*="openEditUser("]');
+            if(!btn) continue;
+            // attempt to extract id from onclick string
+            const onclick = btn.getAttribute('onclick') || '';
+            const m = onclick.match(/openEditUser\((\d+)\)/);
+            if(m && parseInt(m[1],10) === parseInt(id,10)){
+                // collect cells
+                const tds = r.querySelectorAll('td');
+                const user = { id: id, username: tds[0] ? tds[0].textContent.trim() : '', nombre: tds[1] ? tds[1].textContent.trim() : '', rol_nombre: tds[2] ? tds[2].textContent.trim() : '' };
+                openEditUser_prefill(user);
+                return;
+            }
+        }
+        // fallback: fetch users list and find user
+        const el = document.querySelector('[data-current-crucero-id]');
+        const cruceroId = el ? el.getAttribute('data-current-crucero-id') : null;
+        let url = '{% url "users_by_crucero" %}';
+        if(cruceroId) url += '?crucero_id=' + encodeURIComponent(cruceroId);
+        safeFetchJson(url).then(data => {
+            if(data.ok && data.usuarios){
+                const u = data.usuarios.find(x => String(x.id) === String(id));
+                if(u){ openEditUser_prefill(u); }
+                else alert('Usuario no encontrado');
+            } else alert('No se pudo obtener datos del usuario');
+        }).catch(err => { console.error(err); alert('Error obteniendo usuario'); });
+    }
+
+    // Open edit role modal by prefilling data (fetch roles and find by id)
+    function openEditRole(roleId){
+        if(!roleId) return alert('Rol inválido');
+        // try to find in roles table first
+        const rows = document.querySelectorAll('#um-roles-tbody tr');
+        for(const r of rows){
+            const btn = r.querySelector('button[onclick*="openEditRole("]');
+            if(!btn) continue;
+            const onclick = btn.getAttribute('onclick') || '';
+            const m = onclick.match(/openEditRole\((\d+)\)/);
+            if(m && String(m[1]) === String(roleId)){
+                const nombre = r.querySelector('td') ? r.querySelector('td').textContent.trim() : '';
+                // no descripcion available here; open modal with name and empty description
+                openEditRole_prefill({ id: roleId, nombre: nombre, descripcion: '', activo: true });
+                return;
+            }
+        }
+        // fallback: fetch roles list and find role
+        safeFetchJson('{% url "roles_list" %}').then(data => {
+            if(data.ok && data.roles){
+                const found = data.roles.find(r => String(r.id) === String(roleId));
+                if(found){ openEditRole_prefill({ id: found.id, nombre: found.nombre, descripcion: found.descripcion || '', activo: true }); }
+                else alert('Rol no encontrado');
+            } else alert('No se pudieron obtener los roles');
+        }).catch(err => { console.error(err); alert('Error obteniendo roles'); });
+    }
+</script>
+
+<script>
+    // helper to read CSRF token cookie
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Desactivar usuario vía AJAX y recargar la lista
+    function deactivateUser(userId){
+        if(!userId) return;
+        if(!confirm('¿Desactivar este usuario?')) return;
+        const url = '{% url "deactivate_user" usuario_id=0 %}'.replace('/0/', '/' + encodeURIComponent(userId) + '/');
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken') || ''
+            }
+        })
+        .then(r => {
+            if(!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json().catch(()=>({ok:true}));
+        })
+        .then(data => {
+            if(data && data.ok){
+                // recargar lista de usuarios
+                loadUsersIntoUserManagement();
+            } else {
+                alert('Error al desactivar: ' + (data && data.error ? data.error : 'Respuesta inesperada'));
+            }
+        })
+        .catch(err => { console.error(err); alert('Error al desactivar usuario'); });
+    }
+
+        // Reactivar usuario vía AJAX
+        function activateUser(userId){
+            if(!userId) return;
+            if(!confirm('¿Reactivar este usuario?')) return;
+            const url = '{% url "activate_user" usuario_id=0 %}'.replace('/0/', '/' + encodeURIComponent(userId) + '/');
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken') || ''
+                }
+            })
+            .then(r => {
+                if(!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json().catch(()=>({ok:true}));
+            })
+            .then(data => {
+                if(data && data.ok){
+                    loadUsersIntoUserManagement();
+                } else {
+                    alert('Error al activar: ' + (data && data.error ? data.error : 'Respuesta inesperada'));
+                }
+            })
+            .catch(err => { console.error(err); alert('Error al activar usuario'); });
+        }
+</script>

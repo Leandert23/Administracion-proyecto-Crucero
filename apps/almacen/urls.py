@@ -4,6 +4,9 @@ from .Views import general, inventario, lotes, mermas, productos
 urlpatterns = [
     path("<int:crucero_id>", general.mostrar_vista_almacen, name="vista_almacen"),
     
+    path("obtener_productos_para_solicitud/", inventario.obtener_productos_para_solicitud, name="obtener_productos_para_solicitud"),
+    path("solicitar_productos/", lotes.solicitar_productos, name="solicitar_productos"),
+    
     path("crear-producto/", productos.crear_producto, name="crear_producto"),
     path("delete-producto/", productos.eliminar_producto, name="eliminar_producto"),
     path("update-producto/", productos.actualizar_producto, name="actualizar_producto"),
@@ -17,8 +20,17 @@ urlpatterns = [
     path("inventario/producto/", inventario.obtener_detalle_producto, name="inventario_detalle_producto"),
     path("inventario/lotes/", inventario.obtener_lotes_producto, name="inventario_lotes_producto"),
     path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
+    path("instalaciones/<int:crucero_id>/", general.obtener_instalaciones_almacen, name="instalaciones_almacen"),
+    path("crear-seccion/", general.crear_seccion, name="crear_seccion"),
     
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma"),
     path("ordenes-compra/por-registrar/", general.obtener_ordenes_compra_por_registrar, name="ordenes_compra_por_registrar"),
     path("ordenes-compra/detalle/<int:orden_id>/", general.detalle_orden_compra, name="orden_compra_detalle"),
+    path("solicitudes/listado/", general.obtener_listado_solicitudes, name="solicitudes_listado"),
+    path("solicitudes/detalle/<int:solicitud_id>/", general.detalle_solicitud, name="solicitud_detalle"),
+    path("solicitudes/aceptar/", general.aceptar_solicitud, name="solicitud_aceptar"),
+    path("solicitudes/rechazar/", general.rechazar_solicitud, name="solicitud_rechazar"),
+    path("solicitudes/aprobadas/", general.obtener_solicitudes_aprobadas, name="solicitudes_aprobadas"),
+    path("solicitudes/entrega_preview/<int:solicitud_id>/", general.entrega_preview, name="solicitudes_entrega_preview"),
+    path("solicitudes/entregar/", general.entregar_solicitud, name="solicitudes_entregar"),
 ]

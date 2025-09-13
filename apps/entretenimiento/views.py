@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
 from apps.creador_embarcaciones.models import Embarcacion
@@ -15,8 +15,6 @@ from django.conf import settings
 import json
 import uuid
 import os
-from datetime import time
-from decimal import Decimal
 
 # Create your views here.
 
@@ -72,8 +70,9 @@ def entretenimiento_view(request, crucero_id):
         # Para embarcaciones, usamos la fecha del sistema
         fecha_dia_seleccionado = fecha_actual_sistema
     else:
-        actividades_pago = actividades_base.order_by('id_actividad')
-        actividades_rutinarias = rutinarias_base.order_by('id_actividad')
+        # Si no hay día seleccionado, mostrar todas las actividades
+        actividades_pago = Actividad.objects.all().order_by('id_actividad')
+        actividades_rutinarias = ActividadRutinaria.objects.all().order_by('id_actividad')
         dia_seleccionado = None
 
     # Combinar ambas listas para mostrar las actividades
@@ -216,23 +215,9 @@ def entretenimiento_view(request, crucero_id):
 def registro_view(request):
     """Vista para procesar el registro de actividades"""
 
-    # Asegurar que siempre devolvamos JSON
     try:
-        # Verificar que el request sea AJAX
-        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': False,
-                'message': 'Esta vista solo acepta peticiones AJAX.'
-            })
-
         # Parsear los datos JSON del request
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False,
-                'message': 'Los datos enviados no son un JSON válido.'
-            })
+        data = json.loads(request.body)
 
         # Validar datos requeridos
         required_fields = ['nombre', 'apellido', 'n_habitacion', 'n_personas', 'actividad_id', 'actividad_tipo']
@@ -249,19 +234,6 @@ def registro_view(request):
         n_personas = data['n_personas']
         actividad_id = data['actividad_id']
         actividad_tipo = data['actividad_tipo']
-
-        # Validar que nombre y apellido no estén vacíos después de strip
-        if not nombre:
-            return JsonResponse({
-                'success': False,
-                'message': 'El nombre no puede estar vacío.'
-            })
-
-        if not apellido:
-            return JsonResponse({
-                'success': False,
-                'message': 'El apellido no puede estar vacío.'
-            })
 
         # Convertir n_personas a entero si viene como string
         if isinstance(n_personas, str):
@@ -314,21 +286,13 @@ def registro_view(request):
                         'message': 'La actividad seleccionada no tiene un precio válido.'
                     })
 
-                # Obtener viaje desde la actividad
-                viaje = actividad.viaje
-                if not viaje:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'La actividad no está asociada a un viaje válido.'
-                    })
-
                 # Calcular monto total basado en el costo de la actividad
                 monto_total = float(actividad.coste) * n_personas
 
                 # Generar ID de factura único
                 id_factura = f"INV-{uuid.uuid4().hex[:8].upper()}"
 
-                # Crear registro de actividad de pago enlazado al viaje
+                # Crear registro de actividad de pago
                 registro = RegistroActividadPago.objects.create(
                     nombre=nombre,
                     apellido=apellido,
@@ -336,8 +300,7 @@ def registro_view(request):
                     n_personas=n_personas,
                     monto_total=monto_total,
                     estado='pendiente',
-                    id_factura=id_factura,
-                    viaje=viaje
+                    id_factura=id_factura
                 )
 
                 mensaje = f"Registro creado exitosamente. Su ID de factura es: {id_factura}"
@@ -348,7 +311,7 @@ def registro_view(request):
                     'message': 'La actividad seleccionada no existe.'
                 })
             except Exception as e:
-                print(f"Error al crear registro de pago: {str(e)}")
+                print(f"Error al crear registro de pago: {e}")
                 return JsonResponse({
                     'success': False,
                     'message': 'Error al procesar el registro de pago.'
@@ -358,20 +321,12 @@ def registro_view(request):
             try:
                 actividad = ActividadRutinaria.objects.get(id_actividad=actividad_id)
 
-                viaje = actividad.viaje
-                if not viaje:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'La actividad no está asociada a un viaje válido.'
-                    })
-
-                # Crear registro de actividad rutinaria enlazado al viaje
+                # Crear registro de actividad rutinaria
                 registro = RegistroActividadRut.objects.create(
                     nombre=nombre,
                     apellido=apellido,
                     n_habitacion=n_habitacion,
-                    n_personas=n_personas,
-                    viaje=viaje
+                    n_personas=n_personas
                 )
 
                 mensaje = "Registro de actividad rutinaria creado exitosamente."
@@ -382,7 +337,7 @@ def registro_view(request):
                     'message': 'La actividad seleccionada no existe.'
                 })
             except Exception as e:
-                print(f"Error al crear registro rutinario: {str(e)}")
+                print(f"Error al crear registro rutinario: {e}")
                 return JsonResponse({
                     'success': False,
                     'message': 'Error al procesar el registro de actividad rutinaria.'
@@ -390,7 +345,7 @@ def registro_view(request):
         else:
             return JsonResponse({
                 'success': False,
-                'message': 'Tipo de actividad no válido. Debe ser "pago" o "rutinaria".'
+                'message': 'Tipo de actividad no válido.'
             })
 
         return JsonResponse({
@@ -729,10 +684,7 @@ def crear_actividad_rutinaria_post(request, embarcacion, viaje):
         })
 
     except Exception as e:
-        print(f"Error al crear actividad rutinaria: {str(e)}")
-        import traceback
-        traceback.print_exc()
-
+        print(f"Error en registro_view: {e}")
         return JsonResponse({
             'success': False,
             'message': 'Ocurrió un error al crear la actividad rutinaria.'

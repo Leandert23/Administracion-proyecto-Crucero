@@ -146,14 +146,6 @@ class ActividadRutinaria(models.Model):
 class RegistroActividadPago(models.Model):
     # ID único del registro (se crea automáticamente)
     id = models.AutoField(primary_key=True)
-    viaje = models.ForeignKey(
-        Viaje,
-        on_delete=models.CASCADE,
-        related_name='registros_pago_actividades',
-        null=True,
-        blank=True,
-        help_text="Viaje asociado al registro de actividad de pago"
-    )
 
     # Nombre del cliente
     nombre = models.CharField(
@@ -225,14 +217,6 @@ class RegistroActividadPago(models.Model):
 class RegistroActividadRut(models.Model):
     # ID único del registro (se crea automáticamente)
     id = models.AutoField(primary_key=True)
-    viaje = models.ForeignKey(
-        Viaje,
-        on_delete=models.CASCADE,
-        related_name='registros_rutinarios',
-        null=True,
-        blank=True,
-        help_text="Viaje asociado al registro de actividad rutinaria"
-    )
 
     # Nombre del cliente
     nombre = models.CharField(
