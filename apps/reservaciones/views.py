@@ -433,6 +433,10 @@ def api_crear_reserva(request, crucero):
                 'message': 'No hay viaje activo o en planificación para este crucero'
             })
 
+        # Calcular el costo total basado en el precio del tipo de habitación
+        costo_total = float(tipo_habitacion.precio_base)
+        print(f"DEBUG: Calculando costo total: ${costo_total} (precio base del tipo de habitación)")
+        
         # Crear la reserva con el código de ubicación
         print(f"DEBUG: Creando reserva con habitación: {habitacion.numero}, código: {habitacion.codigo_ubicacion}")
         reserva = Reserva.objects.create(
@@ -443,7 +447,8 @@ def api_crear_reserva(request, crucero):
             codigo_ubicacion_habitacion=habitacion.codigo_ubicacion,  # Guardar el código de ubicación
             fecha_inicio=viaje.fecha_inicio,
             fecha_fin=viaje.fecha_fin,
-            estado="confirmada"
+            estado="confirmada",
+            costo_total=costo_total  # Agregar el costo total calculado
         )
         print(f"DEBUG: Reserva creada con ID: {reserva.id}")
 
@@ -721,11 +726,10 @@ def api_ver_reservas(request, crucero):
         crucero_obj = get_object_or_404(Crucero, nombre=crucero)
 
         # Obtener todas las reservas del crucero
-        reservas = Reserva.objects.filter(
-            codigo_ubicacion_habitacion__isnull=False
-        ).select_related(
+        reservas = Reserva.objects.all().select_related(
             'actividad_pago',
-            'actividad_rutinaria'
+            'actividad_rutinaria',
+            'evento_personalizado'
         )
 
         reservas_data = []
@@ -764,8 +768,18 @@ def api_ver_reservas(request, crucero):
                     'hora_fin': str(reserva.actividad_rutinaria.hora_fin),
                     'ubicacion': reserva.actividad_rutinaria.ubicacion
                 }
-            # Si no hay actividades, mostrar información de la habitación
-            else:
+            # Verificar si hay evento personalizado
+            elif reserva.evento_personalizado:
+                reserva_info['tipo_reserva'] = 'evento_personalizado'
+                reserva_info['evento'] = {
+                    'titulo': reserva.evento_personalizado.nombre,
+                    'descripcion': reserva.evento_personalizado.descripcion,
+                    'dia': reserva.evento_personalizado.dia,
+                    'ubicacion': reserva.evento_personalizado.ubicacion,
+                    'crucero': reserva.evento_personalizado.crucero
+                }
+            # Si no hay actividades ni eventos, mostrar información de la habitación
+            elif reserva.codigo_ubicacion_habitacion:
                 reserva_info['tipo_reserva'] = 'habitacion'
 
                 # Buscar información de la habitación usando el código de ubicación
@@ -780,7 +794,8 @@ def api_ver_reservas(request, crucero):
                         'tipo_habitacion': habitacion.tipo_habitacion.nombre,
                         'capacidad': habitacion.tipo_habitacion.capacidad,
                         'descripcion': habitacion.tipo_habitacion.descripcion or 'Sin descripción',
-                        'vista_mar': habitacion.vista_mar
+                        'vista_mar': habitacion.vista_mar,
+                        'precio_base': float(habitacion.tipo_habitacion.precio_base)
                     }
                 except Habitacion.DoesNotExist:
                     reserva_info['habitacion'] = {
@@ -790,8 +805,12 @@ def api_ver_reservas(request, crucero):
                         'tipo_habitacion': 'No disponible',
                         'capacidad': 0,
                         'descripcion': 'Información no disponible',
-                        'vista_mar': False
+                        'vista_mar': False,
+                        'precio_base': 0
                     }
+            else:
+                # Reserva sin tipo válido - saltar
+                continue
 
             reservas_data.append(reserva_info)
 
@@ -808,4 +827,89 @@ def api_ver_reservas(request, crucero):
         return JsonResponse({
             'success': False,
             'message': 'Error al obtener las reservas'
+        })
+
+# API ENDPOINT PARA CANCELAR RESERVA
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_cancelar_reserva(request, crucero):
+    """API para cancelar una reserva específica"""
+    try:
+        print(f"DEBUG: Iniciando api_cancelar_reserva para crucero: {crucero}")
+        data = json.loads(request.body)
+        print(f"DEBUG: Datos recibidos: {data}")
+        
+        crucero_obj = get_object_or_404(Crucero, nombre=crucero)
+        reserva_id = data.get('reserva_id')
+        
+        if not reserva_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de reserva requerido'
+            })
+        
+        # Buscar la reserva
+        reserva = get_object_or_404(Reserva, id=reserva_id)
+        print(f"DEBUG: Reserva encontrada - ID: {reserva.id}, Código habitación: {reserva.codigo_ubicacion_habitacion}")
+        
+        # Verificar que la reserva pertenece al crucero correcto
+        if reserva.codigo_ubicacion_habitacion:
+            # Para reservas de habitación, verificar que la habitación pertenece al crucero
+            print(f"DEBUG: Buscando habitación con código: {reserva.codigo_ubicacion_habitacion} en crucero: {crucero_obj.nombre}")
+            habitacion = Habitacion.objects.filter(
+                codigo_ubicacion=reserva.codigo_ubicacion_habitacion,
+                crucero=crucero_obj
+            ).first()
+            
+            if not habitacion:
+                # Debug adicional: buscar todas las habitaciones con ese código
+                habitaciones_con_codigo = Habitacion.objects.filter(
+                    codigo_ubicacion=reserva.codigo_ubicacion_habitacion
+                )
+                print(f"DEBUG: Habitaciones encontradas con código {reserva.codigo_ubicacion_habitacion}: {[h.crucero.nombre for h in habitaciones_con_codigo]}")
+                
+                return JsonResponse({
+                    'success': False,
+                    'message': f'La reserva no pertenece a este crucero. Código: {reserva.codigo_ubicacion_habitacion}, Crucero solicitado: {crucero_obj.nombre}'
+                })
+            else:
+                print(f"DEBUG: Habitación encontrada - Número: {habitacion.numero}, Crucero: {habitacion.crucero.nombre}")
+        elif reserva.evento_personalizado:
+            # Para eventos personalizados, verificar que el evento pertenece al crucero
+            if reserva.evento_personalizado.crucero != crucero_obj.nombre:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'El evento personalizado no pertenece a este crucero. Crucero del evento: {reserva.evento_personalizado.crucero}, Crucero solicitado: {crucero_obj.nombre}'
+                })
+            print(f"DEBUG: Evento personalizado encontrado - Título: {reserva.evento_personalizado.nombre}, Crucero: {reserva.evento_personalizado.crucero}")
+        
+        # Liberar la habitación si es una reserva de habitación
+        if reserva.codigo_ubicacion_habitacion:
+            habitacion = Habitacion.objects.filter(
+                codigo_ubicacion=reserva.codigo_ubicacion_habitacion,
+                crucero=crucero_obj
+            ).first()
+            
+            if habitacion:
+                habitacion.reservada = False
+                habitacion.save()
+                print(f"DEBUG: Habitación {habitacion.numero} (código: {habitacion.codigo_ubicacion}) liberada")
+        
+        # Eliminar la reserva
+        reserva.delete()
+        print(f"DEBUG: Reserva {reserva_id} eliminada exitosamente")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Reserva cancelada exitosamente'
+        })
+        
+    except Exception as e:
+        print(f"DEBUG: Error en api_cancelar_reserva: {str(e)}")
+        import traceback
+        print(f"DEBUG: Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al cancelar la reserva: {str(e)}'
         })

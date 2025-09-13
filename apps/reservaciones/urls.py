@@ -35,6 +35,9 @@ urlpatterns = [
 
     # API para ver reservas
     path("<str:crucero>/api/ver-reservas/", views.api_ver_reservas, name="api_ver_reservas"),
+    
+    # API para cancelar reserva
+    path("<str:crucero>/api/cancelar-reserva/", views.api_cancelar_reserva, name="api_cancelar_reserva"),
 ]
 
 

@@ -448,6 +448,7 @@
             display: flex;
             gap: 12px;
             justify-content: flex-start;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -465,6 +466,8 @@
             transition: all 0.3s ease;
             font-family: inherit;
             min-width: 160px;
+            flex: 1;
+            max-width: 250px;
         }
 
         .action-btn:hover {
@@ -733,6 +736,51 @@
                 opacity: 0;
             }
         }
+
+        /* Estilos para el botón de cancelar reserva */
+        .btn-cancelar-reserva {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .btn-cancelar-reserva:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-cancelar-reserva:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-cancelar-reserva:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Responsive para el botón de cancelar */
+        @media (max-width: 768px) {
+            .btn-cancelar-reserva {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: 80px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -858,6 +906,19 @@
                         <div class="action-buttons-row">
                             <button class="action-btn" data-action="nueva-reserva">
                                 <span class="action-text">Reservar Habitación</span>
+                            </button>
+                        </div>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="reservar-evento-personalizado">
+                                <span class="action-text">Eventos Personalizados</span>
+                            </button>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="reservar-evento-personalizado">
+                                <span class="action-text">Reservar mesa de restaurante</span>
+                            </button>
+                        <div class="action-buttons-row">
+                            <button class="action-btn" data-action="reservar-evento-personalizado">
+                                <span class="action-text">Reservar bares y snacks</span>
                             </button>
                         </div>
                     </div>
@@ -1056,30 +1117,92 @@
                         <p style="margin-top: 20px; color: #64748b;">Cargando reservas...</p>
                     </div>
 
-                    <!-- Mensajes de error -->
-                    <div id="reservas-errors" class="form-errors" style="display: none;"></div>
+                <!-- Mensajes de error -->
+                <div id="reservas-errors" class="form-errors" style="display: none;"></div>
 
-                    <!-- Contenedor de reservas -->
-                    <div id="reservas-list" class="reservas-list" style="display: none;">
-                        <div id="reservas-header" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
-                            <h3 style="margin: 0; color: #1e293b;">Reservas encontradas: <span id="total-reservas">0</span></h3>
-                        </div>
-
-                        <div id="reservas-content" class="reservas-content">
-                            <!-- Las reservas se cargarán aquí -->
-                        </div>
+                <!-- Contenedor de reservas -->
+                <div id="reservas-list" class="reservas-list" style="display: none;">
+                    <div id="reservas-header" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                        <h3 style="margin: 0; color: #1e293b;">Reservas encontradas: <span id="total-reservas">0</span></h3>
                     </div>
 
-                    <!-- Mensaje cuando no hay reservas -->
-                    <div id="no-reservas" class="no-reservas" style="display: none; text-align: center; padding: 60px 20px;">
-                        <div style="font-size: 48px; color: #cbd5e1; margin-bottom: 20px;">📋</div>
-                        <h3 style="color: #64748b; margin-bottom: 10px;">No hay reservas</h3>
-                        <p style="color: #94a3b8;">Aún no se han realizado reservas en este crucero.</p>
+                    <div id="reservas-content" class="reservas-content">
+                        <!-- Las reservas se cargarán aquí -->
                     </div>
+                </div>
+
+                <!-- Mensaje cuando no hay reservas -->
+                <div id="no-reservas" class="no-reservas" style="display: none; text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 48px; color: #cbd5e1; margin-bottom: 20px;">📋</div>
+                    <h3 style="color: #64748b; margin-bottom: 10px;">No hay reservas</h3>
+                    <p style="color: #94a3b8;">Aún no se han realizado reservas en este crucero.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="closeVerReservasModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- NUEVO MODAL: Reservar Evento Personalizado -->
+    <div id="reservar-evento-personalizado-modal" class="modal-overlay">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Reservar Evento Personalizado</h2>
+                <button class="modal-close" onclick="closeReservarEventoPersonalizadoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="evento-personalizado-form" style="padding: 20px;">
+                    <p style="color: #64748b; margin-bottom: 20px; font-style: italic;">
+                        Complete los campos requeridos para crear su evento personalizado.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label for="evento-titulo" class="form-label">Título del Evento *</label>
+                        <input type="text" id="evento-titulo" class="form-input" placeholder="Ej: Celebración de Aniversario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="evento-descripcion" class="form-label">Descripción</label>
+                        <textarea id="evento-descripcion" class="form-input" placeholder="Describa los detalles de su evento personalizado..." rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="evento-fecha" class="form-label">Fecha del Evento *</label>
+                        <input type="date" id="evento-fecha" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="evento-participantes" class="form-label">Número de Participantes *</label>
+                        <select id="evento-participantes" class="form-input" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="1">1 persona</option>
+                            <option value="2">2 personas</option>
+                            <option value="3">3 personas</option>
+                            <option value="4">4 personas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="evento-ubicacion" class="form-label">Ubicación Preferida</label>
+                        <select id="evento-ubicacion" class="form-input">
+                            <option value="">Seleccionar...</option>
+                            <option value="salon-principal">Salón Principal</option>
+                            <option value="terraza">Terraza</option>
+                            <option value="sala-conferencias">Sala de Conferencias</option>
+                            <option value="restaurante-privado">Restaurante Privado</option>
+                        </select>
+                    </div>
+
+                    <div id="evento-personalizado-errors" class="form-errors" style="display: none;"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn modal-btn-primary" onclick="closeVerReservasModal()">Cerrar</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeReservarEventoPersonalizadoModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="crearReservaEventoPersonalizado()">
+                    <span>Reservar Evento</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1265,8 +1388,22 @@
                             <div><strong>Tipo:</strong> ${reserva.habitacion.tipo_habitacion}</div>
                             <div><strong>Capacidad:</strong> ${reserva.habitacion.capacidad} personas</div>
                             <div><strong>Vista al mar:</strong> ${reserva.habitacion.vista_mar ? 'Sí' : 'No'}</div>
+                            <div><strong>Precio:</strong> $${reserva.costo_total}</div>
                         </div>
                         <p style="margin: 10px 0 0 0; color: #64748b; font-size: 13px;">${reserva.habitacion.descripcion}</p>
+                    </div>
+                `;
+            } else if (reserva.tipo_reserva === 'evento_personalizado') {
+                contenidoAdicional = `
+                    <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #1e293b; font-size: 16px;">🎉 Evento Personalizado</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                            <div><strong>Título:</strong> ${reserva.evento.titulo}</div>
+                            <div><strong>Día:</strong> ${reserva.evento.dia}</div>
+                            <div><strong>Ubicación:</strong> ${reserva.evento.ubicacion || 'No especificada'}</div>
+                            <div><strong>Crucero:</strong> ${reserva.evento.crucero}</div>
+                        </div>
+                        <p style="margin: 10px 0 0 0; color: #64748b; font-size: 13px;">${reserva.evento.descripcion || 'Sin descripción'}</p>
                     </div>
                 `;
             }
@@ -1314,10 +1451,82 @@
 
                         ${contenidoAdicional}
                     </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+                        <button onclick="cancelarReserva(${reserva.id})" 
+                                class="btn-cancelar-reserva">
+                            <span>🗑️</span>
+                            <span>Cancelar</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
             return card;
+        }
+
+        // Función para cancelar una reserva
+        function cancelarReserva(reservaId) {
+            console.log('Cancelando reserva:', reservaId);
+            
+            // Mostrar confirmación antes de cancelar
+            const confirmacion = confirm('¿Está seguro de que desea cancelar esta reserva? Esta acción no se puede deshacer.');
+            
+            if (!confirmacion) {
+                return;
+            }
+
+            const crucero = "{{ crucero.nombre|urlencode }}";
+            if (!crucero) {
+                showReservasErrors(['No se pudo identificar el crucero actual.']);
+                return;
+            }
+
+            // Mostrar loading en el botón
+            const botonCancelar = event.target.closest('button');
+            const textoOriginal = botonCancelar.innerHTML;
+            botonCancelar.innerHTML = '<span>⏳</span><span>Cancelando...</span>';
+            botonCancelar.disabled = true;
+            botonCancelar.classList.add('btn-cancelar-reserva');
+
+            // Enviar petición para cancelar la reserva
+            fetch(`/reservaciones/${crucero}/api/cancelar-reserva/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    reserva_id: reservaId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Resultado cancelación:', result);
+                if (result.success) {
+                    // Mostrar mensaje de éxito
+                    showSuccessMessage(result.message || 'Reserva cancelada exitosamente');
+                    
+                    // Recargar las reservas para actualizar la vista
+                    cargarReservas();
+                } else {
+                    // Mostrar error
+                    showReservasErrors([result.message || 'Error al cancelar la reserva']);
+                    
+                    // Restaurar botón
+                    botonCancelar.innerHTML = textoOriginal;
+                    botonCancelar.disabled = false;
+                    botonCancelar.classList.remove('btn-cancelar-reserva');
+                }
+            })
+            .catch(error => {
+                console.error('Error al cancelar reserva:', error);
+                showReservasErrors(['Error de conexión al cancelar la reserva']);
+                
+                // Restaurar botón
+                botonCancelar.innerHTML = textoOriginal;
+                botonCancelar.disabled = false;
+                botonCancelar.classList.remove('btn-cancelar-reserva');
+            });
         }
 
         // Función para mostrar errores en el modal de reservas
@@ -1377,25 +1586,6 @@
         }
 
 
-        // Cerrar modales con la tecla Escape
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const nuevaReservaModal = document.getElementById('nueva-reserva-modal');
-                if (nuevaReservaModal && nuevaReservaModal.style.display === 'flex') {
-                    closeNuevaReservaModal();
-                }
-
-                const reservarEntretenimientoModal = document.getElementById('reservar-entretenimiento-modal');
-                if (reservarEntretenimientoModal && reservarEntretenimientoModal.style.display === 'flex') {
-                    closeReservarEntretenimientoModal();
-                }
-
-                const verReservasModal = document.getElementById('ver-reservas-modal');
-                if (verReservasModal && verReservasModal.style.display === 'flex') {
-                    closeVerReservasModal();
-                }
-            }
-        });
 
         // Función para abrir el modal de nueva reserva
         function openNuevaReservaModal() {
@@ -2216,13 +2406,178 @@
             });
         }
 
+        // FUNCIONES GLOBALES para el modal de evento personalizado
+
+        // Función para abrir el modal de reservar evento personalizado
+        function openReservarEventoPersonalizadoModal() {
+            console.log('Abriendo modal de evento personalizado');
+            const modal = document.getElementById('reservar-evento-personalizado-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Agregar event listener para cerrar al hacer click fuera
+                modal.addEventListener('click', handleReservarEventoPersonalizadoOutsideClick);
+            }
+        }
+
+        // Función para cerrar el modal de Eventos Personalizados
+        function closeReservarEventoPersonalizadoModal() {
+            console.log('Cerrando modal de evento personalizado');
+            const modal = document.getElementById('reservar-evento-personalizado-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                // Remover event listener para evitar memory leaks
+                modal.removeEventListener('click', handleReservarEventoPersonalizadoOutsideClick);
+            }
+        }
+
+        // Función para manejar click fuera del modal de Eventos Personalizados
+        function handleReservarEventoPersonalizadoOutsideClick(event) {
+            const modal = document.getElementById('reservar-evento-personalizado-modal');
+            if (!modal) return;
+
+            const modalContent = modal.querySelector('.modal-content');
+    
+            // Si el click fue fuera del contenido del modal, cerrar
+            if (event.target === modal && !modalContent.contains(event.target)) {
+                closeReservarEventoPersonalizadoModal();
+            }
+        }
+
+        // Función para crear reserva de evento personalizado
+        function crearReservaEventoPersonalizado() {
+            console.log('Creando reserva de evento personalizado');
+            
+            // Obtener valores de los campos
+            const titulo = document.getElementById('evento-titulo').value.trim();
+            const descripcion = document.getElementById('evento-descripcion').value.trim();
+            const fecha = document.getElementById('evento-fecha').value;
+            const participantes = document.getElementById('evento-participantes').value;
+            const ubicacion = document.getElementById('evento-ubicacion').value;
+            
+            // Validar campos requeridos
+            const errores = [];
+            
+            if (!titulo) {
+                errores.push('El título del evento es requerido');
+            }
+            
+            if (!fecha) {
+                errores.push('La fecha del evento es requerida');
+            }
+            
+            if (!participantes) {
+                errores.push('El número de participantes es requerido');
+            }
+            
+            // Mostrar errores si los hay
+            if (errores.length > 0) {
+                showEventoPersonalizadoErrors(errores);
+                return;
+            }
+            
+            // Limpiar errores anteriores
+            document.getElementById('evento-personalizado-errors').style.display = 'none';
+            
+            // Mostrar mensaje de éxito (por ahora)
+            showSuccessMessage('Evento personalizado creado exitosamente. Funcionalidad en desarrollo.');
+            
+            // Cerrar modal
+            closeReservarEventoPersonalizadoModal();
+            
+            // Limpiar formulario
+            document.getElementById('evento-titulo').value = '';
+            document.getElementById('evento-descripcion').value = '';
+            document.getElementById('evento-fecha').value = '';
+            document.getElementById('evento-participantes').value = '';
+            document.getElementById('evento-ubicacion').value = '';
+        }
+        
+        // Función para mostrar errores en el formulario de evento personalizado
+        function showEventoPersonalizadoErrors(errors) {
+            const errorDiv = document.getElementById('evento-personalizado-errors');
+            
+            if (!errorDiv) {
+                console.error('Elemento evento-personalizado-errors no encontrado');
+                return;
+            }
+            
+            errorDiv.innerHTML = '';
+            
+            if (typeof errors === 'string') {
+                errors = [errors];
+            }
+            
+            errors.forEach(error => {
+                const errorSpan = document.createElement('div');
+                errorSpan.className = 'error-message';
+                errorSpan.textContent = error;
+                errorDiv.appendChild(errorSpan);
+            });
+            
+            errorDiv.style.display = 'block';
+        }
+
+        // Inicializar todo cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeActionButtons();
+        
+        // Función para inicializar los eventos de los botones de acción - MODIFICADA
+        function initializeActionButtons() {
+            const nuevaReservaBtn = document.querySelector('[data-action="nueva-reserva"]');
+            if (nuevaReservaBtn) {
+                nuevaReservaBtn.addEventListener('click', openNuevaReservaModal);
+            }
+
+            const reservarEntretenimientoBtn = document.querySelector('[data-action="reservar-entretenimiento"]');
+            if (reservarEntretenimientoBtn) {
+                reservarEntretenimientoBtn.addEventListener('click', openReservarEntretenimientoModal);
+            }
+
+            const verReservasBtn = document.querySelector('[data-action="mis-reservas"]');
+            if (verReservasBtn) {
+                verReservasBtn.addEventListener('click', openVerReservasModal);
+            }
+
+            // NUEVO: Evento para el botón de reservar evento personalizado
+            const reservarEventoPersonalizadoBtn = document.querySelector('[data-action="reservar-evento-personalizado"]');
+            if (reservarEventoPersonalizadoBtn) {
+                reservarEventoPersonalizadoBtn.addEventListener('click', openReservarEventoPersonalizadoModal);
+            }
+        }
+
+        // Cerrar modales con la tecla Escape 
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const nuevaReservaModal = document.getElementById('nueva-reserva-modal');
+                if (nuevaReservaModal && nuevaReservaModal.style.display === 'flex') {
+                    closeNuevaReservaModal();
+                }
+
+                const reservarEntretenimientoModal = document.getElementById('reservar-entretenimiento-modal');
+                if (reservarEntretenimientoModal && reservarEntretenimientoModal.style.display === 'flex') {
+                    closeReservarEntretenimientoModal();
+                }
+
+                const verReservasModal = document.getElementById('ver-reservas-modal');
+                if (verReservasModal && verReservasModal.style.display === 'flex') {
+                    closeVerReservasModal();
+                }
+
+                // NUEVO: Cerrar modal de evento personalizado
+                const reservarEventoPersonalizadoModal = document.getElementById('reservar-evento-personalizado-modal');
+                if (reservarEventoPersonalizadoModal && reservarEventoPersonalizadoModal.style.display === 'flex') {
+                    closeReservarEventoPersonalizadoModal();
+                }
+            }
+        });
+
         // Inicializar todo cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
             initializeActionButtons();
         });
+        
+        });
+
     </script>
 </body>
 </html>
-
-
-
