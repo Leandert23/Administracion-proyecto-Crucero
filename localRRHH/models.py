@@ -1,17 +1,20 @@
 from django.db import models
-
-from django.db import models
-from django.core.validators import RegexValidator, MaxLengthValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
+from datetime import time
+
 
 # Validadores para texto sin números, máximo 10 caracteres, inicial mayúscula
 def validate_name(value):
     if any(char.isdigit() for char in value):
         raise ValidationError('No se permiten números en este campo.')
+    if not value:
+        raise ValidationError('Este campo no puede estar vacío.')
     if len(value) > 10:
         raise ValidationError('Máximo 10 caracteres permitidos.')
     if value[0] != value[0].upper():
         raise ValidationError('La primera letra debe estar en mayúscula.')
+
 
 # Opciones de categoría
 CATEGORIA_CHOICES = [
@@ -29,7 +32,8 @@ PUESTO_CHOICES = {
         ('Cocinero', 'Cocinero'), ('Mesero', 'Mesero'), ('Chef', 'Chef'), ('Barista', 'Barista'),
         ('Repostero', 'Repostero'), ('Bartender', 'Bartender'), ('Chef Ejecutivo', 'Chef Ejecutivo'),
         ('Chef de Partie', 'Chef de Partie'), ('Auxiliares de cocina', 'Auxiliares de cocina'),
-        ('Maitre d’', 'Maitre d’'), ('Jefe de meseros', 'Jefe de meseros'), ('Mesero', 'Mesero')
+        ('Maitre d’', 'Maitre d’'), ('Jefe de meseros', 'Jefe de meseros'), ('Mesero', 'Mesero'),
+        ('Sous chef', 'Sous chef'), ('Sommelier', 'Sommelier'), ('Jefe de Alimentos', 'Jefe de Alimentos')
     ],
     'Administrativo': [
         ('Gerente', 'Gerente'), ('Cajero', 'Cajero')
@@ -57,6 +61,7 @@ STATUS_CHOICES = [
     (3, 'De baja'),
 ]
 
+
 class Personal(models.Model):
     id = models.AutoField(primary_key=True)  # Identificativo autoincremental
 
@@ -73,26 +78,58 @@ class Personal(models.Model):
 
     puesto = models.CharField(max_length=30)
 
+    horario_entrada = models.TimeField(default=time(0, 0), help_text='Hora de entrada al trabajo')
+    horario_salida = models.TimeField(default=time(0, 0), help_text='Hora de salida del trabajo')
+
+    DIAS_SEMANA = [
+        ('Lunes', 'Lunes'),
+        ('Martes', 'Martes'),
+        ('Miércoles', 'Miércoles'),
+        ('Jueves', 'Jueves'),
+        ('Viernes', 'Viernes'),
+        ('Sábado', 'Sábado'),
+        ('Domingo', 'Domingo'),
+    ]
+
+    dia_inicio = models.CharField(max_length=10, choices=DIAS_SEMANA, default='Lunes', help_text='Día de inicio de la semana laboral')
+    dia_fin = models.CharField(max_length=10, choices=DIAS_SEMANA, default='Lunes', help_text='Día de fin de la semana laboral')
+
     pStatus = models.IntegerField(choices=STATUS_CHOICES, default=1)
 
+    # Campos unificados de amonestación (antes en modelo Amonestacion)
+    amon_estado = models.BooleanField(default=False)
+    amon_detalle = models.CharField(max_length=50, blank=True, null=True)
+
+    # Nuevos campos para horario de trabajo
+    
+
     def clean(self):
-    # Edad debe ser mayor o igual a 21
-     if self.edad < 21:
-        raise ValidationError('La edad debe ser mayor o igual a 21 años.')
+        # Edad debe ser mayor o igual a 21
+        if self.edad < 21:
+            raise ValidationError('La edad debe ser mayor o igual a 21 años.')
 
-    # Años de experiencia no puede ser mayor a la mitad de la edad
-     if self.anios_experiencia > (self.edad / 2):
-        raise ValidationError('Los años de experiencia no pueden ser mayores a la mitad de la edad.')
+        # Años de experiencia no puede ser mayor a la mitad de la edad
+        if self.anios_experiencia > (self.edad / 2):
+            raise ValidationError('Los años de experiencia no pueden ser mayores a la mitad de la edad.')
 
-    # Validar que el puesto esté en la lista correspondiente por categoria
-     puestos_opciones = [p[0] for p in PUESTO_CHOICES.get(self.categoria, [])]
+        # Validar que el puesto esté en la lista correspondiente por categoria
+        puestos_opciones = [p[0] for p in PUESTO_CHOICES.get(self.categoria, [])]
 
-     if self.categoria == 'Personal Extra':
-        if self.puesto not in puestos_opciones and self.puesto != 'No Ocupado':
-            raise ValidationError('Puesto inválido para Personal Extra.')
-     else:
-        if self.puesto not in puestos_opciones:
-            raise ValidationError(f'Puesto inválido para la categoría {self.categoria}.')
+        if self.categoria == 'Personal Extra':
+            if self.puesto not in puestos_opciones and self.puesto != 'No Ocupado':
+                raise ValidationError('Puesto inválido para Personal Extra.')
+        else:
+            if self.puesto not in puestos_opciones:
+                raise ValidationError(f'Puesto inválido para la categoría {self.categoria}.')
+
+        # Validar horario: salida debe ser después de entrada
+        if self.horario_salida <= self.horario_entrada:
+            raise ValidationError('La hora de salida debe ser posterior a la hora de entrada.')
+
+        # Validar día fin no sea anterior a día inicio
+        dias = [d[0] for d in self.DIAS_SEMANA]
+        if dias.index(self.dia_fin) < dias.index(self.dia_inicio):
+            raise ValidationError('El día de fin debe ser igual o posterior al día de inicio.')
 
     def save(self, *args, **kwargs):
         # Forzar primer letra mayúscula en nombre y apellido
@@ -103,74 +140,3 @@ class Personal(models.Model):
 
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
-
-
-class Amonestacion(models.Model):
-    personal = models.OneToOneField(Personal, on_delete=models.CASCADE, related_name='amonestacion')
-    estado = models.BooleanField(default=False)  # True o False textual (BooleanField)
-    detalle = models.CharField(max_length=50, blank=True, null=True)
-
-    def clean(self):
-        if self.estado and (not self.detalle or len(self.detalle) > 50):
-            raise ValidationError('Detalle debe contener hasta 50 caracteres si estado es True.')
-
-    def __str__(self):
-        return f"Amonestacion de {self.personal} - {'Activa' if self.estado else 'Inactiva'}"
-
-
-# Modelos auxiliares para pools de generación (nombres, apellidos y salarios)
-class NombrePool(models.Model):
-    nombre = models.CharField(max_length=30, unique=True)
-
-    def __str__(self):
-        return self.nombre
-
-
-class ApellidoPool(models.Model):
-    apellido = models.CharField(max_length=30, unique=True)
-
-    def __str__(self):
-        return self.apellido
-
-
-class SalarioOption(models.Model):
-    salario = models.PositiveIntegerField(unique=True)
-
-    def __str__(self):
-        return str(self.salario)
-
-
-# Pools opcionales para generación de datos
-class NombrePool(models.Model):
-    nombre = models.CharField(max_length=30, validators=[validate_name])
-
-    class Meta:
-        verbose_name = 'Nombre Pool'
-        verbose_name_plural = 'Nombres Pool'
-
-    def __str__(self):
-        return self.nombre
-
-
-class ApellidoPool(models.Model):
-    apellido = models.CharField(max_length=30, validators=[validate_name])
-
-    class Meta:
-        verbose_name = 'Apellido Pool'
-        verbose_name_plural = 'Apellidos Pool'
-
-    def __str__(self):
-        return self.apellido
-
-
-class SalarioOption(models.Model):
-    salario = models.PositiveIntegerField()
-
-    class Meta:
-        verbose_name = 'Salario Option'
-        verbose_name_plural = 'Salarios Option'
-
-    def __str__(self):
-        return str(self.salario)
-
-

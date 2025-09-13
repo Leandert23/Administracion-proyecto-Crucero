@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from .models import Personal, Amonestacion
+from .models import Personal
 
 """
 Funciones y variables exportables para otros módulos:
@@ -17,7 +17,8 @@ def get_personal_counts():
 
 
 def get_total_amonestados():
-    return Amonestacion.objects.filter(estado=True).count()
+    # Ahora las amonestaciones están unificadas dentro de Personal
+    return Personal.objects.filter(amon_estado=True).count()
 
 
 def get_total_salarios():

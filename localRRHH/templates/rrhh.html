@@ -172,17 +172,44 @@
                             </div>
 
                             <div class="form-field">
+                                <label for="horario_entrada">Hora de Entrada</label>
+                                <select id="horario_entrada" name="horario_entrada" required>
+                                <!-- Opciones generadas por JS -->
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="horario_salida">Hora de Salida</label>
+                                <select id="horario_salida" name="horario_salida" required>
+                                <!-- Opciones generadas por JS -->
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dia_inicio">Día Inicio</label>
+                                <select id="dia_inicio" name="dia_inicio" required>
+                                <!-- Opciones generadas por JS -->
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dia_fin">Día Fin</label>
+                                <select id="dia_fin" name="dia_fin" required>
+                                <!-- Opciones generadas por JS -->
+                                </select>
+                            </div>
+
+                            <div class="form-field">
                                 <label for="pStatus">Estado</label>
                                 <select id="pStatus" name="pStatus" required>
                                     <option value="1">Activo</option>
                                     <option value="2">Inactivo</option>
                                     <option value="3">De baja</option>
-                                </select>
+                                </select>                           
                             </div>
-
                             <div class="form-field" style="grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 20px;">
                                 <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 16px;">Registrar Empleado</button>
-                            </div>
+                            </div>                           
                         </form>
                     </div>
                 </div>
@@ -197,8 +224,7 @@
                         </div>
                     </div>
                     <div class="form-section-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <div></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:12px;">
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <label for="filterCategoria" style="font-size:13px; color:#334155;">Filtrar por categoría:</label>
                                 <select id="filterCategoria" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;">
@@ -210,6 +236,11 @@
                                     <option value="Entretenimiento">Entretenimiento</option>
                                     <option value="Personal Extra">Personal Extra</option>
                                 </select>
+                            </div>
+
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <label for="filterNombre" style="font-size:13px; color:#334155;">Buscar por nombre:</label>
+                                <input id="filterNombre" type="search" placeholder="Escriba nombre..." style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;" />
                             </div>
                         </div>
                         {% if personal_list %}
@@ -225,6 +256,10 @@
                                         <th>Años Exp.</th>
                                         <th>Categoría</th>
                                         <th>Puesto</th>
+                                        <th>Hora Entrada</th>
+                                        <th>Hora Salida</th>
+                                        <th>Día Inicio</th>
+                                        <th>Día Fin</th>
                                         <th>Estado</th>
                                         <th>Amonestación</th>
                                         <th>Detalle</th>
@@ -242,6 +277,10 @@
                                         <td>{{ p.anios_experiencia }}</td>
                                         <td>{{ p.categoria }}</td>
                                         <td>{{ p.puesto }}</td>
+                                        <td>{{ p.horario_entrada }}</td>
+                                        <td>{{ p.horario_salida }}</td>
+                                        <td>{{ p.dia_inicio }}</td>
+                                        <td>{{ p.dia_fin }}</td>
                                         <td>
                                             {% if p.pStatus == 1 %}
                                                 Activo
@@ -252,10 +291,10 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <input type="checkbox" class="amonestacion-estado" {% if p.amonestacion and p.amonestacion.estado %} checked {% endif %} disabled />
+                                            <input type="checkbox" class="amonestacion-estado" {% if p.amon_estado %} checked {% endif %} disabled />
                                         </td>
                                         <td>
-                                            <input type="text" class="amonestacion-detalle" maxlength="50" value="{% if p.amonestacion %}{{ p.amonestacion.detalle }}{% endif %}" disabled style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
+                                            <input type="text" class="amonestacion-detalle" maxlength="50" value="{{ p.amon_detalle|default_if_none:'' }}" disabled style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
                                         </td>
                                         <td>
                                             <button class="btn-editar btn btn-info" style="padding: 4px 8px; font-size: 11px; margin: 2px;">Editar</button>
@@ -265,6 +304,23 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
+                        <!-- Controles de paginación -->
+                        <div id="paginacionControles" style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; margin-top:12px; max-width:100%;">
+                            <button id="prevPage" class="btn" style="padding:6px 10px;">Anterior</button>
+                            <div id="pageNumbersContainer" style="overflow:hidden; max-width:520px;">
+                                <div id="pageNumbers" style="display:flex; gap:6px; align-items:center; overflow:auto; max-width:520px; padding:4px;">
+                                    <!-- Botones de página (generados por JS) -->
+                                </div>
+                            </div>
+                            <button id="nextPage" class="btn" style="padding:6px 10px;">Siguiente</button>
+
+                            <!-- Salto directo a página: input + botón -->
+                            <div style="display:flex; gap:6px; align-items:center; margin-left:8px;">
+                                <label for="gotoPage" style="font-size:13px; color:#334155;">Ir a página:</label>
+                                <input id="gotoPage" type="number" min="1" placeholder="#" style="width:72px; padding:6px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;" />
+                                <button id="btnGotoPage" class="btn" style="padding:6px 10px;">Ir</button>
+                            </div>
                         </div>
                         {% else %}
                         <div class="empty-state">
@@ -319,26 +375,20 @@
 
 
     <!-- Modal para Generar Plantel -->
-    <div id="modalGenerar" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:9999;">
-        <div style="background:#fff; padding:20px; border-radius:10px; width:360px; max-width:90%; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
-            <h3 style="margin-top:0;">Generar Plantel</h3>
-            <p>Selecciona la cantidad de personal a generar. <small style="color:#666;">(Se excluirán puestos únicos/altos, y se priorizarán categorías)</small></p>
-            <div style="display:flex; gap:8px; margin-bottom:12px;">
-                <button class="btn-cantidad" data-cantidad="630" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">630</button>
-                <button class="btn-cantidad" data-cantidad="1300" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">1300</button>
-                <button class="btn-cantidad" data-cantidad="1950" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">1950</button>
-            </div>
-            <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
-                <label style="font-size:13px; color:#555; margin:0;">Estado:</label>
-                <div id="generarSpinner" style="display:none;">Generando... ⏳</div>
-            </div>
-            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
-                <button id="btnGenerarCancelar" style="padding:8px 12px; border-radius:6px; background:#e5e7eb; border:none;">Cancelar</button>
-                <button id="btnGenerarConfirmar" style="padding:8px 12px; border-radius:6px; background:#06b6d4; color:#fff; border:none;">Generar</button>
-            </div>
-            <div id="generarFeedback" style="margin-top:12px; display:none; font-size:13px;"></div>
+   <div id="modalGenerar" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:#fff; padding:20px; border-radius:10px; width:360px; max-width:90%; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0;">Generar Plantel</h3>
+        <p>Indique la cantidad de personal a generar.</p>
+        <input type="number" id="inputCantidadGenerar" min="1" placeholder="Cantidad de personal" style="width: 100%; padding: 8px 10px; font-size: 14px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #ccc;" />
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button id="btnGenerarCancelar" style="padding:8px 12px; border-radius:6px; background:#e5e7eb; border:none;">Cancelar</button>
+            <button id="btnGenerarConfirmar" style="padding:8px 12px; border-radius:6px; background:#06b6d4; color:#fff; border:none;">Generar</button>
         </div>
+        <div id="generarFeedback" style="margin-top:12px; display:none; font-size:13px;"></div>
+        <div id="generarSpinner" style="display:none;">Generando... ⏳</div>
     </div>
+</div>
+
 
     {% now "U" as ts %}
     <script src="{% static 'js/main.js' %}?v={{ ts }}"></script>
