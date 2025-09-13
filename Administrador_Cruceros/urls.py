@@ -21,6 +21,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from pathlib import Path
 from apps.administracion.views import LoginPersonalizado,logout_usuario, registro_usuario
 from apps.usuarios.views import custom_login
 
@@ -47,5 +48,6 @@ urlpatterns = [
     path('embarcaciones/', include('apps.creador_embarcaciones.urls')),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

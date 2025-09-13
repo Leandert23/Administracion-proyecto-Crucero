@@ -34,19 +34,6 @@
                 }
             }
         },
-        defecto_lote: {
-            id: 'modalReportarDefectoLote',
-            disparadores: [],
-            display: 'flex',
-            selectoresCierre: ['[data-close="true"]'],
-            alAbrir: function() {
-                // focus amount input when opened
-                setTimeout(function(){
-                    var input = document.getElementById('id_cantidad_llegada');
-                    if(input) try{ input.focus(); }catch(e){}
-                }, 60);
-            }
-        },
         salida: {
             id: 'modalCrearSalida',
             disparadores: [{ tipo: TIPO_DISPARADOR_TITULO, valor: 'salida de producto' }],

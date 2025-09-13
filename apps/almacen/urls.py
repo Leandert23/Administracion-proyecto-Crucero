@@ -2,7 +2,7 @@ from django.urls import path
 from .Views import general, inventario, lotes, mermas, productos
 
 urlpatterns = [
-    path("<int:crucero_id>", general.mostrar_vista_almacen, name="vista_almacen"),
+    path("<int:embarcacion_id>", general.mostrar_vista_almacen, name="vista_almacen"),
     
     path("obtener_productos_para_solicitud/", inventario.obtener_productos_para_solicitud, name="obtener_productos_para_solicitud"),
     path("solicitar_productos/", lotes.solicitar_productos, name="solicitar_productos"),
@@ -20,7 +20,7 @@ urlpatterns = [
     path("inventario/producto/", inventario.obtener_detalle_producto, name="inventario_detalle_producto"),
     path("inventario/lotes/", inventario.obtener_lotes_producto, name="inventario_lotes_producto"),
     path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
-    path("instalaciones/<int:crucero_id>/", general.obtener_instalaciones_almacen, name="instalaciones_almacen"),
+    path("instalaciones/<int:embarcacion_id>/", general.obtener_instalaciones_almacen, name="instalaciones_almacen"),
     path("crear-seccion/", general.crear_seccion, name="crear_seccion"),
     
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma"),

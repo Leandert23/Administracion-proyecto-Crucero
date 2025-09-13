@@ -15,7 +15,7 @@ def solicitar_productos(request):
     # Now support batch requests: POST 'productos' = JSON list of {producto: id, cantidad: n}
     descripcion = (request.POST.get('descripcion') or '').strip()
     productos_json = request.POST.get('productos')
-    crucero_id = request.POST.get('crucero_id')
+    embarcacion_id = request.POST.get('embarcacion_id')
 
     # Build items list: [{producto_id:int, cantidad:int}, ...]
     items = []

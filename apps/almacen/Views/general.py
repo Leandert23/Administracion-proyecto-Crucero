@@ -5,7 +5,7 @@ import json
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.db import transaction
-from apps.cruceros.models import Crucero, Instalacion
+from apps.creador_embarcaciones.models import Embarcacion
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
 from apps.almacen.models import MensajeParaCompras
 from apps.almacen.models import SolicitudSalida
@@ -14,10 +14,9 @@ from apps.almacen.Services.products import calcular_asignacion_lotes
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from datetime import timedelta
 
-def mostrar_vista_almacen(request, crucero_id):
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen')
-    secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones, esta_activa=True).select_related('almacen')
+def mostrar_vista_almacen(request, embarcacion_id):
+    embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
+    secciones = SeccionAlmacen.objects.filter(almacen=embarcacion, esta_activa=True).select_related('almacen')
     try:
         fecha_actual = obtener_fecha_actual()
     except Exception:
@@ -25,7 +24,7 @@ def mostrar_vista_almacen(request, crucero_id):
         fecha_actual = date.today()
     fecha_min_caducidad = fecha_actual + timedelta(days=1)
     return render(request, "almacen.html", {
-        "crucero": crucero,
+        "embarcacion": embarcacion,
         'secciones': secciones,
         'fecha_actual_sistema': fecha_actual,
         'fecha_min_caducidad': fecha_min_caducidad
@@ -33,11 +32,11 @@ def mostrar_vista_almacen(request, crucero_id):
 
 
 @require_GET
-def obtener_instalaciones_almacen(request, crucero_id):
-    """Devuelve JSON con las instalaciones de tipo 'almacen' para el crucero dado."""
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen').values('id', 'nombre')
-    return JsonResponse({'success': True, 'instalaciones': list(instalaciones)})
+def obtener_instalaciones_almacen(request, embarcacion_id):
+    """Devuelve JSON con las secciones de almacén para la embarcación dada."""
+    embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
+    secciones = SeccionAlmacen.objects.filter(almacen=embarcacion, esta_activa=True).values('id', 'nombre')
+    return JsonResponse({'success': True, 'secciones': list(secciones)})
 
 
 
@@ -66,10 +65,10 @@ def crear_seccion(request):
             errores['almacen'] = 'Almacén requerido.'
         else:
             try:
-                almacen = Instalacion.objects.get(pk=int(almacen_id), tipo='almacen')
+                almacen = Embarcacion.objects.get(pk=int(almacen_id))
             except Exception:
                 almacen = None
-                errores['almacen'] = 'Almacén no encontrado.'
+                errores['almacen'] = 'Embarcación no encontrada.'
 
         if not nombre:
             errores['nombre'] = 'Nombre requerido.'
@@ -310,15 +309,15 @@ def detalle_solicitud(request, solicitud_id):
 
 @require_GET
 def obtener_solicitudes_aprobadas(request):
-    """Devuelve HTML parcial con la tabla de solicitudes aprobadas asociadas al crucero actual.
+    """Devuelve HTML parcial con la tabla de solicitudes aprobadas asociadas a la embarcación actual.
 
-    Parámetros (GET): page (opcional), crucero_id (opcional - si no se recibe se listan todas)
+    Parámetros (GET): page (opcional), embarcacion_id (opcional - si no se recibe se listan todas)
     """
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
     qs = SolicitudSalida.objects.filter(estado='APROBADA')
-    # Si se proporciona crucero_id intentamos filtrar por relación a través de productos->seccion->almacen->crucero
-    if crucero_id:
-        qs = qs.filter(productos_solicitados__producto__seccion__almacen__crucero_id=crucero_id).distinct()
+    # Si se proporciona embarcacion_id intentamos filtrar por relación a través de productos->seccion->almacen->embarcacion
+    if embarcacion_id:
+        qs = qs.filter(productos_solicitados__producto__seccion__almacen_id=embarcacion_id).distinct()
     qs = qs.annotate(total_unidades=Sum('productos_solicitados__cantidad')).order_by('-fecha_creacion')
 
     page_number = int(request.GET.get('page', 1))

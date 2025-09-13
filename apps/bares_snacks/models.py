@@ -30,10 +30,10 @@ class Menu(models.Model):
 #Puntos de venta de los distintos bares del crucero
 class Bar(models.Model):
     nombre = models.CharField(max_length=50)
-    ubicacion = models.ForeignKey('cruceros.Instalacion', 
+    ubicacion = models.ForeignKey('creador_embarcaciones.Locales',
         on_delete=models.CASCADE,
         related_name='bares',
-        help_text="Ubicacion del bar dentro del crucero")
+        help_text="Ubicacion del bar dentro de la embarcación")
     hora_aper=models.DateTimeField(null=False, default=timezone.now) #YYYY-MM-DD HH:MM:SS
     hora_cierre=models.DateTimeField(null=False, default=timezone.now)
     
@@ -112,14 +112,14 @@ class Pedidos(models.Model):
         null=True,
         blank=True,
     )
-    # Nueva FK principal a la instalación donde se entregará / consumirá
+    # Nueva FK principal al local donde se entregará / consumirá
     lugarentrega = models.ForeignKey(
-        'cruceros.Instalacion',
+        'creador_embarcaciones.Locales',
         null=True,
         blank=True,
         on_delete=models.PROTECT,
         related_name='pedidos_entregados',
-        help_text='Instalación física de entrega o consumo (bar, restaurante, etc.)'
+        help_text='Local físico de entrega o consumo (bar, restaurante, etc.)'
     )
 
     numero_factura = models.CharField(
@@ -131,7 +131,7 @@ class Pedidos(models.Model):
     )
     # Si el consumo es en camarote, guardamos la habitación
     habitacion = models.ForeignKey(
-        'cruceros.Habitacion',
+        'creador_embarcaciones.Habitaciones',
         null=True,
         blank=True,
         on_delete=models.PROTECT,

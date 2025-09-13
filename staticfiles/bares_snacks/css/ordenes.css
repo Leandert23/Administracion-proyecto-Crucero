@@ -1,0 +1,31 @@
+/* ordenes.css - Estilos para módulo Órdenes (flat) */
+#ordenes .ordenes-explicacion { color:#475569; text-align:center; margin:10px 0 18px; font-size:.9rem; }
+#ordenes .ordenes-empty { color:#64748b; text-align:center; padding:36px 12px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; }
+
+.orden-grupo { margin: 20px 0 28px; }
+.orden-grupo-titulo { color:#0f172a; font-size:1.1rem; margin-bottom:10px; }
+.orden-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; }
+
+.orden-card { border:1px solid #e2e8f0; border-radius:12px; background:#fff; padding:14px; display:flex; flex-direction:column; gap:8px; }
+.orden-head { display:flex; justify-content:space-between; align-items:center; }
+.orden-id { font-weight:700; color:#0f172a; }
+.ord-estado { font-size:.7rem; padding:4px 8px; border-radius:999px; font-weight:600; color:#fff; }
+.ord-estado.pendiente { background:#06b6d4; }
+.ord-estado.en_proceso { background:#f59e0b; }
+.ord-estado.completado { background:#16a34a; }
+.orden-body { color:#334155; display:flex; flex-direction:column; gap:4px; font-size:.9rem; }
+.orden-actions { display:grid; grid-template-columns: 1fr; gap:8px; align-items:center; margin-top:6px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; height:36px; padding:0 12px; border:none; border-radius:8px; font-size:.86rem; font-weight:600; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.btn:focus { outline:2px solid #bae6fd; outline-offset:1px; }
+.btn-detalle { background:#0ea5e9; color:#fff; }
+.btn-detalle:hover { background:#0284c7; }
+.btn-estado { background:#e2e8f0; color:#0f172a; }
+.btn-estado:hover { background:#cbd5e1; }
+
+/* Botones dentro del modal de detalle (más coloridos) */
+.modal-acciones { display:flex; gap:10px; justify-content:center; margin-top:14px; }
+.modal-btn { min-width:160px; height:40px; padding:0 14px; border:none; border-radius:12px; font-weight:800; letter-spacing:.02em; color:#fff; cursor:pointer; box-shadow:0 8px 26px -10px rgba(15,23,42,.35); transition:.25s transform,.25s filter; }
+.modal-btn:hover { transform:translateY(-1px); filter:brightness(1.05); }
+.modal-btn:active { transform:translateY(0); filter:brightness(.95); }
+.btn-proceso { background:linear-gradient(135deg,#f59e0b,#f97316); box-shadow:0 10px 24px -10px #f9731644; }
+.btn-completar { background:linear-gradient(135deg,#16a34a,#22c55e); box-shadow:0 10px 24px -10px #16a34a55; }

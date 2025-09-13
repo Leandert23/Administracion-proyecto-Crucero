@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("almacen", "0003_solicitudsalida_modulo"),
+        ("almacen", "0001_initial"),
         ("compras", "0001_initial"),
     ]
 

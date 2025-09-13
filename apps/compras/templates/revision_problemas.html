@@ -39,7 +39,7 @@
                     <td>${{ compra.presupuesto_lote }}</td>
                     <td>{{ compra.get_estado_display }}</td>
                     <td>
-                        <a href="{% url 'compras:detalle_compra_lote' crucero_id compra.id %}?from=revision"><button style="background: #2196F3; color: white; padding: 5px 10px; border: none; border-radius: 4px;">Ver detalles</button></a>
+                        <a href="{% url 'compras:detalle_compra_lote' embarcacion_id compra.id %}?from=revision"><button style="background: #2196F3; color: white; padding: 5px 10px; border: none; border-radius: 4px;">Ver detalles</button></a>
                     </td>
                 </tr>
                 {% empty %}
@@ -48,7 +48,7 @@
             </tbody>
         </table>
 
-    <a href="{% url 'compras:compras' crucero_id %}"><button>Volver</button></a>
+    <a href="{% url 'compras:compras' embarcacion_id %}"><button>Volver</button></a>
     </div>
 </body>
 </html>

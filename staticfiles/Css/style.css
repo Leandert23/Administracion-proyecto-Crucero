@@ -1,0 +1,136 @@
+.reservas-bg {
+    background: linear-gradient(135deg, #093958 0%, #11406b 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+.reservas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d3b66;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.reservas-title {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.reservas-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+.selector {
+    margin: 20px 0;
+    text-align: center;
+    }
+select {
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    }
+.user-info {
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+.reservas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.reservas-top {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.reserva-card {
+    background: #f6fafd;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(9,57,88,0.075);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+    text-align: center;
+}
+.reserva-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(9,57,88,0.15);
+    border-color: rgba(9, 57, 88, 0.1);
+}
+.reserva-card.basico { border-top: 6px solid #cd7f32; }
+.reserva-card.basico:hover {
+    background: linear-gradient(135deg, #fff5eb, #cd7f32);
+    color: white;
+}
+.reserva-card.avanzado { border-top: 6px solid #c0c0c0; }
+.reserva-card.avanzado:hover {
+    background: linear-gradient(135deg, #f8f9fa, #c0c0c0);
+    color: #222;
+}
+.reserva-card.lujo { border-top: 6px solid #ffd700; }
+.reserva-card.lujo:hover {
+    background: linear-gradient(135deg, #fff8dc, #ffd700);
+    color: #333;
+}
+.reserva-card button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    background: #2563eb;
+    color: white;
+}
+.reserva-card button:hover {
+    transform: scale(1.05);
+    background: #1e40af;
+}
+.reserva-card.opcion:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+@media (max-width: 768px) {
+    .reservas-grid { grid-template-columns: 1fr; }
+    .reservas-top { grid-template-columns: 1fr; }
+}
+.dias-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-advance {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #10b981; /* verde bonito */
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-advance:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+.viaje-fin {
+  color: #f87171; /* rojo suave */
+  font-weight: bold;
+}

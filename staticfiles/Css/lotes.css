@@ -1,3 +1,94 @@
+/* Styles for modal: Lotes Pendientes por Registrar */
+/* Scoped variables to match theme used in inventario_modal.css */
+#modalLotesPorRegistrar {
+    --nav-bg: #1e293b;
+    --active-btn: #3b82f6;
+    --text-secondary: #8f99a7;
+    --bg-primary: #f8fafc;
+    --bg-white: #ffffff;
+    --text-primary: #1e293b;
+    --border-color: #e2e8f0;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --header-gradient: linear-gradient(135deg, #f8fafc 0%, #eef3f7 100%);
+}
+
+.modal { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.45); backdrop-filter: blur(3px); }
+.modal-container { position: relative; background: var(--bg-white); width: 90vw; height: 90vh; max-width: 1100px; border-radius: 12px; box-shadow: 0 20px 50px -12px rgba(0,0,0,.3); display: flex; flex-direction: column; overflow: hidden; }
+
+/* Top-right close */
+.modal-top-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #f1f5f9;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all .18s ease;
+    z-index: 15;
+}
+.modal-top-close:hover { background:#e2e8f0; color:#475569; transform: translateY(-2px); box-shadow: 0 6px 16px -8px rgba(0,0,0,.2); }
+.modal-top-close:focus-visible { outline:2px solid var(--active-btn); outline-offset:2px; }
+
+/* Header / Body / Footer */
+.modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border-color); background: var(--header-gradient); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.modal-header h2 { margin:0; font-size:1.15rem; color:var(--text-primary); }
+.modal-body { padding: 18px 22px; overflow:auto; background: var(--bg-primary); flex:1; }
+.modal-footer { padding: 14px 22px; border-top: 1px solid var(--border-color); background: var(--bg-white); display:flex; justify-content:flex-end; gap:8px; }
+
+/* Inventory container mimic */
+.inventory-container { background: var(--bg-white); border-radius: 10px; padding: 18px; margin: 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+.inventory-container.no-shadow { box-shadow:none; padding:0; background:transparent; margin:0; }
+.inventario-title { margin:0; font-size:1rem; font-weight:600; color:var(--text-primary); }
+
+.table-container { overflow-x:auto; border-radius: 8px; border:1px solid var(--border-color); background:var(--bg-white); }
+
+/* Specific tweaks for lotes_por_registrar template (migrated from inline styles) */
+#contenedor-ordenes-compra.inventory-container.no-shadow { margin-top: 0; padding: 18px; }
+#contenedor-ordenes-compra .inventario-title { margin: 0 0 12px 0; font-size: 1.05rem; font-weight: 600; }
+#contenedor-ordenes-compra .inventario-title .icon-left { margin-right: 8px; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9rem; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary); }
+.btn-primary { background:var(--active-btn); border-color:var(--active-btn); color:#fff; }
+.btn-secondary { background:#f8fafc; }
+
+/* Small responsive tweaks */
+@media (max-width: 900px) {
+	.modal-container { width: 96vw; height: 92vh; max-width: 96vw; }
+	.modal-top-close { top:10px; right:10px; }
+}
+
+@media (max-width: 480px) {
+    .modal-container { width: 100vw; height: 100vh; border-radius: 0; }
+    .modal-header { padding: 12px; }
+    .modal-body { padding: 12px; }
+    .inventario-title { font-size: 0.95rem; }
+}
+
+/* Hidden state helper (keeps parity with other modals) */
+#modalLotesPorRegistrar[aria-hidden="true"] { display:none; }
+
+/* Utility small styles for table rows injected into the wrapper */
+.table-container table { width:100%; border-collapse:collapse; min-width:700px; }
+.table-container th, .table-container td { padding:12px 14px; border-bottom:1px solid var(--border-color); }
+.table-container thead { background:#f1f5f9; }
+
+/* Footer pagination area inside the wrapper */
+.table-footer { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; }
+
+/* End of lotes.css */
 /*==============================
 	VARS
 ==============================*/
@@ -85,3 +176,38 @@
 	font-size: .8rem;
 	color: var(--text-secondary);
 }
+
+/* Overrides: make the 'lotes' modal have no padding and enforce centered 90vw x 90vh dialog */
+#modalLotesPorRegistrar {
+	padding: 0;
+}
+
+/* Ensure modal shows centered when opened (parity with other modal managers) */
+#modalLotesPorRegistrar[aria-hidden="false"] {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+/* Specific container sizing for this modal: fixed to viewport proportion but scrollable internally */
+#modalLotesPorRegistrar .modal-container {
+	border-radius: 6px;
+	padding: 0;
+	width: 90vw !important;
+	height: 90vh !important;
+	max-width: 1100px;
+	margin: auto !important; /* center both vertically and horizontally */
+	overflow: auto !important;
+	display: flex;
+	flex-direction: column;
+	/* ensure the container doesn't hug the top when content is small */
+	min-height: calc(60vh); 
+}
+
+/* no fallback margins here; margin:auto above centers the dialog */
+
+#modalLotesPorRegistrar .modal-header { padding: 12px 14px; }
+#modalLotesPorRegistrar .modal-body { padding: 0; background: transparent; }
+#modalLotesPorRegistrar .inventory-container { padding: 0; margin: 0; border-radius: 0; box-shadow: none; }
+#modalLotesPorRegistrar .table-container { border-radius: 0; border: none; }
+#modalLotesPorRegistrar .modal-footer { padding: 8px 12px; }

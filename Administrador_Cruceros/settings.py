@@ -178,12 +178,21 @@ SHORT_DATE_FORMAT = 'd/m/Y'
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
+    BASE_DIR / 'static',
     BASE_DIR / 'apps' / 'Static',
     BASE_DIR / 'apps' / 'cruceros' / 'Static',
     BASE_DIR / 'apps' / 'almacen' / 'Static',
+    BASE_DIR / 'apps' / 'bares_snacks' / 'static',
+    BASE_DIR / 'apps' / 'compras' / 'static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
     BASE_DIR / 'apps' / 'mantenimiento' / 'static',
+    BASE_DIR / 'apps' / 'recursos_humanos' / 'static',
     BASE_DIR / 'apps' / 'reservaciones' / 'static',
+    BASE_DIR / 'apps' / 'restaurante' / 'static',
+    BASE_DIR / 'apps' / 'servicio_medico' / 'static',
+    BASE_DIR / 'apps' / 'usuarios' / 'Static',
+    BASE_DIR / 'apps' / 'ventas' / 'static',
+    BASE_DIR / 'apps' / 'administracion' / 'static',
 ]
 
 # Media files (user-uploaded content)

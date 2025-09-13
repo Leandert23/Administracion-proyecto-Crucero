@@ -39,38 +39,40 @@ def productos_bar_api(request):
 
 @require_GET
 def bares_list_api(request):
-  # Lista instalaciones de tipo "Bares y Cafés" como opciones de punto de venta
-  from apps.cruceros.models import Instalacion
+  # Lista embarcaciones con bares como opciones de punto de venta
+  from apps.creador_embarcaciones.models import Embarcacion
   from apps.bares_snacks.models import Bar
-  instalaciones = Instalacion.objects.filter(tipo='bares_cafes').select_related('crucero')
+  embarcaciones = Embarcacion.objects.all()
   data = []
-  for inst in instalaciones:
-    bar = Bar.objects.filter(ubicacion_id=inst.id).only('id').first()
-    data.append({
-      'id': inst.id,  # este es el ID de Instalacion
-      'nombre': inst.nombre,
-      'crucero': inst.crucero.nombre if getattr(inst, 'crucero', None) else '',
-      'bar_id': bar.id if bar else None,
-    })
+  for emb in embarcaciones:
+    # Buscar bares asociados a esta embarcación a través de locales
+    bares = Bar.objects.filter(ubicacion__cubierta__embarcacion=emb).only('id').all()
+    if bares.exists():
+      data.append({
+        'id': emb.id,  # este es el ID de Embarcacion
+        'nombre': emb.nombre,
+        'identificador': emb.identificador,
+        'bar_count': bares.count(),
+      })
   return JsonResponse(data, safe=False)
 
 
 @require_GET
 def puntos_venta_bares_api(request):
-  # Trae los puntos de venta a partir de Instalaciones tipo "bares_cafes".
-  # Si falta el Bar para una instalación, lo crea para asegurar FK válida.
+  # Trae los puntos de venta a partir de Locales tipo "bar".
+  # Si falta el Bar para un local, lo crea para asegurar FK válida.
   from apps.bares_snacks.models import Bar
-  from apps.cruceros.models import Instalacion
+  from apps.creador_embarcaciones.models import Locales
   from datetime import timedelta
 
   ahora = timezone.now()
-  instalaciones = Instalacion.objects.filter(tipo='bares_cafes').select_related('crucero')
+  locales = Locales.objects.filter(tipo='bar').select_related('cubierta__embarcacion')
   data = []
-  for inst in instalaciones:
+  for local in locales:
     bar, _ = Bar.objects.get_or_create(
-      ubicacion=inst,
+      ubicacion=local,
       defaults={
-        'nombre': inst.nombre,
+        'nombre': local.nombre,
         'hora_aper': ahora,
         'hora_cierre': ahora + timedelta(hours=8),  # cumple la restricción hcierre>haper
       }
@@ -78,10 +80,10 @@ def puntos_venta_bares_api(request):
     data.append({
       'id': bar.id,
       'nombre': bar.nombre,
-      'instalacion_id': inst.id,
-      'instalacion_codigo': getattr(inst, 'codigo_ubicacion', ''),
-      'instalacion_nombre': str(inst),
-      'crucero': getattr(getattr(inst, 'crucero', None), 'nombre', ''),
+      'local_id': local.id,
+      'local_codigo': local.ID_local,
+      'local_nombre': str(local),
+      'embarcacion': getattr(getattr(local.cubierta, 'embarcacion', None), 'nombre', ''),
     })
   return JsonResponse(data, safe=False)
 
@@ -376,7 +378,7 @@ from django.shortcuts import HttpResponse
 
 from apps.bares_snacks.models import Pedidos, DetallePedido
 from apps.almacen.models import Producto
-from apps.cruceros.models import Crucero
+from apps.creador_embarcaciones.models import Embarcacion
 
 def get_ingredientes_almacen():
   # Devuelve todos los productos de almacen como ingredientes
@@ -385,8 +387,8 @@ from apps.recursos_humanos.models import Personal
 from django.db.models import Sum, Q
 
 
-def bares_view(request, crucero_id):
-  crucero = Crucero.objects.get(id=crucero_id)
+def bares_view(request, embarcacion_id):
+  embarcacion = Embarcacion.objects.get(id=embarcacion_id)
   # Ingresos totales: suma de todos los pedidos completados
   detalles_completados = DetallePedido.objects.select_related('producto').filter(pedido__estado='completado')
   ingresos_totales = 0
@@ -424,7 +426,7 @@ def bares_view(request, crucero_id):
   ingredientes_almacen = get_ingredientes_almacen()
 
   context = {
-    'crucero': crucero,
+    'embarcacion': embarcacion,
     'ingresos_totales': ingresos_totales,
     'ingresos_reales': ingresos_reales,
     'productos_stock': productos_stock,
@@ -437,31 +439,31 @@ def bares_view(request, crucero_id):
 
 @require_GET
 def habitaciones_list_api(request):
-  """Devuelve habitaciones desde cruceros.Habitacion.
-  Opcional: filtrar por ?crucero_id=.
+  """Devuelve habitaciones desde creador_embarcaciones.Habitaciones.
+  Opcional: filtrar por ?embarcacion_id=.
   Formato: { id, codigo: codigo_ubicacion, lado, lado_code: EST|BAB, label }
   """
-  from apps.cruceros.models import Habitacion
+  from apps.creador_embarcaciones.models import Habitaciones
   try:
-    crucero_id = int(request.GET.get('crucero_id')) if request.GET.get('crucero_id') else None
+    embarcacion_id = int(request.GET.get('embarcacion_id')) if request.GET.get('embarcacion_id') else None
   except ValueError:
-    crucero_id = None
-  qs = Habitacion.objects.all()
-  if crucero_id:
-    qs = qs.filter(crucero_id=crucero_id)
+    embarcacion_id = None
+  qs = Habitaciones.objects.all()
+  if embarcacion_id:
+    qs = qs.filter(cubierta__embarcacion_id=embarcacion_id)
   data = []
-  for h in qs.select_related('crucero', 'tipo_habitacion'):
-    lado_code = 'BAB' if h.lado == 'babor' else 'EST'
-    codigo = h.codigo_ubicacion or ''
+  for h in qs.select_related('cubierta__embarcacion', 'tipo_habitacion'):
+    lado_code = 'BAB' if h.posicion == 'babor' else 'EST'
+    codigo = h.ID_local or ''
     label = f"HAB: {codigo} {lado_code}"
     data.append({
       'id': h.id,
       'codigo': codigo,
-      'lado': h.lado,
+      'lado': h.posicion,
       'lado_code': lado_code,
       'label': label,
       'numero': h.numero,
-      'crucero': getattr(h.crucero, 'nombre', ''),
+      'embarcacion': getattr(getattr(h.cubierta, 'embarcacion', None), 'nombre', ''),
     })
   return JsonResponse(data, safe=False)
 
@@ -493,7 +495,7 @@ def crear_pedido_api(request):
     from apps.bares_snacks.models import ProductoBar
     from apps.ventas.models import Cliente
     from apps.recursos_humanos.models import Personal
-    from apps.cruceros.models import Instalacion, Habitacion
+    from apps.creador_embarcaciones.models import Embarcacion, Habitaciones, Locales
 
     # Verificar existencia entidades si se enviaron
     cliente = None
@@ -509,21 +511,21 @@ def crear_pedido_api(request):
       except Personal.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Entidad no encontrada: Personal'}, status=404)
 
-    instalacion = None
+    local = None
     habitacion = None
     if tipo_consumo == 'bar':
       if not lugarentrega_id:
         return JsonResponse({'success': False, 'error': 'lugarentrega_id es requerido para consumo en bar'}, status=400)
       try:
-        instalacion = Instalacion.objects.get(id=lugarentrega_id)
-      except Instalacion.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Instalación no encontrada'}, status=404)
+        local = Locales.objects.get(id=lugarentrega_id)
+      except Locales.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Local no encontrado'}, status=404)
     elif tipo_consumo == 'camarote':
       if not habitacion_id:
         return JsonResponse({'success': False, 'error': 'habitacion_id es requerido para consumo en camarote'}, status=400)
       try:
-        habitacion = Habitacion.objects.get(id=habitacion_id)
-      except Habitacion.DoesNotExist:
+        habitacion = Habitaciones.objects.get(id=habitacion_id)
+      except Habitaciones.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Habitación no encontrada'}, status=404)
 
     # Crear pedido
@@ -544,12 +546,12 @@ def crear_pedido_api(request):
       pedido = Pedidos.objects.create(
         empleado=empleado,
         cliente=cliente,
-        lugarentrega=instalacion if tipo_consumo == 'bar' else None,
+        lugarentrega=local if tipo_consumo == 'bar' else None,
         habitacion=habitacion if tipo_consumo == 'camarote' else None,
         estado='pendiente'
       )
       # Asignar número de factura
-      lugar_nombre = str(instalacion.nombre) if instalacion else None
+      lugar_nombre = str(local.nombre) if local else None
       numero_factura = generar_numero_factura(pedido.id, lugar_nombre, productos)
       pedido.numero_factura = numero_factura
       pedido.save(update_fields=['numero_factura'])
@@ -557,7 +559,7 @@ def crear_pedido_api(request):
       diag = {
         'empleado_id': getattr(empleado, 'id', None),
         'cliente_id': getattr(cliente, 'id', None),
-        'lugarentrega_id': getattr(instalacion, 'id', None),
+        'lugarentrega_id': getattr(local, 'id', None),
         'habitacion_id': getattr(habitacion, 'id', None),
       }
       try:
@@ -571,8 +573,8 @@ def crear_pedido_api(request):
       except Exception:
         diag['cliente_exists'] = 'unknown'
       try:
-        from apps.cruceros.models import Instalacion as InstM
-        diag['lugarentrega_exists'] = bool(InstM.objects.filter(id=diag['lugarentrega_id']).exists()) if diag['lugarentrega_id'] else True
+        from apps.creador_embarcaciones.models import Embarcacion as InstM
+        diag['lugarentrega_exists'] = bool(Locales.objects.filter(id=diag['lugarentrega_id']).exists()) if diag['lugarentrega_id'] else True
       except Exception:
         diag['lugarentrega_exists'] = 'unknown'
       return JsonResponse({'success': False, 'error': f'FK error al crear pedido: {ie}', 'diagnostico': diag}, status=400)
@@ -626,10 +628,10 @@ def crear_pedido_api(request):
   'empleado_nombre': (f"{empleado.nombre} {empleado.apellido}".strip() if empleado else None),
   'empleado_categoria': (empleado.categoria if empleado else None),
   'empleado_puesto': (empleado.puesto if empleado else None),
-  'lugarentrega_id': instalacion.id if instalacion else None,
-  'lugarentrega_nombre': str(instalacion) if instalacion else None,
+  'lugarentrega_id': local.id if local else None,
+  'lugarentrega_nombre': str(local) if local else None,
   'habitacion_id': habitacion.id if habitacion else None,
-  'habitacion_nombre': (f"Hab. {habitacion.numero} ({habitacion.codigo_ubicacion})" if habitacion else None),
+  'habitacion_nombre': (f"Hab. {habitacion.numero} ({habitacion.ID_local})" if habitacion else None),
         'tipo_consumo': tipo_consumo,
         'productos': detalles_resp,
         'total': total,
@@ -682,7 +684,7 @@ def actualizar_pedido_api(request, pedido_id: int):
   items = payload.get('productos') or []
   from apps.bares_snacks.models import ProductoBar
   from apps.recursos_humanos.models import Personal
-  from apps.cruceros.models import Instalacion, Habitacion
+  from apps.creador_embarcaciones.models import Embarcacion, Habitaciones, Locales
   # Validar empleado si se envió
   if empleado_id is not None:
     if empleado_id:
@@ -696,17 +698,17 @@ def actualizar_pedido_api(request, pedido_id: int):
   if tipo_consumo == 'bar':
     if lugarentrega_id:
       try:
-        p.lugarentrega = Instalacion.objects.get(id=lugarentrega_id)
-      except Instalacion.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Instalación no encontrada'}, status=404)
+        p.lugarentrega = Locales.objects.get(id=lugarentrega_id)
+      except Locales.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Local no encontrado'}, status=404)
     else:
       return JsonResponse({'success': False, 'error': 'lugarentrega_id requerido para consumo en bar'}, status=400)
   elif tipo_consumo == 'camarote':
     p.lugarentrega = None
     if habitacion_id:
       try:
-        p.habitacion = Habitacion.objects.get(id=habitacion_id)
-      except Habitacion.DoesNotExist:
+        p.habitacion = Habitaciones.objects.get(id=habitacion_id)
+      except Habitaciones.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Habitación no encontrada'}, status=404)
     else:
       return JsonResponse({'success': False, 'error': 'habitacion_id requerido para consumo en camarote'}, status=400)
@@ -773,7 +775,7 @@ def _serialize_pedido(p):
     'lugarentrega_id': p.lugarentrega_id,
     'lugarentrega_nombre': str(p.lugarentrega) if p.lugarentrega_id else None,
     'habitacion_id': getattr(p, 'habitacion_id', None),
-    'habitacion_nombre': (f"Hab. {getattr(p.habitacion, 'numero', '')} ({getattr(p.habitacion, 'codigo_ubicacion', '')})" if getattr(p, 'habitacion_id', None) else None),
+    'habitacion_nombre': (f"Hab. {getattr(p.habitacion, 'numero', '')} ({getattr(p.habitacion, 'ID_local', '')})" if getattr(p, 'habitacion_id', None) else None),
     'tipo_consumo': 'bar' if p.lugarentrega_id else 'camarote',
     'productos': detalles_resp,
     'total': total,

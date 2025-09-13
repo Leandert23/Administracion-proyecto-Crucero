@@ -3,7 +3,7 @@ from django.db.models import Max, Sum
 from django.core.exceptions import ValidationError
 
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
-from ..cruceros.models import Instalacion
+from ..creador_embarcaciones.models import Embarcacion
 from ..compras.models import CompraLote
 
 class SeccionAlmacen(models.Model):
@@ -18,10 +18,9 @@ class SeccionAlmacen(models.Model):
     ]
 
     almacen = models.ForeignKey(
-        Instalacion,
+        Embarcacion,
         on_delete=models.CASCADE,
-        related_name="secciones",
-        limit_choices_to={"tipo": "almacen"}
+        related_name="secciones"
     )
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=20, choices=TIPOS_SECCION)
@@ -167,18 +166,18 @@ class Producto(models.Model):
 
     def save(self, *args, **kwargs):
         self.limpiar()
-        # Validación de unicidad: nombre único (case-insensitive) dentro del mismo crucero
+        # Validación de unicidad: nombre único (case-insensitive) dentro de la misma embarcación
         if self.seccion_id:
             try:
-                crucero_id = self.seccion.almacen.crucero_id
-                if crucero_id:
+                embarcacion_id = self.seccion.almacen_id
+                if embarcacion_id:
                     existe = Producto.objects.filter(
-                        seccion__almacen__crucero_id=crucero_id,
+                        seccion__almacen_id=embarcacion_id,
                         nombre__iexact=self.nombre
                     ).exclude(pk=self.pk).exists()
                     if existe:
                         raise ValidationError({
-                            'nombre': 'Ya existe un producto con este nombre en el crucero.'
+                            'nombre': 'Ya existe un producto con este nombre en la embarcación.'
                         })
             except AttributeError:
                 pass
