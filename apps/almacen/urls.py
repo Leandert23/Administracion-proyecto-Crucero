@@ -20,6 +20,8 @@ urlpatterns = [
     path("inventario/producto/", inventario.obtener_detalle_producto, name="inventario_detalle_producto"),
     path("inventario/lotes/", inventario.obtener_lotes_producto, name="inventario_lotes_producto"),
     path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
+    path("instalaciones/<int:crucero_id>/", general.obtener_instalaciones_almacen, name="instalaciones_almacen"),
+    path("crear-seccion/", general.crear_seccion, name="crear_seccion"),
     
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma"),
     path("ordenes-compra/por-registrar/", general.obtener_ordenes_compra_por_registrar, name="ordenes_compra_por_registrar"),

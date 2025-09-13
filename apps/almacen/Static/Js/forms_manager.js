@@ -63,6 +63,12 @@
         });
     }
 
+    // Helper para leer cookies (CSRF fallback)
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? decodeURIComponent(v.pop()) : null;
+    }
+
     function recargarInventario() {
             try {
                 // Solo refrescar si el modal de inventario está visible (evita fetch innecesario)
@@ -119,6 +125,106 @@
                 }
             } catch(e) {}
         }
+
+    // --- Modal helper para crear sección (top-level) ---
+    function abrirCrearSeccion() {
+        const modal = document.getElementById('modalCrearSeccion');
+        if (!modal) return console.warn('Modal Crear Seccion no encontrado');
+        modal.setAttribute('aria-hidden', 'false');
+
+        try {
+            const root = document.getElementById('almacen-root');
+            const cruceroId = root ? root.dataset.cruceroId : null;
+            if (!cruceroId) return console.warn('No se encontró crucero-id en el root');
+            fetch('/almacen/instalaciones/' + cruceroId + '/')
+                .then(resp => resp.json())
+                .then(data => {
+                    if (!data || !Array.isArray(data.instalaciones)) return;
+                    const select = document.getElementById('select-almacen');
+                    if (!select) return;
+                    // conservar la primera opción por defecto
+                    const defaultOpt = select.querySelector('option');
+                    select.innerHTML = '';
+                    if (defaultOpt) select.appendChild(defaultOpt);
+                    data.instalaciones.forEach(inst => {
+                        const opt = document.createElement('option');
+                        opt.value = inst.id;
+                        opt.textContent = inst.nombre;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Error cargando instalaciones:', err));
+        } catch (e) { console.error(e); }
+    }
+
+    // --- Modal helper para mostrar lotes pendientes ---
+    function abrirLotesPorRegistrar() {
+        const modal = document.getElementById('modalLotesPorRegistrar');
+        if (!modal) return console.warn('Modal Lotes Por Registrar no encontrado');
+        // Preferir usar GestorModales si existe y tiene configuración para 'lotes'
+        if (window.GestorModales && GestorModales.abrir && GestorModales.configuraciones && GestorModales.configuraciones.lotes) {
+            try { GestorModales.abrir('lotes'); } catch(e) { /* fallback below */ }
+        } else {
+            // Fallback: make visible and prevent body scroll
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Cargar primer página
+        cargarOrdenesCompra(1);
+    }
+
+    function cargarOrdenesCompra(pagina){
+        const contenedor = document.getElementById('tabla-ordenes-compra-wrapper');
+        if(!contenedor) return;
+        contenedor.innerHTML = '<div class="cargando-historial" style="padding:24px; text-align:center; font-size:.85rem; color:#475569;">Cargando órdenes...</div>';
+        const params = new URLSearchParams();
+        if(pagina) params.append('page', pagina);
+        const url = '/almacen/ordenes-compra/por-registrar/' + (params.toString() ? ('?'+params.toString()) : '');
+        fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(r=>r.ok? r.json() : Promise.reject())
+            .then(d=>{
+                if(d.success){
+                    contenedor.innerHTML = d.tabla_html;
+                    const footer = contenedor.querySelector('#ordenes-footer');
+                    if(footer && d.paginacion_html){ footer.innerHTML = d.paginacion_html; }
+                    // Re-bind any action buttons inside the loaded HTML
+                    if (typeof vincularBotonesRevisar === 'function') try { vincularBotonesRevisar(); } catch(e){}
+                } else {
+                    contenedor.innerHTML = '<div style="padding:16px; font-size:.85rem; color:#b91c1c;">Error al cargar órdenes</div>';
+                }
+            })
+            .catch(()=>{
+                contenedor.innerHTML = '<div style="padding:16px; font-size:.85rem; color:#b91c1c;">Error de red</div>';
+            });
+    }
+
+    function cerrarModal(clave) {
+        if (clave === 'seccion') {
+            const modal = document.getElementById('modalCrearSeccion');
+            if (modal) modal.setAttribute('aria-hidden', 'true');
+            return;
+        }
+        if (clave === 'lotes') {
+            const modal = document.getElementById('modalLotesPorRegistrar');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+            return;
+        }
+        // Fallback a gestor de modales existente
+        if (window.GestorModales && typeof GestorModales.cerrar === 'function') {
+            try { GestorModales.cerrar(clave); } catch(e){}
+        }
+    }
+
+    // Exponer para llamadas desde HTML
+    window.abrirCrearSeccion = abrirCrearSeccion;
+    window.cerrarModal = cerrarModal;
+    window.abrirLotesPorRegistrar = abrirLotesPorRegistrar;
 
     const GestorFormularios = {
         configuraciones: {
@@ -205,66 +311,53 @@
                 reiniciar(contexto) {
                     contexto.formulario.reset();
                     this.llenarSelectSubtipo();
-                    limpiarErrores(contexto.formulario);
-                    contexto.formulario.dataset.editandoId = '';
-                    contexto.formulario.dataset.editingId = '';
-                }
-            },
-            
-            lote: {
-                idFormulario: 'form-crear-lote',
-                claveModal: 'lote',
-                endpoint: 'registrar-lote/',
+                    recargarInventario();
+                    recargarHistorial();
+                },
                 
+            },
+            seccion: {
+                idFormulario: 'form-crear-seccion',
+                claveModal: 'seccion',
+                // Use absolute app path so requests from /almacen/<id> resolve correctly
+                endpoint: '/almacen/crear-seccion/',
+
                 inicializar(contexto) {
                     aplicarEstilosEnfoque(contexto.formulario);
                 },
-                
+
                 validar(contexto) {
                     let valido = true;
-                    const campoProducto = obtenerElementoPorId('id_producto');
-                    if (!campoProducto || !campoProducto.value) {
-                        mostrarError(contexto.formulario, 'producto', 'Selecciona un producto de la lista');
+                    const almacen = obtenerElementoPorId('select-almacen');
+                    const nombre = obtenerElementoPorId('seccion-nombre');
+                    const tipo = obtenerElementoPorId('seccion-tipo');
+
+                    if (!almacen || !almacen.value) {
+                        mostrarError(contexto.formulario, 'almacen', 'Selecciona un almacén');
                         valido = false;
                     }
-                    const campoFecha = obtenerElementoPorId('id_fecha_caducidad');
-                    if (campoFecha && campoFecha.value) {
-                        const partes = campoFecha.value.split('-');
-                        let fecha = null;
-                        if (partes.length === 3) {
-                            fecha = new Date(parseInt(partes[0],10), parseInt(partes[1],10)-1, parseInt(partes[2],10));
-                        }
-                        if (fecha) {
-                            // Usar min del input (que corresponde a mañana) como límite inferior
-                            const minAttr = campoFecha.getAttribute('min');
-                            if (minAttr && /^\d{4}-\d{2}-\d{2}$/.test(minAttr)) {
-                                const m = minAttr.split('-');
-                                const fechaMin = new Date(parseInt(m[0],10), parseInt(m[1],10)-1, parseInt(m[2],10));
-                                if (fecha < fechaMin) {
-                                    mostrarError(contexto.formulario, 'fecha_caducidad', 'Debe ser a partir de la fecha mínima permitida');
-                                    valido = false;
-                                }
-                            }
-                        }
+                    if (!nombre || !nombre.value.trim()) {
+                        mostrarError(contexto.formulario, 'nombre', 'Ingresa un nombre');
+                        valido = false;
                     }
+                    if (!tipo || !tipo.value) {
+                        mostrarError(contexto.formulario, 'tipo', 'Selecciona un tipo');
+                        valido = false;
+                    }
+
                     return valido;
                 },
-                
-                exito(contexto) {
+
+                exito(contexto, datos) {
                     contexto.formulario.reset();
                     limpiarErrores(contexto.formulario);
-                    cerrarModalClave('lote');
-                    recargarInventario();
-                    recargarHistorial();
-                    if(window.cargarPaginaOrdenes) { try { window.cargarPaginaOrdenes(1); } catch(e){} }
+                    cerrarModalClave('seccion');
+                    // Opcional: si existe función para recargar secciones, llamarla
+                    if (window.recargarSecciones) try { window.recargarSecciones(); } catch(e){}
                 },
-                
+
                 reiniciar(contexto) {
                     contexto.formulario.reset();
-                    
-                    const campoProducto = obtenerElementoPorId('id_producto');
-                    if (campoProducto) campoProducto.value = '';
-                    
                     limpiarErrores(contexto.formulario);
                 }
             },
@@ -430,7 +523,7 @@
                     }
                     
                     limpiarErrores(contexto.formulario);
-                    
+
                     cerrarModalClave('merma');
                     recargarInventario();
                     recargarHistorial();
@@ -500,11 +593,17 @@
 
                         // Normalizar: si es relativo sin slash inicial, preparamos relativo al path actual
                         // (opcional, puedes forzar absoluto agregando '/' si deseas)
+                        // Determinar token CSRF: preferir input hidden dentro del formulario, sino cookie 'csrftoken'
+                        let csrfToken = '';
+                        const inputCsrf = formulario.querySelector('input[name="csrfmiddlewaretoken"]');
+                        if (inputCsrf && inputCsrf.value) csrfToken = inputCsrf.value;
+                        if (!csrfToken) csrfToken = getCookie('csrftoken') || '';
+
                         fetch(endpoint, {
                             method: 'POST',
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRFToken': (formulario.querySelector('input[name="csrfmiddlewaretoken"]') || {}).value || ''
+                                'X-CSRFToken': csrfToken
                             },
                             body: datosFormulario
                         })

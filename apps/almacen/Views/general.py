@@ -31,6 +31,99 @@ def mostrar_vista_almacen(request, crucero_id):
     })
 
 
+@require_GET
+def obtener_instalaciones_almacen(request, crucero_id):
+    """Devuelve JSON con las instalaciones de tipo 'almacen' para el crucero dado."""
+    crucero = get_object_or_404(Crucero, pk=crucero_id)
+    instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen').values('id', 'nombre')
+    return JsonResponse({'success': True, 'instalaciones': list(instalaciones)})
+
+
+
+@require_POST
+def crear_seccion(request):
+    """Crea una SeccionAlmacen a partir de un POST form-encoded.
+
+    Espera los campos simplificados: almacen_id, nombre, tipo.
+    No se solicita capacidad/temperatura/humedad desde el formulario; la vista
+    usará valores por defecto (capacidad=1, temperatura/humedad=None).
+    Responde JSON: {'success': True, 'id': <pk>} o {'success': False, 'errores': {campo: mensaje}, 'error': 'codigo'}
+    """
+    try:
+        data = request.POST
+        almacen_id = data.get('almacen_id')
+        nombre = (data.get('nombre') or '').strip()
+        tipo = data.get('tipo')
+        # Not requesting capacidad/temperatura/humedad from the simplified form
+        capacidad = None
+        temperatura = None
+        humedad = None
+
+        errores = {}
+
+        if not almacen_id:
+            errores['almacen'] = 'Almacén requerido.'
+        else:
+            try:
+                almacen = Instalacion.objects.get(pk=int(almacen_id), tipo='almacen')
+            except Exception:
+                almacen = None
+                errores['almacen'] = 'Almacén no encontrado.'
+
+        if not nombre:
+            errores['nombre'] = 'Nombre requerido.'
+
+        if not tipo:
+            errores['tipo'] = 'Tipo requerido.'
+
+        # Since the simplified form doesn't provide capacidad, temperatura or humedad,
+        # use sensible defaults: capacidad=1, temperatura/humedad=None
+        capacidad_int = 1
+        temp_val = None
+        hum_val = None
+
+        if errores:
+            return JsonResponse({'success': False, 'errores': errores}, status=400)
+
+        # Crear sección
+        seccion = SeccionAlmacen(
+            almacen=almacen,
+            nombre=nombre,
+            tipo=tipo,
+            capacidad=capacidad_int,
+            temperatura=temp_val,
+            humedad=hum_val,
+            esta_activa=True
+        )
+
+        try:
+            seccion.full_clean()
+            seccion.save()
+        except Exception as ex:
+            # Manejar errores de validación o unicidad
+            err_resp = {}
+            try:
+                from django.core.exceptions import ValidationError
+                if isinstance(ex, ValidationError):
+                    if hasattr(ex, 'message_dict'):
+                        for k, v in ex.message_dict.items():
+                            err_resp[k] = '; '.join(v)
+                    else:
+                        err_resp['__all__'] = str(ex)
+                else:
+                    err_resp['__all__'] = str(ex)
+            except Exception:
+                err_resp['__all__'] = str(ex)
+
+            return JsonResponse({'success': False, 'errores': err_resp}, status=400)
+
+        # Retornar éxito
+        return JsonResponse({'success': True, 'id': seccion.id, 'nombre': seccion.nombre})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 
 
 

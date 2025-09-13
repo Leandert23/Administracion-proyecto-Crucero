@@ -27,6 +27,27 @@ def detalle_compra_lote_view(request, crucero_id, compra_id):
                 solicitud.procesada = False
                 solicitud.save()
             compra.save()
+        elif accion == 'aceptar_defectuosa':
+            monto_a_devolver = request.POST.get('monto_a_devolver')
+            if monto_a_devolver:
+                compra.estado = 'Esperando por revision'
+                from ..almacen.signals import lote_signal
+                lote_signal.send(sender=None, compra_lote=compra)
+                from .signals import manejar_compra_defectuosa
+                manejar_compra_defectuosa(id=compra.id, monto=monto_a_devolver, mensaje='')
+                compra.save()
+        elif accion == 'rechazar_defectuosa':
+            mensaje = request.POST.get('mensaje')
+            if mensaje:
+                compra.estado = 'cancelada'
+                solicitud = compra.solicitud
+                if solicitud and solicitud.procesada:
+                    compra.notas_compra = mensaje
+                    solicitud.procesada = False
+                    solicitud.save()
+                from .signals import manejar_compra_defectuosa
+                manejar_compra_defectuosa(id=compra.id, monto=compra.presupuesto_lote, mensaje=mensaje)
+                compra.save()
         # elif accion == 'finalizar':
         #     compra.estado = 'exitosa'
         #     compra.save()
@@ -313,7 +334,7 @@ def eliminar_proveedor(request, crucero_id):
             return redirect('compras:proveedores')
         proveedor = get_object_or_404(Proveedores, id=proveedor_id)
         # Validar si el proveedor está asignado a una compra lote activa
-        compras_lote = CompraLote.objects.filter(proveedor=proveedor, estado__in=['registrada', 'espera_revision'])
+        compras_lote = CompraLote.objects.filter(proveedor=proveedor, estado__in=['Registrada', 'Espera_revision'])
         if compras_lote.exists():
             messages.error(request, 'No se puede eliminar el proveedor porque está asignado a una compra registrada o en espera por revisión.')
             return redirect('compras:proveedores')
@@ -324,5 +345,11 @@ def eliminar_proveedor(request, crucero_id):
 def historial_compras_view(request, crucero_id):
     from .models import CompraLote
     crucero = Crucero.objects.get(pk=crucero_id)
-    compras_lote = CompraLote.objects.filter(estado__in=['exitosa', 'defectuosa', 'cancelada'], crucero=crucero).order_by('-fecha')
+    compras_lote = CompraLote.objects.filter(estado__in=['Exitosa', 'Defectuosa', 'Cancelada'], crucero=crucero).order_by('-fecha')
     return render(request, 'historial_compras.html', {'compras_lote': compras_lote, "crucero_id":crucero_id})
+
+def revision_problemas_view(request, crucero_id):
+    from .models import CompraLote
+    crucero = Crucero.objects.get(pk=crucero_id)
+    compras_lote = CompraLote.objects.filter(estado='Defectuosa', crucero=crucero).order_by('-fecha')
+    return render(request, 'revision_problemas.html', {'compras_lote': compras_lote, "crucero_id":crucero_id})
