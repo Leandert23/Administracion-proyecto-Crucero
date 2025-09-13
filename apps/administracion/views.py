@@ -15,7 +15,7 @@ def cruceros_dashboard_data(request, crucero_id):
     crucero = get_object_or_404(Crucero, pk=crucero_id)
 
     try:
-        dashboard = Dashboard.objects.get(pk=crucero_id)
+        dashboard = Dashboard.objects.get(crucero=crucero)
     except Dashboard.DoesNotExist:
         # Si no existe un registro de administración para este crucero, crear uno con valores por defecto
         dashboard = Dashboard.objects.create(
@@ -39,6 +39,11 @@ def cruceros_dashboard_data(request, crucero_id):
     precio_gasolina = dashboard.precio_combustible
     earnings_total = dashboard.ganancias_totales
     purchase_requests = obtener_solicitudes_compra(crucero_id)
+    
+    # ✅ NUEVO: Obtener empleados por estado
+    empleados_activos = dashboard.num_empleados_activos
+    empleados_inactivos = dashboard.num_empleados_inactivos
+    empleados_baja = dashboard.num_empleados_baja
         
     context = {
         "crucero": crucero,
@@ -48,9 +53,9 @@ def cruceros_dashboard_data(request, crucero_id):
         "employees": {
             "total": employees,
             "status" : {
-                "active_employees": 0,
-                "inactive_employees": 0,
-                "de_baja_employees": 0,
+                "active_employees": empleados_activos,
+                "inactive_employees": empleados_inactivos,
+                "de_baja_employees": empleados_baja,
             },
         },
         "location": crucero.puerto_base,

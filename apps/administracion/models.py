@@ -126,6 +126,22 @@ class Dashboard(models.Model):
         else:
             self._num_empleados_actual_value = None
 
+    # ✅ NUEVO: Métodos para contar empleados por estado
+    @property
+    def num_empleados_activos(self):
+        """Cuenta el número de empleados activos (pStatus=1)"""
+        return Personal.objects.filter(pStatus=1).count()
+    
+    @property
+    def num_empleados_inactivos(self):
+        """Cuenta el número de empleados inactivos (pStatus=2)"""
+        return Personal.objects.filter(pStatus=2).count()
+    
+    @property
+    def num_empleados_baja(self):
+        """Cuenta el número de empleados de baja (pStatus=3)"""
+        return Personal.objects.filter(pStatus=3).count()
+
     def clean(self):
         if self.costos_totales and self.costos_totales < 0:
             raise ValidationError("Los costos no pueden ser negativos.")
