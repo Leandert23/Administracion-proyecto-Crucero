@@ -8,6 +8,7 @@ from .models import Dashboard, Alerta
 from .signals import decision_solicitud, obtener_solicitudes_compra
 from apps.compras.models import CompraLote, Proveedores
 from apps.ventas.models import Venta
+from apps.recursos_humanos.models import Personal
 from django.db.models import Count, Sum
 
 def obtener_totales_compras_por_tipo(crucero_id):
@@ -102,6 +103,40 @@ def obtener_totales_ventas_por_tipo(crucero_id=None):
     
     return lista_totales
 
+def obtener_estadisticas_empleados():
+    """
+    Obtiene las estadísticas de empleados por estado (activo, inactivo, de baja).
+    
+    Returns:
+        dict: Diccionario con conteos de empleados por estado
+    """
+    # Obtener conteos por estado usando el campo pStatus
+    # 1 = Activo, 2 = Inactivo, 3 = De baja
+    estadisticas = Personal.objects.values('pStatus').annotate(
+        cantidad=Count('id')
+    )
+    
+    # Inicializar contadores
+    conteos = {
+        'activos': 0,
+        'inactivos': 0,
+        'de_baja': 0
+    }
+    
+    # Procesar los resultados
+    for stat in estadisticas:
+        status = stat['pStatus']
+        cantidad = stat['cantidad']
+        
+        if status == 1:  # Activo
+            conteos['activos'] = cantidad
+        elif status == 2:  # Inactivo
+            conteos['inactivos'] = cantidad
+        elif status == 3:  # De baja
+            conteos['de_baja'] = cantidad
+    
+    return conteos
+
 #Obtener la distancia del recorrido de un crucero en particular
 def cruceros_dashboard_data(request, crucero_id):
     """API endpoint para obtener datos del dashboard de un crucero en particular"""
@@ -136,7 +171,10 @@ def cruceros_dashboard_data(request, crucero_id):
     # Obtener totales de compras por tipo de proveedor
     compras_por_tipo = obtener_totales_compras_por_tipo(crucero_id)
     ventas_por_tipo = obtener_totales_ventas_por_tipo(crucero_id)
-
+    
+    # Obtener estadísticas de empleados
+    estadisticas_empleados = obtener_estadisticas_empleados()
+    
     context = {
         "crucero": crucero,
         "name": crucero.nombre,
@@ -145,9 +183,9 @@ def cruceros_dashboard_data(request, crucero_id):
         "employees": {
             "total": employees,
             "status" : {
-                "active_employees": 0,
-                "inactive_employees": 0,
-                "de_baja_employees": 0,
+                "active_employees": estadisticas_empleados['activos'],
+                "inactive_employees": estadisticas_empleados['inactivos'],
+                "de_baja_employees": estadisticas_empleados['de_baja'],
             },
         },
         "location": crucero.puerto_base,

@@ -2,10 +2,11 @@ from django.db import models
 from apps.cruceros.models import Crucero
 from apps.compras.models import ProveedorMaterial, CompraLote
 from apps.ventas.models import Venta, Cliente
-#from apps.recursos_humanos.models import Personal
+from apps.recursos_humanos.models import Personal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.db.models import Sum
 
 class Dashboard(models.Model):
     crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name='finanzas')
@@ -22,34 +23,27 @@ class Dashboard(models.Model):
     num_pasajeros_actual = models.PositiveIntegerField() #???
     num_empleados_actual = models.PositiveIntegerField() #Recursos humanos
     
-    '''''''''
-    
-    background: #fff;
-    border-radius: 0 8px 8px 0;
-    border: 1px solid #e2e8f0;
-
-    <li class="nav-item">
-          <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
-            <span class="nav-text">Gestión Crucero</span>
-          </a>
-        </li>
     # Agregar método para calcular presupuesto
     @property
-    def presupuesto_estimado(self, pasajeros=None, empleados=None, dias=None, distancia=None):
-        # Ecuación: [(Precio de los boletos + Estimado de los no incluidos) - Total*10%] * Capacidad del barco al 60%
-        if not all([pasajeros, empleados, dias, distancia]):
-            pasajeros = self.num_pasajeros_actual
-            empleados = self.num_empleados_actual
-            dias = 7  # valor por defecto
-            distancia = 1000  # valor por defecto
+    def presupuesto_estimado(self):
+        pasajeros = self.num_pasajeros_actual
+        empleados = self.num_empleados_actual
+        dias = getattr(self.crucero, "dia_actual_de_viaje", 0) if (hasattr(self.crucero, "dia_actual_de_viaje") and 
+                isinstance(getattr(self.crucero, "dia_actual_de_viaje", 0), int)) else 0
+        distancia = 1000  # valor por defecto
         
-        costo_combustible = distancia * 2.5
-        costo_comida = (pasajeros + empleados) * dias * 45
-        costo_mantenimiento = dias * 1200
-        costo_operacional = empleados * dias * 80
+        costo_combustible = distancia * self.precio_combustible * self.crucero.consumo_combustible * dias
+        costo_operacional = Personal.objects.aggregate(Sum('salario'))['salario__sum'] * dias
         
-        return costo_combustible + costo_comida + costo_mantenimiento + costo_operacional
-    '''''''''
+        return costo_combustible + costo_operacional
+    
+    @presupuesto_estimado.setter
+    def presupuesto_estimado(self, value):
+        """Setter para presupuesto_estimado que permite asignar valores directamente."""
+        if value is not None:
+            self._presupuesto_estimado_value = Decimal(str(value))
+        else:
+            self._presupuesto_estimado_value = None
 
     @property
     def costos_totales(self):
@@ -78,8 +72,6 @@ class Dashboard(models.Model):
             self._costos_totales_value = Decimal(str(value))
         else:
             self._costos_totales_value = None
-
-    #Agregar para decidir el precio del combustible
 
     @property
     def ganancias_totales(self):
@@ -115,7 +107,7 @@ class Dashboard(models.Model):
 
     @property
     def num_empleados_actual(self):
-        return Cliente.objects.count()
+        return Personal.objects.count()
     
     @num_empleados_actual.setter
     def num_empleados_actual(self, value):

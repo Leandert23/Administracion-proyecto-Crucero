@@ -64,7 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
       costs: contextData.costs || { total: 0, categories: {} },
       earnings: contextData.earnings || { total: 0, real: 0, categories: {} },
       alerts: Array.isArray(contextData.alerts) ? contextData.alerts : [],
-      compras_por_tipo: Array.isArray(contextData.compras_por_tipo) ? contextData.compras_por_tipo : []
+      compras_por_tipo: Array.isArray(contextData.compras_por_tipo) ? contextData.compras_por_tipo : [],
+      ventas_por_tipo: Array.isArray(contextData.ventas_por_tipo) ? contextData.ventas_por_tipo : []
     };
     ships = [shipObject];
   } else {
@@ -346,97 +347,54 @@ function renderSingleShipCharts(ship) {
       }
     }
   });
-  // Ganancias por categoría
+  // Ventas por tipo
   const ctx2 = document.getElementById('secondaryChart').getContext('2d');
   if (secondaryChart) secondaryChart.destroy();
+  
+  // Usar datos de ventas por tipo si están disponibles, sino usar categorías de ganancias
+  let secondaryLabels, secondaryData, secondaryTitle;
+  
+  if (ship.ventas_por_tipo && ship.ventas_por_tipo.length > 0) {
+    secondaryLabels = ship.ventas_por_tipo.map(item => item.tipo_display);
+    secondaryData = ship.ventas_por_tipo.map(item => item.total);
+    secondaryTitle = 'Ventas por Tipo';
+  } else {
+    secondaryLabels = Object.keys(ship.earnings?.categories || {});
+    secondaryData = Object.values(ship.earnings?.categories || {}).map(v => v || 0);
+    secondaryTitle = 'Ganancias por Categoría';
+  }
+  
+  // Generar colores dinámicamente para mejor visualización
+  const secondaryColors = generateColors(secondaryLabels.length);
+  
   secondaryChart = new Chart(ctx2, {
     type: 'pie',
     data: {
-      labels: Object.keys(ship.earnings?.categories || {}),
+      labels: secondaryLabels,
       datasets: [{
-        label: 'Ganancias',
-        data: Object.values(ship.earnings?.categories || {}).map(v => v || 0),
-        backgroundColor: ['#b3dafe', '#aaf2b2', '#f9c2c2'],
+        label: 'Ventas',
+        data: secondaryData,
+        backgroundColor: secondaryColors,
+        borderWidth: 2,
+        borderColor: '#ffffff'
       }]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { position: 'bottom' },
+        legend: { 
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            usePointStyle: true
+          }
+        },
         title: {
           display: true,
-          text: 'Ganancias por Categoría',
+          text: secondaryTitle,
           font: { size: 16 }
         }
       }
     }
   });
-}
-
-function renderSingleShip(shipId) {
-  selectedShipId = shipId;
-  const ship = ships.find(s => s.id === shipId || Number(s.id) === Number(shipId)) || ships[0];
-  const dashboard = document.getElementById('dashboard');
-  let alertsHtml = '';
-  if (ship.alerts && ship.alerts.length > 0) {
-    alertsHtml = '<div class="alerts">' + ship.alerts.map(function(a) {
-      if (typeof a === 'string') { return '<div>' + a + '</div>'; }
-      var mensaje = (a && a.mensaje) ? a.mensaje : '';
-      var fecha = (a && a.fecha) ? a.fecha : '';
-      return '<div><div>' + mensaje + '</div>' + (fecha ? '<small class="text-muted">' + fecha + '</small>' : '') + '</div>';
-    }).join('') + '</div>';
-  }
-
-  let shipImage = "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=200&fit=crop";
-  if (ship.status === "mantenimiento" || ship.status === "En mantenimiento") {
-    shipImage = "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&h=200&fit=crop";
-  } else if (ship.status === "inactivo" || ship.status === "Embarcado") {
-    shipImage = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=200&fit=crop";
-  }
-
-  dashboard.innerHTML = `
-    <div class="dashboard-box" style="max-height: 100%;">
-      <div style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('${shipImage}'); background-size: cover; background-position: center; border-radius: 12px; padding: 30px; margin-bottom: 20px; text-align: center;">
-        <h1 style="color:white">Dasboard de ${ship.name}</h1>
-      </div>
-      <div class="content-box">
-        <h1 style="color: white; font-size: 2em; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">${ship.name}</h1>
-        ${alertsHtml}
-      </div>
-      <h2>Estado: <strong>${ship.status}</strong> &nbsp;|&nbsp; Precio de la gasolina: <strong>${ship.gasPrice || 0}</strong></h2>
-      <h3>Presupuesto por parada para compras: ${ship.budget || 0}</h3>
-      <strong>Ubicación actual:</strong> ${ship.location}<br>
-      <strong>Días en viaje:</strong> ${ship.days}<br>
-      <strong>Distancia del viaje:</strong> ${ship.distance || 0}
-
-      <hr>
-      <div class="flex-row">
-        <div class="stats-block">
-          <strong>Número de pasajeros actual:</strong> ${ship.passengers}<br>
-          <strong>Número de empleados actual:</strong> ${ship.employees.total}
-        </div>
-        <div class="stats-block">
-          <strong>Número de empleados activos:</strong> ${ship.employees.status.active_employees}<br>
-          <strong>Número de empleados inactivos:</strong> ${ship.employees.status.inactive_employees}<br>
-          <strong>Número de empleados de baja:</strong> ${ship.employees.status.de_baja_employees}
-        </div>
-      </div>
-      <div class="flex-row">
-        <div class="stats-block">
-          <h3><strong>Costos totales</strong></h3><br>
-          <strong>Total:</strong> ${(ship.costs && ship.costs.total) ? ship.costs.total.toLocaleString() : 0}<br>
-          Distribución de costos por categorías y su cantidad<br>
-          <canvas id="mainChart"></canvas>
-        </div>
-        <div class="stats-block">
-          <h3><strong>Ganancias totales y reales</strong></h3><br>
-          <strong>Total:</strong> ${(ship.earnings && ship.earnings.total) ? ship.earnings.total.toLocaleString() : 0}<br>
-          <strong>Real:</strong> ${(ship.earnings && ship.earnings.real) ? ship.earnings.real.toLocaleString() : 0}<br>
-          Distribución de ganancias por categorías y su cantidad<br>
-          <canvas id="secondaryChart"></canvas>
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(function() { renderSingleShipCharts(ship); }, 0);
 }
