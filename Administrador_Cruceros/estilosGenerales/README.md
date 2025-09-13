@@ -1,0 +1,1 @@
+Aqui tienen un preview de una pagina de Inicio para que se basen en ella, tienen la distribución de las etiquetas HTML y sus estilos. Tambien hay un ejemplo de la pagina de entretenimiento. Están linkeadas entre sí, pueden acceder a ella desde el HTML de Inicio. Hay un pequeño ejemplo de como lo vamos a hacer nosotros. 
