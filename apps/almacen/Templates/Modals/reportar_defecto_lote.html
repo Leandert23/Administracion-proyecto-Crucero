@@ -1,4 +1,11 @@
 <div id="modalReportarDefectoLote" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index:5100;">
+    <!--
+        Nota: Este modal tiene behaviour JS para:
+        - evitar alert() nativos y mostrar mensajes inline
+        - cerrar inmediatamente al reportar defecto con GestorModales.cerrar o fallback
+        - listeners robustos para elementos con data-close="true" y .close-btn
+        - handler de Escape para cerrar el modal
+    -->
     <style>
         /* Scoped styles for Reportar Defecto modal */
         #modalReportarDefectoLote{
@@ -91,6 +98,10 @@
                     <button type="submit" class="btn btn-danger" id="btn-confirmar-defecto">Reportar defecto</button>
                 </div>
             </form>
+            <div id="reportar-defecto-mensaje" role="status" aria-live="polite" style="display:none; margin-top:10px; padding:8px 10px; border-radius:6px;
+                background:#f8fafc; color:#0f172a; border:1px solid #e6eef8;">
+                <span class="mensaje-text"></span>
+            </div>
         </div>
     </div>
 </div>
@@ -213,24 +224,50 @@
                         })();
                         if(csrftoken) xhr.setRequestHeader('X-CSRFToken', csrftoken);
 
+                        function mostrarMensaje(text, isError){
+                            try{
+                                var cont = document.getElementById('reportar-defecto-mensaje');
+                                if(!cont) return;
+                                var span = cont.querySelector('.mensaje-text');
+                                if(span) span.textContent = text || '';
+                                cont.style.display = text ? 'block' : 'none';
+                                if(isError){
+                                    cont.style.background = '#fff1f0';
+                                    cont.style.borderColor = '#fecaca';
+                                    cont.style.color = '#7f1d1d';
+                                } else {
+                                    cont.style.background = '#ecfdf5';
+                                    cont.style.borderColor = '#bbf7d0';
+                                    cont.style.color = '#064e3b';
+                                }
+                                // hide after a short delay on success
+                                if(!isError){
+                                    setTimeout(function(){ try{ cont.style.display='none'; }catch(e){} }, 2200);
+                                }
+                            }catch(e){ /* silent */ }
+                        }
+
                         xhr.onload = function(){
                             try{
                                 var r = JSON.parse(xhr.responseText);
                                 if(xhr.status >=200 && xhr.status < 300 && r && r.success){
-                                    alert('Orden marcada como DENEGADA y mensaje actualizado.');
-                                    // close modal via GestorModales or fallback
-                                    if(window.GestorModales && typeof window.GestorModales.cerrar === 'function'){
-                                        window.GestorModales.cerrar('defecto_lote');
-                                    } else {
-                                        var m = document.getElementById('modalReportarDefectoLote');
-                                        if(m){ m.setAttribute('aria-hidden','true'); m.style.display='none'; document.body.style.overflow = ''; }
-                                    }
+                                    // show inline success message instead of alert
+                                    mostrarMensaje('Orden marcada como DENEGADA y mensaje actualizado.', false);
+                                    // close modal immediately via GestorModales or fallback
+                                    try{
+                                        if(window.GestorModales && typeof window.GestorModales.cerrar === 'function'){
+                                            window.GestorModales.cerrar('defecto_lote');
+                                        } else {
+                                            var m = document.getElementById('modalReportarDefectoLote');
+                                            if(m){ m.setAttribute('aria-hidden','true'); try{ m.style.setProperty('display','none','important'); }catch(e){ m.style.display='none'; } document.body.style.overflow = ''; }
+                                        }
+                                    }catch(e){ }
                                 } else {
-                                    alert('Error: ' + (r && r.error ? r.error : 'no se pudo procesar'));
+                                    mostrarMensaje('Error: ' + (r && r.error ? r.error : 'no se pudo procesar'), true);
                                 }
-                            }catch(e){ alert('Respuesta inválida del servidor'); }
+                            }catch(e){ mostrarMensaje('Respuesta inválida del servidor', true); }
                         };
-                        xhr.onerror = function(){ alert('Error de red al reportar defecto'); };
+                        xhr.onerror = function(){ mostrarMensaje('Error de red al reportar defecto', true); };
                         xhr.send(payload);
                     });
                 }
@@ -239,22 +276,97 @@
             // Close handlers: X button and any element with data-close="true"
             try{
                 var modalRoot = document.getElementById('modalReportarDefectoLote');
-                function cerrarModalDefecto(){
+                // Close the defecto modal. If modalEl is passed, close that element; otherwise fall back to the known id/GestorModales.
+                function cerrarModalDefecto(modalEl){
                     try{
+                        var currentModal = modalEl || document.getElementById('modalReportarDefectoLote');
                         if(window.GestorModales && typeof window.GestorModales.cerrar === 'function'){
-                            window.GestorModales.cerrar('defecto_lote');
-                        } else if(modalRoot){
-                            modalRoot.setAttribute('aria-hidden','true');
-                            try{ modalRoot.style.setProperty('display','none','important'); }catch(e){ modalRoot.style.display='none'; }
+                            try{ window.GestorModales.cerrar('defecto_lote'); return; }catch(e){}
+                        }
+                        if(currentModal){
+                            currentModal.setAttribute('aria-hidden','true');
+                            try{ currentModal.style.setProperty('display','none','important'); }catch(e){ currentModal.style.display='none'; }
                             try{ document.body.style.overflow = ''; }catch(e){}
                         }
                     }catch(e){ console.debug('cerrarModalDefecto error', e); }
                 }
-                if(modalRoot){
-                    modalRoot.querySelectorAll('[data-close="true"], .close-btn').forEach(function(el){
-                        el.addEventListener('click', function(ev){ ev.preventDefault(); cerrarModalDefecto(); });
-                    });
+                // Attach close handlers robustly: support elements inside modal even if modal is moved to body
+                function attachCloseHandlers(root){
+                    try{
+                        if(!root) return;
+                        root.querySelectorAll('[data-close="true"], .close-btn').forEach(function(el){
+                            try{
+                                if(el.__closeHookAdded) return;
+                                el.__closeHookAdded = true;
+                                el.addEventListener('click', function(ev){
+                                    try{ ev && ev.preventDefault && ev.preventDefault(); }catch(e){}
+                                    // pass the modal that contains this element, if any
+                                    var m = el && el.closest ? el.closest('#modalReportarDefectoLote') : document.getElementById('modalReportarDefectoLote');
+                                    cerrarModalDefecto(m || undefined);
+                                });
+                            }catch(e){}
+                        });
+                    }catch(e){ }
                 }
+
+                if(modalRoot){
+                    attachCloseHandlers(modalRoot);
+                }
+
+                // Observe modal for reparenting (if moved to body or re-rendered) and reattach handlers
+                try{
+                    var observer = null;
+                    if(window.MutationObserver && modalRoot){
+                        observer = new MutationObserver(function(mutations){
+                            // small debounce: reattach after changes
+                            setTimeout(function(){
+                                var m = document.getElementById('modalReportarDefectoLote');
+                                if(m) attachCloseHandlers(m);
+                            }, 30);
+                        });
+                        observer.observe(document.body, { childList:true, subtree:true });
+                    }
+                }catch(e){ }
+
+                // Handle Escape key to close modal when open
+                try{
+                    document.addEventListener('keydown', function(ev){
+                        if(!ev) return;
+                        if(ev.key === 'Escape' || ev.key === 'Esc'){
+                            var m = document.getElementById('modalReportarDefectoLote');
+                            if(m && m.getAttribute('aria-hidden') === 'false'){
+                                cerrarModalDefecto();
+                                try{ ev.preventDefault(); }catch(e){}
+                            }
+                        }
+                    });
+                }catch(e){ }
+
+                // Delegated click handler: closes modal when clicking elements with data-close or .close-btn inside the modal
+                try{
+                    document.addEventListener('click', function(ev){
+                        try{
+                            if(!ev || !ev.target) return;
+                            var el = ev.target;
+                            // climb up the tree to find a [data-close] or .close-btn
+                            var depth = 0;
+                            while(el && el !== document && depth < 8){
+                                if(el.matches && (el.matches('[data-close="true"]') || el.matches('.close-btn'))){
+                                    // only close if this element is inside the modal
+                                    var m = document.getElementById('modalReportarDefectoLote');
+                                    if(m && m.contains(el)){
+                                        ev.preventDefault && ev.preventDefault();
+                                        // pass the modal element to the closer for robustness
+                                        cerrarModalDefecto(m);
+                                    }
+                                    return;
+                                }
+                                el = el.parentNode;
+                                depth++;
+                            }
+                        }catch(e){}
+                    }, true);
+                }catch(e){}
             }catch(e){ console.debug('close hook error', e); }
         })();
         </script>

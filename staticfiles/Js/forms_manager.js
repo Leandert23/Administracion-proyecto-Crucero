@@ -199,7 +199,8 @@
             lote: {
                 idFormulario: 'form-crear-lote',
                 claveModal: 'lote',
-                endpoint: 'registrar-lote/',
+                // Use absolute path so it resolves regardless of current page (avoids /almacen/<id>/registrar-lote/)
+                endpoint: '/almacen/registrar-lote/',
                 
                 inicializar(contexto) {
                     aplicarEstilosEnfoque(contexto.formulario);
