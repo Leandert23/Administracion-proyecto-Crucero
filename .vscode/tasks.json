@@ -1,0 +1,34 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Django server for manual check",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$env:DJANGO_SETTINGS_MODULE='crucero_restaurant.settings'; python - << 'PY'\nimport os\nos.environ.setdefault('DJANGO_SETTINGS_MODULE','crucero_restaurant.settings')\nfrom django.core.management import call_command\ncall_command('check')\nprint('Django check OK')\nPY"
+			]
+		},
+		{
+			"label": "Run Django check",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$env:DJANGO_SETTINGS_MODULE='crucero_restaurant.settings'; python -c \"import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE','crucero_restaurant.settings'); from django.core.management import call_command; call_command('check'); print('Django check OK')\""
+			]
+		},
+		{
+			"label": "Run Django check",
+			"type": "shell",
+			"command": "powershell -NoProfile -Command \"$env:DJANGO_SETTINGS_MODULE='crucero_restaurant.settings'; python -c \\\"import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE','crucero_restaurant.settings'); from django.core.management import call_command; call_command('check'); print('Django check OK')\\\"\"",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		}
+	]
+}

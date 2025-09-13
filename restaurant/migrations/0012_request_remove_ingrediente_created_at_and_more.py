@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('restaurant', '0011_add_cruise_day_to_invoice_and_buffet'),
+        ('restaurant', '0012_bootstrap_missing_ingrediente'),
     ]
 
     operations = [

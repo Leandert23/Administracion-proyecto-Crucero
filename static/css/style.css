@@ -123,6 +123,39 @@ body {
     border-left: 5px solid #3498db;
 }
 
+/* Evitar subrayados y colores de enlace en tarjetas clicables */
+a.stat-card,
+a.stat-card:link,
+a.stat-card:visited,
+a.stat-card:hover,
+a.stat-card:active,
+a.gestion-card,
+a.gestion-card:link,
+a.gestion-card:visited,
+a.gestion-card:hover,
+a.gestion-card:active {
+    text-decoration: none;
+    color: inherit;
+}
+
+.stat-card * {
+    text-decoration: none !important;
+}
+
+/* Evitar que el focus muestre líneas que parezcan subrayado */
+a.stat-card:focus,
+a.stat-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+}
+
+.stat-card h3,
+.stat-card p,
+.gestion-card h3,
+.gestion-card p {
+    text-decoration: none;
+}
+
 .stat-card:hover {
     transform: translateY(-5px);
 }

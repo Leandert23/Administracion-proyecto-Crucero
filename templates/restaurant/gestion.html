@@ -31,7 +31,7 @@
                 <p>Platillos</p>
             </div>
         </div>
-        <div class="stat-card">
+        <a class="stat-card" id="openIngredientesModal">
             <div class="stat-icon ingredientes">
                 <i class="fas fa-seedling"></i>
             </div>
@@ -39,7 +39,7 @@
                 <h3>{{ total_ingredientes }}</h3>
                 <p>Ingredientes</p>
             </div>
-        </div>
+        </a>
         <div class="stat-card">
             <div class="stat-icon restaurantes">
                 <i class="fas fa-store"></i>
@@ -71,17 +71,52 @@
             </div>
         </button>
 
-        <button class="gestion-card ingrediente-bg" onclick="openModal('ingredienteModal')">
+        <a class="gestion-card ingrediente-bg" href="#" id="openIngredientesModal2">
             <div class="card-overlay">
                 <div class="card-content">
                     <h3>Ingredientes</h3>
-                    <p>Gestionar ingredientes y precios</p>
+                    <p>Ver y gestionar ingredientes</p>
                 </div>
             </div>
-        </button>
+        </a>
 
     </div>
 </section>
+
+<!-- Modal: Listado de Ingredientes -->
+<div id="ingredientesListModal" class="modal">
+    <div class="modal-content" style="max-width: 1100px; width: 95%;">
+        <div class="modal-header">
+            <h3>Ingredientes</h3>
+            <span class="close" onclick="closeModal('ingredientesListModal')">&times;</span>
+        </div>
+            <div class="modal-body">
+                        <div class="ing-toolbar">
+                            <div id="ingredientesMeta" class="ing-meta"></div>
+                    <!-- Filtros removidos a solicitud -->
+                            <div class="ing-controls">
+                        <label class="ing-label">Por página</label>
+                        <select id="pageSizeSelect" class="ing-select">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <button id="prevPageBtn" class="ing-btn">Anterior</button>
+                        <span id="pageInfo" class="ing-page">1 / 1</span>
+                        <button id="nextPageBtn" class="ing-btn">Siguiente</button>
+                    </div>
+                </div>
+            <div class="table-wrapper">
+                <table class="table" id="ingredientesTable">
+                    <thead><tr id="ingredientesHead"></tr></thead>
+                    <tbody id="ingredientesBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeModal('ingredientesListModal')"></div>
+</div>
 
 <!-- Modal para crear Menú -->
 <div id="menuModal" class="modal">
@@ -330,6 +365,8 @@
     position: relative;
     overflow: hidden;
     min-height: 200px;
+    text-decoration: none;
+    color: inherit;
 }
 
 .gestion-card:hover {
@@ -404,6 +441,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -671,6 +709,26 @@
         flex: none;
     }
 }
+
+    .table-wrapper { overflow-x:auto; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
+    .table { width:100%; border-collapse:collapse; font-size:14px; }
+    .table th, .table td { padding:10px 12px; border-bottom:1px solid #f3f4f6; text-align:left; }
+    .table thead th { position:sticky; top:0; background:#f9fafb; font-weight:600; color:#374151; z-index:1; }
+    .table tbody tr:nth-child(even){ background:#fafafa; }
+    .table tbody tr:hover{ background:#f1f5f9; }
+    /* Modal ingredientes UI */
+    .ing-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .ing-meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .ing-meta .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; }
+    .badge-total{ background:#ECFDF5; color:#065F46; }
+    .ing-controls{ display:flex; align-items:center; gap:8px; }
+    .ing-filters{ display:flex; align-items:center; gap:8px; }
+    .ing-label{ color:#6b7280; font-size:13px; }
+    .ing-input{ padding:6px 10px; border:1px solid #e5e7eb; border-radius:8px; width:240px; }
+    .ing-select{ min-width:80px; padding:6px 10px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; }
+    .ing-btn{ padding:6px 10px; border:1px solid #d1d5db; border-radius:8px; background:#f9fafb; cursor:pointer; }
+    .ing-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+    .ing-page{ color:#6b7280; min-width:64px; text-align:center; }
 </style>
 {% endblock %}
 
@@ -990,5 +1048,84 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Carga dinámica de ingredientes al abrir el modal
+let ING_PAGE = 1;
+let ING_PAGE_SIZE = 25;
+let ING_PAGES = 1;
+// Filtros removidos
+async function cargarIngredientesOverview(){
+    try {
+        const url = new URL('{% url "restaurant:ingredientes_overview" %}', window.location.origin);
+    url.searchParams.set('page', ING_PAGE);
+    url.searchParams.set('page_size', ING_PAGE_SIZE);
+        const res = await fetch(url);
+        const data = await res.json();
+        ING_PAGES = data.pages || 1;
+                const meta = document.getElementById('ingredientesMeta');
+                        meta.innerHTML = `<span class="badge badge-total">Total: ${data.total}</span>`;
+        const head = document.getElementById('ingredientesHead');
+        const body = document.getElementById('ingredientesBody');
+        head.innerHTML = '';
+        body.innerHTML = '';
+        // Render cabecera
+        data.columns.forEach(c=>{
+            const th = document.createElement('th'); th.textContent = c; head.appendChild(th);
+        });
+        // Filtros removidos: no se pueblan selects
+        // Render filas
+        if (!data.rows || data.rows.length === 0){
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = Math.max(1, data.columns.length);
+            td.style.textAlign = 'center';
+            td.style.color = '#6b7280';
+            td.textContent = 'No hay ingredientes para mostrar.';
+            tr.appendChild(td);
+            body.appendChild(tr);
+        } else {
+            data.rows.forEach(r=>{
+                const tr = document.createElement('tr');
+                data.columns.forEach(c=>{
+                    const td = document.createElement('td'); td.textContent = (r[c] ?? ''); tr.appendChild(td);
+                });
+                body.appendChild(tr);
+            });
+        }
+        // Actualizar info de página y botones
+    document.getElementById('pageInfo').textContent = `${data.page} / ${data.pages}`;
+        document.getElementById('prevPageBtn').disabled = (data.page <= 1);
+        document.getElementById('nextPageBtn').disabled = (data.page >= data.pages);
+    } catch (e) {
+        console.error('Error cargando ingredientes:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const openers = [
+        document.getElementById('openIngredientesModal'),
+        document.getElementById('openIngredientesModal2'),
+    ];
+    openers.forEach(el=>{
+        if (!el) return;
+        el.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            ING_PAGE = 1;
+            const sel = document.getElementById('pageSizeSelect');
+            ING_PAGE_SIZE = parseInt(sel && sel.value ? sel.value : 25);
+            await cargarIngredientesOverview();
+            openModal('ingredientesListModal');
+        });
+    });
+    // Controles de paginación
+    const prev = document.getElementById('prevPageBtn');
+    const next = document.getElementById('nextPageBtn');
+    const sizeSel = document.getElementById('pageSizeSelect');
+    // Filtros removidos
+    if (prev) prev.addEventListener('click', async ()=>{ if (ING_PAGE > 1) { ING_PAGE--; await cargarIngredientesOverview(); } });
+    if (next) next.addEventListener('click', async ()=>{ if (ING_PAGE < ING_PAGES) { ING_PAGE++; await cargarIngredientesOverview(); } });
+    if (sizeSel) sizeSel.addEventListener('change', async ()=>{ ING_PAGE_SIZE = parseInt(sizeSel.value); ING_PAGE = 1; await cargarIngredientesOverview(); });
+    // Sin manejadores de filtros
+});
 </script>
 {% endblock %}

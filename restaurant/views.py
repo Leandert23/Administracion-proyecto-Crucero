@@ -61,10 +61,11 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Sum, Q
 from django.shortcuts import render
+from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
-from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo, PersonalRRHH, ComidasPreviu
+from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, Menu, Platillo, Ingrediente, IngredientePlatillo, PersonalRRHH
 from .models import ServiceInvoice, ServiceInvoiceItem, BuffetBulkRecord
 
 def dashboard(request):
@@ -585,14 +586,321 @@ def register_bulk_consumption(request):
 # Nuevas vistas para la sección de Gestión
 def gestion_view(request):
     """Vista principal de la sección de Gestión"""
-    # Usar valores por defecto por ahora para evitar errores de migración
+    try:
+        total_menus = Menu.objects.count()
+    except Exception:
+        total_menus = 0
+    try:
+        total_platillos = Platillo.objects.count()
+    except Exception:
+        total_platillos = 0
+    orm_count = 0
+    legacy_count = 0
+    try:
+        orm_count = Ingrediente.objects.count()
+    except Exception:
+        orm_count = 0
+    # Intentar siempre contar en la tabla legacy si existe
+    from django.db import connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT COUNT(*) FROM restaurant_ingredientes')
+            legacy_count = cursor.fetchone()[0] or 0
+    except Exception:
+        legacy_count = 0
+    total_ingredientes = legacy_count if legacy_count > 0 else orm_count
+    try:
+        total_restaurantes = Restaurante.objects.count()
+    except Exception:
+        total_restaurantes = 0
+
     context = {
-        'total_menus': 0,
-        'total_platillos': 0,
-        'total_ingredientes': 0,
-        'total_restaurantes': 0,
+        'total_menus': total_menus,
+        'total_platillos': total_platillos,
+        'total_ingredientes': total_ingredientes,
+        'total_restaurantes': total_restaurantes,
     }
     return render(request, 'restaurant/gestion.html', context)
+
+def ingredientes_overview(request):
+    """Devuelve ingredientes con columnas dinámicas desde tabla legada o desde ORM.
+    Respuesta JSON: { source: 'legacy'|'orm', columns: [...], rows: [ {col: val}... ], total: n }
+    """
+    from django.db import connection
+    source = 'orm'
+    columns = []
+    rows = []
+    total = 0
+    # Parámetros de paginación
+    try:
+        page = int(request.GET.get('page', '1'))
+        if page < 1:
+            page = 1
+    except ValueError:
+        page = 1
+    try:
+        page_size = int(request.GET.get('page_size', '25'))
+        if page_size < 1:
+            page_size = 25
+        if page_size > 100:
+            page_size = 100
+    except ValueError:
+        page_size = 25
+    offset = (page - 1) * page_size
+
+    # Filtros
+    q = (request.GET.get('q') or '').strip()
+    clase_f = (request.GET.get('clase') or '').strip()
+    subtipo_f = (request.GET.get('subtipo') or '').strip()
+    def fetch_from_table(table_name: str):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(f"PRAGMA table_info('{table_name}')")
+                cols_info = cursor.fetchall()
+                if cols_info:
+                    cols = [c[1] for c in cols_info]
+                    # Normalizar nombres para hacer matching case-insensitive y con espacios
+                    import re
+                    def norm(s: str) -> str:
+                        return re.sub(r"[\s\-]+", "_", s.lower())
+                    lower_map = {norm(c): c for c in cols}
+                    def pick_col(candidates):
+                        for cand in candidates:
+                            if cand in lower_map:
+                                return lower_map[cand]
+                        return None
+                    # Heurística de columnas (normalizadas)
+                    name_col = pick_col(['nombre','ingrediente','ingredientes'])
+                    clase_col = pick_col(['clase_alimenticia','clase','categoria','clasealimenticia','clasealimenticia'])
+                    subtipo_col = pick_col(['subtipo','sub_tipo'])
+                    # Helper para citar identificadores (columnas con espacios)
+                    def qi(identifier: str) -> str:
+                        return f'"{identifier}"'
+                    # Conteo total sin filtros para decidir si permitir fallback
+                    try:
+                        cursor.execute(f'SELECT COUNT(*) FROM {table_name}')
+                        total_all = cursor.fetchone()[0] or 0
+                    except Exception:
+                        total_all = 0
+
+                    where = []
+                    params = []
+                    if q and name_col:
+                        where.append(f"{qi(name_col)} LIKE ? COLLATE NOCASE")
+                        params.append(f"%{q}%")
+                    if clase_f and clase_col:
+                        where.append(f"TRIM({qi(clase_col)}) = TRIM(?) COLLATE NOCASE")
+                        params.append(clase_f)
+                    if subtipo_f and subtipo_col:
+                        where.append(f"TRIM({qi(subtipo_col)}) = TRIM(?) COLLATE NOCASE")
+                        params.append(subtipo_f)
+                    where_sql = (' WHERE ' + ' AND '.join(where)) if where else ''
+                    cursor.execute(f'SELECT COUNT(*) FROM {table_name}{where_sql}', params)
+                    tot = cursor.fetchone()[0] or 0
+                    # Datos filtrados (si hay)
+                    data = []
+                    if tot > 0:
+                        cursor.execute(
+                            f'SELECT * FROM {table_name}{where_sql} ORDER BY 1 LIMIT {int(page_size)} OFFSET {int(offset)}',
+                            params
+                        )
+                        data = cursor.fetchall()
+                    # Opciones para filtros (siempre, independientemente de tot)
+                    subs = []
+                    clases = []
+                    if subtipo_col:
+                        try:
+                            cursor.execute(
+                                f'SELECT DISTINCT {qi(subtipo_col)} FROM {table_name} WHERE {qi(subtipo_col)} IS NOT NULL LIMIT 200'
+                            )
+                            subs = [r[0] for r in cursor.fetchall() if r and r[0] is not None]
+                        except Exception:
+                            subs = []
+                    if clase_col:
+                        try:
+                            cursor.execute(
+                                f'SELECT DISTINCT {qi(clase_col)} FROM {table_name} WHERE {qi(clase_col)} IS NOT NULL LIMIT 200'
+                            )
+                            clases = [r[0] for r in cursor.fetchall() if r and r[0] is not None]
+                        except Exception:
+                            clases = []
+                    # Si la tabla existe, siempre devolvemos resultado aunque tot sea 0
+                    return cols, tot, [dict(zip(cols, r)) for r in data], {
+                        'q': bool(name_col),
+                        'clase': bool(clase_col),
+                        'subtipo': bool(subtipo_col),
+                        'clases': clases,
+                        'subtipos': subs,
+                        'total_all': total_all,
+                    }
+        except Exception:
+            return None
+        return None
+
+    # Intentar tabla legada plural (única permitida)
+    got = fetch_from_table('restaurant_ingredientes')
+    if got:
+        columns, total, rows, supports = got
+        source = 'legacy'
+    else:
+        # Intentar comidasPreviu mediante ORM
+        try:
+            cols = ['id', 'ingredientes', 'tipo', 'subtipo', 'clase_alimenticia', 'detalle', 'platos', 'origen', 'fuente']
+            from .models import ComidasPreviu as CP
+            qs = CP.objects.all()
+            if q:
+                qs = qs.filter(ingredientes__icontains=q)
+            if clase_f:
+                qs = qs.filter(clase_alimenticia__iexact=clase_f)
+            if subtipo_f:
+                qs = qs.filter(subtipo__iexact=subtipo_f)
+            total = qs.count()
+            if total > 0:
+                columns = cols
+                rows = list(qs.values(*cols)[offset:offset+page_size])
+                source = 'previu'
+                supports = {
+                    'q': True,
+                    'clase': True,
+                    'subtipo': True,
+                    'clases': list(CP.objects.exclude(clase_alimenticia__isnull=True).exclude(clase_alimenticia='').values_list('clase_alimenticia', flat=True).distinct()[:200]),
+                    'subtipos': list(CP.objects.exclude(subtipo__isnull=True).exclude(subtipo='').values_list('subtipo', flat=True).distinct()[:200]),
+                }
+        except Exception:
+            pass
+        # Fallback final a mock
+        if total == 0:
+            try:
+                cols = ['id', 'ingredientes', 'tipo', 'subtipo', 'clase_alimenticia', 'detalle', 'platos', 'origen', 'fuente']
+                from .views import MOCK_INGREDIENTES_COMIDAS_PREVIA as MK
+            except Exception:
+                cols = []
+                MK = []
+            if MK:
+                # Filtrar mock según parámetros
+                def keep(item):
+                    if q and not (item.get('ingredientes') or '').lower().__contains__(q.lower()):
+                        return False
+                    if clase_f and (item.get('clase_alimenticia') or '') != clase_f:
+                        return False
+                    if subtipo_f and (item.get('subtipo') or '') != subtipo_f:
+                        return False
+                    return True
+                filtered = [i for i in MK if keep(i)]
+                columns = cols
+                total = len(filtered)
+                slice_ = filtered[offset:offset+page_size]
+                rows = [
+                    {
+                        'id': item.get('id'),
+                        'ingredientes': item.get('ingredientes'),
+                        'tipo': item.get('tipo'),
+                        'subtipo': item.get('subtipo'),
+                        'clase_alimenticia': item.get('clase_alimenticia'),
+                        'detalle': item.get('detalle'),
+                        'platos': item.get('platos'),
+                        'origen': item.get('origen'),
+                        'fuente': item.get('fuente'),
+                    }
+                    for item in slice_
+                ]
+                source = 'mock'
+                supports = {
+                    'q': True,
+                    'clase': True,
+                    'subtipo': True,
+                    'clases': sorted(list(set([i.get('clase_alimenticia') for i in MK if i.get('clase_alimenticia')])))[:200],
+                    'subtipos': sorted(list(set([i.get('subtipo') for i in MK if i.get('subtipo')])))[:200],
+                }
+
+    if source == 'orm':
+        # Definir columnas comunes del modelo nuevo
+        columns = ['id', 'nombre', 'unidad', 'subtipo', 'activo', 'creado']
+        try:
+            qs = Ingrediente.objects.all()
+            if q:
+                qs = qs.filter(nombre__icontains=q)
+            # No existe clase en el modelo nuevo; se ignora filtro de clase
+            if subtipo_f:
+                qs = qs.filter(subtipo=subtipo_f)
+            total = qs.count()
+            rows = list(qs.values(*columns)[offset:offset+page_size])
+            supports = {
+                'q': True,
+                'clase': False,
+                'subtipo': True,
+                'clases': [],
+                'subtipos': [s[0] for s in Ingrediente.SUBTIPOS],
+            }
+        except Exception:
+            columns = []
+            rows = []
+            total = 0
+            supports = {'q': True, 'clase': False, 'subtipo': False, 'clases': [], 'subtipos': []}
+
+    return JsonResponse({
+        'source': source,
+        'columns': columns,
+        'rows': rows,
+        'total': total,
+        'page': page,
+        'page_size': page_size,
+        'pages': (total + page_size - 1) // page_size if page_size else 1,
+        'supports': supports if 'supports' in locals() else {'q': True, 'clase': False, 'subtipo': False, 'clases': [], 'subtipos': []},
+    })
+
+def ingredientes_list_view(request):
+    """Lista de ingredientes.
+    - Prioriza leer de la tabla legada `restaurant_ingredientes` si existe y tiene datos.
+    - Si no, usa el modelo ORM `Ingrediente`.
+    """
+    legacy_rows = []
+    legacy_columns = []
+    legacy_total = 0
+    orm_qs = Ingrediente.objects.all().order_by('nombre')
+    source = 'orm'
+    # Intentar leer de tabla legacy
+    from django.db import connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("PRAGMA table_info('restaurant_ingredientes')")
+            cols_info = cursor.fetchall()
+            if cols_info:
+                legacy_columns = [c[1] for c in cols_info]
+                cursor.execute('SELECT COUNT(*) FROM restaurant_ingredientes')
+                legacy_total = cursor.fetchone()[0] or 0
+                if legacy_total > 0:
+                    cursor.execute('SELECT * FROM restaurant_ingredientes ORDER BY 1 LIMIT 1000')
+                    data = cursor.fetchall()
+                    legacy_rows = [dict(zip(legacy_columns, row)) for row in data]
+                    source = 'legacy'
+    except Exception:
+        pass
+
+    # Paginación
+    page = request.GET.get('page', 1)
+    if source == 'legacy':
+        paginator = Paginator(legacy_rows, 25)
+        page_obj = paginator.get_page(page)
+        context = {
+            'source': source,
+            'columns': legacy_columns,
+            'page_obj': page_obj,
+            'total': legacy_total,
+        }
+    else:
+        paginator = Paginator(list(orm_qs.values('id', 'nombre', 'unidad', 'subtipo', 'activo', 'creado')), 25)
+        page_obj = paginator.get_page(page)
+        context = {
+            'source': source,
+            'columns': ['id', 'nombre', 'unidad', 'subtipo', 'activo', 'creado'],
+            'page_obj': page_obj,
+            'total': orm_qs.count(),
+        }
+
+    return render(request, 'restaurant/ingredients_list.html', context)
+
+ 
 
 # AJAX Views para Gestión
 @csrf_exempt

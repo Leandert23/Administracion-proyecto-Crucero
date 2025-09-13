@@ -14,6 +14,7 @@ urlpatterns = [
     path('records/', views.records_view, name='records'),
     # Nueva sección de Gestión
     path('gestion/', views.gestion_view, name='gestion'),
+    path('gestion/ingredientes/', views.ingredientes_list_view, name='ingredientes_list'),
 
     # Vistas específicas para restaurantes
     path('buffet/', views.buffet_view, name='buffet'),
@@ -42,6 +43,7 @@ urlpatterns = [
     path('ajax/get-menus/', views.get_menus, name='get_menus'),
     path('ajax/get-platillos/', views.get_platillos, name='get_platillos'),
     path('ajax/get-ingredientes/', views.get_ingredientes, name='get_ingredientes'),
+    path('ajax/ingredientes-overview/', views.ingredientes_overview, name='ingredientes_overview'),
 
     # URLs para pruebas con comidasPreviu
     path('ajax/get-ingredientes-previa/', views.get_ingredientes_previa, name='get_ingredientes_previa'),

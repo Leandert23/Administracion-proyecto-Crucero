@@ -1,4 +1,11 @@
-from .models import Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord, ServiceInvoice, ServiceInvoiceItem, BuffetBulkRecord
+from .models import (
+    Crucero, Restaurante, MenuItem, Employee, MaintenanceItem, ConsumptionRecord,
+    ServiceInvoice, ServiceInvoiceItem, BuffetBulkRecord,
+    RestaurantIngredientes, RestaurantMenuDia1, RestaurantMenuDia2, RestaurantMenuDia3,
+    RestaurantMenuDia4, RestaurantMenuDia5, RestaurantMenuDia6, RestaurantMenuDia7,
+    RestaurantItaliano, RestaurantArabe, RestaurantVinos, RestaurantCartaEspecial,
+    RestaurantMenuFijo, RestaurantBuffet, RestaurantProducts,
+)
 from django.contrib import admin
 
 @admin.register(Crucero)
@@ -66,3 +73,20 @@ class BuffetBulkRecordAdmin(admin.ModelAdmin):
     list_filter = ['restaurant', 'date']
     search_fields = ['platillo__nombre']
     date_hierarchy = 'date'
+
+# Registros simples para las tablas importadas de la BD
+@admin.register(RestaurantIngredientes)
+class RestaurantIngredientesAdmin(admin.ModelAdmin):
+    list_display = ['id', 'ingredientes', 'tipo', 'subtipo', 'clase_alimenticia']
+    search_fields = ['ingredientes', 'tipo', 'subtipo', 'clase_alimenticia']
+
+for model in [
+    RestaurantMenuDia1, RestaurantMenuDia2, RestaurantMenuDia3, RestaurantMenuDia4,
+    RestaurantMenuDia5, RestaurantMenuDia6, RestaurantMenuDia7, RestaurantItaliano,
+    RestaurantArabe, RestaurantVinos, RestaurantCartaEspecial, RestaurantMenuFijo,
+    RestaurantBuffet, RestaurantProducts
+]:
+    try:
+        admin.site.register(model)
+    except admin.sites.AlreadyRegistered:
+        pass

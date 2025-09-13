@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load restaurant_extras %}
+{% block title %}Ingredientes - {{ block.super }}{% endblock %}
+{% block page_title %}Listado de Ingredientes{% endblock %}
+{% block content %}
+<section class="section">
+  <header class="section-header">
+    <h2>
+      Ingredientes (
+      {% if source == 'legacy' %}Datos legados{% else %}Nuevos datos{% endif %}
+      )
+    </h2>
+    <p>Total: {{ total }}</p>
+  </header>
+
+  {% if source == 'legacy' %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          {% for c in columns %}<th>{{ c }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in page_obj.object_list %}
+        <tr>
+          {% for c in columns %}
+          <td>{{ row|get_item:c }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          {% for c in columns %}<th>{{ c }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in page_obj.object_list %}
+        <tr>
+          {% for c in columns %}
+          <td>{{ row|get_item:c }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Anterior</a>
+    {% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Siguiente</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.section { padding: 20px; }
+.section-header h2 { margin: 0 0 4px; }
+.table-wrapper { overflow-x: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; text-align: left; }
+.table thead th { background: #f9fafb; font-weight: 600; color: #374151; }
+.pagination { margin-top: 12px; display: flex; gap: 12px; align-items: center; }
+.btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+.btn-secondary { background: #f3f4f6; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtro simple para imprimir valores dict en plantilla
+window.addEventListener('DOMContentLoaded', () => {
+  // No-op
+});
+</script>
+{% endblock %}
