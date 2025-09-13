@@ -1,8 +1,8 @@
 from django.db import models
 from apps.cruceros.models import Crucero
 from apps.compras.models import ProveedorMaterial, CompraLote
-from apps.ventas.models import Venta
-from apps.recursos_humanos.models import Personal
+from apps.ventas.models import Venta, Cliente
+#from apps.recursos_humanos.models import Personal
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
@@ -102,6 +102,19 @@ class Dashboard(models.Model):
 
     @property
     def num_empleados_actual(self):
+        return len(Cliente.objects.all())
+    
+    @num_empleados_actual.setter
+    def num_pasajeros_actual(self, value):
+        """Setter para ganancias_totales que permite asignar valores directamente."""
+        if value is not None:
+            self.num_pasajeros_actual = Decimal(str(value))
+        else:
+            self.num_pasajeros_actual = None
+
+    '''''''''
+    @property
+    def num_empleados_actual(self):
         return len(Personal.objects.all().filter(pStatus=1))
     
     @num_empleados_actual.setter
@@ -111,6 +124,7 @@ class Dashboard(models.Model):
             self.num_empleados_actual = Decimal(str(value))
         else:
             self.num_empleados_actual = None
+    '''''''''
 
     def clean(self):
         if self.costos_totales and self.costos_totales < 0:

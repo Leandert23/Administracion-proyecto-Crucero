@@ -1,0 +1,204 @@
+{% load static %}
+{% load get_item %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Red de Proveedores</title>
+    <link rel="stylesheet" href="{% static 'styles/styles_compras.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/proveedores.css' %}">
+    <!-- Eliminado tbody duplicado, la tabla correcta está más abajo -->
+    </head>
+    <body>
+    <div class="container-proveedores">
+        <form method="post" id="proveedor-form">
+            {% csrf_token %}
+            <div class="form-row">
+                <label for="id_name">Nombre:</label>
+                {{ form.name }}
+            </div>
+            <div class="form-row">
+                <label for="id_service_or_product">Servicio o producto:</label>
+                {{ form.service_or_product }}
+            </div>
+            <div class="form-row">
+                <label for="id_categorie">Categoría:</label>
+                {{ form.categorie }}
+            </div>
+            <div class="form-row">
+                <label for="id_contact">Contacto:</label>
+                {{ form.contact }}
+            </div>
+            <div class="form-row">
+                <label for="id_sucursal">Sucursal:</label>
+                {{ form.sucursal }}
+            </div>
+            <div class="form-row">
+                <label for="id_tipo">Tipo de producto:</label>
+                <select name="tipo" id="id_tipo">
+                    <option value="">---------</option>
+                    {% for tipo, subtipos in SUBTIPOS_POR_TIPO.items %}
+                        <option value="{{ tipo }}" {% if tipo == tipo_seleccionado %}selected{% endif %}>{{ tipo|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="id_subtipo">Subtipo de producto:</label>
+                <select name="subtipo" id="id_subtipo">
+                    <option value="">---------</option>
+                    {# Las opciones se llenarán dinámicamente con JS #}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="pais-select">País(es):</label>
+                <select id="pais-select" multiple size="5">
+                    <option value="Panamá">Panamá</option>
+                    <option value="Colombia">Colombia</option>
+                    <option value="Aruba">Aruba</option>
+                    <option value="Bonaire">Bonaire</option>
+                    <option value="Curazao">Curazao</option>
+                </select>
+                <button type="button" onclick="addPaisesSeleccionados()">Añadir</button>
+            </div>
+            <ul id="pais-list"></ul>
+            <input type="hidden" name="paises_json" id="paises-json">
+            <button type="submit" name="action" value="Registrar">Registrar</button>
+        </form>
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 0;">
+            <button type="button" onclick="window.location.href='{% url 'compras:compras' crucero_id %}'" class="btn-devolver">Devolver</button>
+        </div>
+    </div>
+    <script>
+    // Manejo de selección múltiple de países
+    let paisesSeleccionados = [];
+    function addPaisesSeleccionados() {
+        const select = document.getElementById('pais-select');
+        for (let option of select.options) {
+            if (option.selected && !paisesSeleccionados.includes(option.value)) {
+                paisesSeleccionados.push(option.value);
+            }
+        }
+        renderPaisList();
+        document.getElementById('paises-json').value = JSON.stringify(paisesSeleccionados);
+    }
+    function renderPaisList() {
+        const ul = document.getElementById('pais-list');
+        ul.innerHTML = '';
+        paisesSeleccionados.forEach(function(pais, idx) {
+            const li = document.createElement('li');
+            li.textContent = pais + ' ';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = 'Quitar';
+            btn.onclick = function() {
+                paisesSeleccionados.splice(idx, 1);
+                renderPaisList();
+                document.getElementById('paises-json').value = JSON.stringify(paisesSeleccionados);
+            };
+            li.appendChild(btn);
+            ul.appendChild(li);
+        });
+    }
+    </script>
+    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/proveedor_tipo_subtipo.js' %}"></script>
+    <h2>Proveedores Registrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Servicio/Producto</th>
+                <th>Categoría</th>
+                <th>Contacto</th>
+                <th>Países</th>
+                <th>Sucursal</th>
+                <th>Tipo</th>
+                <th>Subtipo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+    <tbody id="proveedores-table-body">
+            {% for proveedor in proveedores %}
+            <tr>
+                <td>{{ proveedor.name }}</td>
+                <td>{{ proveedor.service_or_product }}</td>
+                <td>{{ proveedor.categorie }}</td>
+                <td>{{ proveedor.contact }}</td>
+                <td>
+                    {% with paises=proveedor.countries.all %}
+                        {% if paises|length > 0 %}
+                            {% for pais in paises %}
+                                {{ pais.nombre|default:'---' }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            ---
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td>{{ proveedor.sucursal }}</td>
+                <td>{{ proveedor.get_tipo_display }}</td>
+                <td>{{ proveedor.get_subtipo_display }}</td>
+                <td>
+                    <form method="post" action="{% url 'compras:eliminar_proveedor' crucero_id%}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="proveedor_id" value="{{ proveedor.id }}">
+                        <button type="submit" {% if proveedor.id in proveedores_bloqueados %}disabled style="opacity:0.5;cursor:not-allowed;" title="No se puede eliminar: asignado a una orden de compra"{% endif %}>Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+    <script>
+        // Precargar tipos y subtipos desde Django en un objeto JS
+        const SUBTIPOS_POR_TIPO = {
+            {% for tipo, subtipos in SUBTIPOS_POR_TIPO.items %}
+                "{{ tipo }}": [
+                    {% for subtipo in subtipos %}
+                        "{{ subtipo }}"{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+        // Al cargar la página o cambiar el tipo, poblar subtipos
+        document.addEventListener('DOMContentLoaded', function() {
+            const tipoSelect = document.getElementById('id_tipo');
+            const subtipoSelect = document.getElementById('id_subtipo');
+            // Función para poblar subtipos
+            function poblarSubtipos(tipoSeleccionado, subtipoSeleccionado) {
+                subtipoSelect.innerHTML = '<option value="">---------</option>';
+                if (tipoSeleccionado && SUBTIPOS_POR_TIPO[tipoSeleccionado]) {
+                    SUBTIPOS_POR_TIPO[tipoSeleccionado].forEach(function(subtipo) {
+                        const opt = document.createElement('option');
+                        opt.value = subtipo;
+                        opt.textContent = subtipo;
+                        if (subtipoSeleccionado && subtipoSeleccionado === subtipo) {
+                            opt.selected = true;
+                        }
+                        subtipoSelect.appendChild(opt);
+                    });
+                }
+            }
+            // Inicializar con el valor actual (si lo hay)
+            let subtipoSeleccionado = '';
+            try {
+                subtipoSeleccionado = '{{ form.data.subtipo|default_if_none:"" }}';
+            } catch (e) {
+                subtipoSeleccionado = '';
+            }
+            if (!subtipoSeleccionado) {
+                try {
+                    subtipoSeleccionado = '{{ form.initial.subtipo|default_if_none:"" }}';
+                } catch (e) {
+                    subtipoSeleccionado = '';
+                }
+            }
+            poblarSubtipos(tipoSelect.value, subtipoSeleccionado);
+            tipoSelect.addEventListener('change', function() {
+                poblarSubtipos(this.value, null);
+            });
+        });
+    </script>
+    <script src="{% static 'js/repoblar_paises.js' %}"></script>
+</html>

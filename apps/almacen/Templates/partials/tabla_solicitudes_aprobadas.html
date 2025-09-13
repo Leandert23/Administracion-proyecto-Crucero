@@ -1,0 +1,27 @@
+<table class="msa-table" role="grid">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Solicitante</th>
+            <th>Unidades</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in solicitudes %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.fecha_creacion|date:"Y-m-d" }}</td>
+            <td>{% if s.productos_solicitados.all.0 %}{{ s.productos_solicitados.all.0.producto.nombre }}{% else %}-{% endif %}</td>
+            <td>{{ s.total_unidades|default:0 }}</td>
+            <td>
+                <button class="msa-btn msa-view" data-msa-action="ver" data-msa-id="{{ s.id }}">Ver</button>
+                <button class="msa-btn msa-deliver" data-msa-action="entregar" data-msa-id="{{ s.id }}">Entregar</button>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5">No se encontraron solicitudes aprobadas.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -119,7 +119,6 @@ def dashboard_empresa(request):
     }
     return render(request, 'dashboard_principal.html', contexto)
 
-
 def solicitar_mantenimiento_habitacion(request):
     """Vista para crear una TareaMantenimiento desde administración para una habitación."""
     cruceros = Crucero.objects.all()

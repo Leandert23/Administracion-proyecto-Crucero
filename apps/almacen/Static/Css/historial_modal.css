@@ -1,0 +1,618 @@
+/* Variables del tema (compartidas por ambos modales) */
+/* Nota: Antes solo existían dentro de #modalHistorialMovimientos, provocando que
+   en #modalDetalleMovimiento var(--bg-white) y otras no resolvieran y el fondo
+   quedara transparente. Ahora se definen para ambos IDs. */
+#modalHistorialMovimientos,
+#modalDetalleMovimiento {
+    --nav-bg: #1e293b;
+    --active-btn: #3b82f6;
+    --text-secondary: #8f99a7;
+    --bg-primary: #f8fafc;
+    --bg-white: #ffffff;
+    --text-primary: #1e293b;
+    --border-color: #e2e8f0;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --entrada: #22c55e;
+    --salida: #ef4444;
+    --ajuste: #f59e0b;
+    --creado: #6366f1; /* Indigo para distinguir creación */
+    --header-gradient: linear-gradient(135deg, #f8fafc 0%, #eef3f7 100%);
+}
+/* =================================================================== */
+/*  SECCIÓN B: LAYOUT GENERAL DEL MODAL                                 */
+/* =================================================================== */
+.contenedor-centrar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.inventario-modal { 
+    position: fixed; 
+    inset: 0; 
+    z-index: 1200; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.inventario-overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: rgba(0,0,0,.5); 
+    backdrop-filter: blur(4px); 
+}
+
+.inventario-dialog { 
+    position: relative; 
+    background: var(--bg-white); 
+    height: 95vh;
+    width: 95vw;
+    max-width: 1400px;
+    border-radius: 16px; 
+    box-shadow: 0 20px 50px -12px rgba(0,0,0,.3); 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
+
+/* Botón Salir */
+.inventario-exit-top {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f1f5f9;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    line-height: 1;
+    z-index: 15;
+}
+
+.inventario-exit-top:hover {
+    background: #e2e8f0;
+    color: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px -4px rgba(0,0,0,.25);
+}
+
+.inventario-exit-top:active { transform: translateY(0); box-shadow:none; }
+.inventario-exit-top:focus-visible { outline:2px solid #3b82f6; outline-offset:2px; }
+
+.inventario-body { 
+    padding: 20px; 
+    overflow: auto; 
+    background: var(--bg-primary); 
+    flex: 1;
+}
+
+.inventory-container { 
+    background: var(--bg-white); 
+    border-radius: 12px; 
+    padding: 24px; 
+    margin: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.05); 
+}
+
+.inventory-container.no-shadow { 
+    box-shadow: none; 
+    padding: 0; 
+    background: transparent; 
+    margin: 0;
+}
+/* =================================================================== */
+/*  SECCIÓN C: CABECERA                                                 */
+/* =================================================================== */
+
+.inventario-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 20px 24px; 
+    border-bottom: 1px solid var(--border-color); 
+    background: var(--header-gradient);
+}
+
+.inventario-header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.inventario-icon {
+    font-size: 1.5rem;
+    color: var(--active-btn);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.inventario-title { 
+    margin: 0; 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: var(--text-primary); 
+}
+
+.inventario-close { 
+    background: none; 
+    border: none; 
+    font-size: 1.2rem; 
+    cursor: pointer; 
+    color: var(--text-secondary); 
+    padding: 8px; 
+    border-radius: 8px; 
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.inventario-close:hover { 
+    background: #f1f5f9; 
+    color: var(--text-primary); 
+}
+/* =================================================================== */
+/*  SECCIÓN D: BARRA DE ACCIONES                                        */
+/* =================================================================== */
+.actions-container { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-wrap: wrap; 
+    gap: 16px; 
+    margin-bottom: 20px; 
+}
+
+.search-box { 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+    flex: 1; 
+    max-width: 500px; 
+}
+
+.search-box input { 
+    padding: 12px 16px 12px 44px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 10px; 
+    width: 100%; 
+    font-size: 0.95rem; 
+    background: var(--bg-white); 
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus { 
+    outline: none; 
+    border-color: var(--active-btn); 
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
+}
+
+.search-box i { 
+    position: absolute; 
+    left: 16px; 
+    color: var(--text-secondary); 
+    font-size: 1rem; 
+}
+
+.action-buttons { 
+    display: flex; 
+    gap: 12px; 
+}
+/* =================================================================== */
+/*  SECCIÓN E: BOTONES                                                  */
+/* =================================================================== */
+.btn { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px; 
+    padding: 10px 18px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-weight: 500; 
+    font-size: 0.9rem; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-white); 
+    color: var(--text-primary); 
+    transition: all 0.2s ease; 
+}
+
+.btn-primary { 
+    background: var(--active-btn); 
+    border-color: var(--active-btn); 
+    color: white; 
+}
+
+.btn-primary:hover { 
+    background: #2563eb; 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 16px -6px rgba(37, 99, 235, 0.4); 
+}
+
+.btn-secondary:hover { 
+    background: #f1f5f9; 
+}
+/* =================================================================== */
+/*  SECCIÓN F: FILTROS                                                  */
+/* =================================================================== */
+.filters-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.filters { 
+    display: flex; 
+    gap: 8px; 
+    flex-wrap: wrap; 
+}
+
+.filter-btn { 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px; 
+    border-radius: 20px; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-white); 
+    cursor: pointer; 
+    font-size: 0.8rem; 
+    font-weight: 500; 
+    transition: all 0.2s ease; 
+    color: var(--text-secondary); 
+}
+
+.filter-btn:hover { 
+    background: #f1f5f9; 
+    color: var(--text-primary); 
+}
+
+.filter-btn.active { 
+    background: var(--active-btn); 
+    color: white; 
+    border-color: var(--active-btn); 
+    box-shadow: 0 4px 12px -4px rgba(59, 130, 246, 0.4); 
+}
+
+.filter-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+/* =================================================================== */
+/*  SECCIÓN G: TABLA                                                    */
+/* =================================================================== */
+.table-container { 
+    overflow-x: auto; 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-white); 
+    margin-bottom: 20px;
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 900px; 
+}
+
+thead { 
+    background: #f1f5f9; 
+}
+
+th { 
+    text-align: left; 
+    padding: 16px 20px; 
+    font-weight: 600; 
+    color: var(--text-primary); 
+    font-size: 0.85rem; 
+    border-bottom: 2px solid var(--border-color); 
+    white-space: nowrap;
+}
+
+th i { 
+    margin-left: 4px; 
+    font-size: 0.7rem; 
+    color: var(--text-secondary); 
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+th:hover i {
+    opacity: 1;
+}
+
+td { 
+    padding: 16px 20px; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 0.9rem; 
+    vertical-align: middle;
+}
+
+tbody tr { 
+    transition: background-color 0.2s ease; 
+}
+
+tbody tr:hover { 
+    background-color: #f9fafb; 
+}
+/* =================================================================== */
+/*  SECCIÓN H: PRODUCTO (IMAGEN + INFO)                                 */
+/* =================================================================== */
+.product { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+
+.product-img-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.product-info { 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.product-name { 
+    font-weight: 600; 
+    color: var(--text-primary); 
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.product-sku { 
+    font-size: 0.75rem; 
+    color: var(--text-secondary); 
+}
+/* =================================================================== */
+/*  SECCIÓN I: BADGES DE MOVIMIENTOS                                    */
+/* =================================================================== */
+.movimiento-badge { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 5px; 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 0.75rem; 
+    font-weight: 600; 
+}
+
+.movimiento-badge.entrada { 
+    background: #dcfce7; 
+    color: var(--entrada); 
+}
+
+.movimiento-badge.salida { 
+    background: #fee2e2; 
+    color: var(--salida); 
+}
+
+.movimiento-badge.ajuste { 
+    background: #fef3c7; 
+    color: var(--ajuste); 
+}
+/* Nuevo: badge de creación de producto (tipo NEW) */
+.movimiento-badge.creado {
+    background: #e0e7ff; /* tono suave indigo */
+    color: var(--creado);
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.25);
+}
+/* Nuevo: badge de merma (tipo MERMA) */
+.movimiento-badge.merma {
+    background: #fef3c7; /* amber-100 */
+    color: #b45309;      /* amber-700 */
+    box-shadow: 0 0 0 1px rgba(245,158,11,0.28);
+}
+/* =================================================================== */
+/*  SECCIÓN J: ACCIONES DE FILA                                         */
+/* =================================================================== */
+.table-actions { 
+    display: flex; 
+    gap: 8px; 
+}
+
+.action-btn { 
+    width: 34px; 
+    height: 34px; 
+    border-radius: 8px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-white); 
+    color: var(--text-secondary); 
+    font-size: 0.9rem; 
+    transition: all 0.2s ease; 
+}
+
+.action-btn:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+
+.action-view:hover {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+.action-download:hover {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+/* =================================================================== */
+/*  SECCIÓN K: FOOTER / PAGINACIÓN                                      */
+/* =================================================================== */
+.table-footer { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-wrap: wrap; 
+    gap: 16px; 
+}
+
+.summary { 
+    font-size: 0.85rem; 
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination { 
+    display: flex; 
+    gap: 6px; 
+}
+
+.pagination-btn { 
+    padding: 8px 12px; 
+    border-radius: 8px; 
+    border: 1px solid var(--border-color); 
+    background: var(--bg-white); 
+    cursor: pointer; 
+    font-size: 0.85rem; 
+    color: var(--text-secondary); 
+    transition: all 0.2s ease;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover { 
+    background: #f1f5f9; 
+}
+
+.pagination-btn.active { 
+    background: var(--active-btn); 
+    color: white; 
+    border-color: var(--active-btn); 
+}
+/* ==================== MODAL DETALLE MOVIMIENTO ==================== */
+/* ==================== MODAL DETALLE MOVIMIENTO ==================== */
+#modalDetalleMovimiento { display:none; align-items:center; justify-content:center; }
+/* Aseguramos fondo sólido y borde para que no se vea el overlay a través */
+#modalDetalleMovimiento .movimiento-dialog { width:60vw; height:auto; max-height:65vh; border-radius:18px; overflow:hidden; box-shadow:0 18px 42px -12px rgba(0,0,0,.35); animation:movIn .28s ease; display:flex; flex-direction:column; background:var(--bg-white); border:1px solid var(--border-color); position:relative; z-index:1; }
+@keyframes movIn { from { transform:translateY(12px); opacity:0;} to { transform:translateY(0); opacity:1;} }
+#modalDetalleMovimiento .movimiento-body { padding:24px 28px; background:var(--bg-white); overflow:auto; max-height:calc(65vh - 70px); }
+/* Overlay específico: oscurece fondo pero deja claramente el panel con fondo sólido */
+#modalDetalleMovimiento .inventario-overlay { position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+.mov-detalle-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px 20px; margin-bottom:22px; }
+.mov-item { display:flex; flex-direction:column; gap:4px; padding:10px 12px; background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; min-height:72px; }
+.mov-label { font-size:.65rem; text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); font-weight:600; }
+.mov-value { font-size:.85rem; font-weight:600; color:var(--text-primary); word-break:break-word; }
+.mov-detalle-descripcion { background:#f1f5f9; border:1px solid var(--border-color); border-radius:14px; padding:16px 18px; margin-bottom:26px; }
+.mov-descripcion-texto { margin:6px 0 0; font-size:.8rem; line-height:1.45; color:#334155; white-space:pre-line; }
+.mov-detalle-actions { display:flex; justify-content:flex-end; }
+/* Badges dinámicos dentro del modal */
+#modalDetalleMovimiento .badge-tipo { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:.7rem; font-weight:600; border-radius:20px; background:#e2e8f0; color:#334155; margin-left:8px; }
+#modalDetalleMovimiento .badge-IN { background:#dcfce7; color:#166534; }
+#modalDetalleMovimiento .badge-OUT { background:#fee2e2; color:#991b1b; }
+#modalDetalleMovimiento .badge-NEW { background:#e0e7ff; color:#4338ca; }
+@media (max-width: 560px){
+    #modalDetalleMovimiento .movimiento-dialog { max-width:92vw; }
+    .mov-detalle-grid { grid-template-columns:1fr; }
+}
+
+/* =================================================================== */
+/*  SECCIÓN L: RESPONSIVE                                               */
+/* =================================================================== */
+@media (max-width: 968px) {
+    .inventario-dialog {
+        max-height: 95vh;
+    }
+    
+    .filters-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .inventario-modal {
+        padding: 10px;
+    }
+    
+    .actions-container { 
+        flex-direction: column; 
+        align-items: stretch; 
+    }
+    
+    .search-box { 
+        width: 100%; 
+        max-width: none; 
+    }
+    
+    .action-buttons { 
+        width: 100%; 
+        justify-content: space-between; 
+    }
+    
+    .btn { 
+        flex: 1; 
+        justify-content: center; 
+    }
+    
+    .inventario-header {
+        padding: 16px 20px;
+    }
+    
+    .inventario-title {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .inventory-container {
+        padding: 16px;
+    }
+    
+    .filters {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .filter-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+        padding: 8px 12px;
+    }
+    
+    .table-footer {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .pagination {
+        width: 100%;
+        justify-content: center;
+    }
+}

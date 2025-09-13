@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>Inventario</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Tipo Crucero</th>
+        <th>Stock</th>
+        <th>Mínimo</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inv in page_obj %}
+      <tr>
+        <td>{{ inv.producto.nombre }}</td>
+        <td>{{ inv.tipo_crucero.tipo }}</td>
+        <td>{{ inv.stock_actual }}</td>
+        <td>{{ inv.stock_minimo }}</td>
+        <td><a class="btn btn-sm btn-outline-secondary" href="{% url 'mantenimiento:inventario_update' inv.pk %}">Editar</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center">Sin registros</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

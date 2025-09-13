@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Empleados - {{ block.super }}{% endblock %}
+
+{% block page_title %}Empleados{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Empleados: adaptar estilo a las tarjetas del resto de vistas */
+.employees-management{padding:0}
+.employees-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.employee-card{background:#fff;border:1px solid #e9f2fb;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.employee-card .header{display:flex;justify-content:space-between;align-items:center}
+.employee-name{font-weight:600}
+.employee-meta{color:#64748b;font-size:0.95rem}
+.location-select{padding:8px;border-radius:8px;border:1px solid #e6eef8}
+.empty-msg{color:#64748b;padding:18px;background:#f8fafc;border-radius:8px;text-align:center;border:1px dashed #cbd5e1}
+@media(max-width:640px){/* grid de filtros global ya se adapta */}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="employees-management">
+    <h2 class="section-title"><i class="fas fa-users"></i> Empleados</h2>
+
+    <!-- Filtros retirados: el crucero activo se define globalmente -->
+
+    <div class="employees-grid">
+        {% if employees %}
+            {% for employee in employees %}
+                <div class="employee-card">
+                    <div class="header">
+                        <div>
+                            <div class="employee-name">{{ employee.name }}</div>
+                            <div class="employee-meta">{{ employee.get_position_display }} • {{ employee.get_shift_display }}</div>
+                        </div>
+                        <div>
+                            <select class="location-select" disabled aria-label="Restaurante">
+                                <option selected>{{ employee.restaurant.name }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-msg">No hay empleados registrados</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

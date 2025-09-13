@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Personal Médico</title>
+    <link rel="stylesheet" href="{% static 'serviciomedicostyle.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
+                    <img src="{% static 'src/storage/vectors/browser-svgrepo-com.svg' %}" alt="Logo" class="logo-icon">
+                    <span class="logo-text">Panel de Control</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Ventas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Reservas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Restaurante</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Bares</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="entretenimiento.html" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Compras</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Almacen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Recursos Humanos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item  active">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Servicios Medicos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-text">Mantenimiento</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <!-- Footer del sidebar -->
+            </div>
+        </aside>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Servicio Médico</h1>
+                        <p class="page-subtitle">Solo acceso al personal médico</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <p class="user-name">{{ medico.nombres }} {{ medico.apellido }}</p>
+                        <button class="logout-btn">logout</button>
+                    </div>
+                    <div class="placeholder-box"></div>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="left-panel">
+                    <div class="action-item">
+                        <p>Crear Historial médico</p>
+                        <button class="btn">Crear</button>
+                    </div>
+                    <div class="action-item">
+                        <p>Ver historiales médicos</p>
+                        <button class="btn">Ver</button>
+                    </div>
+                    <div class="action-item">
+                        <p>Avisar fallo de instrumental</p>
+                        <button class="btn">Crear</button>
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="content-box pacientes-box">
+                        <h3>Pacientes</h3>
+                        <ul class="data-list patients-list">
+                            {% for paciente in pacientes %}
+                            <li><span>{{ forloop.counter }}. {{ paciente.nombres|default:'-' }} {{ paciente.apellido|default:'-' }}</span> <input type="checkbox"></li>
+                            {% empty %}
+                            <li>No hay pacientes</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="content-box inventario-box">
+                        <h3>Inventario</h3>
+                        <div class="list-container">
+                            <ul class="data-list">
+                                {% for item in inventario %}
+                                <li>{% if item.insumo %}{{ item.insumo.nombre|default:'-' }}{% else %}-{% endif %}: {{ item.cantidad|default:'-' }}</li>
+                                {% empty %}
+                                <li>No hay insumos</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <button class="btn necesidad-btn">Necesidad</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>

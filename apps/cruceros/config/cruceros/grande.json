@@ -47,15 +47,15 @@
     },
     "instalaciones": {
         "items": [
-            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 750, "cubierta": 6, "descripcion": "Buffet principal"},
-            {"nombre": "Restaurante Buffet Internacional", "tipo": "restaurantes", "capacidad": 520, "cubierta": 7, "descripcion": "Buffet internacional"},
-            {"nombre": "Restaurante Buffet Mercado del Mar", "tipo": "restaurantes", "capacidad": 400, "cubierta": 11, "descripcion": "Buffet mariscos)"},
-            {"nombre": "Restaurante Buffet Grill & Salads", "tipo": "restaurantes", "capacidad": 380, "cubierta": 15, "descripcion": "Buffet saludable"},
-            {"nombre": "Restaurante A la Carta Oceanía", "tipo": "restaurantes", "capacidad": 260, "cubierta": 12, "descripcion": "A la carta"},
-            {"nombre": "Restaurante A la Carta Mediterráneo", "tipo": "restaurantes", "capacidad": 240, "cubierta": 10, "descripcion": "A la carta"},
-            {"nombre": "Restaurante A la Carta Fusión", "tipo": "restaurantes", "capacidad": 230, "cubierta": 9, "descripcion": "A la carta"},
-            {"nombre": "Restaurante Especialidad Sushi (Pago)", "tipo": "restaurantes", "capacidad": 110, "cubierta": 13, "descripcion": "Especialidad con cargo"},
-            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 140, "cubierta": 8, "descripcion": "Especialidad con cargo "},
+            {"nombre": "Main Dinning Room 'The Odyssey'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Main Dining Room 'The Atlantis'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Main Dining Room 'Crossing the Ocean'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Italiano 'L'odissea della Toscana'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Árabe 'Odessa Al-Bahr'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'El navegante'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'Odyssey Café'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'Starlight Café'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'Olas Doradas'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
             {"nombre": "Bar Panorámico", "tipo": "bares_cafes", "capacidad": 250, "cubierta": 16},
             {"nombre": "Rooftop Bar", "tipo": "bares_cafes", "capacidad": 220, "cubierta": 17, "descripcion": "Bar terraza"},
             {"nombre": "Sky Lounge", "tipo": "bares_cafes", "capacidad": 300, "cubierta": 18, "descripcion": "Lounge panorámico"},
@@ -73,8 +73,52 @@
             {"nombre": "Piscina Central", "tipo": "entretenimiento", "capacidad": 300, "cubierta": 16},
             {"nombre": "Piscina Familiar", "tipo": "entretenimiento", "capacidad": 180, "cubierta": 17},
             {"nombre": "Zona Entretenimiento", "tipo": "entretenimiento", "capacidad": 500, "cubierta": 8},
-            {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 200, "cubierta": 14},
-            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 40, "cubierta": 5}
+            {
+                "nombre": "Almacén de Alimentos y Bebidas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 8,
+                "descripcion": "Almacén principal para provisiones de alimentos y bebidas",
+                "secciones": [
+                    {"nombre": "Cámara de Refrigeración", "tipo": "REFRIGERACION", "capacidad": 450},
+                    {"nombre": "Cámara de Congelación", "tipo": "CONGELACION", "capacidad": 400},
+                    {"nombre": "Almacén Seco", "tipo": "SECO", "capacidad": 300},
+                    {"nombre": "Almacén de vinos y licores", "tipo": "CUARTO_FRIO", "capacidad": 100},
+                    {"nombre": "Bodega de Bebidas", "tipo": "CUARTO_FRIO", "capacidad": 100}
+                ]
+            },
+            {
+                "nombre": "Almacén de Logística General",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 7,
+                "descripcion": "Almacén para equipos, herramientas y logística a bordo",
+                "secciones": [
+                    {"nombre": "Almacén de Repuestos y Mantenimiento", "tipo": "ESTANTERIAS", "capacidad": 225},
+                    {"nombre": "Almacenes de Seguridad", "tipo": "SECO", "capacidad": 125},
+                    {"nombre": "Equipamiento de Emergencia", "tipo": "ESTANTERIAS", "capacidad": 100}
+                ]
+            },
+            {
+                "nombre": "Almacenes de Suministros de Hotel",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 9,
+                "descripcion": "Almacén para amenities, lencería y suministros del área hotelera",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 500}
+                ]
+            },
+            {
+                "nombre": "Almacén de Mercancía para Tiendas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 7,
+                "descripcion": "Almacén de soporte para las tiendas y boutiques",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 250}
+                ]
+            }
         ]
     }
 }

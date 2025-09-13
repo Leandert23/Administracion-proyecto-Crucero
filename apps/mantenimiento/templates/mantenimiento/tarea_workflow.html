@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Workflow - {{ tarea.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Encabezado -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-cogs"></i> Workflow - {{ tarea.titulo }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-light text-dark">{{ tarea.get_tipo_display }}</span>
+                            <span class="badge bg-{% if tarea.prioridad == 'critica' %}danger{% elif tarea.prioridad == 'alta' %}warning{% else %}info{% endif %}">
+                                {{ tarea.get_prioridad_display }}
+                            </span>
+                            <span class="badge bg-{% if tarea.estado == 'completada' %}success{% elif tarea.estado == 'en_progreso' %}warning{% else %}secondary{% endif %}">
+                                {{ tarea.get_estado_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Descripción:</strong> {{ tarea.descripcion }}</p>
+                            <p><strong>Equipo:</strong> {{ tarea.equipo|default:"N/A" }}</p>
+                            <p><strong>Ubicación:</strong> {{ tarea.ubicacion }}</p>
+                            <p><strong>Tipo de Crucero:</strong> {{ tarea.tipo_crucero }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Fecha Programada:</strong> {{ tarea.fecha_programada|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Tiempo Estimado:</strong> {{ tarea.tiempo_estimado_horas }}h</p>
+                            <p><strong>Asignado a:</strong> {{ tarea.asignado_a|default:"Sin asignar" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <a href="{% url 'mantenimiento:tarea_detail' tarea.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> Vista Normal
+                        </a>
+                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Checklist -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-check-square"></i> Checklist
+                                </h5>
+                                <div>
+                                    <span class="badge bg-light text-dark">
+                                        {{ items_completados }}/{{ total_items }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Barra de progreso -->
+                            {% if total_items > 0 %}
+                            <div class="mb-3">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: {{ progreso_checklist }}%">
+                                        {{ progreso_checklist|floatformat:0 }}%
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Items del checklist -->
+                            {% for item in checklist_items %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle_checklist">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                
+                                <div class="form-check mb-2 d-flex align-items-center">
+                                    <input class="form-check-input me-2" type="checkbox" 
+                                           {% if item.completado %}checked{% endif %}
+                                           onchange="this.form.submit()">
+                                    <label class="form-check-label flex-grow-1 {% if item.completado %}text-decoration-line-through text-muted{% endif %}">
+                                        {{ item.descripcion }}
+                                        {% if item.obligatorio %}
+                                            <span class="text-danger">*</span>
+                                        {% endif %}
+                                    </label>
+                                    {% if item.completado and item.usuario_completado %}
+                                        <small class="text-muted">{{ item.usuario_completado }}</small>
+                                    {% endif %}
+                                </div>
+                            </form>
+                            {% empty %}
+                            <p class="text-muted">No hay items en el checklist</p>
+                            {% endfor %}
+                            
+                            <!-- Agregar nuevo item -->
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-success" data-bs-toggle="collapse" data-bs-target="#addChecklistForm">
+                                    <i class="fas fa-plus"></i> Agregar Item
+                                </button>
+                                
+                                <div class="collapse mt-2" id="addChecklistForm">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_checklist">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                {{ checklist_form.descripcion }}
+                                            </div>
+                                            <div class="col-md-2">
+                                                {{ checklist_form.orden }}
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-sm btn-success w-100">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-check mt-1">
+                                            {{ checklist_form.obligatorio }}
+                                            <label class="form-check-label" for="{{ checklist_form.obligatorio.id_for_label }}">
+                                                Obligatorio
+                                            </label>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Adjuntos -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-paperclip"></i> Adjuntos
+                                <span class="badge bg-light text-dark">{{ adjuntos.count }}</span>
+                            </h5>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Lista de adjuntos -->
+                            {% for adjunto in adjuntos %}
+                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                                <i class="fas fa-{% if adjunto.tipo == 'imagen' %}image{% elif adjunto.tipo == 'pdf' %}file-pdf{% else %}file{% endif %} me-2"></i>
+                                <div class="flex-grow-1">
+                                    <strong>{{ adjunto.nombre }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ adjunto.descripcion|default:"Sin descripción" }} | 
+                                        {{ adjunto.fecha_subida|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                                <a href="{{ adjunto.archivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">No hay adjuntos</p>
+                            {% endfor %}
+                            
+                            <!-- Agregar adjunto -->
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#addAdjuntoForm">
+                                    <i class="fas fa-plus"></i> Agregar Adjunto
+                                </button>
+                                
+                                <div class="collapse mt-2" id="addAdjuntoForm">
+                                    <form method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_adjunto">
+                                        <div class="mb-2">
+                                            {{ adjunto_form.archivo }}
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                {{ adjunto_form.nombre }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                {{ adjunto_form.tipo }}
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-sm btn-info w-100">
+                                                    <i class="fas fa-upload"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-1">
+                                            {{ adjunto_form.descripcion }}
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="row">
+                <!-- Productos utilizados -->
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0">
+                                <i class="fas fa-boxes"></i> Productos Utilizados
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% for producto in productos_utilizados %}
+                            <div class="mb-1">
+                                <strong>{{ producto.producto.nombre }}</strong><br>
+                                <small>{{ producto.cantidad_utilizada }} {{ producto.producto.get_unidad_display }}</small>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0">No hay productos registrados</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Personal asignado -->
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-users"></i> Personal Asignado
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% for asignacion in asignaciones %}
+                            <div class="mb-1">
+                                <strong>{{ asignacion.personal.nombre }}</strong><br>
+                                <small>{{ asignacion.horas_asignadas }}h - {{ asignacion.get_estado_display }}</small>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0">No hay personal asignado</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Historial de cambios -->
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-dark text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-history"></i> Historial de Estados
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% for cambio in cambios_estado %}
+                            <div class="mb-1">
+                                <small>
+                                    {{ cambio.estado_anterior }} → {{ cambio.estado_nuevo }}<br>
+                                    {{ cambio.fecha_cambio|date:"d/m/Y H:i" }}
+                                    {% if cambio.usuario %} - {{ cambio.usuario }}{% endif %}
+                                </small>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0">No hay cambios registrados</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

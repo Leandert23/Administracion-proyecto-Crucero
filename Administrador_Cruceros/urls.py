@@ -20,15 +20,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.cruceros.urls')),
     path('almacen/', include('apps.almacen.urls')),
-    path('bar/', include('apps.bares_snacks.urls')),
-    path('dashboard/', include('apps.administracion.urls')),
-    # URLs de autenticación
+    path('entretenimiento/', include('apps.entretenimiento.urls')),
+    path('mantenimiento/', include('apps.mantenimiento.mantenimiento.urls')),
+    path('reservaciones/', include('apps.reservaciones.urls')),
+    path('ventas/', include('apps.ventas.urls')),
+    path("compras/", include(("apps.compras.urls", "compras"), namespace="compras")),
+    path('dashboard/', include(('apps.administracion.urls', 'administracion'), namespace='administracion')),
+    path('servicio-medico/', include('apps.servicio_medico.urls')),
+    path('restaurante/', include('apps.restaurante.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

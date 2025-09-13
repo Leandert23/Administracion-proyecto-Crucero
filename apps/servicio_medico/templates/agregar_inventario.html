@@ -1,0 +1,762 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="page-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Agregar al Inventario
+                </h1>
+                <p class="page-description">Registra nuevos insumos médicos, medicamentos y equipos en el inventario del servicio médico</p>
+            </div>
+            <div class="header-actions">
+                <button class="modern-btn secondary" onclick="location.href='{% url 'panel_inventario' %}'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Volver al Inventario</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="content-section">
+        <div class="form-section">
+            <div class="form-container">
+                <form method="post" class="inventory-form" id="inventoryForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                            <div class="form-card-title">
+                                <h3>Información del Insumo</h3>
+                                <p>Selecciona el insumo y especifica la cantidad a agregar</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-card-content">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="{{ form.insumo.id_for_label }}" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                        <span>Insumo</span>
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.insumo }}
+                                    {% if form.insumo.errors %}
+                                        <div class="error-message">
+                                            {% for error in form.insumo.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="{{ form.cantidad.id_for_label }}" class="form-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                        </svg>
+                                        <span>Cantidad</span>
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.cantidad }}
+                                    {% if form.cantidad.errors %}
+                                        <div class="error-message">
+                                            {% for error in form.cantidad.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="modern-btn primary submit-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                                <polyline points="7,3 7,8 15,8"></polyline>
+                            </svg>
+                            <span>Agregar al Inventario</span>
+                        </button>
+                        
+                        <button type="button" class="modern-btn secondary" onclick="location.href='{% url 'panel_inventario' %}'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            <span>Cancelar</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Optimización del espacio disponible considerando el sidebar */
+.main-content {
+    margin-left: 300px !important;
+    padding: 1.5rem !important;
+    max-width: calc(100vw - 300px);
+    overflow-x: hidden;
+}
+
+/* Responsive Design optimizado para diferentes tamaños */
+@media (max-width: 1400px) {
+    .main-content {
+        margin-left: 300px !important;
+        padding: 1.25rem !important;
+    }
+    
+    .form-section {
+        max-width: 700px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .main-content {
+        margin-left: 300px !important;
+        padding: 1rem !important;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .form-section {
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 300px !important;
+        padding: 0.75rem !important;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-description {
+        font-size: 0.875rem;
+    }
+    
+    .form-section {
+        max-width: 500px;
+    }
+    
+    .form-card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .form-card-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0 !important; /* Sidebar se convierte en overlay */
+        padding: 0.5rem !important;
+        max-width: 100vw;
+    }
+    
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .page-description {
+        font-size: 0.8rem;
+    }
+    
+    .form-section {
+        max-width: none;
+    }
+    
+    .form-card-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    .form-card-icon {
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    .form-card-title h3 {
+        font-size: 1rem;
+    }
+    
+    .form-card-title p {
+        font-size: 0.8rem;
+    }
+    
+    .form-card-content {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .modern-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .submit-btn {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0.25rem !important;
+    }
+    
+    .page-title {
+        font-size: 1.125rem;
+    }
+    
+    .page-description {
+        font-size: 0.75rem;
+    }
+    
+    .form-card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-card-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+    
+    .form-card-title h3 {
+        font-size: 0.9rem;
+    }
+    
+    .form-card-title p {
+        font-size: 0.75rem;
+    }
+    
+    .form-card-content {
+        padding: 0.75rem;
+    }
+    
+    .form-actions {
+        padding: 0.75rem;
+    }
+    
+    .form-group select,
+    .form-group input[type="number"] {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.8rem;
+    }
+    
+    .modern-btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Estilos específicos para agregar inventario */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-description {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.modern-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modern-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.modern-btn.secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.modern-btn.secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.content-section {
+    margin-top: 2rem;
+}
+
+.form-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-container {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.inventory-form {
+    padding: 0;
+}
+
+.form-card {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.form-card:last-child {
+    border-bottom: none;
+}
+
+.form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.form-card-icon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.form-card-title h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.form-card-title p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.form-card-content {
+    padding: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.required {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.form-group select,
+.form-group input[type="number"] {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-group select:focus,
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group select:hover,
+.form-group input[type="number"]:hover {
+    border-color: #d1d5db;
+}
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.error-message span {
+    color: #dc2626;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.error-message span::before {
+    content: "⚠";
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.submit-btn {
+    min-width: 200px;
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.submit-btn:disabled:hover {
+    transform: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .modern-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .form-card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .form-card-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .submit-btn {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .form-card-header,
+    .form-card-content,
+    .form-actions {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        gap: 1rem;
+    }
+}
+
+/* Animaciones */
+.form-card {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados de validación */
+.form-group select.error,
+.form-group input[type="number"].error {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-group select.success,
+.form-group input[type="number"].success {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('inventoryForm');
+    const submitBtn = document.querySelector('.submit-btn');
+    const formGroups = document.querySelectorAll('.form-group');
+    
+    // Validación en tiempo real
+    function validateField(field) {
+        const formGroup = field.closest('.form-group');
+        const errorMessage = formGroup.querySelector('.error-message');
+        
+        // Remover clases anteriores
+        field.classList.remove('error', 'success');
+        
+        if (field.value.trim() === '') {
+            field.classList.add('error');
+            return false;
+        } else {
+            field.classList.add('success');
+            return true;
+        }
+    }
+    
+    // Validar campos al escribir
+    const inputs = form.querySelectorAll('select, input[type="number"]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('error')) {
+                validateField(this);
+            }
+        });
+    });
+    
+    // Validación del formulario al enviar
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Mostrar mensaje de error
+            const firstError = form.querySelector('.error');
+            if (firstError) {
+                firstError.focus();
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Mostrar notificación
+            showNotification('Por favor, completa todos los campos requeridos', 'error');
+        } else {
+            // Deshabilitar botón de envío
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"></path>
+                </svg>
+                <span>Agregando...</span>
+            `;
+        }
+    });
+    
+    // Función para mostrar notificaciones
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    ${type === 'error' ? 
+                        '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>' :
+                        '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22,4 12,14.01 9,11.01"></polyline>'
+                    }
+                </svg>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Estilos para la notificación
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#fee2e2' : '#d1fae5'};
+            color: ${type === 'error' ? '#991b1b' : '#065f46'};
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remover después de 4 segundos
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 4000);
+    }
+    
+    // Animaciones CSS para notificaciones
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

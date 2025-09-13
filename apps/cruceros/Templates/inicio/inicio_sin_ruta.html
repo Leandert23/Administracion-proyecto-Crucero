@@ -22,66 +22,33 @@
             
             <nav class="sidebar-nav">
                 <ul class="nav-list">
-                    <li class="nav-item active">
-                        <a href="#" class="nav-link">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
+                    <li class="nav-item active">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Gestión Crucero</span>
                         </a>
                     </li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Entretenimiento</span></a></li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Ventas</span></a></li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'reservas' crucero.id %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
                         </a>
-                    </li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Restaurante</span></a></li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Bares</span></a></li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Compras</span></a></li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Recursos Humanos</span></a></li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Servicios Medicos</span></a></li>
+                    <li class="nav-item"><a href="javascript:void(0)" class="nav-link modulo-inactivo"><span class="nav-text">Mantenimiento</span></a></li>
                 </ul>
             </nav>
             
@@ -134,6 +101,9 @@
                 <div class="modal__field">
                     <label for="id_fecha_inicio" class="modal__label">Fecha de inicio</label>
                     {{ form_asignar.fecha_inicio }}
+                    {% if form_asignar.fecha_inicio.errors %}
+                    <div class="modal__error" style="color:#dc2626;font-size:.75rem;margin-top:2px;">{{ form_asignar.fecha_inicio.errors.0 }}</div>
+                    {% endif %}
                 </div>
                 <div class="modal__actions">
                     <button type="submit" class="modal__btn modal__btn--primary">Crear viaje</button>
@@ -143,6 +113,8 @@
         </div>
         <div class="modal__backdrop" id="backdropAsignar"></div>
     </div>
+    <!-- Flag para autoabrir modal si hubo errores de validación -->
+    <div id="flagAbrirModalAsignar" data-abrir="{% if abrir_modal_asignar %}1{% else %}0{% endif %}" hidden></div>
 
     <script>
         // Funciones básicas para el sidebar
@@ -184,7 +156,23 @@
             cancelar&&cancelar.addEventListener('click',cerrarModal);
             backdrop&&backdrop.addEventListener('click',cerrarModal);
             document.addEventListener('keydown',e=>{if(e.key==='Escape' && modal.classList.contains('modal--visible')) cerrarModal();});
+            const flag = document.getElementById('flagAbrirModalAsignar');
+            if (flag && flag.dataset.abrir === '1') abrirModal();
         })();
     </script>
+        <script>
+        (function(){
+            var inactivos = document.querySelectorAll('.modulo-inactivo');
+            if(inactivos.length){
+                var mensaje = 'Los módulos se encuentran inactivos porque el crucero no tiene una ruta asignada. Asigne una ruta desde Gestión Crucero.';
+                inactivos.forEach(function(a){
+                    a.addEventListener('click', function(e){
+                        e.preventDefault();
+                        alert(mensaje);
+                    });
+                });
+            }
+        })();
+        </script>
 </body>
 </html>

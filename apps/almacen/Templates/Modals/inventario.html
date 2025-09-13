@@ -1,0 +1,85 @@
+
+<!-- Modal Inventario -->
+<div id="modalInventario" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <div class="inventario-overlay" data-close="true"></div>
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog" role="document" tabindex="-1">
+            <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar inventario">&times;</button>
+            <div class="inventario-header">
+                <div class="inventario-header-content">
+                    <h2 class="inventario-title">Gestión de Inventario</h2>
+                </div>
+            </div>
+            <div class="inventario-body">
+                <div class="inventory-container no-shadow">
+                    <!-- ===================== ACCIONES SUPERIORES (BUSCADOR + BOTONES) ===================== -->
+                    <div class="actions-container">
+                        <div class="search-box">
+                            <input type="text" placeholder="Buscar por nombre..." id="inventario-buscar" />
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" type="button" id="btnAgregarProducto">Nuevo Producto</button>
+                        </div>
+                    </div>
+                    <!-- ===================== FILTROS ===================== -->
+                    <div class="filters-container">
+                        <div class="filters" id="inventario-filtros">
+                            <button class="filter-btn active" type="button" data-filter="ALL">Todos</button>
+                            <button class="filter-btn" type="button" data-filter="ALIMENTOS_FRESCOS">Alimentos Frescos</button>
+                            <button class="filter-btn" type="button" data-filter="ALIMENTOS_SECOS">Alimentos Secos</button>
+                            <button class="filter-btn" type="button" data-filter="BEBIDAS">Bebidas</button>
+                            <button class="filter-btn" type="button" data-filter="INSUMOS_COCINA">Insumos de Cocina</button>
+                            <button class="filter-btn" type="button" data-filter="LIMPIEZA">Limpieza</button>
+                            <button class="filter-btn" type="button" data-filter="SUMINISTROS_MEDICOS">Suministros Médicos</button>
+                            <button class="filter-btn" type="button" data-filter="MANTENIMIENTO">Mantenimiento</button>
+                            <button class="filter-btn" type="button" data-filter="REPUESTOS_TECNICOS">Repuestos Técnicos</button>
+                            <button class="filter-btn" type="button" data-filter="EQUIPOS">Equipos</button>
+                            <button class="filter-btn" type="button" data-filter="TEXTILES">Textiles</button>
+                            <button class="filter-btn" type="button" data-filter="OFICINA">Oficina</button>
+                            <button class="filter-btn" type="button" data-filter="ENTRETENIMIENTO">Entretenimiento</button>
+                            <button class="filter-btn" type="button" data-filter="SPA_GYM">SPA / GYM</button>
+                            <button class="filter-btn" type="button" data-filter="SEGURIDAD">Seguridad</button>
+                            <button class="filter-btn" type="button" data-filter="MERCHANDISING">Merchandising</button>
+                            <button class="filter-btn" type="button" data-filter="TECNOLOGIA">Tecnología</button>
+                        </div>
+                        <div class="filter-info">
+                            <span id="filter-active-text">Mostrando todos los productos</span>
+                        </div>
+                    </div>
+                    <!-- ===================== TABLA DE PRODUCTOS ===================== -->
+                </div>
+                <div class="table-container" id="table-container"></div>
+                <!-- ===================== FOOTER / PAGINACIÓN ===================== -->
+                <nav class="table-footer" id="table-footer">
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminación Producto -->
+<div id="modalEliminarProducto" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none;">
+    <div class="inventario-overlay" data-close="true"></div>
+    <div class="contenedor-centrar">
+        <div class="inventario-dialog delete-dialog" role="document" tabindex="-1">
+            <button type="button" class="inventario-exit-top" data-close="true" aria-label="Cerrar">&times;</button>
+            <div class="inventario-header">
+                <div class="inventario-header-content">
+                    <h2 class="inventario-title">Eliminar Producto</h2>
+                </div>
+                <button type="button" class="inventario-close" data-close="true" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="inventario-body delete-body">
+                <div class="delete-message">
+                    <p id="delete-text" class="delete-text"></p>
+                </div>
+                <div class="delete-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelDeleteProducto">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-danger" id="btnConfirmDeleteProducto" data-id="">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

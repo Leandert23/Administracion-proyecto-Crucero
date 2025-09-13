@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from typing import Dict, Any
-from ..models import FechaDelSistema, Crucero, Habitacion, TipoHabitacion
+from ..models import FechaDelSistema, Crucero, Habitacion, TipoHabitacion, Viaje
+from apps.entretenimiento.utils import cargar_actividades_entretenimiento
 
 # --- Fecha del sistema ---
 
@@ -30,10 +31,21 @@ def marcar_viajes_completados(fecha_sistema: FechaDelSistema, crucero: Crucero):
     
     viaje.estado = 'completado'
     viaje.save()
-    crucero.viajes.create(
+
+    # Crear nuevo viaje activo con misma ruta
+    viaje_nuevo = Viaje.objects.create(
+        crucero=crucero,
         estado='activo',
-        ruta = viaje.ruta,
-        fecha_inicio=fecha_sistema.fecha_actual)
+        ruta=viaje.ruta,
+        fecha_inicio=fecha_sistema.fecha_actual
+    )
+
+    # Generar actividades nuevas para el nuevo viaje (sin mutar las antiguas)
+    try:
+        cargar_actividades_entretenimiento(viaje_nuevo)
+    except Exception as e:
+        print(f"Error al cargar actividades para viaje {viaje_nuevo.id}: {e}")
+    
 
 def activar_viajes_iniciados(fecha_sistema: FechaDelSistema, crucero: Crucero):
     crucero.viajes.filter(

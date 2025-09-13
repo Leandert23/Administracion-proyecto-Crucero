@@ -47,11 +47,11 @@
     },
     "instalaciones": {
         "items": [
-            {"nombre": "Restaurante Buffet Principal", "tipo": "restaurantes", "capacidad": 320, "cubierta": 5, "descripcion": "Buffet principal (1 de 2)"},
-            {"nombre": "Restaurante Buffet Caribe", "tipo": "restaurantes", "capacidad": 180, "cubierta": 6, "descripcion": "Segundo buffet (2 de 2)"},
-            {"nombre": "Restaurante A la Carta Marina", "tipo": "restaurantes", "capacidad": 140, "cubierta": 7, "descripcion": "Restaurante a la carta"},
-            {"nombre": "Restaurante Especialidad Fusión Asiática (Pago)", "tipo": "restaurantes", "capacidad": 90, "cubierta": 8, "descripcion": "Especialidad con cargo adicional (1 de 2)"},
-            {"nombre": "Restaurante Especialidad Steakhouse (Pago)", "tipo": "restaurantes", "capacidad": 80, "cubierta": 4, "descripcion": "Especialidad con cargo adicional (2 de 2)"},
+            {"nombre": "Main Dinning Room 'The Odyssey'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Italiano 'L'odissea della Toscana'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Restaurante especializado Árabe 'Odessa Al-Bahr'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'El navegante'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
+            {"nombre": "Buffet 'Odyssey Café'", "tipo": "restaurantes", "capacidad": null, "cubierta": null, "descripcion": null},
             {"nombre": "Bar Panorama", "tipo": "bares_cafes", "capacidad": 120, "cubierta": 6},
             {"nombre": "Bar Piscina", "tipo": "bares_cafes", "capacidad": 70, "cubierta": 9, "descripcion": "Bar de apoyo a piscina"},
             {"nombre": "Café Promenade", "tipo": "bares_cafes", "capacidad": 60, "cubierta": 4, "descripcion": "Café y bollería"},
@@ -62,7 +62,53 @@
             {"nombre": "Coffee Corner", "tipo": "bares_cafes", "capacidad": 40, "cubierta": 5, "descripcion": "Café especialidad"},
             {"nombre": "Piscina Exterior", "tipo": "entretenimiento", "capacidad": 80, "cubierta": 9},
             {"nombre": "Gimnasio", "tipo": "entretenimiento", "capacidad": 60, "cubierta": 7},
-            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 15, "cubierta": 3}
+            {"nombre": "Enfermería", "tipo": "entretenimiento", "capacidad": 15, "cubierta": 3},
+            {
+                "nombre": "Almacén de Alimentos y Bebidas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 3,
+                "descripcion": "Almacén principal para provisiones de alimentos y bebidas",
+                "secciones": [
+                    {"nombre": "Cámara de Refrigeración", "tipo": "REFRIGERACION", "capacidad": 150},
+                    {"nombre": "Cámara de Congelación", "tipo": "CONGELACION", "capacidad": 120},
+                    {"nombre": "Almacén Seco", "tipo": "SECO", "capacidad": 100},
+                    {"nombre": "Almacén de vinos y licores", "tipo": "CUARTO_FRIO", "capacidad": 30},
+                    {"nombre": "Bodega de Bebidas", "tipo": "CUARTO_FRIO", "capacidad": 50}
+                ]
+            },
+            {
+                "nombre": "Almacén de Logística General",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 4,
+                "descripcion": "Almacén para equipos, herramientas y logística a bordo",
+                "secciones": [
+                    {"nombre": "Almacén de Repuestos y Mantenimiento", "tipo": "ESTANTERIAS", "capacidad": 80},
+                    {"nombre": "Almacenes de Seguridad", "tipo": "SECO", "capacidad": 40},
+                    {"nombre": "Equipamiento de Emergencia", "tipo": "ESTANTERIAS", "capacidad": 30}
+                ]
+            },
+            {
+                "nombre": "Almacenes de Suministros de Hotel",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 5,
+                "descripcion": "Almacén para amenities, lencería y suministros del área hotelera",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 150}
+                ]
+            },
+            {
+                "nombre": "Almacén de Mercancía para Tiendas",
+                "tipo": "almacen",
+                "capacidad": null,
+                "cubierta": 4,
+                "descripcion": "Almacén de soporte para las tiendas y boutiques",
+                "secciones": [
+                    {"nombre": "Estanterías", "tipo": "ESTANTERIAS", "capacidad": 70}
+                ]
+            }
         ]
     }
 }

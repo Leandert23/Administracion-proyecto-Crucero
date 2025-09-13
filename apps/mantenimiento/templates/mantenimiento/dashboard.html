@@ -1,0 +1,1196 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Mantenimiento del Crucero{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Dashboard Principal</li>
+{% endblock %}
+
+{% block content %}
+<!-- Acciones rápidas principales -->
+<div class="mb-4">
+    <div class="row">
+        <div class="col-lg-8 mb-3">
+            <div class="btn-group" role="group">
+    
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="row">
+                <div class="col-6">
+                    <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        <small>Preventiva</small>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100">
+                        <i class="fas fa-wrench me-1"></i>
+                        <small>Correctiva</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas principales en tiempo real -->
+<div class="stats-section">
+    <h2 class="section-title">Estadísticas del Sistema</h2>
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number text-primary" data-stat="total_equipos">{{ total_equipos|default:0 }}</div>
+                        <div class="stats-label">Total Equipos</div>
+                    </div>
+                    <div class="stats-icon text-primary">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-eye me-1"></i>Ver Equipos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number text-info" data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</div>
+                        <div class="stats-label">Tareas Pendientes</div>
+                    </div>
+                    <div class="stats-icon text-info">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-info btn-sm w-100">
+                        <i class="fas fa-list me-1"></i>Ver Tareas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}" data-stat="productos_stock_bajo">{{ productos_stock_bajo|default:0 }}</div>
+                        <div class="stats-label">Stock Bajo</div>
+                    </div>
+                    <div class="stats-icon {% if productos_stock_bajo > 0 %}text-warning{% else %}text-success{% endif %}">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-outline-{% if productos_stock_bajo > 0 %}warning{% else %}success{% endif %} btn-sm w-100">
+                        <i class="fas fa-boxes me-1"></i>Ver Inventario
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-number {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}" data-stat="incidentes_pendientes">{{ incidentes_pendientes|default:0 }}</div>
+                        <div class="stats-label">Incidentes</div>
+                    </div>
+                    <div class="stats-icon {% if incidentes_pendientes > 0 %}text-danger{% else %}text-success{% endif %}">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-{% if incidentes_pendientes > 0 %}danger{% else %}success{% endif %} btn-sm w-100">
+                        <i class="fas fa-clipboard-list me-1"></i>Ver Incidentes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficas en tiempo real -->
+<div class="stats-section">
+    <h2 class="section-title">Gráficas en Tiempo Real</h2>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2 text-success"></i>
+                        Estado de Tareas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="tareas-chart-container" style="height: 300px;">
+                        <canvas id="tareasChart"></canvas>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <small class="text-warning">
+                                    <strong data-stat="tareas_pendientes">{{ tareas_pendientes|default:0 }}</strong><br>Pendientes
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-info">
+                                    <strong data-stat="tareas_en_progreso">{{ tareas_en_progreso|default:0 }}</strong><br>En Progreso
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-success">
+                                    <strong data-stat="tareas_completadas">{{ tareas_completadas|default:0 }}</strong><br>Completadas
+                                </small>
+                            </div>
+                            <div class="col-3">
+                                <small class="text-danger">
+                                    <strong data-stat="tareas_vencidas">{{ tareas_vencidas|default:0 }}</strong><br>Vencidas
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-ship me-2 text-info"></i>
+                        Mantenimientos por Tipo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="crucero-chart-container" style="height: 300px;">
+                        <canvas id="cruceroChart"></canvas>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <span class="badge bg-info">Preventivo</span>
+                            </div>
+                            <div class="col-4">
+                                <span class="badge bg-danger">Correctivo</span>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Por tipo de crucero</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navegación rápida del sistema -->
+<div class="stats-section">
+    <h2 class="section-title">Navegación Rápida</h2>
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cogs fa-2x text-primary mb-3"></i>
+                    <h6 class="card-title">Equipos</h6>
+                    <p class="card-text small text-muted">{{ total_equipos|default:0 }} registrados</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-primary btn-sm">Ver Lista</a>
+                        <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-primary btn-sm">Agregar Nuevo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-2x text-success mb-3"></i>
+                    <h6 class="card-title">Tareas</h6>
+                    <p class="card-text small text-muted">{{ tareas_pendientes|default:0 }} pendientes</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-success btn-sm">Ver Lista</a>
+                        <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-success btn-sm">Crear Nueva</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-warning mb-3"></i>
+                    <h6 class="card-title">Inventario</h6>
+                    <p class="card-text small text-muted">{{ productos_stock_bajo|default:0 }} stock bajo</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:inventario_list' %}" class="btn btn-outline-warning btn-sm">Ver Stock</a>
+                        <a href="{% url 'mantenimiento:producto_create' %}" class="btn btn-warning btn-sm">Agregar Producto</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-water fa-2x text-info mb-3"></i>
+                    <h6 class="card-title">Piscinas</h6>
+                    <p class="card-text small text-muted">{{ piscinas_con_alerta|default:0 }} con alertas</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mantenimiento:piscina_list' %}" class="btn btn-outline-info btn-sm">Ver Piscinas</a>
+                        <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info btn-sm">Nueva Medición</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas y actividades importantes -->
+<div class="stats-section">
+    <h2 class="section-title">Alertas y Actividades</h2>
+    <div class="row">
+        <!-- Tareas próximas a vencer -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2 text-warning"></i>
+                        Tareas Próximas a Vencer
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if proximas_vencer %}
+                        <div class="list-group list-group-flush">
+                            {% for tarea in proximas_vencer %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3 {% if tarea.dias_vencimiento <= 3 %}border-start border-danger border-4{% endif %}">
+                                    <div>
+                                        <h6 class="mb-1 {% if tarea.dias_vencimiento <= 3 %}text-danger fw-bold{% endif %}">
+                                            {% if tarea.dias_vencimiento <= 3 %}
+                                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                                            {% endif %}
+                                            {{ tarea.titulo }}
+                                        </h6>
+                                        <small class="{% if tarea.dias_vencimiento <= 3 %}text-danger{% else %}text-muted{% endif %}">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ tarea.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge {% if tarea.dias_vencimiento <= 3 %}bg-danger{% else %}bg-warning text-dark{% endif %} mb-1">
+                                            {% if tarea.dias_vencimiento == 0 %}HOY{% elif tarea.dias_vencimiento == 1 %}1 día{% else %}{{ tarea.dias_vencimiento }} días{% endif %}
+                                        </span>
+                                        <br>
+                                        <small class="{% if tarea.dias_vencimiento <= 3 %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ tarea.fecha_programada|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-warning btn-sm">
+                                Ver todas las tareas
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay tareas próximas a vencer</p>
+                            <a href="{% url 'mantenimiento:tarea_create' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Crear Nueva Tarea
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipos con revisión próxima -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2 text-info"></i>
+                        Equipos por Revisar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if equipos_revision_proxima %}
+                        <div class="list-group list-group-flush">
+                            {% for equipo in equipos_revision_proxima %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <h6 class="mb-1">{{ equipo.nombre }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ equipo.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info mb-1">
+                                            {{ equipo.dias_hasta_revision }} días
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ equipo.proxima_revision|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:equipo_list' %}" class="btn btn-outline-info btn-sm">
+                                Ver todos los equipos
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay equipos con revisión próxima</p>
+                            <a href="{% url 'mantenimiento:equipo_create' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Registrar Equipo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incidentes: pendientes y recientes -->
+<div class="stats-section">
+    <h2 class="section-title">Gestión de Incidentes</h2>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+                        Incidentes Pendientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if incidentes_pendientes_list %}
+                        <div class="list-group list-group-flush">
+                            {% for inc in incidentes_pendientes_list %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <h6 class="mb-1">{{ inc.titulo }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ inc.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                            {% if inc.equipo %} · <i class="fas fa-cogs me-1"></i>{{ inc.equipo.codigo }}{% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-danger mb-1">{{ inc.get_severidad_display }}</span>
+                                        <br>
+                                        <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-danger btn-sm">
+                                Ver todos los incidentes
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted">No hay incidentes pendientes</p>
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-plus me-1"></i>Reportar Incidente
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2 text-secondary"></i>
+                        Incidentes Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if incidentes_recientes %}
+                        <div class="list-group list-group-flush">
+                            {% for inc in incidentes_recientes %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                    <div>
+                                        <h6 class="mb-1">{{ inc.titulo }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            {{ inc.ubicacion.codigo_ubicacion|default:"Sin ubicación" }}
+                                            {% if inc.equipo %} · <i class="fas fa-cogs me-1"></i>{{ inc.equipo.codigo }}{% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if inc.resuelto %}
+                                            <span class="badge bg-success mb-1">Resuelto</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark mb-1">Pendiente</span>
+                                        {% endif %}
+                                        <br>
+                                        <small class="text-muted">{{ inc.fecha_reporte|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'mantenimiento:incidente_list' %}" class="btn btn-outline-secondary btn-sm">
+                                Ver historial de incidentes
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox text-muted fa-3x mb-3"></i>
+                            <p class="text-muted">Sin incidentes recientes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones rápidas finales -->
+<div class="stats-section">
+    <h2 class="section-title">Acciones Rápidas</h2>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>
+                        Acciones Principales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:tarea_crear_preventiva' %}" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-calendar-check me-1"></i>
+                                <small>Tarea Preventiva</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:tarea_crear_correctiva' %}" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-wrench me-1"></i>
+                                <small>Tarea Correctiva</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:incidente_create' %}" class="btn btn-danger w-100 mb-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <small>Reportar Incidente</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:medicion_piscina_create' %}" class="btn btn-info w-100 mb-2">
+                                <i class="fas fa-tint me-1"></i>
+                                <small>Medir Piscina</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tools me-2 text-info"></i>
+                        Herramientas del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="{% url 'mantenimiento:reportes' %}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                <small>Ver Reportes</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="window.dashboardManager?.updateDashboard()" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                <small>Actualizar Todo</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="repairCharts()" class="btn btn-outline-warning w-100 mb-2">
+                                <i class="fas fa-tools me-1"></i>
+                                <small>Reparar Gráficas</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button onclick="window.dashboardManager?.toggleAutoUpdate()" class="btn btn-outline-secondary w-100 mb-2">
+                                <i class="fas fa-play me-1"></i>
+                                <small id="auto-update-toggle-text">Auto Update</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ crucero_labels|json_script:"crucero-labels-data" }}
+{{ preventivo_counts|json_script:"preventivo-counts-data" }}
+{{ correctivo_counts|json_script:"correctivo-counts-data" }}
+{{ tareas_chart_data|json_script:"tareas-chart-data" }}
+
+<script>
+// Dashboard Manager optimizado y completamente funcional
+class OptimizedDashboardManager {
+    constructor() {
+        this.charts = {};
+        this.updateInterval = null;
+        this.isInitialized = false;
+        this.init();
+    }
+    
+    init() {
+        console.log('🚀 Inicializando Dashboard Optimizado...');
+        this.waitForChartJS().then(() => {
+            this.initCharts();
+            this.setupAutoUpdate();
+            this.createUpdateIndicator();
+            this.isInitialized = true;
+            console.log('✅ Dashboard completamente inicializado');
+        });
+    }
+    
+    waitForChartJS() {
+        return new Promise((resolve) => {
+            if (typeof Chart !== 'undefined') {
+                resolve();
+            } else {
+                const checkChart = setInterval(() => {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        resolve();
+                    }
+                }, 100);
+            }
+        });
+    }
+    
+    initCharts() {
+        console.log('🔄 Inicializando gráficas...');
+        
+        // Verificar que Chart.js esté disponible
+        if (typeof Chart === 'undefined') {
+            console.warn('⚠️ Chart.js no está disponible, esperando...');
+            setTimeout(() => this.initCharts(), 500);
+            return;
+        }
+        
+        // Limpiar gráficos existentes
+        if (this.charts.tareas) {
+            this.charts.tareas.destroy();
+            this.charts.tareas = null;
+        }
+        if (this.charts.crucero) {
+            this.charts.crucero.destroy();
+            this.charts.crucero = null;
+        }
+        
+        // Crear nuevos gráficos
+        this.createTaskChart();
+        this.createCruceroChart();
+        
+        // Marcar como inicializado
+        this.isInitialized = true;
+        console.log('✅ Gráficas inicializadas correctamente');
+    }
+    
+    createTaskChart() {
+        const ctx = document.getElementById('tareasChart');
+        if (!ctx) {
+            console.warn('⚠️ No se encontró el elemento tareasChart');
+            return;
+        }
+        
+        try {
+            const dataScript = document.getElementById('tareas-chart-data');
+            if (!dataScript) {
+                console.warn('⚠️ No se encontraron datos para el gráfico de tareas');
+                return;
+            }
+            
+            const tareasData = JSON.parse(dataScript.textContent);
+            console.log('📊 Datos de tareas:', tareasData);
+            
+            // Verificar que el contexto 2D esté disponible
+            const context = ctx.getContext('2d');
+            if (!context) {
+                console.error('❌ No se pudo obtener el contexto 2D del canvas');
+                return;
+            }
+            
+            // Destruir gráfico existente si existe
+            if (this.charts.tareas) {
+                try {
+                    this.charts.tareas.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico anterior:', e);
+                }
+            }
+            
+            this.charts.tareas = new Chart(context, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendientes', 'En Progreso', 'Completadas', 'Vencidas'],
+                    datasets: [{
+                        label: 'Tareas',
+                        data: tareasData,
+                        backgroundColor: [
+                            '#ffc107',
+                            '#0dcaf0', 
+                            '#198754',
+                            '#dc3545'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+            
+            console.log('✅ Gráfico de tareas creado exitosamente');
+        } catch (error) {
+            console.error('❌ Error creando gráfico de tareas:', error);
+            this.showChartError('tareasChart', 'Error cargando gráfico de tareas');
+        }
+    }
+    
+    createCruceroChart() {
+        const ctx = document.getElementById('cruceroChart');
+        if (!ctx) {
+            console.warn('⚠️ No se encontró el elemento cruceroChart');
+            return;
+        }
+        
+        try {
+            const labelsScript = document.getElementById('crucero-labels-data');
+            const preventivoScript = document.getElementById('preventivo-counts-data');
+            const correctivoScript = document.getElementById('correctivo-counts-data');
+            
+            if (!labelsScript || !preventivoScript || !correctivoScript) {
+                console.warn('⚠️ No se encontraron todos los datos para el gráfico de cruceros');
+                return;
+            }
+            
+            const labels = JSON.parse(labelsScript.textContent);
+            const preventivoCounts = JSON.parse(preventivoScript.textContent);
+            const correctivoCounts = JSON.parse(correctivoScript.textContent);
+            
+            console.log('🚢 Datos crucero:', { labels, preventivoCounts, correctivoCounts });
+            
+            // Verificar que el contexto 2D esté disponible
+            const context = ctx.getContext('2d');
+            if (!context) {
+                console.error('❌ No se pudo obtener el contexto 2D del canvas');
+                return;
+            }
+            
+            // Destruir gráfico existente si existe
+            if (this.charts.crucero) {
+                try {
+                    this.charts.crucero.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico anterior:', e);
+                }
+            }
+            
+            this.charts.crucero = new Chart(context, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Preventivo',
+                        data: preventivoCounts,
+                        backgroundColor: '#0dcaf0',
+                        borderColor: '#0dcaf0',
+                        borderWidth: 1
+                    }, {
+                        label: 'Correctivo',
+                        data: correctivoCounts,
+                        backgroundColor: '#dc3545',
+                        borderColor: '#dc3545',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                            }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+            
+            console.log('✅ Gráfico de cruceros creado exitosamente');
+        } catch (error) {
+            console.error('❌ Error creando gráfico de cruceros:', error);
+            this.showChartError('cruceroChart', 'Error cargando gráfico de cruceros');
+        }
+    }
+    
+    showChartError(chartId, message) {
+        const container = document.getElementById(chartId)?.parentElement;
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+                    <p class="text-muted">${message}</p>
+                    <button onclick="window.dashboardManager?.initCharts()" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+    
+    setupAutoUpdate() {
+        // Actualización automática cada 15 segundos para mejor experiencia
+        this.updateInterval = setInterval(() => {
+            this.updateDashboard();
+        }, 15000);
+        
+        console.log('🔄 Auto-actualización configurada (15s)');
+        
+        // Primera actualización después de 2 segundos para cargar datos iniciales
+        setTimeout(() => {
+            this.updateDashboard();
+        }, 2000);
+        
+        // Actualizar el estado del botón
+        this.updateAutoUpdateButton(true);
+    }
+    
+    toggleAutoUpdate() {
+        if (this.updateInterval) {
+            // Detener actualización automática
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+            this.updateAutoUpdateButton(false);
+            console.log('⏸️ Auto-actualización detenida');
+        } else {
+            // Iniciar actualización automática
+            this.setupAutoUpdate();
+            console.log('▶️ Auto-actualización iniciada');
+        }
+    }
+    
+    updateAutoUpdateButton(isActive) {
+        const statusSpan = document.getElementById('auto-update-status');
+        const button = statusSpan?.parentElement;
+        
+        if (statusSpan && button) {
+            if (isActive) {
+                statusSpan.textContent = 'Detener';
+                button.innerHTML = '<i class="fas fa-pause"></i> <span id="auto-update-status">Detener</span>';
+                button.className = 'btn btn-outline-warning btn-sm';
+            } else {
+                statusSpan.textContent = 'Auto';
+                button.innerHTML = '<i class="fas fa-play"></i> <span id="auto-update-status">Auto</span>';
+                button.className = 'btn btn-outline-info btn-sm';
+            }
+        }
+    }
+    
+    updateDashboard() {
+        console.log('🔄 Actualizando dashboard...');
+        this.updateStatusIndicator('updating');
+        
+        fetch('/mantenimiento/api/dashboard-update/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('📨 Datos recibidos:', data);
+                
+                if (data.success) {
+                    // Actualizar gráficas con animación
+                    if (this.charts.tareas && data.data.tareas_chart_data) {
+                        console.log('📊 Actualizando gráfico de tareas con datos:', data.data.tareas_chart_data);
+                        this.charts.tareas.data.datasets[0].data = data.data.tareas_chart_data;
+                        this.charts.tareas.update('active'); // Con animación
+                        console.log('✅ Gráfico de tareas actualizado');
+                    }
+                    
+                    if (this.charts.crucero && data.data.preventivo_counts && data.data.correctivo_counts) {
+                        console.log('🚢 Actualizando gráfico de cruceros');
+                        this.charts.crucero.data.datasets[0].data = data.data.preventivo_counts;
+                        this.charts.crucero.data.datasets[1].data = data.data.correctivo_counts;
+                        this.charts.crucero.update('active'); // Con animación
+                        console.log('✅ Gráfico de cruceros actualizado');
+                    }
+                    
+                    // Actualizar estadísticas
+                    if (data.data.stats) {
+                        this.updateStats(data.data.stats);
+                    }
+                    
+                    // Actualizar timestamp
+                    this.updateTimestamp();
+                    
+                    this.showUpdateSuccess();
+                    
+                    // Actualizar el indicador de estado
+                    this.updateStatusIndicator('success');
+                } else {
+                    console.error('❌ Error en la respuesta:', data.error);
+                    this.showUpdateError();
+                    this.updateStatusIndicator('error');
+                }
+            })
+            .catch(error => {
+                //console.error('❌ Error actualizando dashboard:', error);
+               // this.showUpdateError();
+                this.updateStatusIndicator('error');
+            });
+    }
+    
+    updateStats(stats) {
+        Object.entries(stats).forEach(([key, value]) => {
+            const elements = document.querySelectorAll(`[data-stat="${key}"]`);
+            elements.forEach(element => {
+                if (element) {
+                    const oldValue = parseInt(element.textContent) || 0;
+                    const newValue = parseInt(value) || 0;
+                    
+                    if (oldValue !== newValue) {
+                        // Animación de cambio más visible
+                        element.style.transition = 'all 0.5s ease';
+                        element.style.transform = 'scale(1.2)';
+                        element.style.color = '#28a745';
+                        element.style.fontWeight = 'bold';
+                        
+                        // Efecto de parpadeo
+                        element.style.animation = 'pulse 0.5s ease-in-out';
+                        
+                        setTimeout(() => {
+                            element.textContent = newValue;
+                            element.style.transform = 'scale(1)';
+                            element.style.color = '';
+                            element.style.fontWeight = '';
+                            element.style.animation = '';
+                        }, 250);
+                        
+                        setTimeout(() => {
+                            element.style.transition = '';
+                        }, 500);
+                        
+                        console.log(`📊 ${key}: ${oldValue} → ${newValue}`);
+                    }
+                }
+            });
+        });
+        console.log('📈 Estadísticas actualizadas');
+    }
+    
+    updateTimestamp() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('es-ES');
+        
+        const timeElements = document.querySelectorAll('.last-update-time');
+        timeElements.forEach(el => {
+            el.textContent = timeStr;
+        });
+    }
+    
+    showUpdateSuccess() {
+        this.showToast('✅ Dashboard actualizado correctamente', 'success');
+    }
+    
+    
+    
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+    
+    createUpdateIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'dashboard-status';
+        indicator.className = 'position-fixed bg-success text-white px-3 py-1 rounded';
+        indicator.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000; font-size: 0.8rem;';
+        indicator.innerHTML = '<i class="fas fa-check-circle"></i> Dashboard Activo';
+        document.body.appendChild(indicator);
+    }
+    
+    updateStatusIndicator(status) {
+        const indicator = document.getElementById('dashboard-status');
+        if (indicator) {
+            if (status === 'success') {
+                indicator.className = 'position-fixed bg-success text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-check-circle"></i> Dashboard Activo';
+            } else if (status === 'updating') {
+                indicator.className = 'position-fixed bg-info text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Actualizando...';
+            } else if (status === 'error') {
+                indicator.className = 'position-fixed bg-danger text-white px-3 py-1 rounded';
+                indicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                setTimeout(() => {
+                    this.updateStatusIndicator('success');
+                }, 3000);
+            }
+        }
+    }
+    
+    destroy() {
+        console.log('🧹 Limpiando recursos del dashboard...');
+        
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        
+        Object.values(this.charts).forEach(chart => {
+            if (chart) {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('⚠️ Error destruyendo gráfico:', e);
+                }
+            }
+        });
+        
+        const indicator = document.getElementById('dashboard-status');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+    
+    // Método para verificar y reparar gráficas
+    checkAndRepairCharts() {
+        console.log('🔍 Verificando estado de las gráficas...');
+        
+        const tareasChart = document.getElementById('tareasChart');
+        const cruceroChart = document.getElementById('cruceroChart');
+        
+        if (!tareasChart || !cruceroChart) {
+            console.warn('⚠️ Canvas de gráficas no encontrado');
+            return false;
+        }
+        
+        // Verificar si las gráficas están funcionando
+        if (!this.charts.tareas || !this.charts.crucero) {
+            console.log('🔄 Gráficas no inicializadas, reinicializando...');
+            this.initCharts();
+            return true;
+        }
+        
+        // Verificar si las gráficas tienen datos válidos
+        try {
+            if (this.charts.tareas.data.datasets[0].data.every(val => val === 0)) {
+                console.log('🔄 Gráfico de tareas sin datos, actualizando...');
+                this.updateDashboard();
+            }
+            
+            if (this.charts.crucero.data.datasets[0].data.every(val => val === 0) && 
+                this.charts.crucero.data.datasets[1].data.every(val => val === 0)) {
+                console.log('🔄 Gráfico de cruceros sin datos, actualizando...');
+                this.updateDashboard();
+            }
+        } catch (e) {
+            console.warn('⚠️ Error verificando datos de gráficas:', e);
+            this.initCharts();
+            return true;
+        }
+        
+        return true;
+    }
+}
+
+// Añadir estilos para animaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .update-highlight {
+        animation: pulse 0.5s ease-in-out;
+        background-color: rgba(40, 167, 69, 0.1);
+        border-radius: 5px;
+        padding: 2px 5px;
+    }
+    
+    .chart-updating {
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+    
+    .chart-updated {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOM listo, inicializando Dashboard Manager...');
+    window.dashboardManager = new OptimizedDashboardManager();
+});
+
+// Detectar cuando la página se vuelve visible (para el botón de retroceso)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && window.dashboardManager) {
+        console.log('🔄 Página visible nuevamente, verificando gráficas...');
+        // Pequeño delay para asegurar que todo esté listo
+        setTimeout(() => {
+            if (window.dashboardManager && !window.dashboardManager.isInitialized) {
+                console.log('🔄 Reinicializando gráficas...');
+                window.dashboardManager.initCharts();
+            }
+        }, 100);
+    }
+});
+
+// Detectar cuando la página se vuelve activa (para el botón de retroceso)
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && window.dashboardManager) {
+        console.log('🔄 Página restaurada desde caché, reinicializando...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.initCharts();
+                window.dashboardManager.updateDashboard();
+            }
+        }, 200);
+    }
+});
+
+// Detectar cuando la página se vuelve activa (focus)
+window.addEventListener('focus', () => {
+    if (window.dashboardManager) {
+        console.log('🔄 Ventana enfocada, verificando estado...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.checkAndRepairCharts();
+            }
+        }, 100);
+    }
+});
+
+// Limpiar al cambiar de página
+window.addEventListener('beforeunload', () => {
+    if (window.dashboardManager) {
+        window.dashboardManager.destroy();
+    }
+});
+
+// Función global para actualización manual
+window.updateDashboard = function() {
+    if (window.dashboardManager) {
+        window.dashboardManager.updateDashboard();
+    }
+};
+
+// Función global para reparar gráficas
+window.repairCharts = function() {
+    if (window.dashboardManager) {
+        window.dashboardManager.checkAndRepairCharts();
+    } else {
+        // Si no existe el dashboard manager, intentar inicializarlo
+        console.log('🔄 Inicializando dashboard manager...');
+        if (typeof OptimizedDashboardManager !== 'undefined') {
+            window.dashboardManager = new OptimizedDashboardManager();
+            setTimeout(() => {
+                if (window.dashboardManager) {
+                    window.dashboardManager.checkAndRepairCharts();
+                }
+            }, 1000);
+        }
+    }
+};
+
+// Detectar cambios de tamaño de ventana (puede ayudar con la reinicialización)
+window.addEventListener('resize', () => {
+    if (window.dashboardManager) {
+        console.log('🔄 Ventana redimensionada, verificando gráficas...');
+        setTimeout(() => {
+            if (window.dashboardManager) {
+                window.dashboardManager.checkAndRepairCharts();
+            }
+        }, 300);
+    }
+});
+</script>
+{% endblock %}

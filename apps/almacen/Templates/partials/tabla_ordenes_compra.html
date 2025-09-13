@@ -1,0 +1,41 @@
+<div class="inventory-container">
+<table>
+    <thead>
+        <tr>
+            <th class="col-producto"><span>Producto</span></th>
+            <th class="col-cantidad"><span>Cantidad entrante</span></th>
+            <th class="col-ubicacion"><span>Sección destino</span></th>
+            <th class="col-estado"><span>Estado</span></th>
+            <th class="col-acciones"><span>Acciones</span></th>
+        </tr>
+    </thead>
+    <tbody id="ordenes-compra-tbody">
+        {% if ordenes %}
+            {% for orden in ordenes %}
+                <tr data-orden-id="{{ orden.id }}">
+                    <td>
+                        <div class="product">
+                            <div class="product-img-placeholder"></div>
+                            <div class="product-info">
+                                <div class="product-name">{{ orden.producto.nombre }}</div>
+                                <div class="product-sku">{{ orden.producto.tipo }}{% if orden.producto.subtipo %} · {{ orden.producto.subtipo }}{% endif %}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ orden.cantidad_productos }} {{ orden.producto.get_medida_display }}</td>
+                    <td>{{ orden.producto.seccion.nombre }}</td>
+                    <td>{{ orden.get_estado_display }}</td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-revisar" data-orden-id="{{ orden.id }}">Revisar</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center; padding:30px; color:#64748b;">Sin órdenes por registrar</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+<div class="table-footer" id="ordenes-footer"></div>
+</div>

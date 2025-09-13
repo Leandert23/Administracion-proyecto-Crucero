@@ -7,6 +7,15 @@ from django.db import transaction
 from django.utils import timezone
 
 from ..models import Crucero, Habitacion, Instalacion, TipoHabitacion
+try:
+    # import SeccionAlmacen desde la app almacen (si la app está disponible en el path)
+    from apps.almacen.models import SeccionAlmacen
+except Exception:
+    # Fallback a import relativo si la estructura de paquetes lo requiere
+    try:
+        from ...almacen.models import SeccionAlmacen
+    except Exception:
+        SeccionAlmacen = None
 
 class PlantillaNoEncontrada(Exception):
     pass
@@ -96,16 +105,85 @@ def convertir_especificaciones_numericas(especificaciones: Dict[str, Any]) -> Di
     return especificaciones_procesadas
 
 def crear_instalaciones_crucero(crucero: Crucero, instalaciones_data: List[Dict[str, Any]]) -> None:
-    
     for datos in instalaciones_data:
-        Instalacion.objects.create(
+        # manejar capacidad nula en plantillas (JSON null -> Python None)
+        capacidad_raw = datos.get("capacidad", None)
+        capacidad = None if capacidad_raw is None else int(capacidad_raw)
+
+        cubierta_raw = datos.get("cubierta", 1)
+        cubierta = 1 if cubierta_raw is None else int(cubierta_raw)
+
+        instalacion = Instalacion.objects.create(
             crucero=crucero,
             nombre=datos["nombre"],
             tipo=datos.get("tipo", "otro"),
-            capacidad=int(datos.get("capacidad", 0)),
-            cubierta=int(datos.get("cubierta", 1)),
+            capacidad=capacidad,
+            cubierta=cubierta,
             descripcion=datos.get("descripcion"),
         )
+
+        # Si la instalación es de tipo 'almacen', crear secciones.
+        # Preferimos las secciones definidas en la plantilla (datos['secciones']).
+        if instalacion and instalacion.tipo == 'almacen' and SeccionAlmacen is not None:
+            secciones_definidas = datos.get('secciones')
+
+            if secciones_definidas and isinstance(secciones_definidas, list):
+                # Crear/obtener cada sección provista en la plantilla
+                for sec in secciones_definidas:
+                    nombre_sec = sec.get('nombre') or sec.get('nombre_seccion') or 'Sección'
+                    tipo_cod = sec.get('tipo') or 'SECO'
+                    capacidad_sec_raw = sec.get('capacidad', None)
+                    try:
+                        capacidad_sec = None if capacidad_sec_raw is None else int(capacidad_sec_raw)
+                    except Exception:
+                        capacidad_sec = 0
+
+                    temperatura = sec.get('temperatura', None)
+                    humedad = sec.get('humedad', None)
+                    esta_activa = sec.get('esta_activa', True)
+
+                    try:
+                        SeccionAlmacen.objects.get_or_create(
+                            almacen=instalacion,
+                            nombre=nombre_sec,
+                            defaults={
+                                'tipo': tipo_cod,
+                                'capacidad': capacidad_sec or 0,
+                                'temperatura': temperatura,
+                                'humedad': humedad,
+                                'esta_activa': esta_activa,
+                            }
+                        )
+                    except Exception:
+                        continue
+            else:
+                # Si no hay secciones en la plantilla, creamos secciones por defecto.
+                default_sections = [
+                    ("SECO", "Sección Seco"),
+                    ("REFRIGERACION", "Cámara de Refrigeración"),
+                    ("CONGELACION", "Cámara de Congelación"),
+                    ("ESTANTERIAS", "Estanterías"),
+                ]
+
+                n = len(default_sections)
+                capacidad_por_seccion = 0
+                if isinstance(capacidad, int) and capacidad > 0:
+                    capacidad_por_seccion = max(0, capacidad // n)
+
+                for tipo_cod, nombre_seccion in default_sections:
+                    try:
+                        SeccionAlmacen.objects.get_or_create(
+                            almacen=instalacion,
+                            nombre=nombre_seccion,
+                            defaults={
+                                'tipo': tipo_cod,
+                                'capacidad': capacidad_por_seccion,
+                                'temperatura': None,
+                                'humedad': None,
+                            }
+                        )
+                    except Exception:
+                        continue
 
 def crear_habitaciones_crucero(crucero: Crucero, config_habitaciones: Dict[str, Any]) -> None:
     reglas = config_habitaciones.get("reglas", [])
@@ -153,19 +231,48 @@ def procesar_regla_habitaciones(crucero: Crucero, regla: Dict[str, Any], tipos_m
     distribucion = calcular_distribucion_habitaciones(categoria, sencillos, dobles, porcentaje_vista)
     
     for piso in pisos:
-        consecutivo_piso = 1
-        
+        # Calcular contadores iniciales por lado (se hace una sola consulta por lado)
+        from ..models import Habitacion as _Habitacion  # local alias para evitar sombras
+
+        def _prefijo(p):
+            return f"{int(p):02d}"
+
+        pref_babor = f"{_prefijo(piso)}0"
+        pref_estribor = f"{_prefijo(piso)}1"
+
+        existentes_babor = _Habitacion.objects.filter(crucero=crucero, codigo_ubicacion__startswith=pref_babor).values_list('codigo_ubicacion', flat=True)
+        existentes_estribor = _Habitacion.objects.filter(crucero=crucero, codigo_ubicacion__startswith=pref_estribor).values_list('codigo_ubicacion', flat=True)
+
+        def _max_from_existentes(iterable, pref):
+            maxn = 0
+            for cod in iterable:
+                if len(cod) >= 6 and cod.isdigit() and cod.startswith(pref):
+                    try:
+                        n = int(cod[-3:])
+                        if n > maxn:
+                            maxn = n
+                    except ValueError:
+                        continue
+            return maxn
+
+        contadores_lado = {
+            'babor': _max_from_existentes(existentes_babor, pref_babor),
+            'estribor': _max_from_existentes(existentes_estribor, pref_estribor),
+        }
+
+        # alternador para repartir entre babor/estribor sin recalcular prefix cada vez
+        alternador_lado = 0
+
         for cantidad, clave_tipo in distribucion:
             if cantidad <= 0 or clave_tipo not in tipos_map:
                 continue
-            
+
             tipo_habitacion = tipos_map[clave_tipo]
-            habitaciones_creadas, nuevo_consecutivo = crear_lote_habitaciones(
-                crucero, piso, cantidad, tipo_habitacion, consecutivo_piso
+            habitaciones_creadas, nuevo_consecutivo, contadores_lado, alternador_lado = crear_lote_habitaciones(
+                crucero, piso, cantidad, tipo_habitacion, contadores_lado, alternador_lado
             )
-            
+
             total_habitaciones += habitaciones_creadas
-            consecutivo_piso = nuevo_consecutivo
     
     return total_habitaciones
 
@@ -182,29 +289,57 @@ def calcular_distribucion_habitaciones(categoria: str, sencillos: int, dobles: i
         (interior_dobles, f"{categoria}_doble_interior"),
     ]
 
-def crear_lote_habitaciones(crucero: Crucero, piso: int, cantidad: int, tipo_habitacion: TipoHabitacion, 
-                            consecutivo_inicio: int) -> Tuple[int, int]:
+def crear_lote_habitaciones(crucero: Crucero, piso: int, cantidad: int, tipo_habitacion: TipoHabitacion,
+                            contadores_lado: Dict[str, int], alternador_lado: int) -> Tuple[int, int, Dict[str, int], int]:
+    """Crea `cantidad` habitaciones en memoria y las inserta en bloque.
+
+    - contadores_lado: diccionario con los últimos números usados por lado (enteros).
+    - alternador_lado: 0 para empezar por babor, 1 por estribor. Se mantiene entre llamadas por piso.
+
+    Retorna: (habitaciones_creadas, nuevo_consecutivo_estimado, contadores_lado, alternador_lado)
+    """
+    habitaciones_a_insertar: List[Habitacion] = []
     habitaciones_creadas = 0
-    consecutivo_actual = consecutivo_inicio
-    alternador_lado = 0
-    contadores_lado = {"babor": 0, "estribor": 0}
 
     for _ in range(cantidad):
-        lado = "babor" if alternador_lado == 0 else "estribor"
+        lado = 'babor' if alternador_lado == 0 else 'estribor'
         alternador_lado = 1 - alternador_lado
+
+        # incrementar contador local y preparar número y código de ubicación
         contadores_lado[lado] += 1
-
         numero_simple = f"{contadores_lado[lado]}"
+        lado_dig = '0' if lado == 'babor' else '1'
+        codigo = f"{int(piso):02d}{lado_dig}{contadores_lado[lado]:03d}"
 
-        Habitacion.objects.create(
+        habitacion = Habitacion(
             crucero=crucero,
             tipo_habitacion=tipo_habitacion,
             cubierta=piso,
             lado=lado,
             numero=numero_simple,
+            codigo_ubicacion=codigo,
         )
 
-        consecutivo_actual += 1
+        habitaciones_a_insertar.append(habitacion)
         habitaciones_creadas += 1
 
-    return habitaciones_creadas, consecutivo_actual
+    # Insertar en bloque para reducir round-trips a la base de datos
+    if habitaciones_a_insertar:
+        # bulk_create no llama a save(), por eso ya establecimos codigo_ubicacion
+        Habitacion.objects.bulk_create(habitaciones_a_insertar, batch_size=500)
+
+        # Actualizar vista_mar según el nombre del tipo de habitación
+        tipo_nombre = tipo_habitacion.nombre.lower()
+        if 'vista mar' in tipo_nombre or 'vista al mar' in tipo_nombre:
+            # Solo actualizar las habitaciones recién creadas de este lote
+            Habitacion.objects.filter(
+                crucero=crucero,
+                tipo_habitacion=tipo_habitacion,
+                cubierta=piso,
+                numero__in=[h.numero for h in habitaciones_a_insertar]
+            ).update(vista_mar=True)
+
+    # nuevo_consecutivo es útil si la interfaz lo requiere; retornamos el total creado + 1
+    nuevo_consecutivo = sum(contadores_lado.values())
+
+    return habitaciones_creadas, nuevo_consecutivo, contadores_lado, alternador_lado

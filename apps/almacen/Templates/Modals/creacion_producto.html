@@ -1,0 +1,100 @@
+<div id="modalCrearProducto" class="inventario-modal" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index:5000;">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Crear Producto</h2>
+            <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-crear-producto" class="form-grid" method="post" action="{% url 'crear_producto' %}" data-update-url="{% url 'actualizar_producto' %}">
+                {% csrf_token %}
+                <input type="hidden" name="producto_id" id="id_producto_edit" value="">
+
+                <!-- Nombre -->
+                <div class="form-field" data-field="nombre">
+                        <label for="id_nombre">Nombre</label>
+                        <input type="text" id="id_nombre" name="nombre" maxlength="100" placeholder="Ej: Arroz Blanco" required>
+                        <small class="help-text">Nombre único del producto.</small>
+                        <div class="error-text" hidden></div>
+                </div>
+
+                <!-- Tipo -->
+                <div class="form-field" data-field="tipo">
+                    <label for="id_tipo">Tipo</label>
+                    <select id="id_tipo" name="tipo" required>
+                        <option value="" hidden>Selecciona...</option>
+                        <option value="ALIMENTOS_FRESCOS">Alimentos Frescos</option>
+                        <option value="ALIMENTOS_SECOS">Alimentos Secos</option>
+                        <option value="BEBIDAS">Bebidas</option>
+                        <option value="INSUMOS_COCINA">Insumos de Cocina</option>
+                        <option value="LIMPIEZA">Limpieza</option>
+                        <option value="SUMINISTROS_MEDICOS">Suministros Médicos</option>
+                        <option value="MANTENIMIENTO">Materiales de Mantenimiento</option>
+                        <option value="REPUESTOS_TECNICOS">Repuestos Técnicos</option>
+                        <option value="EQUIPOS">Equipos</option>
+                        <option value="TEXTILES">Textiles</option>
+                        <option value="OFICINA">Oficina</option>
+                        <option value="ENTRETENIMIENTO">Entretenimiento</option>
+                        <option value="SPA_GYM">SPA / GYM</option>
+                        <option value="SEGURIDAD">Seguridad</option>
+                        <option value="MERCHANDISING">Merchandising</option>
+                        <option value="TECNOLOGIA">Tecnología</option>
+                    </select>
+                    <small class="help-text">Selecciona el tipo principal.</small>
+                    <div class="error-text" hidden></div>
+                </div>
+
+                <!-- Subtipo (dinámico según tipo) -->
+                <div class="form-field" data-field="subtipo">
+                        <label for="id_subtipo">Subtipo</label>
+                        <select id="id_subtipo" name="subtipo">
+                                <option value="" hidden>Opcional...</option>
+                                <!-- Se poblará dinámicamente vía JS según el tipo -->
+                        </select>
+                        <small class="help-text">Opcional. Depende del tipo seleccionado.</small>
+                        <div class="error-text" hidden></div>
+                </div>
+
+                <!-- Cantidad Ideal -->
+                <div class="form-field" data-field="cantidad_ideal">
+        <label for="id_cantidad_ideal">Cantidad Ideal</label>
+        <input type="number" id="id_cantidad_ideal" name="cantidad_ideal" min="0" step="1" placeholder="Ej: 150" required>
+        <small class="help-text">Stock objetivo para alertas de inventario.</small>
+        <div class="error-text" hidden></div>
+    </div>
+
+    <!-- Unidad / Medida -->
+    <div class="form-field" data-field="medida">
+        <label for="id_medida">Unidad</label>
+        <select id="id_medida" name="medida" required>
+            <option value="" hidden>Selecciona...</option>
+            <option value="L">Litros</option>
+            <option value="M">Metros</option>
+            <option value="K">Kilogramos</option>
+            <option value="U">Unidades</option>
+        </select>
+        <small class="help-text">Unidad de medida utilizada.</small>
+        <div class="error-text" hidden></div>
+    </div>
+
+    <!-- Sección -->
+    <div class="form-field" data-field="seccion">
+        <label for="id_seccion">Sección de Almacén</label>
+        <select id="id_seccion" name="seccion" required>
+            <option value="" hidden>Selecciona...</option>
+            {% for sec in secciones %}
+                <option value="{{ sec.id }}">{{ sec.almacen.nombre }} — {{ sec.nombre }}</option>
+            {% endfor %}
+        </select>
+        <small class="help-text">Lugar físico donde se guarda.</small>
+        <div class="error-text" hidden></div>
+    </div>
+
+    <!-- Botones -->
+    <div class="modal-footer" style="grid-column:1 / -1; display:flex; justify-content:flex-end;">
+        <button type="button" class="btn btn-danger" id="btn-cancelar-producto">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+        </div> <!-- /.modal-body -->
+    </div> <!-- /.modal-container -->
+</div> <!-- /#modalCrearProducto -->

@@ -21,23 +21,33 @@
             
             <nav class="sidebar-nav">
                 <ul class="nav-list">
-                    <li class="nav-item active">
-                        <a href="#" class="nav-link">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
                             <span class="nav-text">Inicio</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'dashboard' crucero.id%}" class="nav-link">
+                        <a href="{% url 'administracion:cruceros_dashboard_data' crucero.id %}" class="nav-link">
                             <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'gestion_crucero' crucero.id %}" class="nav-link">
+                            <span class="nav-text">Gestión Crucero</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'entretenimiento:entretenimiento' crucero.id%}" class="nav-link">
+                            <span class="nav-text">Entretenimiento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'ventas:dashboard' crucero.id%}" class="nav-link">
                             <span class="nav-text">Ventas</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'reservas' crucero.nombre %}" class="nav-link">
                             <span class="nav-text">Reservas</span>
                         </a>
                     </li>
@@ -52,17 +62,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'compras:compras' crucero.id %}" class="nav-link">
                             <span class="nav-text">Compras</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'vista_almacen' crucero.id %}" class="nav-link">
                             <span class="nav-text">Almacen</span>
                         </a>
                     </li>
@@ -72,12 +77,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'panel_personal_medico' %}" class="nav-link">
                             <span class="nav-text">Servicios Medicos</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{% url 'mantenimiento:dashboard' %}" class="nav-link">
                             <span class="nav-text">Mantenimiento</span>
                         </a>
                     </li>
@@ -103,7 +108,7 @@
                         <span></span>
                     </button>
                     <h1 class="page-title">{{ crucero.nombre }}</h1>
-                    <p class="page-subtitle">{{ crucero.descripcion }}</p>
+                    <p class="page-subtitle">Crucero {{ crucero.get_tipo_crucero_display }}</p>
                 </div>
             </header>
 
@@ -325,7 +330,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" onclick="cerrarModalInfoGeneral()">Cancelar</button>
-                <button type="button" class="btn btn-info" onclick="limpiarFormularioInfo()">Limpiar</button>
                 <button type="submit" form="formInfoGeneral" class="btn btn-success">Guardar</button>
             </div>
         </div>

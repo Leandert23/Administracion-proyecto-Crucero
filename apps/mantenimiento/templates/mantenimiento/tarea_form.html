@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ action }} Tarea{% endblock %}
+{% block page_subtitle %}Complete la información de la tarea de mantenimiento{% endblock %}
+
+{% block content %}
+<div class="stats-section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2 text-primary"></i>{{ action }} Tarea de Mantenimiento
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>Revisa los errores del formulario:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for field in form %}
+                                  {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                  {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                  <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Información básica -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label for="{{ form.titulo.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-tag me-1 text-primary"></i>{{ form.titulo.label }}
+                                </label>
+                                {{ form.titulo }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.prioridad.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-exclamation-circle me-1 text-warning"></i>{{ form.prioridad.label }}
+                                </label>
+                                {{ form.prioridad }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-align-left me-1 text-info"></i>{{ form.descripcion.label }}
+                                </label>
+                                {{ form.descripcion }}
+                            </div>
+                        </div>
+
+                        <!-- Configuración de tarea -->
+                        <h5 class="mb-3 text-primary">
+                            <i class="fas fa-cogs me-2"></i>Configuración de la Tarea
+                        </h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="{{ form.tipo.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-wrench me-1 text-success"></i>{{ form.tipo.label }}
+                                </label>
+                                {{ form.tipo }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.tipo_crucero.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-ship me-1 text-info"></i>{{ form.tipo_crucero.label }}
+                                </label>
+                                {{ form.tipo_crucero }}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.crucero.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-building me-1 text-secondary"></i>{{ form.crucero.label }}
+                                </label>
+                                {{ form.crucero }}
+                            </div>
+                        </div>
+
+                        <!-- Ubicación y equipo -->
+                        <h5 class="mb-3 text-primary">
+                            <i class="fas fa-map-marker-alt me-2"></i>Ubicación y Equipo
+                        </h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.ubicacion.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ form.ubicacion.label }}
+                                </label>
+                                {{ form.ubicacion }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.equipo.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-cogs me-1 text-warning"></i>{{ form.equipo.label }}
+                                </label>
+                                {{ form.equipo }}
+                            </div>
+                        </div>
+
+                        <!-- Fechas y tiempos -->
+                        <h5 class="mb-3 text-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>Programación
+                        </h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.fecha_programada.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar me-1 text-success"></i>{{ form.fecha_programada.label }}
+                                </label>
+                                {{ form.fecha_programada }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.tiempo_estimado_horas.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-1 text-info"></i>{{ form.tiempo_estimado_horas.label }}
+                                </label>
+                                {{ form.tiempo_estimado_horas }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-1 text-secondary"></i>{{ form.observaciones.label }}
+                                </label>
+                                {{ form.observaciones }}
+                            </div>
+                        </div>
+
+                        <!-- Formularios adicionales -->
+                        {% if asignacion_form or producto_form %}
+                        <div class="row g-3">
+                            {% if asignacion_form %}
+                            <div class="col-lg-6 mb-4">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-users me-2"></i>Personal Asignado
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ asignacion_form.personal.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-user me-1"></i>{{ asignacion_form.personal.label }}
+                                            </label>
+                                            {{ asignacion_form.personal }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="{{ asignacion_form.horas_asignadas.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-clock me-1"></i>{{ asignacion_form.horas_asignadas.label }}
+                                            </label>
+                                            {{ asignacion_form.horas_asignadas }}
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="{{ asignacion_form.estado.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-info-circle me-1"></i>{{ asignacion_form.estado.label }}
+                                            </label>
+                                            {{ asignacion_form.estado }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if producto_form %}
+                            <div class="col-lg-6 mb-4">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-boxes me-2"></i>Producto Inicial
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ producto_form.producto.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-box me-1"></i>{{ producto_form.producto.label }}
+                                            </label>
+                                            {{ producto_form.producto }}
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="{{ producto_form.cantidad_utilizada.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-hashtag me-1"></i>{{ producto_form.cantidad_utilizada.label }}
+                                            </label>
+                                            {{ producto_form.cantidad_utilizada }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Botones de acción -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-3 justify-content-end pt-3 border-top">
+                                    <a href="{% url 'mantenimiento:tarea_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Guardar Tarea
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Evitar enviar valores vacíos de los subformularios en la creación de tarea
+document.addEventListener('submit', function(e){
+  const form = e.target;
+  if (!form.closest('form')) return;
+});
+</script>
+{% endblock %}

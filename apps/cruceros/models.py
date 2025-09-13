@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import timedelta
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 class Crucero(models.Model):
     class EstadoOperativo(models.TextChoices):
@@ -71,36 +72,25 @@ class Crucero(models.Model):
         null=True
     )
 
-    seguro_vigente = models.BooleanField(default=False, null=True, help_text="Indica si el seguro está vigente")
-    fecha_vencimiento_seguro = models.DateField(blank=True, null=True)
-    certificado_sanitario = models.FileField(
-        upload_to="certificados/", 
-        blank=True, 
-        null=True,
-        help_text="Certificado sanitario vigente"
-    )
-    certificado_seguridad = models.FileField(
-    upload_to="certificados/seguridad/", 
-    blank=True, 
-    null=True,
-    help_text="Certificado de seguridad del crucero"
-)
-
-    foto_barco = models.ImageField(
-        upload_to="fotos_barco/", 
-        blank=True, 
-        null=True,
-        help_text="Foto principal del crucero"
-    )
-    plano_barco = models.ImageField(
-        upload_to="planos_barco/", 
-        blank=True, 
-        null=True,
-        help_text="Plano de distribución del crucero"
-    )
-
     def clean(self):
         errors = {}
+
+        # Unicidad case-insensitive de nombre
+        if self.nombre:
+            qs = Crucero.objects.filter(nombre__iexact=self.nombre.strip())
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                errors['nombre'] = 'Ya existe un crucero con este nombre.'
+
+        # Validar que fecha_botadura sea menor a la fecha del sistema
+        if self.fecha_botadura:
+            try:
+                fs = FechaDelSistema.objects.first()
+                if fs and self.fecha_botadura >= fs.fecha_actual:
+                    errors['fecha_botadura'] = 'Debe ser menor a la fecha actual del sistema.'
+            except Exception:
+                pass
         
         if self.fecha_botadura and self.fecha_adquisicion:
             if self.fecha_botadura > self.fecha_adquisicion:
@@ -137,7 +127,8 @@ class Crucero(models.Model):
     def dia_actual_de_viaje(self) -> int:
         viaje = self.viajes.filter(estado="activo").first()
         if not viaje:
-            raise Exception("Error: El barco no está en un viaje")
+            pass
+            #raise Exception("Error: El barco no está en un viaje")
         else: 
             hoy = FechaDelSistema.objects.first().fecha_actual
             dias_transcurridos = (hoy - viaje.fecha_inicio).days + 1
@@ -157,7 +148,6 @@ class TipoHabitacion(models.Model):
     capacidad = models.PositiveIntegerField()
     precio_base = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField(blank=True, null=True)
-    imagen = models.ImageField(upload_to="tipos_habitacion/", blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -183,18 +173,13 @@ class Habitacion(models.Model):
         help_text="Código UUAIII: UU=cubierta (2 dígitos), A=lado (0 babor / 1 estribor), III=consecutivo (001-999) por cubierta y lado"
     )
     numero = models.CharField(max_length=20)
-    ocupada = models.BooleanField(default=False)
+    reservada = models.BooleanField(default=False)
+    vista_mar = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.crucero.nombre} - {self.tipo_habitacion} - cubierta {self.cubierta} - {self.lado} - {self.numero}"
 
     def _generar_codigo(self):
-        """Genera un código en formato UUAIII (6 dígitos numéricos):
-
-        - UU: cubierta (00-99)
-        - A : lado (0=babor, 1=estribor)
-        - III: consecutivo (001-999) reiniciado por (crucero, cubierta, lado)
-        """
         lado_dig = '0' if self.lado == 'babor' else '1'
         prefijo = f"{int(self.cubierta):02d}{lado_dig}"
         existentes = Habitacion.objects.filter(
@@ -235,7 +220,7 @@ class Instalacion(models.Model):
     TIPO_CHOICES = [
         ("restaurantes", "Restaurantes"),
         ("bares_cafes", "Bares y Cafés"),
-        ("almacenes", "Almacenes"),
+        ("almacen", "Almacen"),
         ("entretenimiento", "Sitios de Entretenimiento"),
         ("otro", "Otro"),
     ]
@@ -248,7 +233,7 @@ class Instalacion(models.Model):
     )
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
-    capacidad = models.PositiveIntegerField()
+    capacidad = models.PositiveIntegerField(null=True)
     descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
