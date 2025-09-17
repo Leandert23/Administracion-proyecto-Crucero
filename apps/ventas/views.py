@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Cliente, Venta, DetalleVenta, MetodoPago, Pago
-from .forms import ClienteForm, VentaForm, DetalleVentaFormSet
+from .models import Cliente, Venta, DetalleVenta, MetodoPago, Pago, VentaHabitacion
+from .forms import ClienteForm, VentaForm, DetalleVentaFormSet, VentaHabitacionForm, FiltroEmbarcacionForm
 from apps.cruceros.models import Crucero
+from apps.creador_embarcaciones.models import Embarcacion, Habitaciones, Cubierta
 
 def dashboard_ventas(request, crucero_id):
     """Vista del dashboard principal de ventas"""
@@ -218,3 +219,181 @@ def editar_cliente(request, crucero_id, cliente_id):
         'crucero': crucero,
     }
     return render(request, 'ventas/editar_cliente.html', context)
+
+
+# ========== VISTAS PARA VENTAS DE HABITACIONES ==========
+
+def ventas_habitaciones_home(request, embarcacion_id):
+    """Vista principal del módulo de ventas de habitaciones para una embarcación específica"""
+    try:
+        embarcacion = get_object_or_404(Embarcacion, id=embarcacion_id)
+    except:
+        # Si no existe la embarcación, mostrar mensaje de error
+        messages.error(request, f'No se encontró la embarcación con ID {embarcacion_id}. Por favor, crea embarcaciones primero.')
+        
+        # Verificar si hay embarcaciones disponibles
+        embarcaciones_disponibles = Embarcacion.objects.filter(
+            cubiertas__habitaciones__isnull=False
+        ).distinct()
+        
+        if embarcaciones_disponibles.exists():
+            # Redirigir a la primera embarcación disponible
+            primera_embarcacion = embarcaciones_disponibles.first()
+            messages.info(request, f'Redirigiendo a la embarcación {primera_embarcacion.nombre}')
+            return redirect('ventas:ventas_habitaciones_home', embarcacion_id=primera_embarcacion.id)
+        else:
+            # No hay embarcaciones, mostrar página de error amigable
+            context = {
+                'error_message': 'No hay embarcaciones con habitaciones configuradas',
+                'suggestion': 'Debes crear embarcaciones con habitaciones usando el módulo "Creador de Embarcaciones"'
+            }
+            return render(request, 'ventas/habitaciones/no_embarcaciones.html', context)
+    
+    # Estadísticas de la embarcación específica
+    total_habitaciones = Habitaciones.objects.filter(cubierta__embarcacion=embarcacion).count()
+    habitaciones_disponibles = Habitaciones.objects.filter(
+        cubierta__embarcacion=embarcacion, 
+        estado='disponible'
+    ).count()
+    habitaciones_vendidas_hoy = VentaHabitacion.objects.filter(
+        embarcacion=embarcacion,
+        fecha_venta__date=timezone.now().date()
+    ).count()
+    
+    # Ventas recientes de esta embarcación
+    ventas_recientes = VentaHabitacion.objects.filter(
+        embarcacion=embarcacion
+    ).select_related(
+        'habitacion', 'habitacion__cubierta'
+    ).order_by('-fecha_venta')[:10]
+    
+    # Habitaciones por cubierta
+    cubiertas = Cubierta.objects.filter(
+        embarcacion=embarcacion
+    ).prefetch_related('habitaciones').order_by('numero')
+    
+    context = {
+        'embarcacion': embarcacion,
+        'total_habitaciones': total_habitaciones,
+        'habitaciones_disponibles': habitaciones_disponibles,
+        'habitaciones_vendidas_hoy': habitaciones_vendidas_hoy,
+        'ventas_recientes': ventas_recientes,
+        'cubiertas': cubiertas,
+    }
+    return render(request, 'ventas/habitaciones/home.html', context)
+
+
+# Vista seleccionar_embarcacion removida - funcionalidad integrada en ventas_habitaciones_home
+
+
+def vender_habitacion(request, embarcacion_id, habitacion_id):
+    """Vista para vender una habitación específica"""
+    embarcacion = get_object_or_404(Embarcacion, id=embarcacion_id)
+    habitacion = get_object_or_404(Habitaciones, id=habitacion_id, cubierta__embarcacion=embarcacion)
+    
+    if request.method == 'POST':
+        form = VentaHabitacionForm(
+            request.POST, 
+            embarcacion_id=embarcacion_id
+        )
+        if form.is_valid():
+            try:
+                venta = form.save(commit=False)
+                venta.habitacion = habitacion
+                venta.embarcacion = embarcacion
+                if request.user.is_authenticated:
+                    venta.vendedor = request.user
+                venta.save()
+                
+                # Actualizar estado de la habitación
+                habitacion.estado = 'ocupada'
+                habitacion.save()
+                
+                messages.success(
+                    request, 
+                    f'Habitación {habitacion.numero} vendida exitosamente a {venta.nombre_completo_cliente}'
+                )
+                return redirect('ventas:lista_ventas_habitaciones', embarcacion_id=embarcacion_id)
+            except Exception as e:
+                messages.error(request, f'Error al guardar la venta: {str(e)}')
+        else:
+            # Mostrar errores del formulario
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'Error en {field}: {error}')
+    else:
+        # Pre-llenar el precio con el precio base de la habitación
+        initial_data = {'precio_venta': habitacion.precio}
+        
+        # Pre-llenar fechas basándose en la ruta de la embarcación
+        if embarcacion.ruta and embarcacion.ruta.fecha_inicio and embarcacion.ruta.fecha_fin:
+            initial_data['fecha_checkin'] = embarcacion.ruta.fecha_inicio
+            initial_data['fecha_checkout'] = embarcacion.ruta.fecha_fin
+        
+        form = VentaHabitacionForm(
+            initial=initial_data,
+            embarcacion_id=embarcacion_id
+        )
+    
+    context = {
+        'form': form,
+        'habitacion': habitacion,
+        'embarcacion': embarcacion,
+        'cubierta': habitacion.cubierta,
+    }
+    return render(request, 'ventas/habitaciones/vender_habitacion.html', context)
+
+
+def lista_ventas_habitaciones(request, embarcacion_id):
+    """Vista para listar las ventas de habitaciones de una embarcación específica"""
+    embarcacion = get_object_or_404(Embarcacion, id=embarcacion_id)
+    
+    ventas = VentaHabitacion.objects.filter(
+        embarcacion=embarcacion
+    ).select_related(
+        'habitacion', 'habitacion__cubierta', 'vendedor'
+    ).order_by('-fecha_venta')
+    
+    # Filtros
+    estado = request.GET.get('estado')
+    busqueda = request.GET.get('busqueda')
+    
+    if estado:
+        ventas = ventas.filter(estado=estado)
+    
+    if busqueda:
+        ventas = ventas.filter(
+            Q(nombre_cliente__icontains=busqueda) |
+            Q(apellido_cliente__icontains=busqueda) |
+            Q(numero_pasaporte__icontains=busqueda)
+        )
+    
+    context = {
+        'embarcacion': embarcacion,
+        'ventas': ventas,
+        'estado_actual': estado,
+        'busqueda_actual': busqueda,
+        'estados_choices': VentaHabitacion.ESTADO_CHOICES,
+    }
+    return render(request, 'ventas/habitaciones/lista_ventas.html', context)
+
+
+def detalle_venta_habitacion(request, embarcacion_id, venta_id):
+    """Vista para ver detalles de una venta de habitación"""
+    embarcacion = get_object_or_404(Embarcacion, id=embarcacion_id)
+    venta = get_object_or_404(
+        VentaHabitacion.objects.select_related(
+            'habitacion', 'habitacion__cubierta', 'vendedor'
+        ), 
+        id=venta_id,
+        embarcacion=embarcacion
+    )
+    
+    context = {
+        'embarcacion': embarcacion,
+        'venta': venta,
+    }
+    return render(request, 'ventas/habitaciones/detalle_venta.html', context)
+
+
+# Vista habitaciones_por_embarcacion removida - funcionalidad integrada en ventas_habitaciones_home

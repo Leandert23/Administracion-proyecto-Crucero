@@ -373,7 +373,7 @@ def ingredientes_almacen_api(request):
     } for ingrediente in ingredientes
   ]
   return JsonResponse(data, safe=False)
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import HttpResponse
 
 from apps.bares_snacks.models import Pedidos, DetallePedido
@@ -388,7 +388,19 @@ from django.db.models import Sum, Q
 
 
 def bares_view(request, embarcacion_id):
-  embarcacion = Embarcacion.objects.get(id=embarcacion_id)
+  try:
+    embarcacion = Embarcacion.objects.get(id=embarcacion_id)
+  except Embarcacion.DoesNotExist:
+    # Si no existe la embarcación solicitada, intentar obtener la primera disponible
+    embarcacion = Embarcacion.objects.first()
+    if not embarcacion:
+      # Si no hay ninguna embarcación, mostrar mensaje de error
+      from django.contrib import messages
+      messages.error(request, 'No hay embarcaciones disponibles. Por favor, cree una embarcación primero.')
+      return redirect('/')
+    # Redirigir a la URL correcta con la embarcación existente
+    from django.shortcuts import redirect
+    return redirect('bares_snacks:bares', embarcacion_id=embarcacion.id)
   # Ingresos totales: suma de todos los pedidos completados
   detalles_completados = DetallePedido.objects.select_related('producto').filter(pedido__estado='completado')
   ingresos_totales = 0
@@ -1111,3 +1123,92 @@ def solicitar_restock_api(request):
   if not creados:
     return JsonResponse({'success': False, 'error': 'No se pudo crear ninguna orden'}, status=400)
   return JsonResponse({'success': True, 'creados': creados})
+
+
+def setup_datos_basicos(request):
+  """Vista temporal para configurar datos básicos del sistema"""
+  from django.http import HttpResponse
+  from apps.creador_embarcaciones.models import Ruta, Embarcacion, TipoEmbarcacion
+  from datetime import date, timedelta
+  from decimal import Decimal
+  
+  try:
+    # Verificar y crear ruta si no existe
+    if not Ruta.objects.exists():
+      ruta = Ruta.objects.create(
+        titulo="Caribe Oriental",
+        numero_dias=7,
+        descripcion="Ruta de 7 días por el Caribe Oriental visitando las mejores islas",
+        fecha_inicio=date.today() + timedelta(days=30)
+      )
+      mensaje_ruta = f"Ruta creada: {ruta.titulo}"
+    else:
+      ruta = Ruta.objects.first()
+      mensaje_ruta = f"Ruta existente: {ruta.titulo}"
+    
+    # Verificar y crear embarcación si no existe
+    if not Embarcacion.objects.exists():
+      # Obtener o crear tipo de embarcación
+      tipo_embarcacion, created = TipoEmbarcacion.objects.get_or_create(
+        nombre='Crucero',
+        defaults={'descripcion': 'Tipo de embarcación estándar para cruceros'}
+      )
+      
+      # Crear embarcación
+      embarcacion = Embarcacion.objects.create(
+        nombre='Vision',
+        tipo=tipo_embarcacion,
+        fecha_botadura=date.today() - timedelta(days=365),
+        fecha_adquisicion=date.today() - timedelta(days=300),
+        capacidad_pasajeros=2000,
+        capacidad_tripulacion=700,
+        tonelaje=Decimal('78340.00'),
+        eslora=Decimal('278.00'),
+        manga=Decimal('33.00'),
+        altura=Decimal('60.00'),
+        numero_cubiertas=12,
+        maximo_habitacion_pasajeros=825,
+        maximo_habitacion_tripulantes=490,
+        bandera='Venezuela',
+        puerto_base='Colón',
+        estado_operativo='operativo',
+        descripcion='Embarcación de crucero de lujo',
+        modelo_motor='Motor Diesel MAN 12V48/60CR',
+        velocidad_maxima=Decimal('22.50'),
+        ultimo_mantenimiento=date.today() - timedelta(days=30),
+        proximo_mantenimiento=date.today() + timedelta(days=90),
+        tipo_combustible='diesel',
+        consumo_combustible=Decimal('2500.00'),
+        capacidad_combustible=Decimal('80000.00'),
+        ruta=ruta
+      )
+      mensaje_embarcacion = f"Embarcación creada: {embarcacion.nombre} (ID: {embarcacion.id})"
+    else:
+      embarcacion = Embarcacion.objects.first()
+      mensaje_embarcacion = f"Embarcación existente: {embarcacion.nombre} (ID: {embarcacion.id})"
+    
+    # Crear respuesta HTML
+    html_response = f"""
+    <html>
+    <head><title>Setup Completado</title></head>
+    <body>
+      <h1>Configuración de Datos Básicos</h1>
+      <p><strong>Ruta:</strong> {mensaje_ruta}</p>
+      <p><strong>Embarcación:</strong> {mensaje_embarcacion}</p>
+      <p><strong>Estado:</strong> ✅ Configuración completada exitosamente</p>
+      <hr>
+      <p>Ahora puedes acceder al módulo de bares:</p>
+      <a href="/bares-snacks/{embarcacion.id}/" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        Ir al Módulo de Bares
+      </a>
+      <br><br>
+      <a href="/" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        Volver al Inicio
+      </a>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_response)
+    
+  except Exception as e:
+    return HttpResponse(f"<h1>Error en Setup</h1><p>Error: {str(e)}</p><a href='/'>Volver</a>", status=500)

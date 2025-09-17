@@ -267,7 +267,18 @@ def lista_solicitudes_view(request, embarcacion_id):
 
 @csrf_protect
 def dashboard_view(request, embarcacion_id):
-    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    try:
+        embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    except Embarcacion.DoesNotExist:
+        # Si no existe la embarcación solicitada, intentar obtener la primera disponible
+        embarcacion = Embarcacion.objects.first()
+        if not embarcacion:
+            # Si no hay ninguna embarcación, mostrar mensaje de error
+            from django.contrib import messages
+            messages.error(request, 'No hay embarcaciones disponibles. Por favor, cree una embarcación primero.')
+            return redirect('/')
+        # Redirigir a la URL correcta con la embarcación existente
+        return redirect('compras:compras', embarcacion_id=embarcacion.id)
     return render(request, 'compras.html', {'embarcacion': embarcacion, "embarcacion_id":embarcacion_id})
 
 @csrf_protect

@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Ventas de Habitaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-bed"></i> Ventas de Habitaciones</h2>
+                    <p class="text-muted">{{ embarcacion.nombre }} - {{ embarcacion.identificador }}</p>
+                    {% if embarcacion.ruta %}
+                        <div class="mt-2">
+                            <span class="badge bg-primary me-2">
+                                <i class="fas fa-route"></i> {{ embarcacion.ruta.titulo }}
+                            </span>
+                            {% if embarcacion.ruta.fecha_inicio and embarcacion.ruta.fecha_fin %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-calendar"></i> 
+                                    {{ embarcacion.ruta.fecha_inicio|date:"d/m/Y" }} - {{ embarcacion.ruta.fecha_fin|date:"d/m/Y" }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="mt-2">
+                            <span class="badge bg-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Sin ruta asignada
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{% url 'ventas:lista_ventas_habitaciones' embarcacion.id %}" class="btn btn-info me-2">
+                        <i class="fas fa-list"></i> Ver Ventas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ total_habitaciones }}</h4>
+                                    <p class="mb-0">Total Habitaciones</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-bed fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ habitaciones_disponibles }}</h4>
+                                    <p class="mb-0">Disponibles</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ habitaciones_vendidas_hoy }}</h4>
+                                    <p class="mb-0">Vendidas Hoy</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-shopping-cart fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ embarcaciones }}</h4>
+                                    <p class="mb-0">Embarcaciones</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-ship fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habitaciones por Cubierta -->
+            {% if cubiertas %}
+                {% for cubierta in cubiertas %}
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-layer-group"></i> 
+                                {{ cubierta.nombre }} (Cubierta {{ cubierta.numero }})
+                            </h5>
+                            <span class="badge bg-info">
+                                {{ cubierta.habitaciones.count }} habitación{{ cubierta.habitaciones.count|pluralize:"es" }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            {% if cubierta.habitaciones.all %}
+                                <div class="row">
+                                    {% for habitacion in cubierta.habitaciones.all %}
+                                        <div class="col-md-6 col-lg-4 col-xl-3 mb-3">
+                                            <div class="card h-100 {% if habitacion.estado == 'disponible' %}border-success{% elif habitacion.estado == 'ocupada' %}border-warning{% else %}border-secondary{% endif %}">
+                                                <div class="card-header {% if habitacion.estado == 'disponible' %}bg-success{% elif habitacion.estado == 'ocupada' %}bg-warning{% else %}bg-secondary{% endif %} text-white">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-bed"></i> 
+                                                        Habitación {{ habitacion.numero }}
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-2">
+                                                        <small class="text-muted">
+                                                            <strong>Posición:</strong> {{ habitacion.get_posicion_display }}<br>
+                                                            <strong>Área:</strong> {{ habitacion.area_metros_cuadrados }} m²
+                                                        </small>
+                                                    </div>
+                                                    
+                                                    <div class="mb-2">
+                                                        <span class="text-success">
+                                                            <strong>${{ habitacion.precio }}</strong>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <span class="badge bg-{% if habitacion.estado == 'disponible' %}success{% elif habitacion.estado == 'ocupada' %}warning{% else %}secondary{% endif %}">
+                                                            {{ habitacion.get_estado_display }}
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Información de venta si está ocupada -->
+                                                    {% if habitacion.ventas_habitacion.all %}
+                                                        {% with venta=habitacion.ventas_habitacion.first %}
+                                                            <div class="mt-2 p-2 bg-light rounded">
+                                                                <small>
+                                                                    <strong>Cliente:</strong> {{ venta.nombre_completo_cliente }}<br>
+                                                                    <strong>Venta:</strong> {{ venta.fecha_venta|date:"d/m/Y" }}
+                                                                </small>
+                                                            </div>
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-footer bg-transparent">
+                                                    {% if habitacion.estado == 'disponible' %}
+                                                        <a href="{% url 'ventas:vender_habitacion' embarcacion.id habitacion.id %}" 
+                                                           class="btn btn-success btn-sm w-100">
+                                                            <i class="fas fa-shopping-cart"></i> Vender
+                                                        </a>
+                                                    {% else %}
+                                                        <button class="btn btn-secondary btn-sm w-100" disabled>
+                                                            <i class="fas fa-ban"></i> No Disponible
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Esta cubierta no tiene habitaciones configuradas.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                            <h4>No hay habitaciones disponibles</h4>
+                            <p class="text-muted">Esta embarcación no tiene habitaciones configuradas</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Ventas Recientes -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Ventas Recientes</h5>
+                    <a href="{% url 'ventas:lista_ventas_habitaciones' embarcacion.id %}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if ventas_recientes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Habitación</th>
+                                        <th>Cliente</th>
+                                        <th>Embarcación</th>
+                                        <th>Precio</th>
+                                        <th>Fecha</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venta in ventas_recientes %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ venta.habitacion.numero }}</strong>
+                                                <small class="text-muted d-block">Cubierta {{ venta.habitacion.cubierta.numero }}</small>
+                                            </td>
+                                            <td>
+                                                {{ venta.nombre_completo_cliente }}
+                                                <small class="text-muted d-block">{{ venta.numero_pasaporte }}</small>
+                                            </td>
+                                            <td>{{ venta.embarcacion.nombre }}</td>
+                                            <td>
+                                                <span class="text-success">
+                                                    <strong>${{ venta.precio_venta }}</strong>
+                                                </span>
+                                            </td>
+                                            <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if venta.estado == 'reservada' %}warning{% elif venta.estado == 'ocupada' %}success{% elif venta.estado == 'completada' %}info{% else %}secondary{% endif %}">
+                                                    {{ venta.get_estado_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                            <h4>No hay ventas recientes</h4>
+                            <p class="text-muted">Las ventas de habitaciones aparecerán aquí</p>
+                            <p class="text-muted">Selecciona una habitación disponible arriba para realizar tu primera venta</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

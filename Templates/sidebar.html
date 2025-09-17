@@ -753,9 +753,13 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"ventas" %}
                 <li class="nav-item {% if active_module == 'ventas' %}active{% endif %}">
-                    <a href="{% url 'ventas:ventas' 1 %}" class="nav-link">
-                        <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas" class="nav-icon">
-                        <span class="nav-text">Ventas</span>
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'ventas:ventas_habitaciones_home' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
+                    <a href="{% url 'ventas:ventas_habitaciones_home' 1 %}" class="nav-link">
+                    {% endif %}
+                        <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas de habitaciones" class="nav-icon">
+                        <span class="nav-text">Ventas Habitaciones</span>
                     </a>
                 </li>
                 {% endif %}
@@ -783,7 +787,11 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"bares" %}
                 <li class="nav-item {% if active_module == 'bares' %}active{% endif %}">
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'bares_snacks:bares' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
                     <a href="{% url 'bares_snacks:bares' 1 %}" class="nav-link">
+                    {% endif %}
                         <img src="{% static 'svg/icono__bares.svg' %}" alt="Icono de bares" class="nav-icon">
                         <span class="nav-text">Bares</span>
                     </a>
@@ -793,7 +801,11 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"compras" %}
                 <li class="nav-item {% if active_module == 'compras' %}active{% endif %}">
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'compras:compras' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
                     <a href="{% url 'compras:compras' 1 %}" class="nav-link">
+                    {% endif %}
                         <img src="{% static 'svg/icono__compras.svg' %}" alt="Icono de compras" class="nav-icon">
                         <span class="nav-text">Compras</span>
                     </a>
@@ -803,7 +815,11 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"almacen" %}
                 <li class="nav-item {% if active_module == 'almacen' %}active{% endif %}">
-                    <a href="{% url 'vista_almacen' 1%}" class="nav-link">
+                    {% if request.user.crucero_id %}
+                    <a href="{% url 'vista_almacen' request.user.crucero_id %}" class="nav-link">
+                    {% else %}
+                    <a href="{% url 'vista_almacen' 1 %}" class="nav-link">
+                    {% endif %}
                         <img src="{% static 'svg/icono__almacen.svg' %}" alt="Icono de almacén" class="nav-icon">
                         <span class="nav-text">Almacen</span>
                     </a>

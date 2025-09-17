@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Ventas de Habitaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-list"></i> Ventas de Habitaciones</h2>
+                    <p class="text-muted">Listado completo de todas las ventas realizadas</p>
+                </div>
+                <div>
+                    <a href="{% url 'ventas:ventas_habitaciones_home' embarcacion.id %}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i> Inicio
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="busqueda" class="form-label">Buscar Cliente</label>
+                            <input type="text" name="busqueda" id="busqueda" class="form-control"
+                                   value="{{ busqueda_actual }}" placeholder="Nombre, apellido o pasaporte...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select name="estado" id="estado" class="form-control">
+                                <option value="">-- Todos los estados --</option>
+                                {% for value, label in estados_choices %}
+                                    <option value="{{ value }}" {% if estado_actual == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="embarcacion" class="form-label">Embarcación</label>
+                            <select name="embarcacion" id="embarcacion" class="form-control">
+                                <option value="">-- Todas las embarcaciones --</option>
+                                {% for embarcacion in embarcaciones %}
+                                    <option value="{{ embarcacion.id }}" {% if embarcacion_actual == embarcacion.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ embarcacion.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <a href="{% url 'ventas:lista_ventas_habitaciones' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lista de Ventas -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-table"></i> Ventas Registradas</h5>
+                </div>
+                <div class="card-body">
+                    {% if ventas %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Habitación</th>
+                                        <th>Cliente</th>
+                                        <th>Pasaporte</th>
+                                        <th>Embarcación</th>
+                                        <th>Precio</th>
+                                        <th>Fecha Venta</th>
+                                        <th>Check-in</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venta in ventas %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ venta.habitacion.numero }}</strong>
+                                                <small class="text-muted d-block">
+                                                    Cubierta {{ venta.habitacion.cubierta.numero }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    {{ venta.habitacion.get_posicion_display }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ venta.nombre_completo_cliente }}</strong>
+                                            </td>
+                                            <td>
+                                                <code>{{ venta.numero_pasaporte }}</code>
+                                            </td>
+                                            <td>
+                                                {{ venta.embarcacion.nombre }}
+                                                <small class="text-muted d-block">
+                                                    {{ venta.embarcacion.identificador }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="text-success">
+                                                    <strong>${{ venta.precio_venta }}</strong>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ venta.fecha_venta|date:"d/m/Y" }}
+                                                <small class="text-muted d-block">
+                                                    {{ venta.fecha_venta|date:"H:i" }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                {% if venta.fecha_checkin %}
+                                                    {{ venta.fecha_checkin|date:"d/m/Y" }}
+                                                    {% if venta.fecha_checkout %}
+                                                        <small class="text-muted d-block">
+                                                            al {{ venta.fecha_checkout|date:"d/m/Y" }}
+                                                        </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">Sin fecha</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{% if venta.estado == 'reservada' %}warning{% elif venta.estado == 'ocupada' %}success{% elif venta.estado == 'completada' %}info{% else %}secondary{% endif %}">
+                                                    {{ venta.get_estado_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'ventas:detalle_venta_habitacion' venta.id %}"
+                                                       class="btn btn-sm btn-outline-info" title="Ver detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if venta.vendedor %}
+                                                        <span class="btn btn-sm btn-outline-secondary" title="Vendedor: {{ venta.vendedor.username }}">
+                                                            <i class="fas fa-user"></i>
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Estadísticas de la página actual -->
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">
+                                        Mostrando {{ ventas|length }} venta{{ ventas|length|pluralize }}
+                                    </small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    {% with total_precio=ventas|length %}
+                                        {% if total_precio > 0 %}
+                                            <small class="text-success">
+                                                <strong>Total en página: ${% for venta in ventas %}{{ venta.precio_venta }}{% if not forloop.last %} + {% endif %}{% endfor %}</strong>
+                                            </small>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                            <h4>No hay ventas registradas</h4>
+                            <p class="text-muted">
+                                {% if busqueda_actual or estado_actual or embarcacion_actual %}
+                                    No se encontraron ventas con los filtros aplicados.
+                                {% else %}
+                                    Aún no se han registrado ventas de habitaciones.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'ventas:ventas_habitaciones_home' embarcacion.id %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Ir a Habitaciones
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit del formulario cuando cambian los filtros
+    const filtros = document.querySelectorAll('#estado, #embarcacion');
+    filtros.forEach(function(filtro) {
+        filtro.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+
+    // Resaltar filas según el estado
+    const filas = document.querySelectorAll('tbody tr');
+    filas.forEach(function(fila) {
+        const badge = fila.querySelector('.badge');
+        if (badge) {
+            const estado = badge.textContent.trim().toLowerCase();
+            if (estado.includes('completada')) {
+                fila.classList.add('table-success');
+            } else if (estado.includes('cancelada')) {
+                fila.classList.add('table-danger');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

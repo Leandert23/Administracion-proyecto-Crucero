@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Venta - Habitación {{ venta.habitacion.numero }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-receipt"></i> Detalle de Venta</h2>
+                    <p class="text-muted">Venta #{{ venta.id }} - {{ venta.fecha_venta|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'ventas:lista_ventas_habitaciones' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Lista
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Información de la Venta -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-user"></i> Información del Cliente</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre Completo:</strong></td>
+                                    <td>{{ venta.nombre_completo_cliente }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Número de Pasaporte:</strong></td>
+                                    <td><code>{{ venta.numero_pasaporte }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado de la Reserva:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if venta.estado == 'reservada' %}warning{% elif venta.estado == 'ocupada' %}success{% elif venta.estado == 'completada' %}info{% else %}secondary{% endif %} fs-6">
+                                            {{ venta.get_estado_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-bed"></i> Información de la Habitación</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Número de Habitación:</strong></td>
+                                    <td>{{ venta.habitacion.numero }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Posición:</strong></td>
+                                    <td>{{ venta.habitacion.get_posicion_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Área:</strong></td>
+                                    <td>{{ venta.habitacion.area_metros_cuadrados }} m²</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cubierta:</strong></td>
+                                    <td>{{ venta.habitacion.cubierta.nombre }} ({{ venta.habitacion.cubierta.numero }})</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ubicación:</strong></td>
+                                    <td><code>{{ venta.habitacion.ubicacion }}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de la Embarcación -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-ship"></i> Información de la Embarcación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ venta.embarcacion.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Identificador:</strong></td>
+                                    <td><code>{{ venta.embarcacion.identificador }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tipo:</strong></td>
+                                    <td>{{ venta.embarcacion.tipo.nombre }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Capacidad:</strong></td>
+                                    <td>{{ venta.embarcacion.capacidad_pasajeros }} pasajeros</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Puerto Base:</strong></td>
+                                    <td>{{ venta.embarcacion.puerto_base }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if venta.embarcacion.estado_operativo == 'operativo' %}success{% else %}warning{% endif %}">
+                                            {{ venta.embarcacion.get_estado_operativo_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Financiera y Fechas -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-dollar-sign"></i> Información Financiera</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Precio de Venta:</strong></td>
+                                    <td>
+                                        <span class="text-success fs-4">
+                                            <strong>${{ venta.precio_venta }}</strong>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Precio Base Habitación:</strong></td>
+                                    <td>${{ venta.habitacion.precio }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Diferencia:</strong></td>
+                                    <td>
+                                        {% with diferencia=venta.precio_venta|floatformat:2|add:0 %}
+                                            {% with precio_base=venta.habitacion.precio|floatformat:2|add:0 %}
+                                                {% if diferencia > precio_base %}
+                                                    <span class="text-success">+${{ diferencia|sub:precio_base }}</span>
+                                                {% elif diferencia < precio_base %}
+                                                    <span class="text-danger">-${{ precio_base|sub:diferencia }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">$0.00</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-calendar"></i> Fechas de Estadía</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Fecha de Check-in:</strong></td>
+                                    <td>
+                                        {% if venta.fecha_checkin %}
+                                            {{ venta.fecha_checkin|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">No especificada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Check-out:</strong></td>
+                                    <td>
+                                        {% if venta.fecha_checkout %}
+                                            {{ venta.fecha_checkout|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">No especificada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duración de Estadía:</strong></td>
+                                    <td>
+                                        {% if venta.duracion_estadia > 0 %}
+                                            {{ venta.duracion_estadia }} día{{ venta.duracion_estadia|pluralize }}
+                                        {% else %}
+                                            <span class="text-muted">No calculada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Venta</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Fecha de Venta:</strong></td>
+                                    <td>{{ venta.fecha_venta|date:"d/m/Y H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Vendedor:</strong></td>
+                                    <td>
+                                        {% if venta.vendedor %}
+                                            <i class="fas fa-user"></i> {{ venta.vendedor.username }}
+                                            {% if venta.vendedor.first_name or venta.vendedor.last_name %}
+                                                ({{ venta.vendedor.first_name }} {{ venta.vendedor.last_name }})
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ID de Venta:</strong></td>
+                                    <td><code>VH-{{ venta.id|stringformat:"04d" }}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notas Adicionales</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if venta.notas %}
+                                <p class="mb-0">{{ venta.notas|linebreaks }}</p>
+                            {% else %}
+                                <p class="text-muted mb-0">No hay notas adicionales para esta venta.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Estado de la Reserva</h6>
+                            <p class="text-muted">Estado actual: <strong>{{ venta.get_estado_display }}</strong></p>
+                            <!-- Aquí se podrían agregar botones para cambiar el estado -->
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Opciones</h6>
+                            <div class="btn-group" role="group">
+                                <button onclick="window.print()" class="btn btn-outline-primary">
+                                    <i class="fas fa-print"></i> Imprimir
+                                </button>
+                                <a href="{% url 'ventas:lista_ventas_habitaciones' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-list"></i> Ver Todas las Ventas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .btn, .card-header, .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background-color: #fff !important;
+    }
+}
+</style>
+{% endblock %}

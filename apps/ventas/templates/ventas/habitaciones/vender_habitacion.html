@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Vender Habitación{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-shopping-cart"></i> Vender Habitación</h2>
+                    <p class="text-muted">Habitación {{ habitacion.numero }} - {{ embarcacion.nombre }}</p>
+                </div>
+                <a href="{% url 'ventas:ventas_habitaciones_home' embarcacion.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <!-- Información de la Habitación -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bed"></i> Información de la Habitación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Detalles de la Habitación</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Número:</strong> {{ habitacion.numero }}</li>
+                                <li><strong>Posición:</strong> {{ habitacion.get_posicion_display }}</li>
+                                <li><strong>Área:</strong> {{ habitacion.area_metros_cuadrados }} m²</li>
+                                <li><strong>Estado:</strong> 
+                                    <span class="badge bg-{% if habitacion.estado == 'disponible' %}success{% else %}warning{% endif %}">
+                                        {{ habitacion.get_estado_display }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Información de la Embarcación</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Embarcación:</strong> {{ embarcacion.nombre }}</li>
+                                <li><strong>Identificador:</strong> {{ embarcacion.identificador }}</li>
+                                <li><strong>Cubierta:</strong> {{ cubierta.nombre }}</li>
+                                <li><strong>Precio Base:</strong> 
+                                    <span class="text-success">
+                                        <strong>${{ habitacion.precio }}</strong>
+                                    </span>
+                                </li>
+                                {% if embarcacion.ruta %}
+                                <li><strong>Ruta Asignada:</strong> {{ embarcacion.ruta.titulo }}</li>
+                                {% if embarcacion.ruta.fecha_inicio and embarcacion.ruta.fecha_fin %}
+                                <li><strong>Fechas de Ruta:</strong> 
+                                    <span class="text-info">
+                                        {{ embarcacion.ruta.fecha_inicio|date:"d/m/Y" }} - {{ embarcacion.ruta.fecha_fin|date:"d/m/Y" }}
+                                    </span>
+                                </li>
+                                {% endif %}
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Venta -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Información del Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Mostrar mensajes de error o éxito -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Información Personal -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="fas fa-id-card"></i> Datos Personales
+                        </h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.nombre_cliente.label_tag }}
+                                {{ form.nombre_cliente }}
+                                {% if form.nombre_cliente.errors %}
+                                    <div class="text-danger">{{ form.nombre_cliente.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.apellido_cliente.label_tag }}
+                                {{ form.apellido_cliente }}
+                                {% if form.apellido_cliente.errors %}
+                                    <div class="text-danger">{{ form.apellido_cliente.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.numero_pasaporte.label_tag }}
+                                {{ form.numero_pasaporte }}
+                                {% if form.numero_pasaporte.errors %}
+                                    <div class="text-danger">{{ form.numero_pasaporte.errors.0 }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Número de pasaporte del cliente</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.precio_venta.label_tag }}
+                                {{ form.precio_venta }}
+                                {% if form.precio_venta.errors %}
+                                    <div class="text-danger">{{ form.precio_venta.errors.0 }}</div>
+                                {% endif %}
+                                <small class="form-text text-muted">Precio final de venta</small>
+                            </div>
+                        </div>
+
+                        <!-- Fechas de Estadía -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="fas fa-calendar"></i> Fechas de Estadía
+                        </h6>
+                        
+                        {% if embarcacion.ruta and embarcacion.ruta.fecha_inicio and embarcacion.ruta.fecha_fin %}
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Fechas automáticas:</strong> Las fechas se han establecido automáticamente basándose en la ruta 
+                                "{{ embarcacion.ruta.titulo }}" ({{ embarcacion.ruta.fecha_inicio|date:"d/m/Y" }} - {{ embarcacion.ruta.fecha_fin|date:"d/m/Y" }}).
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.fecha_checkin.label_tag }}
+                                {{ form.fecha_checkin }}
+                                {% if form.fecha_checkin.errors %}
+                                    <div class="text-danger">{{ form.fecha_checkin.errors.0 }}</div>
+                                {% endif %}
+                                {% if embarcacion.ruta and embarcacion.ruta.fecha_inicio %}
+                                    <small class="form-text text-muted">Fecha de inicio de la ruta</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.fecha_checkout.label_tag }}
+                                {{ form.fecha_checkout }}
+                                {% if form.fecha_checkout.errors %}
+                                    <div class="text-danger">{{ form.fecha_checkout.errors.0 }}</div>
+                                {% endif %}
+                                {% if embarcacion.ruta and embarcacion.ruta.fecha_fin %}
+                                    <small class="form-text text-muted">Fecha de fin de la ruta</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Notas Adicionales -->
+                        <h6 class="mb-3 text-primary">
+                            <i class="fas fa-sticky-note"></i> Información Adicional
+                        </h6>
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                {{ form.notas.label_tag }}
+                                {{ form.notas }}
+                                {% if form.notas.errors %}
+                                    <div class="text-danger">{{ form.notas.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Botones -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'ventas:ventas_habitaciones_home' embarcacion.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Confirmar Venta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del lado del cliente
+    const form = document.querySelector('form');
+    const precioInput = document.getElementById('id_precio_venta');
+    const fechaCheckinInput = document.getElementById('id_fecha_checkin');
+    const fechaCheckoutInput = document.getElementById('id_fecha_checkout');
+
+    // Validar precio
+    if (precioInput) {
+        precioInput.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    }
+
+    // Validar fechas
+    if (fechaCheckinInput && fechaCheckoutInput) {
+        function validarFechas() {
+            const checkin = new Date(fechaCheckinInput.value);
+            const checkout = new Date(fechaCheckoutInput.value);
+            
+            if (fechaCheckinInput.value && fechaCheckoutInput.value) {
+                if (checkout <= checkin) {
+                    fechaCheckoutInput.setCustomValidity('La fecha de checkout debe ser posterior a la fecha de checkin');
+                } else {
+                    fechaCheckoutInput.setCustomValidity('');
+                }
+            }
+        }
+
+        fechaCheckinInput.addEventListener('change', validarFechas);
+        fechaCheckoutInput.addEventListener('change', validarFechas);
+    }
+});
+</script>
+{% endblock %}

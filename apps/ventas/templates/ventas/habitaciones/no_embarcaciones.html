@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Sin Embarcaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-ship fa-5x text-muted"></i>
+                </div>
+                
+                <h2 class="text-muted mb-3">{{ error_message }}</h2>
+                
+                <p class="lead text-muted mb-4">
+                    {{ suggestion }}
+                </p>
+                
+                <div class="alert alert-info" role="alert">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-info-circle"></i> ¿Qué necesitas hacer?
+                    </h5>
+                    <p class="mb-3">Para usar el módulo de ventas de habitaciones necesitas:</p>
+                    <ol class="text-start">
+                        <li><strong>Crear una embarcación</strong> en el módulo "Creador de Embarcaciones"</li>
+                        <li><strong>Agregar cubiertas</strong> a la embarcación</li>
+                        <li><strong>Crear habitaciones</strong> en las cubiertas</li>
+                        <li><strong>Regresar al módulo de ventas</strong> para vender habitaciones</li>
+                    </ol>
+                </div>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-home"></i> Ir al Inicio
+                    </a>
+                    
+                    <a href="#" onclick="history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver Atrás
+                    </a>
+                </div>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Si ya tienes embarcaciones creadas, verifica que tengan habitaciones configuradas.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.fa-ship {
+    opacity: 0.3;
+}
+
+.alert ol {
+    margin-bottom: 0;
+}
+
+.alert ol li {
+    margin-bottom: 0.5rem;
+}
+
+.alert ol li:last-child {
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Seleccionar Embarcación{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-ship"></i> Seleccionar Embarcación</h2>
+                    <p class="text-muted">Elige una embarcación para ver sus habitaciones disponibles</p>
+                </div>
+                <a href="{% url 'ventas:ventas_habitaciones_home' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <!-- Filtro de Embarcación -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filtrar por Embarcación</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            {{ filtro_form.embarcacion.label_tag }}
+                            {{ filtro_form.embarcacion }}
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                            <a href="{% url 'ventas:ventas_habitaciones_home' 1 %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Embarcaciones Disponibles -->
+            {% if not embarcacion_seleccionada %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-ship"></i> Embarcaciones Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if embarcaciones %}
+                            <div class="row">
+                                {% for embarcacion in embarcaciones %}
+                                    <div class="col-md-6 col-lg-4 mb-4">
+                                        <div class="card h-100 border-primary">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-ship fa-3x text-primary mb-3"></i>
+                                                <h5 class="card-title">{{ embarcacion.nombre }}</h5>
+                                                <p class="card-text">
+                                                    <strong>ID:</strong> {{ embarcacion.identificador }}<br>
+                                                    <strong>Tipo:</strong> {{ embarcacion.tipo.nombre }}<br>
+                                                    <strong>Cubiertas:</strong> {{ embarcacion.numero_cubiertas }}
+                                                </p>
+                                                <a href="{% url 'ventas:habitaciones_por_embarcacion' embarcacion.id %}" 
+                                                   class="btn btn-primary">
+                                                    <i class="fas fa-eye"></i> Ver Habitaciones
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-ship fa-3x text-muted mb-3"></i>
+                                <h4>No hay embarcaciones con habitaciones</h4>
+                                <p class="text-muted">Primero debes crear embarcaciones con habitaciones en el módulo de creador de embarcaciones</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Habitaciones de la Embarcación Seleccionada -->
+            {% if embarcacion_seleccionada %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bed"></i> 
+                            Habitaciones de {{ embarcacion_seleccionada.nombre }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if cubiertas %}
+                            {% for cubierta in cubiertas %}
+                                <div class="mb-4">
+                                    <h6 class="text-primary">
+                                        <i class="fas fa-layer-group"></i> 
+                                        {{ cubierta.nombre }} (Cubierta {{ cubierta.numero }})
+                                    </h6>
+                                    
+                                    {% if cubierta.habitaciones.all %}
+                                        <div class="row">
+                                            {% for habitacion in cubierta.habitaciones.all %}
+                                                <div class="col-md-6 col-lg-3 mb-3">
+                                                    <div class="card h-100 {% if habitacion.estado == 'disponible' %}border-success{% else %}border-warning{% endif %}">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">
+                                                                Habitación {{ habitacion.numero }}
+                                                            </h6>
+                                                            <p class="card-text">
+                                                                <small>
+                                                                    <strong>Posición:</strong> {{ habitacion.get_posicion_display }}<br>
+                                                                    <strong>Área:</strong> {{ habitacion.area_metros_cuadrados }} m²<br>
+                                                                    <strong>Precio:</strong> ${{ habitacion.precio }}
+                                                                </small>
+                                                            </p>
+                                                            <div class="mb-2">
+                                                                <span class="badge bg-{% if habitacion.estado == 'disponible' %}success{% else %}warning{% endif %}">
+                                                                    {{ habitacion.get_estado_display }}
+                                                                </span>
+                                                            </div>
+                                                            {% if habitacion.estado == 'disponible' %}
+                                                                <a href="{% url 'ventas:vender_habitacion' habitacion.id %}" 
+                                                                   class="btn btn-sm btn-success w-100">
+                                                                    <i class="fas fa-shopping-cart"></i> Vender
+                                                                </a>
+                                                            {% else %}
+                                                                <button class="btn btn-sm btn-secondary w-100" disabled>
+                                                                    <i class="fas fa-ban"></i> No Disponible
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Esta cubierta no tiene habitaciones configuradas.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                                <h4>No hay habitaciones disponibles</h4>
+                                <p class="text-muted">Esta embarcación no tiene habitaciones configuradas</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

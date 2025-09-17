@@ -1,4 +1,5 @@
 from django.urls import path
+from django.shortcuts import render
 from . import views
 from .Views.sales import sell_product_view
 
@@ -21,4 +22,15 @@ urlpatterns = [
     path('<int:crucero_id>/sell/', sell_product_view, name='sell_product'),
     path('<int:crucero_id>/sale_success/', lambda request, crucero_id: render(request, 'ventas/sale_success.html'), name='sale_success'),
     path('<int:crucero_id>/sale_fail/', lambda request, crucero_id: render(request, 'ventas/sale_fail.html'), name='sale_fail'),
+    
+    # ========== URLs PARA VENTAS DE HABITACIONES ==========
+    # Vista principal de ventas de habitaciones por embarcación
+    path('habitaciones/<int:embarcacion_id>/', views.ventas_habitaciones_home, name='ventas_habitaciones_home'),
+    
+    # Venta de habitaciones
+    path('habitaciones/<int:embarcacion_id>/vender/<int:habitacion_id>/', views.vender_habitacion, name='vender_habitacion'),
+    
+    # Listado y detalles de ventas por embarcación
+    path('habitaciones/<int:embarcacion_id>/ventas/', views.lista_ventas_habitaciones, name='lista_ventas_habitaciones'),
+    path('habitaciones/<int:embarcacion_id>/ventas/<int:venta_id>/', views.detalle_venta_habitacion, name='detalle_venta_habitacion'),
 ]

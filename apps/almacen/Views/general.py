@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_GET, require_POST
 import json
@@ -15,7 +15,18 @@ from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from datetime import timedelta
 
 def mostrar_vista_almacen(request, embarcacion_id):
-    embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
+    try:
+        embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    except Embarcacion.DoesNotExist:
+        # Si no existe la embarcación solicitada, intentar obtener la primera disponible
+        embarcacion = Embarcacion.objects.first()
+        if not embarcacion:
+            # Si no hay ninguna embarcación, mostrar mensaje de error
+            from django.contrib import messages
+            messages.error(request, 'No hay embarcaciones disponibles. Por favor, cree una embarcación primero.')
+            return redirect('/')
+        # Redirigir a la URL correcta con la embarcación existente
+        return redirect('vista_almacen', embarcacion_id=embarcacion.id)
     secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion).select_related('local_tipo_almacen')
     try:
         fecha_actual = obtener_fecha_actual()

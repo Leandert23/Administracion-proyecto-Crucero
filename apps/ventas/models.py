@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
+from apps.creador_embarcaciones.models import Habitaciones, Embarcacion
 
 class Cliente(models.Model):
     """Modelo para almacenar información de los clientes"""
@@ -110,3 +111,82 @@ class Pago(models.Model):
     
     def __str__(self):
         return f"Pago {self.id} - {self.venta} - {self.monto}"
+
+
+class VentaHabitacion(models.Model):
+    """Modelo específico para ventas de habitaciones"""
+    ESTADO_CHOICES = [
+        ('reservada', 'Reservada'),
+        ('ocupada', 'Ocupada'),
+        ('completada', 'Completada'),
+        ('cancelada', 'Cancelada'),
+    ]
+    
+    # Información de la habitación
+    habitacion = models.ForeignKey(
+        Habitaciones, 
+        on_delete=models.CASCADE, 
+        related_name='ventas_habitacion'
+    )
+    embarcacion = models.ForeignKey(
+        Embarcacion,
+        on_delete=models.CASCADE,
+        related_name='ventas_habitaciones'
+    )
+    
+    # Información del cliente
+    nombre_cliente = models.CharField(max_length=100, verbose_name="Nombre")
+    apellido_cliente = models.CharField(max_length=100, verbose_name="Apellido")
+    numero_pasaporte = models.CharField(max_length=50, verbose_name="Número de Pasaporte")
+    
+    # Información de la venta
+    precio_venta = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        verbose_name="Precio de Venta"
+    )
+    fecha_venta = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Venta")
+    fecha_checkin = models.DateField(verbose_name="Fecha de Check-in", null=True, blank=True)
+    fecha_checkout = models.DateField(verbose_name="Fecha de Check-out", null=True, blank=True)
+    
+    estado = models.CharField(
+        max_length=20, 
+        choices=ESTADO_CHOICES, 
+        default='reservada',
+        verbose_name="Estado"
+    )
+    
+    # Información adicional
+    notas = models.TextField(blank=True, verbose_name="Notas adicionales")
+    vendedor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Vendedor"
+    )
+    
+    class Meta:
+        verbose_name = "Venta de Habitación"
+        verbose_name_plural = "Ventas de Habitaciones"
+        ordering = ['-fecha_venta']
+        unique_together = ['habitacion', 'fecha_checkin']  # Una habitación no puede venderse dos veces para la misma fecha
+    
+    def __str__(self):
+        return f"Habitación {self.habitacion.numero} - {self.nombre_cliente} {self.apellido_cliente}"
+    
+    @property
+    def nombre_completo_cliente(self):
+        return f"{self.nombre_cliente} {self.apellido_cliente}"
+    
+    @property
+    def duracion_estadia(self):
+        if self.fecha_checkin and self.fecha_checkout:
+            return (self.fecha_checkout - self.fecha_checkin).days
+        return 0
+    
+    def save(self, *args, **kwargs):
+        # Asignar automáticamente la embarcación basada en la habitación
+        if self.habitacion and not self.embarcacion:
+            self.embarcacion = self.habitacion.cubierta.embarcacion
+        super().save(*args, **kwargs)
