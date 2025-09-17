@@ -97,7 +97,7 @@ def dashboard_empresa(request, crucero_id=None):
         'usuario_roles': obtener_roles_usuario(request.user),
         'es_administrador': es_administrador,
     }
-    return render(request, 'administracion/dashboard.html', contexto)
+    return render(request, 'administracion/index.html', contexto)
 
 # Vistas para gestión de roles
 @login_required

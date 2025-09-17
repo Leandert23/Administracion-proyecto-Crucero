@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Entretenimiento - Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'entretenimiento/css/entretenimiento.css' %}?v=1.3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        {% include "sidebar.html" with active_module="entretenimiento" %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="content-title">{% block page_title %}Entretenimiento{% endblock %}</h1>
+                <p class="content-subtitle">{% block page_subtitle %}Gestión de entretenimiento del crucero{% endblock %}</p>
+            </div>
+
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

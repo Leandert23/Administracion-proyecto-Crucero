@@ -90,83 +90,8 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo" onclick="toggleSidebar()" style="cursor: pointer;">
-                    <img src="https://svgshare.com/i/14ZP.svg" alt="Logo" class="logo-icon">
-                    <span class="logo-text">Panel de Control</span>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Inicio</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Ventas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Reservas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item {% if request.resolver_match and request.resolver_match.namespace == 'restaurant' %}active{% endif %}">
-                        <a href="{% url 'restaurant:dashboard' %}" class="nav-link">
-                            <span class="nav-text">Restaurante</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Bares</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Entretenimiento</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Compras</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Almacen</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Recursos Humanos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Servicios Medicos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <span class="nav-text">Mantenimiento</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="sidebar-footer"></div>
-        </aside>
-
-        <!-- Overlay para móviles -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+        <!-- Sidebar Principal -->
+        {% include "sidebar.html" with active_module="restaurante" %}
 
         <!-- Main Content -->
         <main class="main-content">
@@ -214,25 +139,30 @@
     </div>
 
     <script>
-      function toggleSidebar(){
-        const s=document.getElementById('sidebar');
-        s.classList.toggle('collapsed');
+      // Funciones básicas para el sidebar
+      function toggleSidebar() {
+          const sidebar = document.querySelector('.sidebar');
+          sidebar.classList.toggle('collapsed');
       }
-      function toggleMobileSidebar(){
-        const s=document.getElementById('sidebar');
-        const o=document.getElementById('sidebarOverlay');
-        const t=document.getElementById('mobileToggle');
-        s.classList.toggle('open');
-        o.classList.toggle('active');
-        t.classList.toggle('active');
+      
+      function toggleMobileSidebar() {
+          const sidebar = document.querySelector('.sidebar');
+          const overlay = document.querySelector('.sidebar-overlay');
+          const toggle = document.querySelector('.mobile-menu-toggle');
+          
+          sidebar.classList.toggle('open');
+          overlay.classList.toggle('active');
+          toggle.classList.toggle('active');
       }
-      function closeMobileSidebar(){
-        const s=document.getElementById('sidebar');
-        const o=document.getElementById('sidebarOverlay');
-        const t=document.getElementById('mobileToggle');
-        s.classList.remove('open');
-        o.classList.remove('active');
-        t.classList.remove('active');
+      
+      function closeMobileSidebar() {
+          const sidebar = document.querySelector('.sidebar');
+          const overlay = document.querySelector('.sidebar-overlay');
+          const toggle = document.querySelector('.mobile-menu-toggle');
+          
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+          toggle.classList.remove('active');
       }
     </script>
     <script src="{% static 'js/main.js' %}"></script>
