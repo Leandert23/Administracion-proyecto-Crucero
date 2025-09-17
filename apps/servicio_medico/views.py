@@ -85,7 +85,7 @@ def panel_servicio_medico(request,):
     return render(request, 'servicio_medico.html', context)
 
 def panel_inicio(request):
-    return render(request, 'index.html')
+    return render(request, 'servicio_medico_index.html')
 
 def panel_inventario(request):
     inventario = Inventario.objects.all()

@@ -97,7 +97,7 @@ def dashboard_empresa(request, crucero_id=None):
         'usuario_roles': obtener_roles_usuario(request.user),
         'es_administrador': es_administrador,
     }
-    return render(request, 'index.html', contexto)
+    return render(request, 'administracion/dashboard.html', contexto)
 
 # Vistas para gestión de roles
 @login_required
@@ -169,8 +169,8 @@ def registro_usuario(request):
         # Redirigir al dashboard del primer crucero disponible
         crucero = Crucero.objects.first()
         if crucero:
-            return redirect('dashboard', crucero_id=crucero.id)
-        return redirect('dashboard', crucero_id=1)
+            return redirect('administracion:dashboard', crucero_id=crucero.id)
+        return redirect('administracion:dashboard', crucero_id=1)
     
     if request.method == 'POST':
         form = RegistroUsuarioForm(request.POST)
@@ -182,8 +182,8 @@ def registro_usuario(request):
             # Redirigir al dashboard del primer crucero disponible
             crucero = Crucero.objects.first()
             if crucero:
-                return redirect('dashboard', crucero_id=crucero.id)
-            return redirect('dashboard', crucero_id=1)
+                return redirect('administracion:dashboard', crucero_id=crucero.id)
+            return redirect('administracion:dashboard', crucero_id=1)
     else:
         form = RegistroUsuarioForm()
     

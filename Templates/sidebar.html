@@ -721,7 +721,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"administracion" %}
                 <li class="nav-item {% if active_module == 'dashboard' %}active{% endif %}">
-                    <a href="{% url 'administracion:dashboard' 1%}" class="nav-link">
+                    <a href="{% url 'administracion:dashboard' 1 %}" class="nav-link">
                         <img src="{% static 'svg/icono__admin.svg' %}" alt="Icono de dashboard - panel de administración" class="nav-icon">
                         <span class="nav-text">Dashboard</span>
                     </a>
@@ -813,7 +813,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"rh" %}
                 <li class="nav-item {% if active_module == 'recursos_humanos' %}active{% endif %}">
-                    <a href="{% url 'recursos_humanos:dashboard' %}" class="nav-link">
+                    <a href="{% url 'recursos_humanos:rh_dashboard' %}" class="nav-link">
                         <img src="{% static 'svg/icono__rrhh.svg' %}" alt="Icono de recursos humanos" class="nav-icon">
                         <span class="nav-text">Recursos Humanos</span>
                     </a>

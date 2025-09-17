@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicio Médico - Odyssey</title>
+    <link rel="stylesheet" href="{% static 'css/servicio_medico.css' %}">
+</head>
+<body>
+    <div id="servicio-medico-root" class="dashboard-container">
+        {% include "sidebar.html" with active_module="servicios_medicos" %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Servicio Médico</h1>
+                        <p class="page-subtitle">Panel de control del servicio médico</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="stats-section">
+                    <h2 class="section-title">Panel de Inicio</h2>
+                    <p>Bienvenido al panel de servicio médico.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+        
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+        
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
