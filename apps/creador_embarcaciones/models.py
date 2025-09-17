@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import timedelta
 
 class Ruta(models.Model):
     """
@@ -7,6 +8,8 @@ class Ruta(models.Model):
     numero_dias = models.IntegerField(verbose_name="Número de días")
     titulo = models.CharField(max_length=200, verbose_name="Título de la ruta")
     descripcion = models.TextField(blank=True, verbose_name="Descripción de la ruta")
+    fecha_inicio = models.DateField(verbose_name="Fecha de inicio de la ruta", null=True, blank=True)
+    fecha_fin = models.DateField(verbose_name="Fecha de fin de la ruta", null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
 
     class Meta:
@@ -15,6 +18,8 @@ class Ruta(models.Model):
         ordering = ['titulo']
 
     def __str__(self):
+        if self.fecha_inicio and self.fecha_fin:
+            return f"{self.titulo} ({self.numero_dias} días) - {self.fecha_inicio.strftime('%d/%m/%Y')} al {self.fecha_fin.strftime('%d/%m/%Y')}"
         return f"{self.titulo} ({self.numero_dias} días)"
 
     @property
@@ -44,8 +49,12 @@ class Ruta(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Sobreescribir save para crear automáticamente los días de la ruta
+        Sobreescribir save para calcular fecha_fin y crear automáticamente los días de la ruta
         """
+        # Calcular fecha_fin automáticamente si se proporciona fecha_inicio
+        if self.fecha_inicio and self.numero_dias:
+            self.fecha_fin = self.fecha_inicio + timedelta(days=self.numero_dias - 1)
+        
         is_new = self.pk is None  # Verificar si es una nueva instancia
         super().save(*args, **kwargs)
 

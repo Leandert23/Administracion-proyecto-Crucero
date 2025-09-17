@@ -1,0 +1,241 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Eliminar Embarcación{% endblock %}
+{% block page_title %}Eliminar Embarcación{% endblock %}
+{% block page_subtitle %}Confirmar eliminación de la embarcación{% endblock %}
+
+{% block content %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .delete-header {
+        background: #fee2e2;
+        border-bottom: 1px solid #fecaca;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .delete-icon {
+        font-size: 48px;
+        color: #dc2626;
+        margin-bottom: 16px;
+    }
+
+    .delete-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #991b1b;
+        margin: 0 0 8px 0;
+    }
+
+    .delete-subtitle {
+        font-size: 16px;
+        color: #7f1d1d;
+        margin: 0;
+    }
+
+    .delete-body {
+        padding: 32px;
+    }
+
+    .warning-message {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .warning-message h4 {
+        color: #92400e;
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .warning-message p {
+        color: #92400e;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .embarcacion-info {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .delete-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .btn-danger-custom {
+        background: #dc2626;
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-danger-custom:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        color: white;
+    }
+
+    .btn-secondary-custom {
+        background: #64748b;
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary-custom:hover {
+        background: #475569;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .delete-container {
+            margin: 0 16px;
+        }
+
+        .delete-actions {
+            flex-direction: column;
+        }
+
+        .btn-danger-custom,
+        .btn-secondary-custom {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="delete-container">
+    <div class="delete-header">
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 class="delete-title">¿Eliminar Embarcación?</h2>
+        <p class="delete-subtitle">Esta acción no se puede deshacer</p>
+    </div>
+
+    <div class="delete-body">
+        <div class="warning-message">
+            <h4>
+                <i class="fas fa-exclamation-triangle"></i>
+                Advertencia
+            </h4>
+            <p>Está a punto de eliminar permanentemente esta embarcación. Esta acción eliminará todos los datos relacionados y no se puede deshacer.</p>
+        </div>
+
+        <div class="embarcacion-info">
+            <h3 style="color: #1e293b; margin: 0 0 16px 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-ship"></i> Información de la Embarcación
+            </h3>
+            
+            <div class="info-row">
+                <span class="info-label">Nombre:</span>
+                <span class="info-value">{{ embarcacion.nombre }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Identificador:</span>
+                <span class="info-value">{{ embarcacion.identificador }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Tipo:</span>
+                <span class="info-value">{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Puerto Base:</span>
+                <span class="info-value">{{ embarcacion.puerto_base }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Estado:</span>
+                <span class="info-value">{{ embarcacion.get_estado_operativo_display }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Capacidad Pasajeros:</span>
+                <span class="info-value">{{ embarcacion.capacidad_pasajeros }}</span>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="delete-actions">
+                <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn-secondary-custom">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn-danger-custom">
+                    <i class="fas fa-trash"></i> Sí, Eliminar Embarcación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

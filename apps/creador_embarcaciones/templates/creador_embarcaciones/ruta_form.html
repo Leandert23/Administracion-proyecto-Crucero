@@ -35,18 +35,26 @@
                         </div>
                     </div>
 
-                    <!-- Duración -->
+                    <!-- Duración y Fechas -->
                     <h5 class="mb-3 text-primary">
-                        <i class="fas fa-clock"></i> Duración
+                        <i class="fas fa-clock"></i> Duración y Fechas
                     </h5>
                     <div class="row mb-4">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             {{ form.numero_dias.label_tag }}
                             {{ form.numero_dias }}
                             {% if form.numero_dias.errors %}
                                 <div class="text-danger">{{ form.numero_dias.errors.0 }}</div>
                             {% endif %}
                             <small class="form-text text-muted">Número de días que dura la ruta</small>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.fecha_inicio.label_tag }}
+                            {{ form.fecha_inicio }}
+                            {% if form.fecha_inicio.errors %}
+                                <div class="text-danger">{{ form.fecha_inicio.errors.0 }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">La fecha de fin se calculará automáticamente</small>
                         </div>
                     </div>
 

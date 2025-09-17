@@ -57,6 +57,7 @@
                                 <tr>
                                     <th>Título</th>
                                     <th>Número de Días</th>
+                                    <th>Fechas</th>
                                     <th>Días Configurados</th>
                                     <th>Descripción</th>
                                     <th>Acciones</th>
@@ -70,6 +71,18 @@
                                         </td>
                                         <td>
                                             <span class="badge bg-primary">{{ ruta.numero_dias }} días</span>
+                                        </td>
+                                        <td>
+                                            {% if ruta.fecha_inicio and ruta.fecha_fin %}
+                                                <small class="text-info">
+                                                    <i class="fas fa-calendar-alt"></i> {{ ruta.fecha_inicio|date:"d/m/Y" }}<br>
+                                                    <i class="fas fa-calendar-check"></i> {{ ruta.fecha_fin|date:"d/m/Y" }}
+                                                </small>
+                                            {% else %}
+                                                <span class="text-muted">
+                                                    <i class="fas fa-calendar-times"></i> Sin fechas
+                                                </span>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             <span class="badge bg-info">{{ ruta.dias_configurados }}/{{ ruta.numero_dias }}</span>

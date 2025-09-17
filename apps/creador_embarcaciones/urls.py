@@ -1,9 +1,12 @@
 from django.urls import path
 from . import views
+from .views_precargar import precargar_embarcacion_desde_id_2
 
 app_name = 'creador_embarcaciones'
 
 urlpatterns = [
+    # Precargar embarcación desde ID 2
+    path('embarcaciones/precargar-id-2/', precargar_embarcacion_desde_id_2, name='precargar_embarcacion_id_2'),
     # Página de inicio
     path('', views.home, name='home'),
 

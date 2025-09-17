@@ -27,17 +27,32 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <h6>Título</h6>
                         <p class="text-primary">{{ ruta.titulo }}</p>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <h6>Número de Días</h6>
                         <p class="text-success">
                             <i class="fas fa-calendar"></i> {{ ruta.numero_dias }} días
                         </p>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <h6>Fechas de la Ruta</h6>
+                        {% if ruta.fecha_inicio and ruta.fecha_fin %}
+                            <p class="text-info">
+                                <i class="fas fa-calendar-alt"></i> 
+                                <small>Inicio:</small> {{ ruta.fecha_inicio|date:"d/m/Y" }}<br>
+                                <i class="fas fa-calendar-check"></i> 
+                                <small>Fin:</small> {{ ruta.fecha_fin|date:"d/m/Y" }}
+                            </p>
+                        {% else %}
+                            <p class="text-muted">
+                                <i class="fas fa-calendar-times"></i> Sin fechas definidas
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
                         <h6>Progreso de Configuración</h6>
                         <div class="d-flex align-items-center">
                             <div class="progress flex-grow-1 me-2" style="height: 8px;">

@@ -216,9 +216,14 @@ class RutaForm(forms.ModelForm):
 
     class Meta:
         model = Ruta
-        fields = ['numero_dias', 'titulo', 'descripcion']
+        fields = ['titulo', 'numero_dias', 'fecha_inicio', 'descripcion']
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'fecha_inicio': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+                'placeholder': 'DD/MM/YYYY'
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -237,6 +242,18 @@ class RutaForm(forms.ModelForm):
         if numero_dias and numero_dias <= 0:
             raise ValidationError("El número de días debe ser mayor que cero.")
         return numero_dias
+
+    def clean_fecha_inicio(self):
+        """
+        Validar que la fecha de inicio no sea anterior a hoy
+        """
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        if fecha_inicio:
+            from datetime import date
+            today = date.today()
+            if fecha_inicio < today:
+                raise ValidationError("La fecha de inicio no puede ser anterior a hoy.")
+        return fecha_inicio
 
 
 class DiaForm(forms.ModelForm):
