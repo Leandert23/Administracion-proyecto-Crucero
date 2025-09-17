@@ -3,6 +3,8 @@
 
 {% include 'usuarios/_modal_edit_user.html' %}
 {% include 'usuarios/_modal_edit_role.html' %}
+{% include 'usuarios/_modal_create_role.html' %}
+{% include 'usuarios/_modal_create_user.html' %}
 
 <!-- Modal: Centro de Gestión de Usuarios (diseño enriquecido) -->
 <div id="modalUserManagement" class="um-modal" aria-hidden="true">
@@ -21,10 +23,12 @@
 
         <div class="um-body">
             <div class="um-actions" style="justify-content:space-between; align-items:center;">
+  <button type="button" class="btn btn-success" onclick="openModalCrearRolCustom()">Nuevo Crear Rol (custom)</button>
+  <button type="button" class="btn btn-success" onclick="openModalCrearUsuarioCustom()">Nuevo Crear Usuario (custom)</button>
+{% include 'usuarios/_modal_crear_rol_custom.html' %}
+{% include 'usuarios/_modal_crear_usuario_custom.html' %}
                 <div>
-                    <button type="button" class="btn btn-primary" onclick="openModalCreateUsuario('modalCrearUsuario')">Crear Usuario</button>
-                    <button type="button" class="btn btn-primary" onclick="openModalCreateRol('modalCrearRol')">Crear Rol</button>
-                </div>
+                                    </div>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <input id="um-search" type="text" placeholder="Buscar usuarios..." style="padding:8px 10px; border-radius:8px; border:1px solid var(--border-color);" />
                 </div>
@@ -35,20 +39,40 @@
                     <h3 class="section-title">Lista de Usuarios</h3>
                     <div class="table-container" style="margin-top:8px;">
                         <table id="um-users-table">
-                            <thead>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <th>Nombre</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Último acceso</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="um-users-tbody">
-                                <tr><td colspan="6" class="empty">Cargando usuarios…</td></tr>
-                            </tbody>
-                        </table>
+    <thead>
+        <tr>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Rol</th>
+        </tr>
+    </thead>
+    <tbody id="um-users-tbody-custom">
+    </tbody>
+</table>
+<script>
+async function cargarUsuariosCustom() {
+    const tbody = document.getElementById('um-users-tbody-custom');
+    tbody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+    const resp = await fetch('/usuarios/listar_usuarios_custom/', {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const data = await resp.json();
+    if(data.ok && data.usuarios && data.usuarios.length) {
+        tbody.innerHTML = '';
+        for(const u of data.usuarios) {
+            tbody.innerHTML += `<tr><td>${u.username}</td><td>${u.nombre} ${u.apellido}</td><td>${u.rol_nombre || ''}</td><td><button class='btn btn-danger btn-sm' onclick='eliminarUsuarioCustom(${u.id})'>Eliminar</button></td></tr>`;
+        }
+    } else {
+        tbody.innerHTML = '<tr><td colspan="4">No hay usuarios registrados.</td></tr>';
+    }
+}
+async function eliminarUsuarioCustom(id) {
+    if(!confirm('¿Seguro que deseas eliminar este usuario?')) return;
+    const resp = await fetch('/usuarios/eliminar_usuario_custom/', {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'}, body:`id=${id}`});
+    const data = await resp.json();
+    if(data.ok) cargarUsuariosCustom();
+    else alert(data.error || 'Error al eliminar usuario');
+}
+document.addEventListener('DOMContentLoaded', cargarUsuariosCustom);
+</script>
                     </div>
                 </section>
 
@@ -56,13 +80,37 @@
                     <h3 class="section-title">Roles</h3>
                     <div class="table-container" style="margin-top:8px;">
                         <table id="um-roles-table">
-                            <thead>
-                                <tr><th>Rol</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="um-roles-tbody">
-                                <tr><td colspan="2" class="empty">Cargando roles…</td></tr>
-                            </tbody>
-                        </table>
+    <thead>
+        <tr><th>Rol</th><th>Módulos</th></tr>
+    </thead>
+    <tbody id="um-roles-tbody-custom">
+    </tbody>
+</table>
+<script>
+async function cargarRolesCustom() {
+    const tbody = document.getElementById('um-roles-tbody-custom');
+    tbody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
+    const resp = await fetch('/usuarios/listar_roles_custom/', {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const data = await resp.json();
+    if(data.ok && data.roles && data.roles.length) {
+        tbody.innerHTML = '';
+        for(const rol of data.roles) {
+            let modulos = rol.modulos ? rol.modulos.join(', ') : '';
+            tbody.innerHTML += `<tr><td>${rol.nombre}</td><td>${modulos}</td><td><button class='btn btn-danger btn-sm' onclick='eliminarRolCustom(${rol.id})'>Eliminar</button></td></tr>`;
+        }
+    } else {
+        tbody.innerHTML = '<tr><td colspan="3">No hay roles registrados.</td></tr>';
+    }
+}
+async function eliminarRolCustom(id) {
+    if(!confirm('¿Seguro que deseas eliminar este rol?')) return;
+    const resp = await fetch('/usuarios/eliminar_rol_custom/', {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'}, body:`id=${id}`});
+    const data = await resp.json();
+    if(data.ok) cargarRolesCustom();
+    else alert(data.error || 'Error al eliminar rol');
+}
+document.addEventListener('DOMContentLoaded', cargarRolesCustom);
+</script>
                     </div>
                 </aside>
             </div>
