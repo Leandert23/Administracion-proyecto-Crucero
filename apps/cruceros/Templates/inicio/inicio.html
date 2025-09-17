@@ -232,98 +232,45 @@
 }
 </style>
 </header>
+            <section class="crucero-info-resumen" style="margin: 32px 0 0 0; padding: 28px 34px 20px 34px; background: #f8fafc; border-radius: 18px; box-shadow: 0 2px 12px rgba(30,41,59,0.04); max-width: 760px;">
+                <h2 style="font-size: 1.4rem; font-weight: 700; color: #1e293b; margin-bottom: 18px;">Información general del crucero</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 24px 48px;">
+                    <div style="min-width: 220px;">
+                        <div style="font-weight: 600; color: #475569;">Nombre</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.nombre }}</div>
+                    </div>
+                    <div style="min-width: 180px;">
+                        <div style="font-weight: 600; color: #475569;">Tipo</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.get_tipo_crucero_display }}</div>
+                    </div>
+                    <div style="min-width: 120px;">
+                        <div style="font-weight: 600; color: #475569;">Capacidad pasajeros</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.capacidad_pasajeros }}</div>
+                    </div>
+                    <div style="min-width: 120px;">
+                        <div style="font-weight: 600; color: #475569;">Capacidad tripulación</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.capacidad_tripulacion }}</div>
+                    </div>
+                    <div style="min-width: 120px;">
+                        <div style="font-weight: 600; color: #475569;">Estado operativo</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.get_estado_operativo_display }}</div>
+                    </div>
+                    <div style="min-width: 120px;">
+                        <div style="font-weight: 600; color: #475569;">Bandera</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.bandera }}</div>
+                    </div>
+                    <div style="min-width: 160px;">
+                        <div style="font-weight: 600; color: #475569;">Puerto base</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.puerto_base }}</div>
+                    </div>
+                    <div style="min-width: 160px;">
+                        <div style="font-weight: 600; color: #475569;">Fecha botadura</div>
+                        <div style="font-size: 1.1rem; color: #0f172a;">{{ crucero.fecha_botadura|date:'d/m/Y' }}</div>
+                    </div>
+                </div>
+            </section>
             <!-- Dashboard Content -->
             <div class="dashboard-content">
-                <!-- Tarjetas resumen superiores -->
-                <div class="quick-cards">
-                    <a href="#" class="quick-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Informacion General</h3>
-                            <p class="quick-card__text">Editar información general del crucero</p>
-                        </div>
-                    </a>
-                    <a href="#" class="quick-card">
-                        <div class="quick-card__icon" aria-hidden="true">I</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Instalaciones</h3>
-                            <p class="quick-card__text">Ver instalaciones disponibles</p>
-                        </div>
-                    </a>
-                    <a href="#" class="quick-card">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Distribución de habitaciones</h3>
-                            <p class="quick-card__text">Ver distribución de habitaciones del crucero</p>
-                        </div>
-                    </a>
-                    <a href="#" class="quick-card" onclick="openModalUserManagement('modalUserManagement'); return false;">
-                        <div class="quick-card__icon" aria-hidden="true">H</div>
-                        <div class="quick-card__body">
-                            <h3 class="quick-card__title">Gestion Usuarios</h3>
-                            <p class="quick-card__text">Gestiona los usuarios</p>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Sección dinámica: planificación o timeline activo -->
-                {% if primer_viaje %}
-                    {% if primer_viaje.estado == 'planificacion' %}
-                        <div class="viaje-planificacion">
-                            <h2 class="viaje-planificacion__title">Viaje en planificación</h2>
-                            {% if primer_viaje.fecha_inicio %}
-                                {% if dias_para_zarpe > 0 %}
-                                    <p class="viaje-planificacion__text">Faltan <strong>{{ dias_para_zarpe }}</strong> día{{ dias_para_zarpe|pluralize:"s" }} para zarpar ({{ primer_viaje.fecha_inicio }})</p>
-                                {% elif dias_para_zarpe == 0 %}
-                                    <p class="viaje-planificacion__text">Zarpa hoy ({{ primer_viaje.fecha_inicio }})</p>
-                                {% else %}
-                                    <p class="viaje-planificacion__text">La fecha programada de inicio ya pasó ({{ primer_viaje.fecha_inicio }})</p>
-                                {% endif %}
-                            {% else %}
-                                <p class="viaje-planificacion__text">Aún no se ha definido una fecha de inicio.</p>
-                            {% endif %}
-                        </div>
-                    {% elif primer_viaje.estado == 'activo' %}
-                        {% with progress_width=progreso_porcentaje|default:0 %}
-                        <div class="viaje-timeline" style="--progress-width: {{ progress_width }}%;">
-                            <div class="progress-container">
-                                <div class="progress-title">
-                                    <h2>Progreso del Viaje</h2>
-                                    {% if progreso_porcentaje != None %}<div class="progress-percentage">{{ progreso_porcentaje }}%</div>{% endif %}
-                                </div>
-                                <div class="progress-bar"><div class="progress-fill"></div></div>
-                                <div class="progress-days">
-                                    <span>Día 1</span>
-                                    {% if dias_transcurridos and dias_transcurridos > 1 and dias_transcurridos < dias_totales %}
-                                        <span>Día {{ dias_transcurridos }}</span>
-                                    {% endif %}
-                                    <span>Día {{ dias_totales }}</span>
-                                </div>
-                            </div>
-                            <div class="timeline-container">
-                                <div class="connector"></div>
-                                <div class="timeline">
-                                    {% for e in etapas_datos %}
-                                        <div class="day">
-                                            <div class="circle {{ e.status }}">
-                                                <span class="day-number">{{ e.dia }}</span>
-                                                <span class="day-type">{{ e.tipo }}</span>
-                                            </div>
-                                            <div class="day-content">
-                                                <p class="location">{{ e.nombre_lugar }}</p>
-                                                {% if e.descripcion %}<p class="description">{{ e.descripcion }}</p>{% endif %}
-                                                <div class="status-indicator status-{{ e.status }}">
-                                                    {% if e.status == 'past' %}Completado{% elif e.status == 'current' %}En curso{% else %}Próximo{% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endwith %}
-                    {% endif %}
-                {% endif %}
             </div>
         </main>
     </div>
