@@ -356,10 +356,17 @@ def delete_all_tipos_local(request):
     return redirect('creador_embarcaciones:home')
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required
 def home(request):
     """
-    Vista de inicio que muestra ambas tablas (embarcaciones y rutas)
+    Vista de inicio que muestra ambas tablas (embarcaciones y rutas), solo para superusuarios, administracion o compras
     """
+    user = request.user
+    if not (user.is_superuser or user.tiene_acceso_modulo('administracion') or user.tiene_acceso_modulo('compras')):
+        return render(request, 'administracion/sin_permisos.html', status=403)
     # Obtener las primeras 10 embarcaciones y rutas para mostrar en la página de inicio
     embarcaciones = Embarcacion.objects.all()[:10]
     rutas = Ruta.objects.all()[:10]

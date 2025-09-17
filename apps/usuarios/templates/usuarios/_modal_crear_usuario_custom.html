@@ -1,0 +1,80 @@
+<!-- MODAL CREAR USUARIO DESDE CERO -->
+<div id="modalCrearUsuarioCustom" class="modal" tabindex="-1" style="display:none; position:fixed; z-index:2000; inset:0; align-items:center; justify-content:center; background:rgba(0,0,0,0.5);">
+  <div class="modal-dialog" style="max-width:480px; width:96%; margin:48px auto;">
+    <div class="modal-content" style="background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 12px 36px rgba(15,23,42,0.18);">
+      <form id="formCrearUsuarioCustom">
+        <div class="modal-header" style="padding:14px 18px; border-bottom:1px solid #e9ecef; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
+          <h5 class="modal-title">Crear Usuario</h5>
+          <button type="button" class="close" onclick="closeModalCrearUsuarioCustom()" style="background:transparent; border:0; font-size:1.3rem; cursor:pointer; color:#4b5563;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:16px 18px; max-height:60vh; overflow:auto;">
+          <div class="form-group">
+            <label for="usuario_nombre">Nombre</label>
+            <input type="text" id="usuario_nombre" name="nombre" class="form-control" required maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label for="usuario_apellido">Apellido</label>
+            <input type="text" id="usuario_apellido" name="apellido" class="form-control" required maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label for="usuario_username">Nombre de usuario</label>
+            <input type="text" id="usuario_username" name="username" class="form-control" required maxlength="150" />
+          </div>
+          <div class="form-group">
+            <label for="usuario_password">Contraseña</label>
+            <input type="password" id="usuario_password" name="password" class="form-control" required minlength="6" />
+          </div>
+          <div class="form-group">
+            <label for="usuario_rol">Rol</label>
+            <select id="usuario_rol" name="rol" class="form-control" required>
+              <option value="">Selecciona un rol...</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding:12px 16px; border-top:1px solid #e9ecef; display:flex; gap:10px; justify-content:flex-end; background:#f8fafc;">
+          <button type="button" class="btn btn-secondary" onclick="closeModalCrearUsuarioCustom()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+function openModalCrearUsuarioCustom() {
+  document.getElementById('modalCrearUsuarioCustom').style.display = 'flex';
+  cargarRolesEnSelector();
+}
+function closeModalCrearUsuarioCustom() {
+  document.getElementById('modalCrearUsuarioCustom').style.display = 'none';
+  document.getElementById('formCrearUsuarioCustom').reset();
+}
+async function cargarRolesEnSelector() {
+  const select = document.getElementById('usuario_rol');
+  select.innerHTML = '<option value="">Cargando roles...</option>';
+  const resp = await fetch('/usuarios/listar_roles_custom/', {headers:{'X-Requested-With':'XMLHttpRequest'}});
+  const data = await resp.json();
+  if(data.ok && data.roles){
+    select.innerHTML = '<option value="">Selecciona un rol...</option>';
+    data.roles.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.nombre;
+      select.appendChild(opt);
+    });
+  }else{
+    select.innerHTML = '<option value="">No hay roles disponibles</option>';
+  }
+}
+document.getElementById('formCrearUsuarioCustom').onsubmit = async function(e) {
+  e.preventDefault();
+  const data = new FormData(this);
+  const resp = await fetch('/usuarios/crear_usuario_custom/', {method:'POST', body:data, headers:{'X-Requested-With':'XMLHttpRequest'}});
+  const result = await resp.json();
+  if(result.ok){
+    alert('Usuario creado correctamente');
+    closeModalCrearUsuarioCustom();
+  }else{
+    alert(result.error || 'Error al crear usuario');
+  }
+};
+</script>

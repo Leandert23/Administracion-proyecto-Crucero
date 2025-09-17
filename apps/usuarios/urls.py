@@ -2,8 +2,15 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from apps.usuarios import views as usuario_views
+from apps.usuarios import views_custom
 
 urlpatterns = [
+    path('crear_rol_custom/', views_custom.crear_rol_custom, name='crear_rol_custom'),
+    path('listar_roles_custom/', views_custom.listar_roles_custom, name='listar_roles_custom'),
+    path('crear_usuario_custom/', views_custom.crear_usuario_custom, name='crear_usuario_custom'),
+    path('listar_usuarios_custom/', views_custom.listar_usuarios_custom, name='listar_usuarios_custom'),
+    path('eliminar_usuario_custom/', views_custom.eliminar_usuario_custom, name='eliminar_usuario_custom'),
+    path('eliminar_rol_custom/', views_custom.eliminar_rol_custom, name='eliminar_rol_custom'),
     # Authentication URLs
     path('login/', usuario_views.custom_login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),

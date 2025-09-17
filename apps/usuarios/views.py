@@ -226,11 +226,14 @@ def modules_list(request):
     return JsonResponse({'ok': True, 'modulos': data})
 
 
+from django.shortcuts import render
+from django.http import HttpResponseForbidden
+
 @login_required
 def admin_superusers(request):
-    """Página que lista superusuarios sin crucero asignado. Solo accesible por el usuario con username 'admin'."""
-    if request.user.username != 'admin':
-        return HttpResponseForbidden('No autorizado')
+    """Página que lista superusuarios sin crucero asignado. Solo accesible por superusuarios de Django."""
+    if not request.user.is_superuser:
+        return render(request, 'administracion/sin_permisos.html', status=403)
 
     page_num = request.GET.get('page', '1')
     q = (request.GET.get('q') or '').strip()
