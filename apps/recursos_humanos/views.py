@@ -36,7 +36,7 @@ def index(request):
 
             personal.full_clean()  # Invoca validaciones
             personal.save()
-            return redirect('index')
+            return redirect('recursos_humanos:rh_dashboard')
 
         except (ValidationError, ValueError, IntegrityError) as e:
             error_message = str(e)
@@ -51,7 +51,7 @@ def index(request):
     personal_de_baja = Personal.objects.filter(pStatus=3).count()
     personal_amonestado = Amonestacion.objects.filter(estado=True).count()
 
-    return render(request, 'index.html', {
+    return render(request, 'recursos_humanos_dashboard.html', {
         'personal_list': personal_list,
         'error_message': error_message,
         'total_salarios': total_salarios,

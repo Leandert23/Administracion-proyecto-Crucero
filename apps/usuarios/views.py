@@ -141,7 +141,7 @@ def custom_login(request):
     
     roles = Rol.objects.filter(activo=True)
     cruceros = Crucero.objects.all()
-    return render(request, 'login.html', {'form': form, 'roles': roles, 'cruceros': cruceros})
+    return render(request, 'usuarios_login.html', {'form': form, 'roles': roles, 'cruceros': cruceros})
 
 @login_required
 def custom_password_change(request):

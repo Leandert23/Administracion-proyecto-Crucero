@@ -20,6 +20,7 @@ class ModuleAccessMiddleware:
         # Mapeo de paths a módulos
         self.path_modulo_mapping = {
             '/admin/': 'administracion',
+            '/dashboard/': 'administracion',
             '/cruceros/': 'cruceros',
             '/entretenimiento/': 'entretenimiento',
             '/ventas/': 'ventas',
@@ -29,6 +30,7 @@ class ModuleAccessMiddleware:
             '/compras/': 'compras',
             '/almacen/': 'almacen',
             '/rh/': 'rh',
+            '/recursos-humanos/': 'rh',
             '/medico/': 'medico',
             '/mantenimiento/': 'mantenimiento',
         }

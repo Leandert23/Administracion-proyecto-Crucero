@@ -4,5 +4,5 @@ from .views import index
 app_name = "recursos_humanos"
 
 urlpatterns = [
-    path('', index, name='dashboard'),
+    path('', index, name='rh_dashboard'),
 ]

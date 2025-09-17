@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administración - Odyssey</title>
+    <link rel="stylesheet" href="{% static 'css/administracion.css' %}">
+</head>
+<body>
+    <div id="administracion-root" class="dashboard-container">
+        {% include "sidebar.html" with active_module="dashboard" %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Dashboard Administración</h1>
+                        <p class="page-subtitle">Panel de control del sistema de cruceros</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="stats-section">
+                    <h2 class="section-title">Resumen General</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Presupuesto</h3>
+                            <p class="stat-value">${{ presupuesto|floatformat:2 }}</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Costos Totales</h3>
+                            <p class="stat-value">${{ costos|floatformat:2 }}</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Ganancias</h3>
+                            <p class="stat-value">${{ ganancias|floatformat:2 }}</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Alertas</h3>
+                            <p class="stat-value">{{ alertas|length }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if crucero %}
+                <div class="crucero-info">
+                    <h2 class="section-title">Información del Crucero</h2>
+                    <div class="info-card">
+                        <h3>{{ crucero.nombre }}</h3>
+                        <p><strong>Estado:</strong> {{ crucero.estado_operativo }}</p>
+                        <p><strong>Capacidad Pasajeros:</strong> {{ crucero.capacidad_pasajeros }}</p>
+                        <p><strong>Capacidad Tripulación:</strong> {{ crucero.capacidad_tripulacion }}</p>
+                        <p><strong>Puerto Base:</strong> {{ crucero.puerto_base }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if alertas %}
+                <div class="alertas-section">
+                    <h2 class="section-title">Alertas Pendientes</h2>
+                    <div class="alertas-list">
+                        {% for alerta in alertas %}
+                        <div class="alerta-item">
+                            <h4>{{ alerta.titulo }}</h4>
+                            <p>{{ alerta.descripcion }}</p>
+                            <small>{{ alerta.fecha_creacion }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Funciones básicas para el sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+        
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+        
+        function closeMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
