@@ -7,6 +7,7 @@ from apps.usuarios import views_custom
 urlpatterns = [
     path('crear_rol_custom/', views_custom.crear_rol_custom, name='crear_rol_custom'),
     path('listar_roles_custom/', views_custom.listar_roles_custom, name='listar_roles_custom'),
+    path('verificar_nombre_rol/', views_custom.verificar_nombre_rol, name='verificar_nombre_rol'),
     path('crear_usuario_custom/', views_custom.crear_usuario_custom, name='crear_usuario_custom'),
     path('listar_usuarios_custom/', views_custom.listar_usuarios_custom, name='listar_usuarios_custom'),
     path('eliminar_usuario_custom/', views_custom.eliminar_usuario_custom, name='eliminar_usuario_custom'),

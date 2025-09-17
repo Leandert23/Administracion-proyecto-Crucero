@@ -8,9 +8,13 @@
           <button type="button" class="close" onclick="closeModalCrearRolCustom()" style="background:transparent; border:0; font-size:1.3rem; cursor:pointer; color:#4b5563;">&times;</button>
         </div>
         <div class="modal-body" style="padding:16px 18px; max-height:60vh; overflow:auto;">
+          <!-- Área para mostrar errores -->
+          <div id="error_message" style="display:none; background:#fee2e2; border:1px solid #fecaca; color:#dc2626; padding:8px 12px; border-radius:4px; margin-bottom:12px; font-size:14px;"></div>
+          
           <div class="form-group">
             <label for="rol_nombre">Nombre</label>
             <input type="text" id="rol_nombre" name="nombre" class="form-control" required maxlength="100" />
+            <div id="nombre_validation" style="display:none; font-size:12px; margin-top:4px;"></div>
           </div>
           <div class="form-group">
             <label for="rol_descripcion">Descripción</label>
@@ -48,21 +52,92 @@ function openModalCrearRolCustom() {
 function closeModalCrearRolCustom() {
   document.getElementById('modalCrearRolCustom').style.display = 'none';
   document.getElementById('formCrearRolCustom').reset();
+  // Ocultar mensajes de error y validación
+  document.getElementById('error_message').style.display = 'none';
+  document.getElementById('nombre_validation').style.display = 'none';
+  // Limpiar timeout de validación si existe
+  if (validationTimeout) {
+    clearTimeout(validationTimeout);
+  }
 }
+
+function showError(message) {
+  const errorDiv = document.getElementById('error_message');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('error_message').style.display = 'none';
+}
+
+// Validación en tiempo real del nombre del rol
+let validationTimeout;
+document.getElementById('rol_nombre').addEventListener('input', function() {
+  const nombre = this.value.trim();
+  const validationDiv = document.getElementById('nombre_validation');
+  
+  // Limpiar timeout anterior
+  if (validationTimeout) {
+    clearTimeout(validationTimeout);
+  }
+  
+  if (!nombre) {
+    validationDiv.style.display = 'none';
+    return;
+  }
+  
+  // Esperar 500ms después de que el usuario deje de escribir
+  validationTimeout = setTimeout(async () => {
+    try {
+      const resp = await fetch(`/usuarios/verificar_nombre_rol/?nombre=${encodeURIComponent(nombre)}`);
+      const result = await resp.json();
+      
+      if (result.ok) {
+        if (result.exists) {
+          validationDiv.textContent = '⚠️ Este nombre ya existe. Elige un nombre diferente.';
+          validationDiv.style.color = '#dc2626';
+          validationDiv.style.display = 'block';
+        } else {
+          validationDiv.textContent = '✅ Nombre disponible';
+          validationDiv.style.color = '#059669';
+          validationDiv.style.display = 'block';
+        }
+      }
+    } catch (error) {
+      // No mostrar error en validación en tiempo real
+      validationDiv.style.display = 'none';
+    }
+  }, 500);
+});
 document.getElementById('formCrearRolCustom').onsubmit = async function(e) {
   e.preventDefault();
+  
+  // Ocultar errores previos
+  hideError();
+  
   const data = new FormData(this);
   const modulos = [];
   this.querySelectorAll('input[name="modulos"]:checked').forEach(cb => modulos.push(cb.value));
   data.delete('modulos');
   modulos.forEach(val => data.append('modulos', val));
-  const resp = await fetch('/usuarios/crear_rol_custom/', {method:'POST', body:data, headers:{'X-Requested-With':'XMLHttpRequest'}});
-  const result = await resp.json();
-  if(result.ok){
-    alert('Rol creado correctamente');
-    closeModalCrearRolCustom();
-  }else{
-    alert(result.error || 'Error al crear rol');
+  
+  try {
+    const resp = await fetch('/usuarios/crear_rol_custom/', {method:'POST', body:data, headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const result = await resp.json();
+    
+    if(result.ok){
+      alert('Rol creado correctamente');
+      closeModalCrearRolCustom();
+      // Recargar la lista de roles si existe
+      if(typeof cargarRolesCustom === 'function') {
+        cargarRolesCustom();
+      }
+    } else {
+      showError(result.error || 'Error al crear rol');
+    }
+  } catch (error) {
+    showError('Error de conexión. Por favor, inténtalo de nuevo.');
   }
 };
 </script>

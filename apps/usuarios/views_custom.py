@@ -24,8 +24,14 @@ def crear_rol_custom(request):
     nombre = request.POST.get('nombre', '').strip()
     descripcion = request.POST.get('descripcion', '').strip()
     modulos = request.POST.getlist('modulos')
+    
     if not nombre:
         return JsonResponse({'ok': False, 'error': 'El nombre es requerido'})
+    
+    # Verificar si ya existe un rol con ese nombre
+    if RolCustom.objects.filter(nombre=nombre).exists():
+        return JsonResponse({'ok': False, 'error': f'Ya existe un rol con el nombre "{nombre}". Por favor, elige un nombre diferente.'})
+    
     try:
         rol = RolCustom.objects.create(nombre=nombre, descripcion=descripcion, modulos=modulos)
         return JsonResponse({'ok': True, 'id': rol.id})
@@ -43,6 +49,16 @@ def listar_roles_custom(request):
             'modulos': rol.modulos if rol.modulos else []
         })
     return JsonResponse({'ok': True, 'roles': roles})
+
+@csrf_exempt
+@require_GET
+def verificar_nombre_rol(request):
+    nombre = request.GET.get('nombre', '').strip()
+    if not nombre:
+        return JsonResponse({'ok': True, 'exists': False})
+    
+    exists = RolCustom.objects.filter(nombre=nombre).exists()
+    return JsonResponse({'ok': True, 'exists': exists})
 
 from .models import Empleado, Rol
 
