@@ -5,18 +5,18 @@ import json
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.db import transaction
-from apps.cruceros.models import Crucero, Instalacion
+from apps.creador_embarcaciones.models import Embarcacion, Locales
 from apps.almacen.models import SeccionAlmacen, OrdenCompra
+from apps.almacen.models import MensajeParaCompras
 from apps.almacen.models import SolicitudSalida
 from apps.almacen.Services.products import retirar_producto_fefo, retirar_producto_fifo
 from apps.almacen.Services.products import calcular_asignacion_lotes
 from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from datetime import timedelta
 
-def mostrar_vista_almacen(request, crucero_id):
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen')
-    secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones, esta_activa=True).select_related('almacen')
+def mostrar_vista_almacen(request, embarcacion_id):
+    embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
+    secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion=embarcacion).select_related('local_tipo_almacen')
     try:
         fecha_actual = obtener_fecha_actual()
     except Exception:
@@ -24,7 +24,7 @@ def mostrar_vista_almacen(request, crucero_id):
         fecha_actual = date.today()
     fecha_min_caducidad = fecha_actual + timedelta(days=1)
     return render(request, "almacen.html", {
-        "crucero": crucero,
+        "embarcacion": embarcacion,
         'secciones': secciones,
         'fecha_actual_sistema': fecha_actual,
         'fecha_min_caducidad': fecha_min_caducidad
@@ -32,11 +32,11 @@ def mostrar_vista_almacen(request, crucero_id):
 
 
 @require_GET
-def obtener_instalaciones_almacen(request, crucero_id):
-    """Devuelve JSON con las instalaciones de tipo 'almacen' para el crucero dado."""
-    crucero = get_object_or_404(Crucero, pk=crucero_id)
-    instalaciones = Instalacion.objects.filter(crucero=crucero, tipo='almacen').values('id', 'nombre')
-    return JsonResponse({'success': True, 'instalaciones': list(instalaciones)})
+def obtener_locales_tipo_almacen(request, embarcacion_id):
+    """Devuelve JSON con los locales de tipo almacén para la embarcación dada."""
+    embarcacion = get_object_or_404(Embarcacion, pk=embarcacion_id)
+    locales_almacen = Locales.objects.filter(cubierta__embarcacion=embarcacion, tipo='almacen').values('id', 'nombre')
+    return JsonResponse({'success': True, 'locales': list(locales_almacen)})
 
 
 
@@ -44,14 +44,14 @@ def obtener_instalaciones_almacen(request, crucero_id):
 def crear_seccion(request):
     """Crea una SeccionAlmacen a partir de un POST form-encoded.
 
-    Espera los campos simplificados: almacen_id, nombre, tipo.
+    Espera los campos simplificados: local_tipo_almacen_id, nombre, tipo.
     No se solicita capacidad/temperatura/humedad desde el formulario; la vista
     usará valores por defecto (capacidad=1, temperatura/humedad=None).
     Responde JSON: {'success': True, 'id': <pk>} o {'success': False, 'errores': {campo: mensaje}, 'error': 'codigo'}
     """
     try:
         data = request.POST
-        almacen_id = data.get('almacen_id')
+        local_tipo_almacen_id = data.get('local_tipo_almacen_id')
         nombre = (data.get('nombre') or '').strip()
         tipo = data.get('tipo')
         # Not requesting capacidad/temperatura/humedad from the simplified form
@@ -61,14 +61,15 @@ def crear_seccion(request):
 
         errores = {}
 
-        if not almacen_id:
-            errores['almacen'] = 'Almacén requerido.'
+        if not local_tipo_almacen_id:
+            errores['local_tipo_almacen'] = 'Local tipo almacén requerido.'
         else:
             try:
-                almacen = Instalacion.objects.get(pk=int(almacen_id), tipo='almacen')
+                local_tipo_almacen = Locales.objects.get(pk=int(local_tipo_almacen_id), tipo='almacen')
+            except Locales.DoesNotExist:
+                errores['local_tipo_almacen'] = 'Local tipo almacén no encontrado.'
             except Exception:
-                almacen = None
-                errores['almacen'] = 'Almacén no encontrado.'
+                errores['local_tipo_almacen'] = 'Error al obtener local tipo almacén.'
 
         if not nombre:
             errores['nombre'] = 'Nombre requerido.'
@@ -87,7 +88,7 @@ def crear_seccion(request):
 
         # Crear sección
         seccion = SeccionAlmacen(
-            almacen=almacen,
+            local_tipo_almacen=local_tipo_almacen,
             nombre=nombre,
             tipo=tipo,
             capacidad=capacidad_int,
@@ -184,6 +185,89 @@ def detalle_orden_compra(request, orden_id):
     })
 
 
+
+@require_POST
+def reportar_defecto_orden(request):
+    """Marca una orden de compra como DENEGADA y adjunta/crea un MensajeParaCompras
+
+    Espera JSON o form-encoded con: orden_id, producto (opcional), cantidad_llegada, descripcion
+    Responde JSON {'success': True}
+    """
+    try:
+        # parse body
+        if request.content_type and 'application/json' in request.content_type:
+            data = json.loads(request.body.decode('utf-8') or '{}')
+        else:
+            data = request.POST
+
+        orden_id = data.get('orden_id') or data.get('orden') or data.get('orden_compra_id')
+        cantidad = data.get('cantidad_llegada') or data.get('cantidad')
+        descripcion = (data.get('descripcion') or data.get('notas') or data.get('notas_defecto') or '').strip()
+
+        if not orden_id:
+            return JsonResponse({'success': False, 'error': 'orden_id_requerido'}, status=400)
+
+        orden = get_object_or_404(OrdenCompra.objects.select_related('compra_lote'), pk=int(orden_id))
+
+        # marcar orden como DENEGADA
+        orden.estado = 'DENEGADA'
+        orden.save()
+
+        # obtener compra_lote asociado y el mensaje vinculado
+        compra_lote = getattr(orden, 'compra_lote', None)
+        if compra_lote:
+            # preparar texto con la cantidad llegada
+            try:
+                cantidad_int = int(cantidad) if cantidad is not None and str(cantidad).strip() != '' else None
+            except Exception:
+                cantidad_int = None
+
+            llegada_line = ''
+            if cantidad_int is not None:
+                llegada_line = f"llegó {cantidad_int}\n"
+            elif cantidad is not None and str(cantidad).strip() != '':
+                # si no se pudo parsear a int, usar el valor tal cual
+                llegada_line = f"llegó {cantidad}\n"
+
+            # construir la descripcion final que guardaremos
+            descripcion_final = descripcion or ''
+            if llegada_line:
+                if descripcion_final:
+                    descripcion_final = f"{llegada_line}\n\n{descripcion_final}"
+                else:
+                    descripcion_final = llegada_line
+
+            # buscar un mensaje existente
+            mensaje = compra_lote.mensajes_para_almacen.first()
+            if not mensaje:
+                # crear uno nuevo con la descripción recibida
+                MensajeParaCompras.objects.create(compra_lote=compra_lote, descripcion=descripcion_final)
+            else:
+                # anexar la nueva descripción al mensaje existente
+                actual = (mensaje.descripcion or '').strip()
+                if actual:
+                    nuevo = actual + '\n\n' + descripcion_final if descripcion_final else actual
+                else:
+                    nuevo = descripcion_final
+                mensaje.descripcion = nuevo
+                mensaje.save()
+
+        # Emitir la señal de decisión para que los receivers procesen la compra_lote
+        try:
+            # Import local para evitar problemas de importación circular
+            from apps.almacen.signals import enviar_decision_solicitud_almacen
+            if getattr(orden, 'compra_lote', None):
+                # No pasamos mensaje explícito: la función leerá el MensajeParaCompras asociado y lo usará
+                enviar_decision_solicitud_almacen(orden)
+        except Exception:
+            # No bloquear la vista por fallos en handlers de señal; opcional: loggear
+            pass
+
+        return JsonResponse({'success': True, 'orden_id': orden.id})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @require_GET
 def obtener_listado_solicitudes(request):
     """Devuelve HTML parcial con la tabla de solicitudes (paginado).
@@ -226,15 +310,15 @@ def detalle_solicitud(request, solicitud_id):
 
 @require_GET
 def obtener_solicitudes_aprobadas(request):
-    """Devuelve HTML parcial con la tabla de solicitudes aprobadas asociadas al crucero actual.
+    """Devuelve HTML parcial con la tabla de solicitudes aprobadas asociadas a la embarcación actual.
 
-    Parámetros (GET): page (opcional), crucero_id (opcional - si no se recibe se listan todas)
+    Parámetros (GET): page (opcional), embarcacion_id (opcional - si no se recibe se listan todas)
     """
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
     qs = SolicitudSalida.objects.filter(estado='APROBADA')
-    # Si se proporciona crucero_id intentamos filtrar por relación a través de productos->seccion->almacen->crucero
-    if crucero_id:
-        qs = qs.filter(productos_solicitados__producto__seccion__almacen__crucero_id=crucero_id).distinct()
+    # Si se proporciona embarcacion_id intentamos filtrar por relación a través de productos->seccion->local_tipo_almacen->cubierta->embarcacion
+    if embarcacion_id:
+        qs = qs.filter(productos_solicitados__producto__seccion__local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id).distinct()
     qs = qs.annotate(total_unidades=Sum('productos_solicitados__cantidad')).order_by('-fecha_creacion')
 
     page_number = int(request.GET.get('page', 1))

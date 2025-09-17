@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div id="almacen-root" class="dashboard-container" data-crucero-id="{{ crucero.id }}">
+    <div id="almacen-root" class="dashboard-container" data-embarcacion-id="{{ embarcacion.id }}">
         {% include 'sidebar.html' with active_module="almacen" %}
         
         <!-- Main Content -->
@@ -45,7 +45,7 @@
                             <p class="quick-card__text">Maneja el inventario general</p>
                         </div>
                     </div>
-                    <div class="quick-card" id="entrada-card">
+                    <div class="quick-card" id="entrada-card" onclick="abrirModalCrearLote()" role="button" style="cursor:pointer;">
                         <div class="quick-card__icon" aria-hidden="true"><i class="fa-solid fa-plus-circle" aria-hidden="true"></i></div>
                         <div class="quick-card__body">
                             <h3 class="quick-card__title">Entrada de Lote</h3>
@@ -128,6 +128,7 @@
 {% include 'Modals/modal_solicitud_a_almacen.html' %}
 {% include 'Modals/modal_listado_solicitudes.html' %}
 {% include 'Modals/modal_solicitudes_aprobadas.html' %}
+{% include 'Modals/reportar_defecto_lote.html' %}
 
 
 <script src="{% static 'Js/sidebar.js' %}"></script>
@@ -170,6 +171,65 @@
                     InterfazSolicitud.cargarProductos();
                 }
             }catch(e){ console.error('abrirModalSolicitudAlmacen fallback error', e); }
+        };
+    }
+    // Abrir modal de crear lote (manual desde quickcard) - no pasar argumentos
+    if(typeof window.abrirModalCrearLote !== 'function'){
+        window.abrirModalCrearLote = function(){
+            try{
+                // limpiar posibles valores heredados
+                var modal = document.getElementById('modalCrearLote');
+                if(modal){
+                    var inputOrden = modal.querySelector('#id_orden_compra_id');
+                    if(inputOrden) inputOrden.value = '';
+                    var btnReport = modal.querySelector('#btn-reportar-defecto');
+                    if(btnReport) btnReport.style.display = 'none';
+                    // intentar limpiar búsqueda de producto si existe
+                    var buscar = modal.querySelector('#buscar_producto_lote');
+                    var hiddenProducto = modal.querySelector('#id_producto');
+                    if(buscar) buscar.value = '';
+                    if(hiddenProducto) hiddenProducto.value = '';
+                }
+                // abrir modal usando GestorModales si está disponible
+                if(window.GestorModales && typeof window.GestorModales.abrir === 'function'){
+                    window.GestorModales.abrir('lote');
+                } else {
+                    // fallback: mostrar directamente
+                    if(modal) {
+                        modal.setAttribute('aria-hidden','false');
+                        modal.style.display = '';
+                    }
+                }
+            }catch(e){ console.error('abrirModalCrearLote error', e); }
+        };
+    }
+
+    // Abrir modal de entrada de lote pasando un id de orden (viene de Lotes por registrar)
+    if(typeof window.abrirEntradaLoteFromOrden !== 'function'){
+        window.abrirEntradaLoteFromOrden = function(ordenId, productoId, cantidad){
+            try{
+                var modal = document.getElementById('modalCrearLote');
+                if(!modal) return;
+                var inputOrden = modal.querySelector('#id_orden_compra_id');
+                if(inputOrden) inputOrden.value = ordenId || '';
+                var hiddenProducto = modal.querySelector('#id_producto');
+                var buscar = modal.querySelector('#buscar_producto_lote');
+                if(productoId && hiddenProducto) hiddenProducto.value = productoId;
+                // mostrar el botón de reportar defecto cuando viene desde una orden
+                var btnReport = modal.querySelector('#btn-reportar-defecto');
+                if(btnReport) btnReport.style.display = '';
+                if(typeof window.GestorModales === 'object' && typeof window.GestorModales.abrir === 'function'){
+                    window.GestorModales.abrir('lote');
+                } else {
+                    modal.setAttribute('aria-hidden','false');
+                    modal.style.display = '';
+                }
+                // si se pasó cantidad, intentar prefijarla
+                if(cantidad){
+                    var qty = modal.querySelector('#id_cantidad_productos');
+                    if(qty) qty.value = cantidad;
+                }
+            }catch(e){ console.error('abrirEntradaLoteFromOrden error', e); }
         };
     }
 </script>

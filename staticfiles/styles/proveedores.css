@@ -1,0 +1,313 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 0;
+}
+
+.container-proveedores {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px 40px;
+}
+
+h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: #2d3a4a;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+form#proveedor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 32px;
+}
+
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.form-row label {
+    min-width: 120px;
+    font-weight: 500;
+    color: #2d3a4a;
+    margin-bottom: 0;
+    text-align: right;
+}
+
+.form-row input[type="text"],
+.form-row input[type="number"],
+.form-row select {
+    flex: 1 1 220px;
+    padding: 8px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.form-row button[type="button"] {
+    margin-left: 8px;
+}
+
+form label {
+    font-weight: 500;
+    color: #2d3a4a;
+    margin-bottom: 8px; /* Espacio entre label y input */
+    display: block; /* Asegurar que el label ocupe su propia línea */
+}
+
+input[type="text"], select {
+    width: 100%; /* Ocupar todo el ancho disponible en la columna */
+    padding: 10px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    box-sizing: border-box; /* Incluir padding y border en el ancho total */
+}
+
+/* Estilos para los campos de País y Materiales */
+.input-with-button {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espacio entre input y botón */
+}
+
+.input-with-button input[type="text"] {
+    flex-grow: 1; /* El input ocupa el espacio restante */
+}
+
+/* Botones Añadir (tipo button dentro de .input-with-button) */
+.input-with-button button {
+    padding: 6px 14px; /* Reducido de 10px 20px */
+    font-size: 0.9rem; /* Un poco más pequeño */
+    background: #2d3a4a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.input-with-button button:hover {
+    background: #1a2533;
+}
+
+button[type="submit"], button[type="button"], .btn-devolver {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+    width: 120px;
+    display: block;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Botón Registrar (submit del formulario) */
+form#proveedor-form button[type="submit"] {
+    padding: 8px 18px; /* Reducido de 10px 20px */
+        padding: 6px 14px;
+        font-size: 0.95rem;
+        width: auto;
+    width: 120px;
+    display: block;
+    margin-left: auto;
+    margin-right: 0;
+    width: 120px;
+    display: block;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Ajuste para el botón Registrar en la tabla (si aplica) */
+form[action] button[type="submit"] {
+    padding: 5px 12px; /* Reducido */
+    font-size: 0.9rem;
+    background: #e53935;
+    color: #fff;
+    border-radius: 6px;
+    margin: 0;
+    transition: background 0.2s;
+}
+
+form[action] button[type="submit"]:hover {
+    background: #b71c1c;
+}
+
+button[type="submit"]:hover, button[type="button"]:hover, .btn-devolver:hover {
+    background: #1746b0;
+}
+
+/* Estilos para las listas de países y materiales */
+#pais-list, #material-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0; /* Espacio superior para separar de los inputs */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Espacio entre los elementos de la lista */
+    width: 100%; /* Asegurar que ocupe todo el ancho de la columna */
+}
+
+#pais-list li, #material-list li {
+    background: #e3eaf2;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#pais-list li button, #material-list li button {
+    background: #dc3545; /* Color rojo para el botón de eliminar */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0; /* Eliminar margen superior */
+}
+
+#pais-list li button:hover, #material-list li button:hover {
+    background: #c82333;
+}
+
+/* Ajuste para que los campos de pais y material se comporten como un solo elemento en el grid */
+form#proveedor-form p:has(#pais-input),
+form#proveedor-form p:has(#material-input) {
+    grid-column: span 1; /* Asegurar que ocupen una columna */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilos para la tabla de proveedores */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-top: 32px; /* Espacio superior para separar del formulario */
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e3eaf2;
+    font-size: 0.95rem;
+}
+
+th {
+    background: #e3eaf2;
+    color: #2d3a4a;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+.btn-devolver {
+    background: #607d8b;
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-top: 20px; /* Espacio superior para el botón */
+    align-self: flex-end; /* Alinear a la derecha en el contenedor flex */
+}
+
+/* Media Queries para Responsividad */
+@media (max-width: 768px) {
+    .container-proveedores {
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    form#proveedor-form {
+        grid-template-columns: 1fr; /* Una sola columna en pantallas pequeñas */
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .input-with-button {
+        flex-direction: column; /* Apilar input y botón en pantallas pequeñas */
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .input-with-button input[type="text"] {
+        width: 100%;
+    }
+
+    .input-with-button button {
+        width: auto; /* Ajustar ancho del botón */
+    }
+
+    th, td {
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+
+    .btn-devolver {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .container-proveedores {
+        padding: 15px;
+    }
+
+    button[type="submit"], button[type="button"], .btn-devolver {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    #pais-list li, #material-list li {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+
+    #pais-list li button, #material-list li button {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+}

@@ -1,0 +1,224 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Detalles de {{ local.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Información del Local -->
+    <div class="col-12 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">{{ local.nombre }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-store"></i> {{ local.nombre }}
+                    <small class="text-white-50">({{ local.ID_local }})</small>
+                </h4>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}"
+                       class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Volver a Cubierta
+                    </a>
+                    <a href="{% url 'creador_embarcaciones:local_update' local.pk %}"
+                       class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'creador_embarcaciones:local_delete' local.pk %}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('¿Estás seguro de eliminar este local?')">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-info-circle"></i> Información del Local
+                        </h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <td class="bg-light" width="30%"><strong>Nombre:</strong></td>
+                                <td>{{ local.nombre }}</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>ID del Local:</strong></td>
+                                <td><code>{{ local.ID_local }}</code></td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>Tipo:</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ local.get_tipo_display }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>Estado:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if local.estado == 'operativo' %}success{% elif local.estado == 'mantenimiento' %}warning{% else %}secondary{% endif %}">
+                                        {{ local.get_estado_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>Área:</strong></td>
+                                <td>{{ local.area_metros_cuadrados }} m²</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>Ubicación:</strong></td>
+                                <td><code>{{ local.ubicacion }}</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-map-marker-alt"></i> Ubicación
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="mb-2">{{ embarcacion.nombre }}</h6>
+                                <div class="text-muted mb-2">
+                                    <small>Cubierta {{ cubierta.numero }}</small><br>
+                                    <small>{{ cubierta.nombre }}</small>
+                                </div>
+                                <div class="alert alert-info">
+                                    <strong>Ubicación:</strong><br>
+                                    <code>{{ local.ubicacion }}</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de Mantenimiento -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools"></i> Información de Mantenimiento
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td class="bg-light"><strong>Último Mantenimiento:</strong></td>
+                        <td>{{ local.ultimo_mantenimiento|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-light"><strong>Próximo Mantenimiento:</strong></td>
+                        <td>{{ local.proximo_mantenimiento|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-light"><strong>Días para Mantenimiento:</strong></td>
+                        <td>
+                            {% if local.proximo_mantenimiento %}
+                                {% load tz %}
+                                {% now "Y-m-d" as today %}
+                                {% if local.proximo_mantenimiento|date:"Y-m-d" < today %}
+                                    <span class="badge bg-danger">Vencido</span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        {{ local.proximo_mantenimiento|date:"Y-m-d"|timeuntil:today|default:"0 días" }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">No programado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de Capacidad y Recursos -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Información de Capacidad
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="card bg-light">
+                            <div class="card-body p-3">
+                                <h4 class="mb-1">{{ local.area_metros_cuadrados }}</h4>
+                                <small class="text-muted">m² Totales</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-light">
+                            <div class="card-body p-3">
+                                <h4 class="mb-1">{{ cubierta.area_disponible }}</h4>
+                                <small class="text-muted">m² Cubierta</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        Este local ocupa {{ local.area_metros_cuadrados }} m² de los {{ cubierta.area_disponible }} m² disponibles en la cubierta.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial y Notas -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history"></i> Información Adicional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Información del Sistema</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td class="bg-light"><strong>Creado:</strong></td>
+                                <td>{{ local.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light"><strong>Última Modificación:</strong></td>
+                                <td>{{ local.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Notas y Observaciones</h6>
+                        <div class="alert alert-light">
+                            <i class="fas fa-sticky-note text-muted"></i>
+                            <small class="text-muted">
+                                Aquí se pueden agregar notas adicionales sobre el mantenimiento,
+                                características especiales o cualquier información relevante del local.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

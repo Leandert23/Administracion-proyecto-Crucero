@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.restaurante",
     "apps.servicio_medico",
     "apps.ventas",
+    "apps.creador_embarcaciones"
 ]
 
 MIDDLEWARE = [
@@ -154,6 +155,22 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Formatos de fecha personalizados para aceptar DD/MM/YYYY
+DATE_INPUT_FORMATS = [
+    '%d/%m/%Y',  # 25/12/2023
+    '%d/%m/%y',  # 25/12/23
+    '%Y-%m-%d',  # 2023-12-25 (ISO)
+    '%m/%d/%Y',  # 12/25/2023 (US)
+    '%m/%d/%y',  # 12/25/23 (US)
+    '%d-%m-%Y',  # 25-12-2023
+    '%d-%m-%y',  # 25-12-23
+    '%Y/%m/%d',  # 2023/12/25
+]
+
+# Formatos de fecha para mostrar
+DATE_FORMAT = 'd/m/Y'  # Mostrar como 25/12/2023
+SHORT_DATE_FORMAT = 'd/m/Y'
+
 
 
 # Static files (CSS, JavaScript, Images)
@@ -161,12 +178,21 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
+    BASE_DIR / 'static',
     BASE_DIR / 'apps' / 'Static',
     BASE_DIR / 'apps' / 'cruceros' / 'Static',
     BASE_DIR / 'apps' / 'almacen' / 'Static',
+    BASE_DIR / 'apps' / 'bares_snacks' / 'static',
+    BASE_DIR / 'apps' / 'compras' / 'static',
     BASE_DIR / 'apps' / 'entretenimiento' / 'static',
     BASE_DIR / 'apps' / 'mantenimiento' / 'static',
+    BASE_DIR / 'apps' / 'recursos_humanos' / 'static',
     BASE_DIR / 'apps' / 'reservaciones' / 'static',
+    BASE_DIR / 'apps' / 'restaurante' / 'static',
+    BASE_DIR / 'apps' / 'servicio_medico' / 'static',
+    BASE_DIR / 'apps' / 'usuarios' / 'Static',
+    BASE_DIR / 'apps' / 'ventas' / 'static',
+    BASE_DIR / 'apps' / 'administracion' / 'static',
 ]
 
 # Media files (user-uploaded content)

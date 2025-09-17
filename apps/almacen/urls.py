@@ -2,7 +2,7 @@ from django.urls import path
 from .Views import general, inventario, lotes, mermas, productos
 
 urlpatterns = [
-    path("<int:crucero_id>", general.mostrar_vista_almacen, name="vista_almacen"),
+    path("<int:embarcacion_id>", general.mostrar_vista_almacen, name="vista_almacen"),
     
     path("obtener_productos_para_solicitud/", inventario.obtener_productos_para_solicitud, name="obtener_productos_para_solicitud"),
     path("solicitar_productos/", lotes.solicitar_productos, name="solicitar_productos"),
@@ -20,12 +20,13 @@ urlpatterns = [
     path("inventario/producto/", inventario.obtener_detalle_producto, name="inventario_detalle_producto"),
     path("inventario/lotes/", inventario.obtener_lotes_producto, name="inventario_lotes_producto"),
     path("inventario/lotes-json/", inventario.obtener_lotes_producto_json, name="inventario_lotes_producto_json"),
-    path("instalaciones/<int:crucero_id>/", general.obtener_instalaciones_almacen, name="instalaciones_almacen"),
+    path("locales-tipo-almacen/<int:embarcacion_id>/", general.obtener_locales_tipo_almacen, name="locales_tipo_almacen"),
     path("crear-seccion/", general.crear_seccion, name="crear_seccion"),
     
     path("registrar-merma/", mermas.registrar_merma, name="registrar_merma"),
     path("ordenes-compra/por-registrar/", general.obtener_ordenes_compra_por_registrar, name="ordenes_compra_por_registrar"),
     path("ordenes-compra/detalle/<int:orden_id>/", general.detalle_orden_compra, name="orden_compra_detalle"),
+    path("ordenes-compra/reportar-defecto/", general.reportar_defecto_orden, name="orden_compra_reportar_defecto"),
     path("solicitudes/listado/", general.obtener_listado_solicitudes, name="solicitudes_listado"),
     path("solicitudes/detalle/<int:solicitud_id>/", general.detalle_solicitud, name="solicitud_detalle"),
     path("solicitudes/aceptar/", general.aceptar_solicitud, name="solicitud_aceptar"),

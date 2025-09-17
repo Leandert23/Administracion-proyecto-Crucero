@@ -1,0 +1,134 @@
+/* Estilos para el botón de urgencia médica */
+
+.btn-urgencia-medica {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-urgencia-medica:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+}
+
+.btn-urgencia-medica:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.btn-urgencia-medica:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+}
+
+/* Efecto de pulso para llamar la atención */
+.btn-urgencia-medica.pulse {
+    animation: pulse-urgencia 2s infinite;
+}
+
+@keyframes pulse-urgencia {
+    0% {
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.6), 0 0 0 10px rgba(220, 53, 69, 0.1);
+    }
+    100% {
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+}
+
+/* Icono del botón */
+.btn-urgencia-medica i {
+    font-size: 16px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.1); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
+}
+
+/* Variantes del botón */
+.btn-urgencia-medica.btn-sm {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.btn-urgencia-medica.btn-lg {
+    padding: 16px 24px;
+    font-size: 16px;
+}
+
+.btn-urgencia-medica.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Botón flotante (para casos de emergencia) */
+.btn-urgencia-medica.floating {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+}
+
+.btn-urgencia-medica.floating i {
+    font-size: 24px;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-urgencia-medica {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .btn-urgencia-medica.floating {
+        bottom: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .btn-urgencia-medica.floating i {
+        font-size: 20px;
+    }
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .btn-urgencia-medica,
+    .btn-urgencia-medica i,
+    .btn-urgencia-medica.pulse {
+        animation: none;
+    }
+}

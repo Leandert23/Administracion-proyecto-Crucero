@@ -8,11 +8,11 @@
 </head>
 <body>
     {% if from_param == 'historial' %}
-        <a href="{% url 'compras:historial_compras' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
+        <a href="{% url 'compras:historial_compras' embarcacion_id %}"><button type="button" class="btn-volver">Volver</button></a>
     {% elif from_param == 'revision' %}
-        <a href="{% url 'compras:revision_problemas' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
+        <a href="{% url 'compras:revision_problemas' embarcacion_id %}"><button type="button" class="btn-volver">Volver</button></a>
     {% else %}
-        <a href="{% url 'compras:lista_solicitudes' crucero_id %}"><button type="button" class="btn-volver">Volver</button></a>
+        <a href="{% url 'compras:lista_solicitudes' embarcacion_id %}"><button type="button" class="btn-volver">Volver</button></a>
     {% endif %}
     <h2>Detalle de Compra por Lote</h2>
     <fieldset style="margin-bottom:20px;">

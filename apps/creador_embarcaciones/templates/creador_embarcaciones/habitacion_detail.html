@@ -1,0 +1,204 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Habitación {{ habitacion.numero }} - {{ cubierta.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Información de la Habitación -->
+    <div class="col-12 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:home' %}">Inicio</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_detail' embarcacion.pk %}">{{ embarcacion.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}">{{ cubierta.nombre }}</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Habitación {{ habitacion.numero }}</li>
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-bed"></i> Habitación {{ habitacion.numero }}
+                    <small class="text-white-50">({{ habitacion.ID_local }})</small>
+                </h4>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'creador_embarcaciones:habitacion_update' habitacion.pk %}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a href="{% url 'creador_embarcaciones:habitacion_delete' habitacion.pk %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                    <a href="{% url 'creador_embarcaciones:cubierta_detail' embarcacion_pk=embarcacion.pk cubierta_pk=cubierta.pk %}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Información Básica</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Número:</strong></td>
+                                <td>{{ habitacion.numero }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ID Local:</strong></td>
+                                <td><code>{{ habitacion.ID_local }}</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Posición:</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ habitacion.get_posicion_display }}</span>
+                                    {% if habitacion.posicion == 'babor' %}
+                                        <small class="text-muted">(Código: 0)</small>
+                                    {% else %}
+                                        <small class="text-muted">(Código: 1)</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cubierta:</strong></td>
+                                <td>{{ cubierta.nombre }} ({{ cubierta.numero }})</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Embarcación:</strong></td>
+                                <td>{{ embarcacion.nombre }} ({{ embarcacion.identificador }})</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ubicación:</strong></td>
+                                <td><code>{{ habitacion.ubicacion }}</code></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Estado y Precio</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if habitacion.estado == 'disponible' %}success{% elif habitacion.estado == 'ocupada' %}danger{% else %}warning{% endif %}">
+                                        {{ habitacion.get_estado_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Precio por Noche:</strong></td>
+                                <td>
+                                    {% if habitacion.precio %}
+                                        <span class="text-success fw-bold">{{ habitacion.precio }}€</span>
+                                    {% else %}
+                                        <span class="text-muted">No establecido</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Persona Asignada:</strong></td>
+                                <td>
+                                    {% if habitacion.id_persona %}
+                                        {{ habitacion.id_persona }}
+                                    {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h6 class="text-primary mt-4">Especificaciones</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Área:</strong></td>
+                                <td>{{ habitacion.area_metros_cuadrados }} m²</td>
+                            </tr>
+                            {% if habitacion.tipo_habitacion_estandar %}
+                            <tr>
+                                <td><strong>Tipo Estándar:</strong></td>
+                                <td>{{ habitacion.tipo_habitacion_estandar.nombre }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Capacidad:</strong></td>
+                                <td>{{ habitacion.tipo_habitacion_estandar.capacidad_personas }} personas</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Camas:</strong></td>
+                                <td>{{ habitacion.tipo_habitacion_estandar.numero_camas }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Información de Mantenimiento -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-primary">
+                            <i class="fas fa-tools"></i> Información de Mantenimiento
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-calendar-alt text-info"></i> Último Mantenimiento
+                                        </h6>
+                                        <p class="card-text mb-0">
+                                            <strong>{{ habitacion.ultimo_mantenimiento|date:"d/m/Y" }}</strong>
+                                        </p>
+                                        <small class="text-muted">
+                                            Hace {{ habitacion.ultimo_mantenimiento|timesince }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-clock text-warning"></i> Próximo Mantenimiento
+                                        </h6>
+                                        <p class="card-text mb-0">
+                                            <strong>{{ habitacion.proximo_mantenimiento|date:"d/m/Y" }}</strong>
+                                        </p>
+                                        <small class="text-muted">
+                                            {% if habitacion.proximo_mantenimiento > habitacion.ultimo_mantenimiento %}
+                                                En {{ habitacion.proximo_mantenimiento|timeuntil }}
+                                            {% else %}
+                                                Vencido
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Sistema -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="text-primary">
+                            <i class="fas fa-info-circle"></i> Información del Sistema
+                        </h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Fecha de Creación:</strong></td>
+                                <td>{{ habitacion.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Última Actualización:</strong></td>
+                                <td>{{ habitacion.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

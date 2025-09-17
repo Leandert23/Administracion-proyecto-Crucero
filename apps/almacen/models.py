@@ -3,7 +3,7 @@ from django.db.models import Max, Sum
 from django.core.exceptions import ValidationError
 
 from ..cruceros.Services.fecha_general import obtener_fecha_actual
-from ..cruceros.models import Instalacion
+from ..creador_embarcaciones.models import Embarcacion, Locales
 from ..compras.models import CompraLote
 
 class SeccionAlmacen(models.Model):
@@ -17,11 +17,11 @@ class SeccionAlmacen(models.Model):
         ("TANQUES", "Tanques"),
     ]
 
-    almacen = models.ForeignKey(
-        Instalacion,
+    local_tipo_almacen = models.ForeignKey(
+        Locales,
         on_delete=models.CASCADE,
         related_name="secciones",
-        limit_choices_to={"tipo": "almacen"}
+        limit_choices_to={'tipo': 'almacen'}
     )
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=20, choices=TIPOS_SECCION)
@@ -33,10 +33,23 @@ class SeccionAlmacen(models.Model):
     class Meta:
         verbose_name = "Sección de Almacén"
         verbose_name_plural = "Secciones de Almacén"
-        unique_together = ["almacen", "nombre"]
+
+    def save(self, *args, **kwargs):
+        # Validación de unicidad: nombre único dentro del mismo local_tipo_almacen
+        if self.local_tipo_almacen_id:
+            existe = SeccionAlmacen.objects.filter(
+                local_tipo_almacen_id=self.local_tipo_almacen_id,
+                nombre__iexact=self.nombre
+            ).exclude(pk=self.pk).exists()
+            if existe:
+                raise ValidationError({
+                    'nombre': 'Ya existe una sección con este nombre en este local tipo almacén.'
+                })
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.almacen.nombre} - {self.nombre} ({self.tipo})"
+        local_nombre = self.local_tipo_almacen.nombre if self.local_tipo_almacen else "Sin local asignado"
+        return f"{local_nombre} - {self.nombre} ({self.tipo})"
 
 
 class Producto(models.Model):
@@ -167,21 +180,16 @@ class Producto(models.Model):
 
     def save(self, *args, **kwargs):
         self.limpiar()
-        # Validación de unicidad: nombre único (case-insensitive) dentro del mismo crucero
-        if self.seccion_id:
-            try:
-                crucero_id = self.seccion.almacen.crucero_id
-                if crucero_id:
-                    existe = Producto.objects.filter(
-                        seccion__almacen__crucero_id=crucero_id,
-                        nombre__iexact=self.nombre
-                    ).exclude(pk=self.pk).exists()
-                    if existe:
-                        raise ValidationError({
-                            'nombre': 'Ya existe un producto con este nombre en el crucero.'
-                        })
-            except AttributeError:
-                pass
+        # Validación de unicidad: nombre único (case-insensitive) dentro del mismo local tipo almacén
+        if self.seccion_id and self.seccion.local_tipo_almacen_id:
+            existe = Producto.objects.filter(
+                seccion__local_tipo_almacen_id=self.seccion.local_tipo_almacen_id,
+                nombre__iexact=self.nombre
+            ).exclude(pk=self.pk).exists()
+            if existe:
+                raise ValidationError({
+                    'nombre': 'Ya existe un producto con este nombre en este local tipo almacén.'
+                })
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -277,6 +285,21 @@ class OrdenCompra(models.Model):
 
     def __str__(self):
         return f"OC#{self.id or ''} - {self.producto.nombre} x {self.cantidad_productos} ({self.get_estado_display()})"
+
+
+class MensajeParaCompras(models.Model):
+    compra_lote = models.ForeignKey(CompraLote, on_delete=models.CASCADE, related_name='mensajes_para_almacen')
+    descripcion = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Mensaje para Compras"
+        verbose_name_plural = "Mensajes para Compras"
+
+    def __str__(self):
+        texto = (self.descripcion or '').strip()
+        if len(texto) > 40:
+            texto = texto[:37] + '...'
+        return f"Mensaje#{self.id or ''} - {texto or 'sin descripción'}"
 
     
 class SolicitudSalida(models.Model):

@@ -30,10 +30,10 @@ class Menu(models.Model):
 #Puntos de venta de los distintos bares del crucero
 class Bar(models.Model):
     nombre = models.CharField(max_length=50)
-    ubicacion = models.ForeignKey('cruceros.Instalacion', 
+    ubicacion = models.ForeignKey('creador_embarcaciones.Locales',
         on_delete=models.CASCADE,
         related_name='bares',
-        help_text="Ubicacion del bar dentro del crucero")
+        help_text="Ubicacion del bar dentro de la embarcación")
     hora_aper=models.DateTimeField(null=False, default=timezone.now) #YYYY-MM-DD HH:MM:SS
     hora_cierre=models.DateTimeField(null=False, default=timezone.now)
     
@@ -49,6 +49,46 @@ class Bar(models.Model):
 
     
 class Pedidos(models.Model):
+    def descontar_stock_ingredientes(self):
+        """
+        Descuenta el stock de los ingredientes usados en los productos del pedido,
+        registrando el egreso en MovimientoAlmacen por cada ingrediente y lote utilizado.
+        """
+        from almacen.models import Producto, Lote, MovimientoAlmacen
+        for detalle in self.detalles.all():
+            producto_bar = detalle.producto
+            if not producto_bar:
+                continue
+            for receta_item in producto_bar.receta_items.all():
+                ingrediente = receta_item.ingrediente
+                cantidad_necesaria = receta_item.cantidad * detalle.cantidad
+                # Buscar lotes disponibles (FIFO)
+                lotes = ingrediente.lotes.order_by('fecha_ingreso', 'numero_lote')
+                cantidad_restante = cantidad_necesaria
+                for lote in lotes:
+                    # Calcular stock actual del lote
+                    ingresos = lote.cantidad_productos
+                    egresos = lote.movimientos.filter(tipo='OUT').aggregate(models.Sum('cantidad'))['cantidad__sum'] or 0
+                    disponible = ingresos - egresos
+                    if disponible <= 0:
+                        continue
+                    descontar = min(disponible, cantidad_restante)
+                    if descontar > 0:
+                        MovimientoAlmacen.objects.create(
+                            tipo='OUT',
+                            producto=ingrediente,
+                            lote=lote,
+                            cantidad=descontar,
+                            fecha=self.fecha_hora.date(),
+                            modulo='BARES_SNACKS',
+                            descripcion=f"Pedido #{self.id} - {producto_bar.nombre}"
+                        )
+                        cantidad_restante -= descontar
+                    if cantidad_restante <= 0:
+                        break
+                if cantidad_restante > 0:
+                    # Si no hay suficiente stock, podrías lanzar una excepción o registrar un error
+                    pass
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('completado', 'Completado'),
@@ -56,17 +96,47 @@ class Pedidos(models.Model):
     ]
     id = models.AutoField(primary_key=True)
     # ptoventa eliminado: ahora se usa sólo lugarentrega (Instalación)
+    empleado=models.ForeignKey(
+        'recursos_humanos.Personal',
+        on_delete=models.PROTECT,
+        related_name='pedidos_atendidos',
+        null=True,
+        blank=True,
+    )
     fecha_hora = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-
-    # Nueva FK principal a la instalación donde se entregará / consumirá
+    cliente=models.ForeignKey(
+        'ventas.Cliente',
+        on_delete=models.SET_NULL,
+        related_name='pedidos',
+        null=True,
+        blank=True,
+    )
+    # Nueva FK principal al local donde se entregará / consumirá
     lugarentrega = models.ForeignKey(
-        'cruceros.Instalacion',
+        'creador_embarcaciones.Locales',
         null=True,
         blank=True,
         on_delete=models.PROTECT,
         related_name='pedidos_entregados',
-        help_text='Instalación física de entrega o consumo (bar, restaurante, etc.)'
+        help_text='Local físico de entrega o consumo (bar, restaurante, etc.)'
+    )
+
+    numero_factura = models.CharField(
+        max_length=32,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text='Número de factura generado para el pedido (formato BR-XXX-0001[-PR])'
+    )
+    # Si el consumo es en camarote, guardamos la habitación
+    habitacion = models.ForeignKey(
+        'creador_embarcaciones.Habitaciones',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='pedidos_servicio',
+        help_text='Habitación destino si el consumo es en camarote'
     )
     
     

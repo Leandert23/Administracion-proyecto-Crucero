@@ -1,0 +1,528 @@
+{
+  "mensaje": "Datos de actividades rutinarias de crucero grande preparados para inserción",
+  "total_actividades": 52,
+  "tipo_crucero": "grande",
+  "tipo_actividad": "rutinaria",
+  "actividades": [
+    {
+      "titulo": "Tour Guiado por el Barco",
+      "descripcion": "Disfruta de un delicioso desayuno buffet con una amplia variedad de opciones: frutas frescas, cereales, pastelería, huevos preparados al momento y mucho más. ¡Empieza tu día con energía!",
+      "dia_crucero": 1,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "16:00:00",
+      "maximo_actividad": 6000,
+      "ubicacion": "Cubierta Principal",
+      "img_src": "tourcrucero1.jpg"
+    },
+    {
+      "titulo": "Espectáculo de entretenimiento en el teatro (circo).",
+      "descripcion": "Prepárate para un show increíble en el teatro principal con artistas de circo, acrobacias asombrosas y efectos especiales.",
+      "dia_crucero": 1,
+      "hora_inicio": "20:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 350,
+      "ubicacion": "Teatro Principal",
+      "img_src": "espectaculomagiacrucero.jpg"
+    },
+    {
+      "titulo": "Welcome Aboard Show en la discoteca para presentar a los artistas.",
+      "descripcion": "Descubre a los increíbles artistas que te acompañarán durante el viaje. Música, baile y presentaciones en un ambiente vibrante.",
+      "dia_crucero": 1,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "23:00:00",
+      "maximo_actividad": 600,
+      "ubicacion": "Discoteca",
+      "img_src": "teatrodia1.jpg"
+    },
+    {
+      "titulo": "Yoga en cubierta.",
+      "descripcion": "Comienza tu día con una relajante sesión de yoga en la cubierta superior. Perfecta para estirar el cuerpo y encontrar paz mental mientras disfrutas de las vistas al mar.",
+      "dia_crucero": 2,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "10:45:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "estiramientocubierta.jpg"
+    },
+    {
+      "titulo": "Taller de fotografía.",
+      "descripcion": "Aprende a capturar los mejores momentos de tus vacaciones. Te daremos consejos y trucos para sacar fotos increíbles.",
+      "dia_crucero": 2,
+      "hora_inicio": "10:45:00",
+      "hora_fin": "11:30:00",
+      "maximo_actividad": 80,
+      "ubicacion": "Piscina",
+      "img_src": "tallerfotografia.jpg"
+    },
+    {
+      "titulo": "Ambientación del País (Colombia) en la piscina. ",
+      "descripcion": "Sumergete en una fiesta en la piscina con música y decoración colombiana. Baila al ritmo de la cumbia y el vallenato mientras disfrutas del sol.",
+      "dia_crucero": 2,
+      "hora_inicio": "11:30:00",
+      "hora_fin": "14:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Piscina",
+      "img_src": "fiestalatina.jpg"
+    },
+    {
+      "titulo": "Happy hour en discoteca con música regional.",
+      "descripcion": "Disfruta de la mejor música regional, bebidas a precios especiales y el mejor ambiente para bailar y divertirte en la discoteca del crucero.",
+      "dia_crucero": 3,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 200,
+      "ubicacion": "Discoteca",
+      "img_src": "happyhourdisco1.jpg"
+    },
+    {
+      "titulo": "Clase de baile latino",
+      "descripcion": "Aprende los pasos básicos de la salsa, bachata, vallenato y otros ritmos latinos. ¡Diviértete y presume de tus nuevos movimientos en la pista!",
+      "dia_crucero": 2,
+      "hora_inicio": "14:00:00",
+      "hora_fin": "15:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Piscina",
+      "img_src": "clasedebaile.jpg"
+    },
+    {
+      "titulo": "Torneo de voleibol en la piscina.",
+      "descripcion": "Compite con otros pasajeros en un emocionante torneo de voleibol acuático. ¡Diversión, risas y sol garantizados mientras juegas en la piscina!",
+      "dia_crucero": 2,
+      "hora_inicio": "16:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 40,
+      "ubicacion": "Piscina",
+      "img_src": "volleyballcrucero.jpg"
+    },
+    {
+      "titulo": "Espectáculo de magia en el teatro.",
+      "descripcion": "¡Descubre cómo magia y ilusiones pueden fascinar a cualquier persona! Un espectáculo lleno de misterio y emoción en el teatro principal.",
+      "dia_crucero": 2,
+      "hora_inicio": "20:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 500,
+      "ubicacion": "Teatro",
+      "img_src": "espectaculomagiacrucero.jpg"
+    },
+    {
+      "titulo": "Fiesta latina en la discoteca.",
+      "descripcion": "Disfruta de la mejor música latina, bebidas a precios especiales y el mejor ambiente para bailar y divertirte en la discoteca del crucero.",
+      "dia_crucero": 2,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Discoteca",
+      "img_src": "fiestalatinaDisco.jpg"
+    },
+    {
+      "titulo": "Clase de yoga en piscina.",
+      "descripcion": "Comienza tu día con una relajante sesión de yoga en la piscina. Perfecta para estirar el cuerpo y encontrar paz mental mientras disfrutas de las vistas al mar.",
+      "dia_crucero": 3,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "10:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Piscina",
+      "img_src": "yogacrucero.jpg"
+    },
+    {
+      "titulo": "Caminata grupal en la cubierta.",
+      "descripcion": "Unete a nuestros instructores para una caminata grupal en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 3,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "11:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "caminatacubierta.jpg"
+    },
+    {
+      "titulo": "Bingo en piscina",
+      "descripcion": "¡Diviértete y gana premios en nuestro emocionante bingo en la piscina! Compite con otros pasajeros para ganar precios exclusivos mientras disfrutas de la adrenalina de las ruedas y las emocionantes actividades en la piscina.",
+      "dia_crucero": 3,
+      "hora_inicio": "11:00:00",
+      "hora_fin": "13:00:00",
+      "maximo_actividad": 200,
+      "ubicacion": "Piscina",
+      "img_src": "bingopiscina.jpg"
+    },
+    {
+      "titulo": "Torneo de ping-pong.",
+      "descripcion": "Compite con otros pasajeros en un emocionante torneo de ping-pong. ¡Diversión, risas y sol garantizados mientras juegas en la piscina!",
+      "dia_crucero": 3,
+      "hora_inicio": "16:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 90,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "pingpongcrucero.jpg"
+    },
+    {
+      "titulo": "Karaoke.",
+      "descripcion": "¡Diviértete cantando con otros pasajeros en nuestro emocionante karaoke en la cubierta! Compite con otros viajeros para ganar precios exclusivos mientras disfrutas de la adrenalina de las ruedas y las emocionantes actividades en la piscina.",
+      "dia_crucero": 3,
+      "hora_inicio": "16:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "karaokecrucero.jpg"
+    },
+    {
+      "titulo": "Cata de quesos.",
+      "descripcion": "Disfruta de una variedad de quesos de todo el mundo. ¡Un evento exclusivo para los amantes de la gastronomía!",
+      "dia_crucero": 3,
+      "hora_inicio": "17:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Buffet Principal",
+      "img_src": "cataquesos.jpg"
+    },
+    {
+      "titulo": "Espectáculo de comedia en el teatro.",
+      "descripcion": "Disfruta de un espectáculo de comedia en el teatro. ¡Un evento exclusivo para los amantes de la comedia!",
+      "dia_crucero": 3,
+      "hora_inicio": "20:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 500,
+      "ubicacion": "Teatro",
+      "img_src": "comediateatro.jpg"
+    },
+    {
+      "titulo": "Discoteca abierta.",
+      "descripcion": "Disfruta de la mejor música, bebidas a precios especiales y el mejor ambiente para bailar y divertirte en la discoteca del crucero.",
+      "dia_crucero": 3,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Discoteca",
+      "img_src": "discotecacrucero.jpg"
+    },
+    {
+      "titulo": "Sesión de meditación con vista al mar.",
+      "descripcion": "Disfruta de una sesión de meditación con vista al mar. Perfecta para encontrar paz mental y disfrutar de las vistas al mar.",
+      "dia_crucero": 4,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "10:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "meditacionencubierta.jpg"
+    },
+    {
+      "titulo": "Clase de aerobics",
+      "descripcion": "Disfruta de una clase de aerobics en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 4,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "11:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Piscina",
+      "img_src": "claseaerobics.jpg"
+    },
+    {
+      "titulo": "Animadores en la piscina.",
+      "descripcion": "Disfruta de animadores en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 4,
+      "hora_inicio": "12:00:00",
+      "hora_fin": "13:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Piscina",
+      "img_src": "animadorespiscina.jpg"
+    },
+    {
+      "titulo": "Cata de licores.",
+      "descripcion": "Disfruta de una variedad de licores de todo el mundo. ¡Un evento exclusivo para los amantes de la gastronomía!",
+      "dia_crucero": 4,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "16:00:00",
+      "maximo_actividad": 200,
+      "ubicacion": "Discoteca",
+      "img_src": "catalicores.jpg"
+    },
+    {
+      "titulo": "Zumba en la piscina.",
+      "descripcion": "Disfruta de una clase de zumba en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 4,
+      "hora_inicio": "16:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 100,
+      "ubicacion": "Piscina",
+      "img_src": "zumbapiscina.jpg"
+    },
+    {
+      "titulo": "Torneo de Waterpolo.",
+      "descripcion": "Compite con otros pasajeros en un emocionante torneo de waterpolo. ¡Diversión, risas y sol garantizados mientras juegas en la piscina!",
+      "dia_crucero": 4,
+      "hora_inicio": "17:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 80,
+      "ubicacion": "Piscina",
+      "img_src": "waterpolopiscina.jpg"
+    },
+    {
+      "titulo": "Show de tambores en cubierta o piscina. ",
+      "descripcion": "Disfruta de un espectáculo de tambores en la cubierta o piscina. ¡Un evento exclusivo para los amantes de la música!",
+      "dia_crucero": 4,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "22:00:00",
+      "maximo_actividad": 600,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "showtambores.jpg"
+    },
+    {
+      "titulo": "Fiesta con temática caribeña en la discoteca.",
+      "descripcion": "Disfruta de la mejor música caribeña, bebidas a precios especiales y el mejor ambiente para bailar y divertirte en la discoteca del crucero.",
+      "dia_crucero": 4,
+      "hora_inicio": "22:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Discoteca",
+      "img_src": "fiestalatinaDisco.jpg"
+    },
+    {
+      "titulo": "Sesión de fotos en cubierta.",
+      "descripcion": "Disfruta de una sesión de fotos en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "10:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "tallerfotografia.jpg"
+    },
+    {
+      "titulo": "Clases de entrenamiento funcional.",
+      "descripcion": "Disfruta de una clase de entrenamiento funcional en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "11:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "funcionales.jpg"
+    },
+    {
+      "titulo": "Rifa de premios variados.",
+      "descripcion": "Disfruta de una rifa de premios variados en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "11:00:00",
+      "hora_fin": "12:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "rifa.jpg"
+    },
+    {
+      "titulo": "Taller de caricaturas o dibujos humorísticos.",
+      "descripcion": "Disfruta de un taller de caricaturas o dibujos humorísticos en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "16:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "tallercaricatura.jpg"
+    },
+    {
+      "titulo": "Quién quiere ser millonario",
+      "descripcion": "Disfruta de un juego de preguntas y respuestas en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "16:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Piscina",
+      "img_src": "quienquieresermillonario.jpg"
+    },
+    {
+      "titulo": "Competencia de bailes.",
+      "descripcion": "Disfruta de un torneo de bailes en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "17:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 300,
+      "ubicacion": "Piscina",
+      "img_src": "clasedebaile.jpg"
+    },
+    {
+      "titulo": "Concurso de talentos en cubierta.",
+      "descripcion": "Disfruta de un espectáculo de talentos en la cubierta o piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 5,
+      "hora_inicio": "20:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 500,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "concursotalentos.jpg"
+    },
+    {
+      "titulo": "Fiesta Silent Disco",
+      "descripcion": "Disfruta de la mejor música, bebidas a precios especiales y el mejor ambiente para bailar y divertirte en la piscina del crucero.",
+      "dia_crucero": 5,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 1000,
+      "ubicacion": "Piscina",
+      "img_src": "silentparty.jpg"
+    },
+    {
+      "titulo": "Taller de origami.",
+      "descripcion": "Disfruta de un taller de origami en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "10:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "tallerorigami.jpg"
+    },
+    {
+      "titulo": "Clases de Tai Chi.",
+      "descripcion": "Disfruta de un clase de tai chi en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "11:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "taichi.jpg"
+    },
+    {
+      "titulo": "Clases de respiración y mindfulness.",
+      "descripcion": "Disfruta de un clase de respiración y mindfulness en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "11:30:00",
+      "hora_fin": "12:30:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "yogacrucero.jpg"
+    },
+    {
+      "titulo": "Show de mentalismo.",
+      "descripcion": "Disfruta de un show de mentalismo en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Teatro",
+      "img_src": "mentalismo.jpg"
+    },
+    {
+      "titulo": "Taller y show de coctelería variada.",
+      "descripcion": "Disfruta de un taller y show de coctelería variada en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "17:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Piscina",
+      "img_src": "showcocteleria.jpg"
+    },
+    {
+      "titulo": "Happy hour en la discoteca.",
+      "descripcion": "Disfruta de un happy hour en la discoteca. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "17:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Discoteca",
+      "img_src": "happyhourdisco1.jpg"
+    },
+    {
+      "titulo": "Cena con el capitán.",
+      "descripcion": "Disfruta de un cena con el capitán en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "19:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 6000,
+      "ubicacion": "Restaurante Principal",
+      "img_src": "capitancrucero.jpg"
+    },
+    {
+      "titulo": "Fiesta glow con temática Neon.",
+      "descripcion": "Disfruta de un fiesta glow con temática Neon en la discoteca. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 6,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 800,
+      "ubicacion": "Discoteca",
+      "img_src": "fiestaglow.jpg"
+    },
+    {
+      "titulo": "Taller de pintura rápida de paisajes.",
+      "descripcion": "Disfruta de un taller de pintura rápida de paisajes en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "10:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "tallerpinturarapida.jpg"
+    },
+    {
+      "titulo": "Bingo en la piscina.",
+      "descripcion": "Disfruta de un bingo en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "11:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Piscina",
+      "img_src": "bingopiscina.jpg"
+    },
+    {
+      "titulo": "Taller de baile o danza.",
+      "descripcion": "Disfruta de un taller de baile o danza en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "11:00:00",
+      "hora_fin": "12:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "clasedebaile.jpg"
+    },
+    {
+      "titulo": "Taller de peinados y estilismo.",
+      "descripcion": "Disfruta de un taller de peinados y estilismo en la cubierta. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "14:30:00",
+      "hora_fin": "15:30:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Cubierta Superior",
+      "img_src": "tallerestilismo.jpg"
+    },
+    {
+      "titulo": "Family feud en el teatro.",
+      "descripcion": "Disfruta de un family feud en el teatro. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "15:00:00",
+      "hora_fin": "16:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Teatro",
+      "img_src": "familyfeud.jpg"
+    },
+    {
+      "titulo": "Competencia de mímica en equipos en la piscina.",
+      "descripcion": "Disfruta de un competencia de mímica en equipos en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "17:00:00",
+      "hora_fin": "18:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Piscina",
+      "img_src": "competenciacharadas.jpg"
+    },
+    {
+      "titulo": "Espectáculo de magia en el teatro.",
+      "descripcion": "Disfruta de un espectáculo de magia en el teatro. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "20:00:00",
+      "hora_fin": "21:00:00",
+      "maximo_actividad": 150,
+      "ubicacion": "Teatro",
+      "img_src": "espectaculomagiacrucero.jpg"
+    },
+    {
+      "titulo": "Fiesta de los años 80/90.",
+      "descripcion": "Disfruta de un fiesta de los años 80/90 en la piscina. Perfecta para mantenerte en forma y disfrutar de las vistas al mar.",
+      "dia_crucero": 7,
+      "hora_inicio": "21:00:00",
+      "hora_fin": "02:00:00",
+      "maximo_actividad": 1500,
+      "ubicacion": "Discoteca",
+      "img_src": "fiestalatinaDisco.jpg"
+    },
+    {
+      "titulo": "Desembarque",
+      "descripcion": "El equipo de excursiones y animadores asisten a los pasajeros durante el proceso de salida.",
+      "dia_crucero": 8,
+      "hora_inicio": "08:00:00",
+      "hora_fin": "13:00:00",
+      "maximo_actividad": 6000,
+      "ubicacion": "Barco",
+      "img_src": "tourcrucero1.jpg"
+    }
+  ]
+}

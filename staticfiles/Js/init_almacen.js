@@ -25,7 +25,11 @@
     vincularBotonesRevisar();
     }
     function cargarOrdenesCompra(pagina){
-        const contenedor = document.getElementById('tabla-ordenes-compra-wrapper');
+        // Prefer wrapper inside modal if modal is open/available
+        let contenedor = document.querySelector('#modalLotesPorRegistrar #tabla-ordenes-compra-wrapper');
+        if(!contenedor){
+            contenedor = document.getElementById('tabla-ordenes-compra-wrapper');
+        }
         if(!contenedor) return;
         contenedor.innerHTML = '<div class="cargando-historial" style="padding:24px; text-align:center; font-size:.85rem; color:#475569;">Cargando órdenes...</div>';
         const params = new URLSearchParams();
@@ -38,7 +42,8 @@
                     contenedor.innerHTML = d.tabla_html;
                     const footer = contenedor.querySelector('#ordenes-footer');
                     if(footer && d.paginacion_html){ footer.innerHTML = d.paginacion_html; }
-                    vincularBotonesRevisar();
+                    // If the modal is present, ensure buttons get bound
+                    if(typeof window.vincularBotonesRevisar === 'function') window.vincularBotonesRevisar();
                 } else {
                     contenedor.innerHTML = '<div style="padding:16px; font-size:.85rem; color:#b91c1c;">Error al cargar órdenes</div>';
                 }
@@ -74,6 +79,8 @@
             });
         });
     }
+        // Expose binder so other modules (modals) can re-bind after dynamic injection
+        window.vincularBotonesRevisar = vincularBotonesRevisar;
     // Exponer función global para paginación de órdenes
     window.cargarPaginaOrdenes = function(p){ cargarOrdenesCompra(p); };
     document.addEventListener('DOMContentLoaded', iniciarAplicacion);

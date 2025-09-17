@@ -92,9 +92,9 @@
 
 <script>
 // Helpers
-function getCruceroIdFromPage(){
+function getEmbarcacionIdFromPage(){
     const root = document.getElementById('almacen-root');
-    return root ? root.dataset.cruceroId : null;
+    return root ? root.dataset.embarcacionId : null;
 }
 
 // Obtener CSRF token de cookie (robusto)
@@ -161,8 +161,8 @@ function cargarSolicitudesAprobadas(page=1){
     const cont = document.querySelector('#modalSolicitudesAprobadas .msa-table-container');
     if(!cont) return;
     cont.innerHTML = '<div style="padding:12px;">Cargando...</div>';
-    const cruceroId = getCruceroIdFromPage();
-    const url = `/almacen/solicitudes/aprobadas/?page=${page}` + (cruceroId ? `&crucero_id=${cruceroId}` : '');
+    const embarcacionId = getEmbarcacionIdFromPage();
+    const url = `/almacen/solicitudes/aprobadas/?page=${page}` + (embarcacionId ? `&embarcacion_id=${embarcacionId}` : '');
     fetch(url)
         .then(r => r.ok ? r.text() : r.text().then(t=>{ throw new Error('server '+r.status+': '+t); }))
         .then(txt => {

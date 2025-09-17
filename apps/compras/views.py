@@ -1,12 +1,12 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import CompraLote
-from ..cruceros.models import Crucero
+from ..creador_embarcaciones.models import Embarcacion
 from django.dispatch import Signal
 
 # Vista para ver detalles de una compra por lote
-def detalle_compra_lote_view(request, crucero_id, compra_id):
-    compra = get_object_or_404(CompraLote, id=compra_id, crucero_id=crucero_id)
+def detalle_compra_lote_view(request, embarcacion_id, compra_id):
+    compra = get_object_or_404(CompraLote, id=compra_id, embarcacion_id=embarcacion_id)
 
     from_param = request.GET.get('from', '')
 
@@ -52,15 +52,15 @@ def detalle_compra_lote_view(request, crucero_id, compra_id):
         #     compra.estado = 'exitosa'
         #     compra.save()
         # Redirigir a la misma página para ver el cambio reflejado
-        return redirect('compras:detalle_compra_lote', crucero_id=crucero_id, compra_id=compra.id)
+        return redirect('compras:detalle_compra_lote', embarcacion_id=embarcacion_id, compra_id=compra.id)
 
-    return render(request, 'detalle_compra_lote.html', {'compra': compra, 'from_param': from_param, 'crucero_id': crucero_id})
+    return render(request, 'detalle_compra_lote.html', {'compra': compra, 'from_param': from_param, 'embarcacion_id': embarcacion_id})
 
 
 # Vista para listar compras por lote registradas
-def compras_lote_registradas_view(request, crucero_id):
+def compras_lote_registradas_view(request, embarcacion_id):
     from .models import CompraLote
-    crucero = Crucero.objects.get(pk=crucero_id)
+    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
     if request.method == 'POST':
         compralote_id = request.POST.get('compralote_id')
         nuevo_estado = request.POST.get('nuevo_estado')
@@ -76,7 +76,7 @@ def compras_lote_registradas_view(request, crucero_id):
                         tipo=compra.proveedor.tipo,
                         subtipo=compra.proveedor.subtipo,
                         procesada=False,
-                        crucero = crucero
+                        embarcacion = embarcacion
                     )
                     print('DEBUG: Solicitud creada', nueva_solicitud.id)
                     for item in compra.items.all():
@@ -100,24 +100,24 @@ def compras_lote_registradas_view(request, crucero_id):
             except CompraLote.DoesNotExist:
                 pass
     # Excluir las exitosas del listado de registradas
-    compras = CompraLote.objects.filter(crucero_id=crucero_id).exclude(estado='exitosa').order_by('-fecha')
-    return render(request, 'compras_lote_registradas.html', {'compras': compras, 'crucero_id': crucero_id})
+    compras = CompraLote.objects.filter(embarcacion_id=embarcacion_id).exclude(estado='exitosa').order_by('-fecha')
+    return render(request, 'compras_lote_registradas.html', {'compras': compras, 'embarcacion_id': embarcacion_id})
 
 # Vista para historial de compras por lote
-def historial_compras_lote_view(request, crucero_id):
+def historial_compras_lote_view(request, embarcacion_id):
     from .models import CompraLote
-    compras = CompraLote.objects.filter(crucero_id=crucero_id, estado__in=['exitosa', 'defectuosa']).order_by('-fecha')
-    return render(request, 'historial_compras_lote.html', {'compras': compras, 'crucero_id': crucero_id})
+    compras = CompraLote.objects.filter(embarcacion_id=embarcacion_id, estado__in=['exitosa', 'defectuosa']).order_by('-fecha')
+    return render(request, 'historial_compras_lote.html', {'compras': compras, 'embarcacion_id': embarcacion_id})
 from django.views.decorators.csrf import csrf_protect
 
 # Vista para procesar materiales de una solicitud específica
 @csrf_protect
-def procesar_materiales_solicitud_view(request, crucero_id, solicitud_id):
+def procesar_materiales_solicitud_view(request, embarcacion_id, solicitud_id):
     from .models import SolicitudSubtipo, SolicitudSubtipoItem, Proveedores, CompraLote, CompraLoteItem
     solicitud = get_object_or_404(SolicitudSubtipo, id=solicitud_id)
     materiales = solicitud.items.all()
     proveedores = Proveedores.objects.filter(tipo=solicitud.tipo, subtipo=solicitud.subtipo)
-    crucero = Crucero.objects.get(pk=crucero_id)
+    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
 
     # Puertos y países asociados
     PUERTOS_POR_PAIS = {
@@ -157,7 +157,7 @@ def procesar_materiales_solicitud_view(request, crucero_id, solicitud_id):
             presupuesto_lote=presupuesto_lote,
             estado='registrada',
             solicitud=solicitud,
-            crucero = crucero
+            embarcacion = embarcacion
         )
         for item in materiales:
             cantidad = request.POST.get(f'cantidad_{item.id}')
@@ -178,14 +178,14 @@ def procesar_materiales_solicitud_view(request, crucero_id, solicitud_id):
         solicitud.procesada = True
         solicitud.save()
         compra_lote.save()
-        return redirect('compras:lista_solicitudes', crucero_id=crucero_id)
+        return redirect('compras:lista_solicitudes', embarcacion_id=embarcacion_id)
     return render(request, 'procesar_materiales_solicitud.html', {
         'solicitud': solicitud,
         'materiales': materiales,
         'proveedores': proveedores,
         'puertos_disponibles': puertos_disponibles,
         'proveedor_id': proveedor_id,
-        'crucero_id': crucero_id,
+        'embarcacion_id': embarcacion_id,
     })
 # Importar los nuevos modelos de solicitud
 from .models import SolicitudSubtipo, SolicitudSubtipoItem
@@ -193,25 +193,25 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 
 # View para mostrar detalles de una solicitud agrupada por subtipo
-def detalle_solicitud_view(request, crucero_id, solicitud_id):
+def detalle_solicitud_view(request, embarcacion_id, solicitud_id):
     solicitud = get_object_or_404(SolicitudSubtipo, id=solicitud_id)
     return render(request, 'detalle_solicitud.html', {
         'solicitud': solicitud,
         'tipo': solicitud.tipo,
         'subtipo': solicitud.subtipo,
         'items': solicitud.items.all(),
-        'crucero_id': crucero_id,
+        'embarcacion_id': embarcacion_id,
     })
 
 
 # View para procesar una solicitud agrupada por subtipo
-def procesar_solicitud_view(request, crucero_id, solicitud_id):
+def procesar_solicitud_view(request, embarcacion_id, solicitud_id):
     solicitud = get_object_or_404(SolicitudSubtipo, id=solicitud_id)
     if request.method == 'POST':
         solicitud.procesada = True
         solicitud.save()
-        return HttpResponseRedirect(reverse('lista_solicitudes', args=[crucero_id]))
-    return HttpResponseRedirect(reverse('lista_solicitudes', args=[crucero_id]))
+        return HttpResponseRedirect(reverse('lista_solicitudes', args=[embarcacion_id]))
+    return HttpResponseRedirect(reverse('lista_solicitudes', args=[embarcacion_id]))
 # Vista para mostrar compras registradas
 
 
@@ -222,15 +222,15 @@ from .forms import ProveedorForm
 
 # View para registrar una solicitud agrupada por subtipo
 @csrf_protect
-def registrar_solicitud_compra_view(request, crucero_id):
+def registrar_solicitud_compra_view(request, embarcacion_id):
     if request.method == 'POST':
         import json
         data = json.loads(request.body.decode('utf-8'))
         tipo = data.get('tipo')
         subtipo = data.get('subtipo')
         productos = data.get('productos', [])
-        crucero = Crucero.objects.get(pk=crucero_id)
-        solicitud = SolicitudSubtipo.objects.create(tipo=tipo, subtipo=subtipo, crucero = crucero)
+        embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+        solicitud = SolicitudSubtipo.objects.create(tipo=tipo, subtipo=subtipo, embarcacion = embarcacion)
         for prod in productos:
             SolicitudSubtipoItem.objects.create(
                 solicitud=solicitud,
@@ -241,12 +241,12 @@ def registrar_solicitud_compra_view(request, crucero_id):
                 tipo=tipo,
                 subtipo=subtipo
             )
-        return redirect('compras:lista_solicitudes', crucero_id=crucero_id)
-    return render(request, 'solicitud_compra_form.html', {'crucero_id': crucero_id})
+        return redirect('compras:lista_solicitudes', embarcacion_id=embarcacion_id)
+    return render(request, 'solicitud_compra_form.html', {'embarcacion_id': embarcacion_id})
 
 
 # View para listar solicitudes agrupadas por subtipo
-def lista_solicitudes_view(request, crucero_id):
+def lista_solicitudes_view(request, embarcacion_id):
     from .models import CompraLote
     if request.method == 'POST':
         compralote_id = request.POST.get('compralote_id')
@@ -259,19 +259,19 @@ def lista_solicitudes_view(request, crucero_id):
                 compra.save()
             except CompraLote.DoesNotExist:
                 pass
-    solicitudes = SolicitudSubtipo.objects.filter(procesada=False, crucero_id=crucero_id).order_by('-id')
+    solicitudes = SolicitudSubtipo.objects.filter(procesada=False, embarcacion_id=embarcacion_id).order_by('-id')
     #### Revisar estados
-    compras_lote = CompraLote.objects.filter(crucero_id=crucero_id).exclude(estado__in=['exitosa', 'defectuosa', 'cancelada']).order_by('-fecha')
-    return render(request, 'lista_solicitudes.html', {'solicitudes': solicitudes, 'compras_lote': compras_lote, 'crucero_id': crucero_id})
+    compras_lote = CompraLote.objects.filter(embarcacion_id=embarcacion_id).exclude(estado__in=['exitosa', 'defectuosa', 'cancelada']).order_by('-fecha')
+    return render(request, 'lista_solicitudes.html', {'solicitudes': solicitudes, 'compras_lote': compras_lote, 'embarcacion_id': embarcacion_id})
 
 
 @csrf_protect
-def dashboard_view(request, crucero_id):
-    crucero = Crucero.objects.get(pk=crucero_id)
-    return render(request, 'compras.html', {'crucero': crucero, "crucero_id":crucero_id})
+def dashboard_view(request, embarcacion_id):
+    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    return render(request, 'compras.html', {'embarcacion': embarcacion, "embarcacion_id":embarcacion_id})
 
 @csrf_protect
-def proveedores_view(request, crucero_id):
+def proveedores_view(request, embarcacion_id):
     import json
     from .models import Paises, CompraLote
     SUBTIPOS_POR_TIPO = {
@@ -309,23 +309,23 @@ def proveedores_view(request, crucero_id):
                 # Guardar países
                 paises_objs = [Paises.objects.get_or_create(nombre=nombre)[0] for nombre in paises_nombres]
                 proveedor.countries.set(paises_objs)
-                return redirect('compras:proveedores', crucero_id=crucero_id)
+                return redirect('compras:proveedores', embarcacion_id=embarcacion_id)
     else:
         form = ProveedorForm()
     proveedores = Proveedores.objects.all()
     # IDs de proveedores bloqueados (asignados a cualquier CompraLote)
-    proveedores_bloqueados = set(CompraLote.objects.filter(crucero_id=crucero_id).values_list('proveedor_id', flat=True))
+    proveedores_bloqueados = set(CompraLote.objects.filter(embarcacion_id=embarcacion_id).values_list('proveedor_id', flat=True))
     return render(request, 'proveedores.html', {
         'form': form,
         'proveedores': proveedores,
         'SUBTIPOS_POR_TIPO': SUBTIPOS_POR_TIPO,
         'tipo_seleccionado': tipo_seleccionado,
         'proveedores_bloqueados': proveedores_bloqueados,
-        'crucero_id': crucero_id,
+        'embarcacion_id': embarcacion_id,
     })
 
 @csrf_protect
-def eliminar_proveedor(request, crucero_id):
+def eliminar_proveedor(request, embarcacion_id):
     from .models import CompraLote
     from django.contrib import messages
     if request.method == 'POST':
@@ -340,16 +340,16 @@ def eliminar_proveedor(request, crucero_id):
             return redirect('compras:proveedores')
         proveedor.countries.clear()
         proveedor.delete()
-    return redirect('compras:proveedores', crucero_id=crucero_id)
+    return redirect('compras:proveedores', embarcacion_id=embarcacion_id)
 
-def historial_compras_view(request, crucero_id):
+def historial_compras_view(request, embarcacion_id):
     from .models import CompraLote
-    crucero = Crucero.objects.get(pk=crucero_id)
-    compras_lote = CompraLote.objects.filter(estado__in=['Exitosa', 'Defectuosa', 'Cancelada'], crucero=crucero).order_by('-fecha')
-    return render(request, 'historial_compras.html', {'compras_lote': compras_lote, "crucero_id":crucero_id})
+    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    compras_lote = CompraLote.objects.filter(estado__in=['Exitosa', 'Defectuosa', 'Cancelada'], embarcacion=embarcacion).order_by('-fecha')
+    return render(request, 'historial_compras.html', {'compras_lote': compras_lote, "embarcacion_id":embarcacion_id})
 
-def revision_problemas_view(request, crucero_id):
+def revision_problemas_view(request, embarcacion_id):
     from .models import CompraLote
-    crucero = Crucero.objects.get(pk=crucero_id)
-    compras_lote = CompraLote.objects.filter(estado='Defectuosa', crucero=crucero).order_by('-fecha')
-    return render(request, 'revision_problemas.html', {'compras_lote': compras_lote, "crucero_id":crucero_id})
+    embarcacion = Embarcacion.objects.get(pk=embarcacion_id)
+    compras_lote = CompraLote.objects.filter(estado='Defectuosa', embarcacion=embarcacion).order_by('-fecha')
+    return render(request, 'revision_problemas.html', {'compras_lote': compras_lote, "embarcacion_id":embarcacion_id})

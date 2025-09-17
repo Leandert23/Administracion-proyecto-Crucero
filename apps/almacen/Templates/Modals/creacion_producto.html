@@ -82,8 +82,11 @@
         <select id="id_seccion" name="seccion" required>
             <option value="" hidden>Selecciona...</option>
             {% for sec in secciones %}
-                <option value="{{ sec.id }}">{{ sec.almacen.nombre }} — {{ sec.nombre }}</option>
+                <option value="{{ sec.id }}">{{ sec.local_tipo_almacen.nombre|default:"Local sin nombre" }} — {{ sec.nombre }}</option>
             {% endfor %}
+            {% if not secciones %}
+                <option value="" disabled>No hay secciones de almacén disponibles. Crea secciones desde el menú principal.</option>
+            {% endif %}
         </select>
         <small class="help-text">Lugar físico donde se guarda.</small>
         <div class="error-text" hidden></div>

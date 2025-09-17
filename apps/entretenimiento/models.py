@@ -1,9 +1,20 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from ..creador_embarcaciones.models import Embarcacion
+from apps.cruceros.models import Viaje
 
 class Actividad(models.Model):
     # ID único de la actividad (se crea automáticamente)
     id_actividad = models.AutoField(primary_key=True)
+    # Relación con Embarcacion (actividad ligada a una embarcación específica)
+    embarcacion = models.ForeignKey(
+        Embarcacion,
+        on_delete=models.CASCADE,
+        related_name='actividades',
+        null=True,
+        blank=True,
+        help_text="Embarcación a la que pertenece esta actividad"
+    )
     
     # Título de la actividad
     titulo = models.CharField(
@@ -66,6 +77,14 @@ class Actividad(models.Model):
 class ActividadRutinaria(models.Model):
     # ID único de la actividad rutinaria (se crea automáticamente)
     id_actividad = models.AutoField(primary_key=True)
+    embarcacion = models.ForeignKey(
+        Embarcacion,
+        on_delete=models.CASCADE,
+        related_name='actividades_rutinarias',
+        null=True,
+        blank=True,
+        help_text="Embarcación a la que pertenece esta actividad rutinaria"
+    )
 
     # Título de la actividad
     titulo = models.CharField(

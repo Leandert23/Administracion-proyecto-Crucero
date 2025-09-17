@@ -1,0 +1,194 @@
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-bed"></i> Crear Tipo de Habitación Estándar
+        </h5>
+    </div>
+    <div class="card-body">
+                        <form id="tipoHabitacionForm" method="post" action="{% url 'creador_embarcaciones:crear_tipo_habitacion' %}" novalidate>
+                            {% csrf_token %}
+
+                            <!-- Información Básica -->
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-info-circle"></i> Información Básica
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_nombre" class="form-label">
+                                        Nombre del Tipo <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="nombre" id="id_nombre" class="form-control"
+                                           placeholder="Ej: Habitación Estándar, Suite Deluxe" required>
+                                    <div class="invalid-feedback">
+                                        Este campo es obligatorio.
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_tipo" class="form-label">
+                                        Tipo de Habitación <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="tipo" id="id_tipo" class="form-control" required>
+                                        <option value="">-- Seleccionar tipo --</option>
+                                        {% for tipo_value, tipo_display in tipo_choices %}
+                                            <option value="{{ tipo_value }}">{{ tipo_display }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Seleccione un tipo de habitación.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_descripcion" class="form-label">
+                                    Descripción
+                                </label>
+                                <textarea name="descripcion" id="id_descripcion" class="form-control"
+                                          rows="2" placeholder="Descripción opcional del tipo de habitación"></textarea>
+                            </div>
+
+                            <!-- Especificaciones -->
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-ruler-combined"></i> Especificaciones
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_area_metros_cuadrados" class="form-label">
+                                        Área Estándar (m²) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="area_metros_cuadrados" id="id_area_metros_cuadrados"
+                                           class="form-control" step="0.01" min="0" placeholder="25.00" required>
+                                    <div class="invalid-feedback">
+                                        Ingrese un área válida.
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_precio_base" class="form-label">
+                                        Precio Base (€)
+                                    </label>
+                                    <input type="number" name="precio_base" id="id_precio_base"
+                                           class="form-control" step="0.01" min="0" placeholder="150.00">
+                                    <div class="form-text">
+                                        Precio estándar por noche (opcional)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Especificaciones de la Habitación -->
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-cog"></i> Especificaciones de la Habitación
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_capacidad_personas" class="form-label">
+                                        Capacidad de Personas <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="capacidad_personas" id="id_capacidad_personas"
+                                           class="form-control" min="1" max="10" value="2" required>
+                                    <div class="form-text">
+                                        Número máximo de personas
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_numero_camas" class="form-label">
+                                        Número de Camas <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="numero_camas" id="id_numero_camas"
+                                           class="form-control" min="1" max="6" value="1" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tiene_bano_privado" id="id_tiene_bano_privado" checked>
+                                        <label class="form-check-label" for="id_tiene_bano_privado">
+                                            Baño Privado
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tiene_balcon" id="id_tiene_balcon">
+                                        <label class="form-check-label" for="id_tiene_balcon">
+                                            Balcón
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tiene_vista_mar" id="id_tiene_vista_mar">
+                                        <label class="form-check-label" for="id_tiene_vista_mar">
+                                            Vista al Mar
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información de Mantenimiento -->
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-tools"></i> Información de Mantenimiento
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_ultimo_mantenimiento_dias" class="form-label">
+                                        Días para Último Mantenimiento <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="ultimo_mantenimiento_dias" id="id_ultimo_mantenimiento_dias"
+                                           class="form-control" min="0" max="365" value="30" required>
+                                    <div class="form-text">
+                                        Días desde el último mantenimiento
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_proximo_mantenimiento_dias" class="form-label">
+                                        Días para Próximo Mantenimiento <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="proximo_mantenimiento_dias" id="id_proximo_mantenimiento_dias"
+                                           class="form-control" min="0" max="730" value="180" required>
+                                    <div class="form-text">
+                                        Días hasta el próximo mantenimiento
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_estado_default" class="form-label">
+                                    Estado por Defecto <span class="text-danger">*</span>
+                                </label>
+                                <select name="estado_default" id="id_estado_default" class="form-control" required>
+                                    {% for estado_value, estado_display in estado_choices %}
+                                        <option value="{{ estado_value }}"
+                                                {% if estado_value == 'disponible' %}selected{% endif %}>
+                                            {{ estado_display }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    Estado que tendrán las habitaciones creadas con este tipo
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="cerrarModal()">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Crear Tipo de Habitación
+                                </button>
+                            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script para manejar mensajes de error del servidor -->
+{% if messages %}
+    <script>
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                alert('{{ message }}');
+            {% endif %}
+        {% endfor %}
+    </script>
+{% endif %}

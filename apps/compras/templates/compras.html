@@ -100,33 +100,26 @@
                 <div class="quick-actions-section">
                     <div class="quick-actions-grid">
                         <!-- Primer botón de 'comprar' eliminado por solicitud -->
-                        <a href="{% url 'compras:lista_solicitudes' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:lista_solicitudes' embarcacion_id %}" class="quick-action-card">
                             <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
                                 <img src="{% static 'img/Solicitud.jpg' %}" alt="Icono Solicitudes" class="action-icon-img" style="width:40px;height:40px;">
                             </div>
                             <h3>Solicitudes</h3>
                             <p>Ver y gestionar solicitudes de compra</p>
                         </a>
-                        <a href="{% url 'compras:proveedores' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:proveedores' embarcacion_id %}" class="quick-action-card">
                             <div class="action-icon">
                                 <img src="{% static 'img/Red-Proveedores.jpg' %}" alt="Proveedores" class="action-icon-img">
                             </div>
                             <h3>Red de Proveedores</h3>
                             <p>Gestionar proveedores registrados</p>
                         </a>
-                        <a href="{% url 'compras:historial_compras' crucero_id %}" class="quick-action-card">
+                        <a href="{% url 'compras:historial_compras' embarcacion_id %}" class="quick-action-card">
                             <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
                                 <img src="{% static 'img/Historial.jpg' %}" alt="Icono Historial" class="action-icon-img" style="width:40px;height:40px;">
                             </div>
                             <h3>Historial de Compras</h3>
                             <p>Ver el historial y resumen de compras</p>
-                        </a>
-                        <a href="#" class="quick-action-card">
-                            <div class="action-icon" style="display:flex;justify-content:center;align-items:center;margin-bottom:8px;">
-                                <img src="{% static 'img/problem.png' %}" alt="Icono Revisión de Problemas" class="action-icon-img" style="width:40px;height:40px;">
-                            </div>
-                            <h3>Revisión de Problemas</h3>
-                            <p>Gestionar y revisar problemas en compras</p>
                         </a>
                     </div>
                 </div>

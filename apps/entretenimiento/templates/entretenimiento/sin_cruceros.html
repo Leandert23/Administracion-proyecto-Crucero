@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Entretenimiento - Sin Cruceros{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Módulo de Entretenimiento</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h4><i class="icon fas fa-info"></i> Información</h4>
+                        {{ mensaje }}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{% url 'lista_cruceros' %}" class="btn btn-primary">
+                            <i class="fas fa-ship"></i> Ver Cruceros Disponibles
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary ml-2">
+                            <i class="fas fa-home"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

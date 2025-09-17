@@ -1,5 +1,5 @@
 from django.db import models
-from ..cruceros.models import Crucero
+from ..creador_embarcaciones.models import Embarcacion
 # Modelo para registrar compras por lote
 class CompraLote(models.Model):
     ESTADO_CHOICES = [
@@ -13,7 +13,7 @@ class CompraLote(models.Model):
     empresa_contacto = models.CharField(max_length=100)
     empresa_ubicacion = models.CharField(max_length=100)
     proveedor = models.ForeignKey('Proveedores', on_delete=models.PROTECT)
-    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name="compras_por_lote")
+    embarcacion = models.ForeignKey(Embarcacion, on_delete=models.CASCADE, related_name="compras_por_lote")
     puerto_entrega = models.CharField(max_length=100)
     notas_compra = models.TextField(blank=True)
     presupuesto_lote = models.DecimalField(max_digits=15, decimal_places=2)
@@ -38,7 +38,7 @@ from django.core.validators import MaxValueValidator
 # Nueva estructura para solicitudes agrupadas por subtipo
 class SolicitudSubtipo(models.Model):
     id = models.AutoField(primary_key=True)
-    crucero = models.ForeignKey(Crucero, on_delete=models.CASCADE, related_name="solicitudes_de_compra")
+    embarcacion = models.ForeignKey(Embarcacion, on_delete=models.CASCADE, related_name="solicitudes_de_compra")
     tipo = models.CharField(max_length=50)
     subtipo = models.CharField(max_length=50)
     procesada = models.BooleanField(default=False)

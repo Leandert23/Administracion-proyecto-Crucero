@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 from typing import Dict, Any
-from ..models import FechaDelSistema, Crucero, Habitacion, TipoHabitacion, Viaje
+from ..models import FechaDelSistema, TipoHabitacion, Viaje
+from apps.creador_embarcaciones.models import Embarcacion, Habitaciones
+from apps.entretenimiento.utils import cargar_actividades_entretenimiento
 
 # --- Fecha del sistema ---
 
@@ -10,58 +12,44 @@ def obtener_fecha_sistema() -> FechaDelSistema:
     )
     return fecha_sistema
 
-def avanzar_dia(fecha_sistema: FechaDelSistema, cruceros):
+def avanzar_dia(fecha_sistema: FechaDelSistema, embarcaciones):
     fecha_sistema.fecha_actual += timedelta(days=1)
     fecha_sistema.save()
-    actualizar_estados_viajes(fecha_sistema, cruceros)
+    actualizar_estados_viajes(fecha_sistema, embarcaciones)
 
 # --- Estados de viajes ---
 
-def actualizar_estados_viajes(fecha_sistema: FechaDelSistema, cruceros):
-    for crucero in cruceros:
-        marcar_viajes_completados(fecha_sistema, crucero)
-        activar_viajes_iniciados(fecha_sistema, crucero)
+def actualizar_estados_viajes(fecha_sistema: FechaDelSistema, embarcaciones):
+    for embarcacion in embarcaciones:
+        marcar_viajes_completados(fecha_sistema, embarcacion)
+        activar_viajes_iniciados(fecha_sistema, embarcacion)
 
-def marcar_viajes_completados(fecha_sistema: FechaDelSistema, crucero: Crucero):
-    viaje = crucero.viajes.filter(estado='activo', fecha_fin__lte=fecha_sistema.fecha_actual).first()
+def marcar_viajes_completados(fecha_sistema: FechaDelSistema, embarcacion: Embarcacion):
+    # Nota: El modelo Embarcacion no tiene viajes como el modelo Crucero
+    # Esta funcionalidad está temporalmente deshabilitada
+    pass
 
-    if viaje is None:
-        return
-    
-    viaje.estado = 'completado'
-    viaje.save()
 
-    # Crear nuevo viaje activo con misma ruta
-    viaje_nuevo = Viaje.objects.create(
-        crucero=crucero,
-        estado='activo',
-        ruta=viaje.ruta,
-        fecha_inicio=fecha_sistema.fecha_actual
-    )
-
-    
-
-def activar_viajes_iniciados(fecha_sistema: FechaDelSistema, crucero: Crucero):
-    crucero.viajes.filter(
-        estado='planificacion',
-        fecha_inicio=fecha_sistema.fecha_actual
-    ).update(estado='activo')
+def activar_viajes_iniciados(fecha_sistema: FechaDelSistema, embarcacion: Embarcacion):
+    # Nota: El modelo Embarcacion no tiene viajes como el modelo Crucero
+    # Esta funcionalidad está temporalmente deshabilitada
+    pass
 
 # --- Construcción de contexto preview ---
 
-def construir_contexto_preview(crucero: Crucero, viajes_crucero, primer_viaje, fecha_sistema: FechaDelSistema) -> Dict[str, Any]:
+def construir_contexto_preview(embarcacion: Embarcacion, viajes_embarcacion, primer_viaje, fecha_sistema: FechaDelSistema) -> Dict[str, Any]:
     hoy = fecha_sistema.fecha_actual
     datos_viaje = obtener_datos_viaje(primer_viaje, hoy)
-    instalaciones = crucero.instalaciones.all()
-    distribucion = obtener_distribucion_habitaciones(crucero)
-        
+    # Nota: El modelo Embarcacion no tiene instalaciones como el modelo Crucero
+    # distribucion = obtener_distribucion_habitaciones(embarcacion)
+
     return {
-        'crucero': crucero,
-        'viajes': viajes_crucero,
+        'crucero': embarcacion,
+        'viajes': viajes_embarcacion,
         'primer_viaje': primer_viaje,
         'hoy': hoy,
-        "instalaciones": instalaciones,
-        "distribucion_habitaciones": distribucion,
+        "instalaciones": [],  # Temporalmente vacío
+        "distribucion_habitaciones": [],  # Temporalmente vacío
         **datos_viaje
     }
 
@@ -121,16 +109,7 @@ def procesar_etapa(etapa, dias_transcurridos):
         'status': status,
     }
 
-def obtener_distribucion_habitaciones(crucero: Crucero):
-    tipos = (TipoHabitacion.objects.filter(habitaciones__crucero=crucero).distinct().order_by('nombre'))
-    distribucion = []
-    for tipo in tipos:
-        total = Habitacion.objects.filter(crucero=crucero, tipo_habitacion=tipo).count()
-        distribucion.append({
-            'nombre': tipo.nombre,
-            'capacidad_tipo': tipo.capacidad,
-            'cantidad_habitaciones': total,
-            'capacidad_total': total * tipo.capacidad,
-            'descripcion': tipo.descripcion,
-        })
-    return distribucion
+def obtener_distribucion_habitaciones(embarcacion: Embarcacion):
+    # Nota: El modelo Embarcacion no tiene habitaciones como el modelo Crucero
+    # Esta funcionalidad está temporalmente deshabilitada
+    return []

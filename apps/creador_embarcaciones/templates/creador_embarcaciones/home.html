@@ -1,0 +1,931 @@
+{% extends 'creador_embarcaciones/base_embarcaciones.html' %}
+
+{% block title %}Sistema de Embarcaciones y Rutas{% endblock %}
+{% block page_title %}Dashboard Principal{% endblock %}
+{% block page_subtitle %}Gestión de embarcaciones y rutas{% endblock %}
+
+{% block content %}
+<!-- Botón para ir a la página principal -->
+<div style="margin-bottom: 24px; text-align: right;">
+    <a href="/" class="btn-custom secondary" style="background: #64748b; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; transition: all 0.3s ease;">
+        <i class="fas fa-home"></i> Ir a Página Principal
+    </a>
+</div>
+
+<!-- Acciones Rápidas - Movido al inicio -->
+<div class="actions-section" style="margin-bottom: 32px;">
+    <h3 style="color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-bolt"></i> Acciones Rápidas
+    </h3>
+    <div class="actions-grid">
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:embarcacion_create' %}'" {% if total_rutas == 0 %}class="disabled" title="Primero debe crear una ruta"{% endif %}>
+            <i class="fas fa-ship action-icon" style="color: #3b82f6;"></i>
+            <h4 class="action-title">Nueva Embarcación</h4>
+            <p class="action-description">{% if total_rutas == 0 %}Requiere rutas{% else %}Crear nueva embarcación{% endif %}</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:ruta_create' %}'">
+            <i class="fas fa-route action-icon" style="color: #10b981;"></i>
+            <h4 class="action-title">Nueva Ruta</h4>
+            <p class="action-description">Crear nueva ruta de viaje</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:embarcacion_list' %}'">
+            <i class="fas fa-list action-icon" style="color: #06b6d4;"></i>
+            <h4 class="action-title">Lista Embarcaciones</h4>
+            <p class="action-description">Ver todas las embarcaciones</p>
+        </div>
+        <div class="action-card" onclick="window.location.href='{% url 'creador_embarcaciones:ruta_list' %}'">
+            <i class="fas fa-list action-icon" style="color: #f59e0b;"></i>
+            <h4 class="action-title">Lista Rutas</h4>
+            <p class="action-description">Ver todas las rutas</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para el dashboard */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 24px;
+        color: white;
+    }
+
+    .stat-icon.primary { background: #3b82f6; }
+    .stat-icon.success { background: #10b981; }
+    .stat-icon.info { background: #06b6d4; }
+    .stat-icon.warning { background: #f59e0b; }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .content-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .content-card-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .content-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .content-card-body {
+        padding: 20px;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom th {
+        background: #f8fafc;
+        color: #1e293b;
+        font-weight: 600;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+    }
+
+    .table-custom td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .btn-custom {
+        background: #3b82f6;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-custom:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    .btn-custom.secondary {
+        background: #64748b;
+    }
+
+    .btn-custom.secondary:hover {
+        background: #475569;
+    }
+
+    .btn-custom:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state h4 {
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        margin-bottom: 16px;
+    }
+
+    .actions-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .action-card {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .action-card:hover {
+        background: white;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .action-card.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .action-card.disabled:hover {
+        transform: none;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .action-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .action-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+    }
+
+    .action-description {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+    }
+
+    .warning-alert {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        color: #92400e;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .warning-alert h4 {
+        color: #92400e;
+        margin: 0 0 8px 0;
+        font-size: 16px;
+    }
+
+    .warning-alert p {
+        margin: 0 0 12px 0;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<!-- Mensaje de flujo de trabajo -->
+{% if total_rutas == 0 %}
+    <div class="warning-alert">
+        <h4>
+            <i class="fas fa-exclamation-triangle"></i> ¡Bienvenido al Sistema!
+        </h4>
+        <p>Para comenzar, necesitas crear al menos una ruta antes de poder registrar embarcaciones.</p>
+        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+            <i class="fas fa-plus"></i> Crear Primera Ruta
+        </a>
+    </div>
+{% endif %}
+
+<!-- Estadísticas generales -->
+<div class="stats-grid">
+    <div class="stat-card {% if total_rutas == 0 %}disabled{% endif %}">
+        <div class="stat-icon {% if total_rutas == 0 %}warning{% else %}primary{% endif %}">
+            <i class="fas fa-ship"></i>
+        </div>
+        <div class="stat-number">{{ total_embarcaciones }}</div>
+        <div class="stat-label">
+            {% if total_rutas == 0 %}
+                Embarcaciones (Requiere rutas)
+            {% else %}
+                Total Embarcaciones
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-number">{{ embarcaciones_operativas }}</div>
+        <div class="stat-label">Embarcaciones Operativas</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon info">
+            <i class="fas fa-route"></i>
+        </div>
+        <div class="stat-number">{{ total_rutas }}</div>
+        <div class="stat-label">Total Rutas</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-plus"></i>
+        </div>
+        <div class="stat-number">{{ total_embarcaciones|add:total_rutas }}</div>
+        <div class="stat-label">Total Registros</div>
+    </div>
+</div>
+
+<!-- Grid de contenido -->
+<div class="content-grid">
+    <!-- Tabla de Embarcaciones -->
+    <div class="content-card">
+        <div class="content-card-header">
+            <h3 class="content-card-title">
+                <i class="fas fa-ship"></i> Embarcaciones Recientes
+            </h3>
+            {% if total_rutas == 0 %}
+                <button class="btn-custom secondary" disabled title="Primero debe crear una ruta">
+                    <i class="fas fa-plus"></i> Nueva (Requiere rutas)
+                </button>
+            {% else %}
+                <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn-custom">
+                    <i class="fas fa-plus"></i> Nueva
+                </a>
+            {% endif %}
+        </div>
+        <div class="content-card-body">
+            {% if embarcaciones %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Identificador</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Puerto Base</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for embarcacion in embarcaciones %}
+                            <tr>
+                                <td>
+                                    <code>{{ embarcacion.identificador }}</code>
+                                </td>
+                                <td>
+                                    <strong>{{ embarcacion.nombre }}</strong>
+                                </td>
+                                <td>{{ embarcacion.tipo.nombre|default:"Sin tipo" }}</td>
+                                <td>{{ embarcacion.puerto_base }}</td>
+                                <td>
+                                    <span class="status-operativo {{ embarcacion.estado_operativo }}">
+                                        {{ embarcacion.get_estado_operativo_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-center mt-3">
+                    <a href="{% url 'creador_embarcaciones:embarcacion_list' %}" class="btn-custom secondary">
+                        <i class="fas fa-list"></i> Ver todas las embarcaciones
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-ship"></i>
+                    {% if total_rutas == 0 %}
+                        <h4>No hay embarcaciones registradas</h4>
+                        <p>Primero debe crear al menos una ruta</p>
+                        <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                            <i class="fas fa-route"></i> Crear Ruta Primero
+                        </a>
+                    {% else %}
+                        <h4>No hay embarcaciones registradas</h4>
+                        <p>Comienza registrando tu primera embarcación</p>
+                        <a href="{% url 'creador_embarcaciones:embarcacion_create' %}" class="btn-custom">
+                            <i class="fas fa-plus"></i> Registrar primera embarcación
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabla de Rutas -->
+    <div class="content-card">
+        <div class="content-card-header">
+            <h3 class="content-card-title">
+                <i class="fas fa-route"></i> Rutas Recientes
+            </h3>
+            <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                <i class="fas fa-plus"></i> Nueva
+            </a>
+        </div>
+        <div class="content-card-body">
+            {% if rutas %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Número de Días</th>
+                            <th>Días Configurados</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ruta in rutas %}
+                            <tr>
+                                <td>
+                                    <strong>{{ ruta.titulo }}</strong>
+                                </td>
+                                <td>
+                                    <span class="status-operativo operativo">{{ ruta.numero_dias }} días</span>
+                                </td>
+                                <td>
+                                    <span class="status-operativo info">{{ ruta.dias.count }}/{{ ruta.numero_dias }} días</span>
+                                </td>
+                                <td>
+                                    {% if ruta.descripcion %}
+                                        {{ ruta.descripcion|truncatechars:30 }}
+                                    {% else %}
+                                        <span style="color: #94a3b8;">Sin descripción</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-center mt-3">
+                    <a href="{% url 'creador_embarcaciones:ruta_list' %}" class="btn-custom secondary">
+                        <i class="fas fa-list"></i> Ver todas las rutas
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-route"></i>
+                    <h4>No hay rutas registradas</h4>
+                    <p>Comienza creando tu primera ruta</p>
+                    <a href="{% url 'creador_embarcaciones:ruta_create' %}" class="btn-custom">
+                        <i class="fas fa-plus"></i> Registrar primera ruta
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Creadores de Estándares -->
+<div class="actions-section">
+    <h3 style="color: #1e293b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-cogs"></i> Creadores de Estándares
+    </h3>
+    <div style="background: #dbeafe; border: 1px solid #3b82f6; color: #1e40af; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+        <i class="fas fa-info-circle"></i>
+        <strong>Información:</strong> Crea tipos estándar de habitaciones y locales para reutilizarlos fácilmente al configurar las cubiertas de tus embarcaciones.
+    </div>
+    <div class="actions-grid">
+        <div class="action-card" onclick="abrirModalTipoHabitacion()">
+            <i class="fas fa-bed action-icon" style="color: #10b981;"></i>
+            <h4 class="action-title">Crear Tipo de Habitación</h4>
+            <p class="action-description">Define estándares para habitaciones</p>
+        </div>
+        <div class="action-card" onclick="abrirModalTipoLocal()">
+            <i class="fas fa-store action-icon" style="color: #06b6d4;"></i>
+            <h4 class="action-title">Crear Tipo de Local</h4>
+            <p class="action-description">Define estándares para locales</p>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 16px;">
+        <small style="color: #64748b;">
+            <i class="fas fa-lightbulb"></i>
+            Los tipos creados estarán disponibles para seleccionar al crear habitaciones y locales en las cubiertas.
+        </small>
+    </div>
+</div>
+
+<!-- Modales de Confirmación de Eliminación -->
+<div class="modal fade" id="modalConfirmarEliminarEmbarcaciones" tabindex="-1" aria-labelledby="modalEliminarEmbarcacionesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #fee2e2; border-bottom: 1px solid #fecaca; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="modalEliminarEmbarcacionesLabel" style="color: #991b1b; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x" style="color: #dc2626; margin-bottom: 16px;"></i>
+                    <h5 style="color: #1e293b;">¿Eliminar TODAS las embarcaciones?</h5>
+                </div>
+                <p style="color: #64748b;">
+                    Esta acción eliminará <strong>{{ total_embarcaciones }} embarcaciones</strong> del sistema.
+                    <br><br>
+                    <span style="color: #dc2626;"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 16px 24px;">
+                <button type="button" class="btn-custom secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn-custom" onclick="confirmarEliminarEmbarcaciones()" style="background: #dc2626;">
+                    <i class="fas fa-trash-alt"></i> Eliminar Embarcaciones
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarRutas" tabindex="-1" aria-labelledby="modalEliminarRutasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #fee2e2; border-bottom: 1px solid #fecaca; border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title" id="modalEliminarRutasLabel" style="color: #991b1b; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x" style="color: #dc2626; margin-bottom: 16px;"></i>
+                    <h5 style="color: #1e293b;">¿Eliminar TODAS las rutas?</h5>
+                </div>
+                <p style="color: #64748b;">
+                    Esta acción eliminará <strong>{{ total_rutas }} rutas y todos sus días</strong> del sistema.
+                    <br><br>
+                    <span style="color: #dc2626;"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 16px 24px;">
+                <button type="button" class="btn-custom secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn-custom" onclick="confirmarEliminarRutas()" style="background: #dc2626;">
+                    <i class="fas fa-trash-alt"></i> Eliminar Rutas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarTiposHabitacion" tabindex="-1" aria-labelledby="modalEliminarTiposHabitacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarTiposHabitacionLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODOS los tipos de habitación?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_tipos_habitacion }} tipos de habitación</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarTiposHabitacion()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Tipos Habitación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarEliminarTiposLocal" tabindex="-1" aria-labelledby="modalEliminarTiposLocalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarTiposLocalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h5>¿Eliminar TODOS los tipos de local?</h5>
+                </div>
+                <p class="text-muted">
+                    Esta acción eliminará <strong>{{ total_tipos_local }} tipos de local</strong> del sistema.
+                    <br><br>
+                    <span class="text-danger"><strong>Esta operación no se puede deshacer.</strong></span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarTiposLocal()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Tipos Local
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales -->
+<div class="modal fade" id="modalTipoHabitacion" tabindex="-1" aria-labelledby="modalTipoHabitacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalTipoHabitacionLabel">
+                    <i class="fas fa-bed"></i> Crear Tipo de Habitación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalTipoHabitacionContent">
+                <!-- El contenido se cargará aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTipoLocal" tabindex="-1" aria-labelledby="modalTipoLocalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalTipoLocalLabel">
+                    <i class="fas fa-store"></i> Crear Tipo de Local
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalTipoLocalContent">
+                <!-- El contenido se cargará aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones de Eliminación Masiva -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Acciones de Eliminación Masiva</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡Atención!</strong> Estas acciones eliminarán TODOS los registros del sistema. Esta operación no se puede deshacer.
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_embarcaciones' %}" id="formEliminarEmbarcaciones" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarEmbarcaciones()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODAS las<br>Embarcaciones</small><br>
+                                <small class="text-muted">({{ total_embarcaciones }} registros)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_rutas' %}" id="formEliminarRutas" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarRutas()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODAS las<br>Rutas</small><br>
+                                <small class="text-muted">({{ total_rutas }} rutas y días)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_tipos_habitacion' %}" id="formEliminarTiposHabitacion" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarTiposHabitacion()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODOS los<br>Tipos Habitación</small><br>
+                                <small class="text-muted">({{ total_tipos_habitacion }} tipos)</small>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="post" action="{% url 'creador_embarcaciones:delete_all_tipos_local' %}" id="formEliminarTiposLocal" class="d-inline">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="abrirModalEliminarTiposLocal()">
+                                <i class="fas fa-trash-alt"></i><br>
+                                <small>Eliminar TODOS los<br>Tipos Local</small><br>
+                                <small class="text-muted">({{ total_tipos_local }} tipos)</small>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- JavaScript para manejar los modales -->
+<script>
+function abrirModalTipoHabitacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalTipoHabitacion'));
+    const content = document.getElementById('modalTipoHabitacionContent');
+
+    // Cargar el contenido del modal
+    fetch('{% url "creador_embarcaciones:crear_tipo_habitacion" %}')
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+
+            // Configurar validación del formulario
+            const form = content.querySelector('#tipoHabitacionForm');
+            if (form) {
+                // Validación del formulario
+                form.addEventListener('submit', function(e) {
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } else {
+                        // Mostrar indicador de carga
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+                        }
+                        console.log('Enviando formulario a:', form.action);
+                    }
+                    this.classList.add('was-validated');
+                });
+
+                // Configurar función para cerrar modal
+                window.cerrarModal = function() {
+                    modal.hide();
+                };
+            }
+
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error cargando modal:', error);
+            alert('Error al cargar el formulario. Intente nuevamente.');
+        });
+}
+
+function abrirModalTipoLocal() {
+    const modal = new bootstrap.Modal(document.getElementById('modalTipoLocal'));
+    const content = document.getElementById('modalTipoLocalContent');
+
+    // Cargar el contenido del modal
+    fetch('{% url "creador_embarcaciones:crear_tipo_local" %}')
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+
+            // Configurar el formulario para recargar la página después de submit exitoso
+            const form = content.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // El formulario ahora tiene action correcto, dejar que se envíe normalmente
+                    // El modal se cerrará automáticamente cuando se recargue la página
+                    console.log('Enviando formulario a:', form.action);
+                });
+            }
+
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error cargando modal:', error);
+            alert('Error al cargar el formulario. Intente nuevamente.');
+        });
+}
+
+// Función para cerrar modales desde dentro del modal
+window.addEventListener('message', function(event) {
+    if (event.data.action === 'cerrarModal') {
+        // Cerrar todos los modales
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+    }
+});
+
+// Funciones para modales de eliminación
+function abrirModalEliminarEmbarcaciones() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarEmbarcaciones'));
+    modal.show();
+}
+
+function abrirModalEliminarRutas() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarRutas'));
+    modal.show();
+}
+
+function abrirModalEliminarTiposHabitacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarTiposHabitacion'));
+    modal.show();
+}
+
+function abrirModalEliminarTiposLocal() {
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminarTiposLocal'));
+    modal.show();
+}
+
+// Funciones para confirmar eliminación
+function confirmarEliminarEmbarcaciones() {
+    const form = document.getElementById('formEliminarEmbarcaciones');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarEmbarcaciones'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarRutas() {
+    const form = document.getElementById('formEliminarRutas');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarRutas'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarTiposHabitacion() {
+    const form = document.getElementById('formEliminarTiposHabitacion');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarTiposHabitacion'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+
+function confirmarEliminarTiposLocal() {
+    const form = document.getElementById('formEliminarTiposLocal');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminarTiposLocal'));
+
+    // Cerrar modal
+    modal.hide();
+
+    // Enviar formulario
+    form.submit();
+}
+</script>
+{% endblock %}

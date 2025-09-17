@@ -3,10 +3,9 @@ from django.urls import path
 from django.conf.urls.static import static
 from . import views
 
-app_name = 'bares_snacks'
 
 urlpatterns = [
-    path('<int:crucero_id>/', views.bares_view, name='bares'),
+    path('<int:embarcacion_id>/', views.bares_view, name='bares'),
     path('habitaciones/', views.habitaciones_list_api, name='habitaciones-list-api'),
     path('ingredientes-almacen/', views.ingredientes_almacen_api, name='ingredientes-almacen-api'),
     path('categorias-almacen/', views.categorias_almacen_api, name='categorias-almacen-api'),
@@ -20,10 +19,17 @@ urlpatterns = [
     path('producto-bar/<int:producto_id>/receta/guardar/', views.guardar_receta_producto_bar_api, name='guardar-receta-producto-bar-api'),
     path('crear-pedido/', views.crear_pedido_api, name='crear-pedido-api'),
     path('pedido/<int:pedido_id>/eliminar/', views.eliminar_pedido_api, name='eliminar-pedido-api'),
+    path('pedido/<int:pedido_id>/detalle/<int:detalle_id>/eliminar/', views.eliminar_detalle_pedido_api, name='eliminar-detalle-pedido-api'),
+    path('pedido/<int:pedido_id>/actualizar/', views.actualizar_pedido_api, name='actualizar-pedido-api'),
     path('bares/', views.bares_list_api, name='bares-list-api'),
     path('puntos-venta/', views.puntos_venta_bares_api, name='puntos-venta-bares-api'),
     path('pedidos/', views.pedidos_list_api, name='pedidos-list-api'),
     path('pedido/<int:pedido_id>/estado/', views.actualizar_estado_pedido_api, name='actualizar-estado-pedido-api'),
+    path('empleado/<int:empleado_id>/', views.empleado_info_api, name='empleado-info-api'),
+    # Analíticas
+    path('analisis/mas-vendidos/', views.analisis_mas_vendidos_api, name='analisis-mas-vendidos-api'),
+    path('analisis/stock/', views.analisis_stock_api, name='analisis-stock-api'),
+    path('analisis/restock/', views.solicitar_restock_api, name='analisis-restock-api'),
 ]
 
 if settings.DEBUG:

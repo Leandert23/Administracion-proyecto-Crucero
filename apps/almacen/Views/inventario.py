@@ -5,8 +5,8 @@ from django.template.loader import render_to_string
 from django.db.models import Q
 from datetime import date
 from apps.almacen.models import Producto, MovimientoAlmacen, SeccionAlmacen
-from apps.cruceros.models import Instalacion
-from ...cruceros.Services.fecha_general import obtener_fecha_actual
+from apps.creador_embarcaciones.models import Embarcacion
+from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 
 
 @require_GET
@@ -16,14 +16,13 @@ def obtener_productos_para_solicitud(request):
     tipo_filtro = request.GET.get('tipo')
     busqueda = request.GET.get('busqueda', '')
     page_number = request.GET.get('page', 1)
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
 
     productos = Producto.objects.all()
 
-    if crucero_id:
+    if embarcacion_id:
         try:
-            instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
-            secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+            secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
             productos = productos.filter(seccion__in=secciones)
         except Exception:
             pass
@@ -61,12 +60,11 @@ def obtener_productos_para_solicitud(request):
 
 @require_GET
 def obtener_pagina_inventario_productos(request):
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
     productos = Producto.objects.all()
-    
-    if crucero_id:
-        instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
-        secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+
+    if embarcacion_id:
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         productos = productos.filter(seccion__in=secciones)
     
     productos = productos.order_by('nombre')
@@ -118,12 +116,11 @@ def buscar_productos(request):
     if request.method != "GET":
         return HttpResponseBadRequest('Método no permitido')
     
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
     productos = Producto.objects.all()
-    
-    if crucero_id:
-        instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
-        secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+
+    if embarcacion_id:
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         productos = productos.filter(seccion__in=secciones)
     
     productos = productos.order_by('nombre')
@@ -145,12 +142,11 @@ def buscar_productos(request):
 
 @require_GET
 def obtener_movimientos_inventario(request):
-    crucero_id = request.GET.get('crucero_id')
+    embarcacion_id = request.GET.get('embarcacion_id')
     movimientos = MovimientoAlmacen.objects.select_related('producto', 'producto__seccion', 'lote')
-    
-    if crucero_id:
-        instalaciones = Instalacion.objects.filter(crucero_id=crucero_id, tipo='almacen')
-        secciones = SeccionAlmacen.objects.filter(almacen__in=instalaciones)
+
+    if embarcacion_id:
+        secciones = SeccionAlmacen.objects.filter(local_tipo_almacen__cubierta__embarcacion_id=embarcacion_id)
         movimientos = movimientos.filter(producto__seccion__in=secciones)
     
     tipo_movimiento = request.GET.get('tipo')

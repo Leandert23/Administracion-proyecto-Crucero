@@ -12,10 +12,7 @@
                 </tr>
             </thead>
             <tbody id="um-users-tbody">
-                                    {{ u.ultimo_acceso|date:'d/m/Y' }}
-                                {% else %}
-                                    -
-                                {% endif %}
+                    {% if page_obj.object_list %}
                     {% for u in page_obj.object_list %}
                     <tr>
                         <td>
@@ -56,7 +53,7 @@
                     </tr>
                     {% endfor %}
                 {% else %}
-                    <tr><td colspan="5" class="empty">No hay superusuarios sin crucero asignado.</td></tr>
+                    <tr><td colspan="6" class="empty">No hay superusuarios sin crucero asignado.</td></tr>
                 {% endif %}
             </tbody>
         </table>

@@ -1,0 +1,174 @@
+/* Sistema de Personal - Estilos CSS */
+
+/* Estilos globales */
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* ===== ESTILOS PARA BOTONES MODERNOS ===== */
+.modern-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modern-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modern-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modern-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.modern-btn.primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.modern-btn.primary:hover {
+    background: #2563eb;
+}
+
+.modern-btn.secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.modern-btn.secondary:hover {
+    background: #4b5563;
+}
+
+.modern-btn.success {
+    background: #10b981;
+    color: white;
+}
+
+.modern-btn.success:hover {
+    background: #059669;
+}
+
+.modern-btn.danger {
+    background: #ef4444;
+    color: white;
+}
+
+.modern-btn.danger:hover {
+    background: #dc2626;
+}
+
+.modern-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* ===== DASHBOARD LAYOUT ===== */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Overlay para móviles */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: #1e293b;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    width: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .logo {
+    justify-content: center;
+    padding: 0;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 15px 10px;
+    margin-right: 0;
+}
+
+.sidebar.collapsed .sidebar-footer .nav-link {
+    justify-content: center;
+    padding: 15px 10px;
+    margin-right: 0;
+}
+
+.sidebar.collapsed .nav-icon {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .logo-icon {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid #334155;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 24px 10px;
+}
+

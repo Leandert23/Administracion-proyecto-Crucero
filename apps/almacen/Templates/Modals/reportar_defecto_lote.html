@@ -1,0 +1,372 @@
+<div id="modalReportarDefectoLote" aria-hidden="true" role="dialog" aria-modal="true" style="display:none; z-index:5100;">
+    <!--
+        Nota: Este modal tiene behaviour JS para:
+        - evitar alert() nativos y mostrar mensajes inline
+        - cerrar inmediatamente al reportar defecto con GestorModales.cerrar o fallback
+        - listeners robustos para elementos con data-close="true" y .close-btn
+        - handler de Escape para cerrar el modal
+    -->
+    <style>
+        /* Scoped styles for Reportar Defecto modal */
+        #modalReportarDefectoLote{
+            position:fixed;
+            inset:0;
+            display:none; /* toggled by JS */
+            align-items:center;
+            justify-content:center;
+            background:rgba(15,23,42,0.45);
+            z-index:5100;
+        }
+        #modalReportarDefectoLote[aria-hidden="false"]{
+            display:flex;
+        }
+        #modalReportarDefectoLote .modal-container{
+            background:#fff;
+            width:min(720px, 96%);
+            border-radius:10px;
+            box-shadow:0 10px 30px rgba(2,6,23,0.25);
+            max-height:90vh;
+            overflow:auto;
+            border:1px solid #e6eef8;
+        }
+        #modalReportarDefectoLote .modal-header{
+            padding:16px 20px;
+            border-bottom:1px solid #eef2f7;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        }
+        #modalReportarDefectoLote .modal-header h2{
+            margin:0;
+            font-size:1.1rem;
+            color:#0f172a;
+        }
+        #modalReportarDefectoLote .close-btn{
+            background:transparent;
+            border:0;
+            font-size:1.25rem;
+            line-height:1;
+            cursor:pointer;
+            color:#475569;
+        }
+        #modalReportarDefectoLote .modal-body{ padding:16px 20px; }
+        #modalReportarDefectoLote .form-grid{ display:grid; gap:12px; grid-template-columns:1fr; }
+        #modalReportarDefectoLote .form-field label{ display:block; margin-bottom:6px; font-weight:600; color:#0f172a; }
+        #modalReportarDefectoLote input[type="number"],
+        #modalReportarDefectoLote input[type="text"],
+        #modalReportarDefectoLote textarea{
+            width:100%;
+            padding:8px 10px;
+            border:1px solid #d1d5db;
+            border-radius:6px;
+            background:#fff;
+            color:#0f172a;
+        }
+        #modalReportarDefectoLote .checkbox-list label{ display:block; margin-bottom:8px; font-weight:400; color:#0f172a; }
+        #modalReportarDefectoLote .modal-footer{ padding:12px 20px; border-top:1px solid #eef2f7; display:flex; justify-content:flex-end; gap:.5rem; }
+        #modalReportarDefectoLote .btn{ padding:8px 12px; border-radius:6px; border:0; cursor:pointer; }
+        #modalReportarDefectoLote .btn-secondary{ background:#f3f4f6; color:#0f172a; }
+        #modalReportarDefectoLote .btn-danger{ background:#dc2626; color:#fff; }
+        @media (max-width:520px){
+            #modalReportarDefectoLote .modal-container{ width:95%; }
+        }
+    </style>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>Reportar defecto del lote</h2>
+            <button class="close-btn" type="button" data-close="true" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-reportar-defecto" class="form-grid" method="post" action="#">
+                {% csrf_token %}
+                <input type="hidden" id="id_defecto_producto" name="producto" />
+                <input type="hidden" id="id_defecto_orden" name="orden_compra_id" />
+
+                <div class="form-field" data-field="cantidad_llegada">
+                    <label for="id_cantidad_llegada">Cantidad que llegó</label>
+                    <input type="number" id="id_cantidad_llegada" name="cantidad_llegada" min="0" step="1" required />
+                    <div class="error-text" hidden></div>
+                </div>
+
+                <div class="form-field" data-field="notas_defecto">
+                    <label for="id_notas_defecto">Notas / Observaciones</label>
+                    <textarea id="id_notas_defecto" name="notas_defecto" rows="3" placeholder="Detalles sobre el defecto..."></textarea>
+                </div>
+            
+                <div class="modal-footer" style="grid-column:1 / -1; display:flex; justify-content:flex-end; gap:.5rem;">
+                    <button type="button" class="btn btn-secondary" data-close="true">Cancelar</button>
+                    <button type="submit" class="btn btn-danger" id="btn-confirmar-defecto">Reportar defecto</button>
+                </div>
+            </form>
+            <div id="reportar-defecto-mensaje" role="status" aria-live="polite" style="display:none; margin-top:10px; padding:8px 10px; border-radius:6px;
+                background:#f8fafc; color:#0f172a; border:1px solid #e6eef8;">
+                <span class="mensaje-text"></span>
+            </div>
+        </div>
+    </div>
+</div>
+        <script>
+            (function(){
+                // Global opener to prefill and show the Reportar Defecto modal
+                if(typeof window.abrirModalReportarDefecto !== 'function'){
+                    window.abrirModalReportarDefecto = function(payload){
+                        try{
+                            console.debug('abrirModalReportarDefecto invoked with payload', payload);
+                            // payload: { orden, producto, cantidad }
+                            payload = payload || {};
+
+                            function prefillAndShow(){
+                                var modal = document.getElementById('modalReportarDefectoLote');
+                                if(!modal) return false;
+                                var fOrden = modal.querySelector('#id_defecto_orden');
+                                var fProducto = modal.querySelector('#id_defecto_producto');
+                                var fCantidad = modal.querySelector('#id_cantidad_llegada');
+                                var notas = modal.querySelector('#id_notas_defecto');
+                                if(fOrden) fOrden.value = payload.orden || '';
+                                if(fProducto) fProducto.value = payload.producto || '';
+                                if(fCantidad) fCantidad.value = payload.cantidad || '';
+                                if(notas) notas.value = '';
+                                // ensure visible (use explicit display matching GestorModales config)
+                                    modal.setAttribute('aria-hidden','false');
+                                    // force display with important in case CSS elsewhere sets display:none !important
+                                    try{
+                                        modal.style.setProperty('display', 'flex', 'important');
+                                        modal.style.setProperty('z-index', '5100', 'important');
+                                    }catch(e){
+                                        modal.style.display = 'flex';
+                                        modal.style.zIndex = 5100;
+                                    }
+                                    try{ document.body.style.overflow = 'hidden'; }catch(e){}
+                                    // if modal is nested inside an element that could be hidden, move it to document.body temporarily
+                                    try{
+                                        if(modal.parentNode && modal.parentNode !== document.body){
+                                            document.body.appendChild(modal);
+                                            console.debug('modalReportarDefectoLote moved to body');
+                                        }
+                                    }catch(e){ console.debug('error moving modal to body', e); }
+                                    // diagnostic: log computed styles
+                                    try{
+                                        var cs = window.getComputedStyle(modal);
+                                        console.debug('modal computed display', cs.display, 'visibility', cs.visibility, 'opacity', cs.opacity);
+                                    }catch(e){}
+                                // focus first input
+                                if(fCantidad) try{ fCantidad.focus(); }catch(e){}
+                                return true;
+                            }
+
+                            // Try to open with GestorModales first (preferred)
+                            if(window.GestorModales && typeof window.GestorModales.abrir === 'function'){
+                                try{ window.GestorModales.abrir('defecto_lote'); }catch(e){ console.debug('GestorModales abrir error', e); }
+                            }
+
+                            // Immediately attempt to prefill+show (in case modal already present)
+                            if(prefillAndShow()) return;
+
+                            // Retry shortly in case GestorModales inserted or replaced the DOM
+                            setTimeout(function(){
+                                if(prefillAndShow()) return;
+                                // one more attempt
+                                setTimeout(prefillAndShow, 120);
+                            }, 60);
+
+                        }catch(e){ console.error('abrirModalReportarDefecto error', e); }
+                    };
+                }
+                // Optional: wire form submit here to post via fetch if desired later
+        
+            // If GestorModales already initialized earlier, ensure it knows about this modal
+            try{
+                if(window.GestorModales && window.GestorModales.inicializado && typeof window.GestorModales.prepararModal === 'function'){
+                    var cfg = window.GestorModales.configuraciones && window.GestorModales.configuraciones.defecto_lote;
+                    if(cfg){
+                        console.debug('Preparando modal defecto_lote en GestorModales');
+                        try{ window.GestorModales.prepararModal('defecto_lote', cfg); }catch(e){ console.debug('Error preparando defecto_lote', e); }
+                    }
+                }
+            }catch(e){ console.debug('GestorModales check error', e); }
+        
+            // Wire form submit to AJAX POST to report defect
+            try{
+                var form = document.getElementById('form-reportar-defecto');
+                if(form){
+                    form.addEventListener('submit', function(ev){
+                        ev.preventDefault();
+                        var payload = new FormData(form);
+                        // ensure orden/producto are present - try to copy from modalCrearLote if empty
+                        try{
+                            var entradaModal = document.getElementById('modalCrearLote');
+                            if(entradaModal){
+                                var ordenInput = entradaModal.querySelector('#id_orden_compra_id');
+                                var productoInput = entradaModal.querySelector('#id_producto');
+                                if(ordenInput && !payload.get('orden_compra_id')) payload.set('orden_compra_id', ordenInput.value || '');
+                                if(productoInput && !payload.get('producto')) payload.set('producto', productoInput.value || '');
+                            }
+                        }catch(e){}
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/almacen/ordenes-compra/reportar-defecto/');
+                        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                        // CSRF
+                        var csrftoken = (function(){
+                            var cookieValue = null;
+                            var name = 'csrftoken';
+                            if(document.cookie && document.cookie !== ''){
+                                var cookies = document.cookie.split(';');
+                                for(var i=0;i<cookies.length;i++){
+                                    var c = cookies[i].trim();
+                                    if(c.substring(0, name.length+1) === (name + '=')){
+                                        cookieValue = decodeURIComponent(c.substring(name.length+1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        })();
+                        if(csrftoken) xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+                        function mostrarMensaje(text, isError){
+                            try{
+                                var cont = document.getElementById('reportar-defecto-mensaje');
+                                if(!cont) return;
+                                var span = cont.querySelector('.mensaje-text');
+                                if(span) span.textContent = text || '';
+                                cont.style.display = text ? 'block' : 'none';
+                                if(isError){
+                                    cont.style.background = '#fff1f0';
+                                    cont.style.borderColor = '#fecaca';
+                                    cont.style.color = '#7f1d1d';
+                                } else {
+                                    cont.style.background = '#ecfdf5';
+                                    cont.style.borderColor = '#bbf7d0';
+                                    cont.style.color = '#064e3b';
+                                }
+                                // hide after a short delay on success
+                                if(!isError){
+                                    setTimeout(function(){ try{ cont.style.display='none'; }catch(e){} }, 2200);
+                                }
+                            }catch(e){ /* silent */ }
+                        }
+
+                        xhr.onload = function(){
+                            try{
+                                var r = JSON.parse(xhr.responseText);
+                                if(xhr.status >=200 && xhr.status < 300 && r && r.success){
+                                    // show inline success message instead of alert
+                                    mostrarMensaje('Orden marcada como DENEGADA y mensaje actualizado.', false);
+                                    // close modal immediately via GestorModales or fallback
+                                    try{
+                                        if(window.GestorModales && typeof window.GestorModales.cerrar === 'function'){
+                                            window.GestorModales.cerrar('defecto_lote');
+                                        } else {
+                                            var m = document.getElementById('modalReportarDefectoLote');
+                                            if(m){ m.setAttribute('aria-hidden','true'); try{ m.style.setProperty('display','none','important'); }catch(e){ m.style.display='none'; } document.body.style.overflow = ''; }
+                                        }
+                                    }catch(e){ }
+                                } else {
+                                    mostrarMensaje('Error: ' + (r && r.error ? r.error : 'no se pudo procesar'), true);
+                                }
+                            }catch(e){ mostrarMensaje('Respuesta inválida del servidor', true); }
+                        };
+                        xhr.onerror = function(){ mostrarMensaje('Error de red al reportar defecto', true); };
+                        xhr.send(payload);
+                    });
+                }
+            }catch(e){ console.debug('form hook error', e); }
+
+            // Close handlers: X button and any element with data-close="true"
+            try{
+                var modalRoot = document.getElementById('modalReportarDefectoLote');
+                // Close the defecto modal. If modalEl is passed, close that element; otherwise fall back to the known id/GestorModales.
+                function cerrarModalDefecto(modalEl){
+                    try{
+                        var currentModal = modalEl || document.getElementById('modalReportarDefectoLote');
+                        if(window.GestorModales && typeof window.GestorModales.cerrar === 'function'){
+                            try{ window.GestorModales.cerrar('defecto_lote'); return; }catch(e){}
+                        }
+                        if(currentModal){
+                            currentModal.setAttribute('aria-hidden','true');
+                            try{ currentModal.style.setProperty('display','none','important'); }catch(e){ currentModal.style.display='none'; }
+                            try{ document.body.style.overflow = ''; }catch(e){}
+                        }
+                    }catch(e){ console.debug('cerrarModalDefecto error', e); }
+                }
+                // Attach close handlers robustly: support elements inside modal even if modal is moved to body
+                function attachCloseHandlers(root){
+                    try{
+                        if(!root) return;
+                        root.querySelectorAll('[data-close="true"], .close-btn').forEach(function(el){
+                            try{
+                                if(el.__closeHookAdded) return;
+                                el.__closeHookAdded = true;
+                                el.addEventListener('click', function(ev){
+                                    try{ ev && ev.preventDefault && ev.preventDefault(); }catch(e){}
+                                    // pass the modal that contains this element, if any
+                                    var m = el && el.closest ? el.closest('#modalReportarDefectoLote') : document.getElementById('modalReportarDefectoLote');
+                                    cerrarModalDefecto(m || undefined);
+                                });
+                            }catch(e){}
+                        });
+                    }catch(e){ }
+                }
+
+                if(modalRoot){
+                    attachCloseHandlers(modalRoot);
+                }
+
+                // Observe modal for reparenting (if moved to body or re-rendered) and reattach handlers
+                try{
+                    var observer = null;
+                    if(window.MutationObserver && modalRoot){
+                        observer = new MutationObserver(function(mutations){
+                            // small debounce: reattach after changes
+                            setTimeout(function(){
+                                var m = document.getElementById('modalReportarDefectoLote');
+                                if(m) attachCloseHandlers(m);
+                            }, 30);
+                        });
+                        observer.observe(document.body, { childList:true, subtree:true });
+                    }
+                }catch(e){ }
+
+                // Handle Escape key to close modal when open
+                try{
+                    document.addEventListener('keydown', function(ev){
+                        if(!ev) return;
+                        if(ev.key === 'Escape' || ev.key === 'Esc'){
+                            var m = document.getElementById('modalReportarDefectoLote');
+                            if(m && m.getAttribute('aria-hidden') === 'false'){
+                                cerrarModalDefecto();
+                                try{ ev.preventDefault(); }catch(e){}
+                            }
+                        }
+                    });
+                }catch(e){ }
+
+                // Delegated click handler: closes modal when clicking elements with data-close or .close-btn inside the modal
+                try{
+                    document.addEventListener('click', function(ev){
+                        try{
+                            if(!ev || !ev.target) return;
+                            var el = ev.target;
+                            // climb up the tree to find a [data-close] or .close-btn
+                            var depth = 0;
+                            while(el && el !== document && depth < 8){
+                                if(el.matches && (el.matches('[data-close="true"]') || el.matches('.close-btn'))){
+                                    // only close if this element is inside the modal
+                                    var m = document.getElementById('modalReportarDefectoLote');
+                                    if(m && m.contains(el)){
+                                        ev.preventDefault && ev.preventDefault();
+                                        // pass the modal element to the closer for robustness
+                                        cerrarModalDefecto(m);
+                                    }
+                                    return;
+                                }
+                                el = el.parentNode;
+                                depth++;
+                            }
+                        }catch(e){}
+                    }, true);
+                }catch(e){}
+            }catch(e){ console.debug('close hook error', e); }
+        })();
+        </script>

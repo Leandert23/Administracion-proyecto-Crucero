@@ -1,40 +1,98 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
+from apps.creador_embarcaciones.models import Embarcacion
+from apps.reservaciones.models import Reserva
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
+from datetime import timedelta, time as dt_time
+from apps.cruceros.Services.fecha_general import obtener_fecha_actual
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from .utils import cargar_actividades_entretenimiento
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 import json
 import uuid
 import os
+import time
+from decimal import Decimal
 
 # Create your views here.
 
-def entretenimiento_view(request):
-    """Vista para mostrar la página de entretenimiento"""
+def entretenimiento_main_view(request):
+    """Vista principal de entretenimiento que redirige al primer crucero disponible."""
+    # Obtener el primer crucero disponible
+    primer_crucero = Embarcacion.objects.first()
+
+    if primer_crucero:
+        # Redirigir al entretenimiento del primer crucero
+        return redirect('entretenimiento:entretenimiento', crucero_id=primer_crucero.id)
+    else:
+        # Si no hay cruceros, mostrar mensaje de error o página de inicio
+        return render(request, 'entretenimiento/sin_cruceros.html', {
+            'mensaje': 'No hay cruceros disponibles en el sistema.',
+            'modulos_usuario': request.user.get_modulos_activos() if request.user.is_authenticated else []
+        })
+
+def entretenimiento_view(request, crucero_id):
+    """Vista para mostrar la página de entretenimiento de un crucero específico.
+    Filtra actividades por el viaje activo o en planificación del crucero.
+    """
+    
+    # Buscar la embarcación en lugar del crucero
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+
+    # Las actividades ahora están relacionadas directamente con la embarcación
+    # No necesitamos viaje ya que las actividades pertenecen directamente a la embarcación
+    # Obtener fecha del sistema (creando registro si no existe)
+    fecha_actual_sistema = obtener_fecha_actual()
+    if not fecha_actual_sistema:
+        try:
+            fecha_actual_sistema = obtener_fecha_actual().fecha_actual
+        except Exception:
+            fecha_actual_sistema = None
 
     # Obtener el día seleccionado desde los parámetros GET
     dia_seleccionado = request.GET.get('dia')
 
-    # Obtener todos los días disponibles
-    dias_pago = Actividad.objects.values_list('dia_crucero', flat=True).distinct()
-    dias_rutinarias = ActividadRutinaria.objects.values_list('dia_crucero', flat=True).distinct()
-    dias_disponibles = sorted(set(list(dias_pago) + list(dias_rutinarias)))
+    # Base queryset filtrada por embarcación
+    actividades_base = Actividad.objects.filter(embarcacion=embarcacion)
+    rutinarias_base = ActividadRutinaria.objects.filter(embarcacion=embarcacion)
 
-    # Filtrar actividades según el día seleccionado y ordenar por ID
+    # Inicializar todas_actividades como lista vacía
+    todas_actividades = []
+
+    # Debug: Imprimir información sobre las actividades encontradas (después de crear ejemplos si es necesario)
+    print(f"Embarcación ID: {embarcacion.id}")
+    print(f"Actividades de pago encontradas: {actividades_base.count()}")
+    print(f"Actividades rutinarias encontradas: {rutinarias_base.count()}")
+    print(f"Total actividades combinadas: {len(todas_actividades)}")
+
+    # Si no hay actividades, buscar todas las actividades para debug
+    if actividades_base.count() == 0:
+        print(f"Todas las actividades en BD: {Actividad.objects.all().count()}")
+        print(f"Actividades sin embarcacion asignada: {Actividad.objects.filter(embarcacion__isnull=True).count()}")
+
+    if rutinarias_base.count() == 0:
+        print(f"Todas las actividades rutinarias en BD: {ActividadRutinaria.objects.all().count()}")
+        print(f"Actividades rutinarias sin embarcacion asignada: {ActividadRutinaria.objects.filter(embarcacion__isnull=True).count()}")
+
+    # Procesar actividades por día seleccionado
+    fecha_dia_seleccionado = None
     if dia_seleccionado and dia_seleccionado.isdigit():
         dia_seleccionado = int(dia_seleccionado)
-        actividades_pago = Actividad.objects.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
-        actividades_rutinarias = ActividadRutinaria.objects.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        actividades_pago = actividades_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        actividades_rutinarias = rutinarias_base.filter(dia_crucero=dia_seleccionado).order_by('id_actividad')
+        # Para embarcaciones, usamos la fecha del sistema
+        fecha_dia_seleccionado = fecha_actual_sistema
     else:
-        # Si no hay día seleccionado, mostrar todas las actividades
-        actividades_pago = Actividad.objects.all().order_by('id_actividad')
-        actividades_rutinarias = ActividadRutinaria.objects.all().order_by('id_actividad')
+        # Si no hay día seleccionado, mostrar todas las actividades de la embarcación
+        actividades_pago = actividades_base.order_by('id_actividad')
+        actividades_rutinarias = rutinarias_base.order_by('id_actividad')
         dia_seleccionado = None
 
     # Combinar ambas listas para mostrar las actividades
-    todas_actividades = []
-
     # Agregar actividades de pago
     for actividad in actividades_pago:
         todas_actividades.append({
@@ -45,9 +103,10 @@ def entretenimiento_view(request):
             'dia_crucero': actividad.dia_crucero,
             'hora_inicio': actividad.hora_inicio,
             'hora_fin': actividad.hora_fin,
-            'coste': actividad.coste if hasattr(actividad, 'coste') else None,
+            'coste': actividad.coste,
+            'maximo_participantes': actividad.maximoActividad,
             'ubicacion': None,
-            'img_src': actividad.img_src if actividad.img_src else None
+            'img_src': actividad.img_src or 'clasedebaile.jpg'
         })
 
     # Agregar actividades rutinarias
@@ -61,17 +120,108 @@ def entretenimiento_view(request):
             'hora_inicio': actividad.hora_inicio,
             'hora_fin': actividad.hora_fin,
             'coste': None,
-            'ubicacion': actividad.ubicacion if hasattr(actividad, 'ubicacion') else None,
-            'img_src': actividad.img_src if actividad.img_src else None
+            'ubicacion': getattr(actividad, 'ubicacion', None),
+            'img_src': actividad.img_src or 'yogacrucero.jpg'
         })
 
     # Ordenar actividades por ID
     todas_actividades.sort(key=lambda x: x['id'])
 
+    # Actualizar debug con información correcta
+    print(f"Total actividades combinadas: {len(todas_actividades)}")
+    if todas_actividades:
+        print(f"Primeras 3 actividades: {[act['titulo'] for act in todas_actividades[:3]]}")
+
+    # Si no hay actividades, crear algunas de ejemplo para esta embarcación
+    if not todas_actividades:
+        print("No hay actividades, creando actividades de ejemplo...")
+        try:
+            # Crear actividad de pago de ejemplo
+            actividad_pago = Actividad.objects.create(
+                embarcacion=embarcacion,
+                titulo="Clase de Baile Latino",
+                descripcion="Aprende los ritmos más calientes del baile latino con nuestros instructores profesionales",
+                dia_crucero=1,
+                coste=25.00,
+                hora_inicio="20:00:00",
+                hora_fin="22:00:00",
+                maximoActividad=20,
+                img_src="clasedebaile.jpg"
+            )
+
+            # Crear actividad rutinaria de ejemplo
+            actividad_rutinaria = ActividadRutinaria.objects.create(
+                embarcacion=embarcacion,
+                titulo="Yoga Matutino",
+                descripcion="Comienza tu día con tranquilidad en nuestra sesión de yoga al amanecer",
+                dia_crucero=1,
+                hora_inicio="07:00:00",
+                hora_fin="08:30:00",
+                maximo_actividad=20,
+                ubicacion="Cubierta Principal",
+                img_src="yogacrucero.jpg"
+            )
+
+            print(f"Actividades de ejemplo creadas: {actividad_pago.titulo}, {actividad_rutinaria.titulo}")
+            # Recargar las actividades después de crear las de ejemplo
+            actividades_base = Actividad.objects.filter(embarcacion=embarcacion)
+            rutinarias_base = ActividadRutinaria.objects.filter(embarcacion=embarcacion)
+
+            # Recrear la lista combinada
+            todas_actividades = []
+
+            # Agregar actividades de pago
+            for actividad in actividades_base:
+                todas_actividades.append({
+                    'id': actividad.id_actividad,
+                    'titulo': actividad.titulo,
+                    'descripcion': actividad.descripcion,
+                    'tipo': 'pago',
+                    'dia_crucero': actividad.dia_crucero,
+                    'hora_inicio': actividad.hora_inicio,
+                    'hora_fin': actividad.hora_fin,
+                    'coste': actividad.coste,
+                    'maximo_participantes': actividad.maximoActividad,
+                    'ubicacion': None,
+                    'img_src': actividad.img_src or 'clasedebaile.jpg'
+                })
+
+            # Agregar actividades rutinarias
+            for actividad in rutinarias_base:
+                todas_actividades.append({
+                    'id': actividad.id_actividad,
+                    'titulo': actividad.titulo,
+                    'descripcion': actividad.descripcion,
+                    'tipo': 'rutinaria',
+                    'dia_crucero': actividad.dia_crucero,
+                    'hora_inicio': actividad.hora_inicio,
+                    'hora_fin': actividad.hora_fin,
+                    'coste': None,
+                    'ubicacion': actividad.ubicacion,
+                    'img_src': actividad.img_src or 'yogacrucero.jpg'
+                })
+
+            # Ordenar actividades por ID
+            todas_actividades.sort(key=lambda x: x['id'])
+            print(f"Lista recreada con {len(todas_actividades)} actividades")
+
+        except Exception as e:
+            print(f"Error creando actividades de ejemplo: {e}")
+
+    # Calcular días disponibles
+    dias_pago = actividades_base.values_list('dia_crucero', flat=True).distinct()
+    dias_rutinarias = rutinarias_base.values_list('dia_crucero', flat=True).distinct()
+    dias_disponibles = sorted(set(list(dias_pago) + list(dias_rutinarias)))
+
     context = {
         'actividades': todas_actividades,
         'dias_disponibles': dias_disponibles,
-        'dia_seleccionado': dia_seleccionado
+        'dia_seleccionado': dia_seleccionado,
+        'fecha_actual_sistema': fecha_actual_sistema,
+        'fecha_dia_seleccionado': fecha_dia_seleccionado,
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
+        'viaje': None,  # No hay viaje para embarcaciones
     }
 
     return render(request, 'entretenimiento/entretenimiento.html', context)
@@ -218,18 +368,995 @@ def registro_view(request):
         return JsonResponse({
             'success': True,
             'message': mensaje,
-            'registro_id': registro.id
+            'registro_id': registro.id if 'registro' in locals() else None,
+            'viaje_id': registro.viaje.id if hasattr(registro, 'viaje') and registro.viaje else None
+        })
+
+    except Exception as e:
+        # Capturar cualquier error inesperado
+        print(f"Error crítico en registro_view: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error interno del servidor. Por favor, contacte al administrador.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def eliminar_actividades_rutinarias(request):
+    """Vista para eliminar todos los registros de actividades rutinarias"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Contar registros antes de eliminar
+        registros_antes = ActividadRutinaria.objects.count()
+
+        # Eliminar todos los registros de actividades rutinarias
+        ActividadRutinaria.objects.all().delete()
+
+        # Contar registros después de eliminar
+        registros_despues = ActividadRutinaria.objects.count()
+        registros_eliminados = registros_antes - registros_despues
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Se eliminaron {registros_eliminados} actividades rutinarias exitosamente.',
+            'registros_eliminados': registros_eliminados
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividades rutinarias: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar las actividades rutinarias.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def eliminar_actividad(request, crucero_id):
+    """Vista para eliminar una actividad específica (rutinaria o de pago)"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Obtener parámetros del POST
+        activity_id = request.POST.get('activity_id')
+        activity_type = request.POST.get('activity_type')
+
+        if not activity_id or not activity_type:
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan parámetros requeridos: activity_id y activity_type.'
+            })
+
+        # Eliminar según el tipo de actividad
+        if activity_type == 'rutinaria':
+            actividad = get_object_or_404(ActividadRutinaria, pk=activity_id)
+            actividad.delete()
+            message = 'Actividad rutinaria eliminada exitosamente.'
+
+        elif activity_type == 'pago':
+            actividad = get_object_or_404(Actividad, pk=activity_id)
+            actividad.delete()
+            message = 'Actividad de pago eliminada exitosamente.'
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': f'Tipo de actividad no válido: {activity_type}. Debe ser "rutinaria" o "pago".'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': message
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividad: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar la actividad.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def eliminar_actividades_pago(request):
+    """Vista para eliminar todos los registros de actividades de pago"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Contar registros antes de eliminar
+        registros_antes = Actividad.objects.count()
+
+        # Eliminar todos los registros de actividades de pago
+        Actividad.objects.all().delete()
+
+        # Contar registros después de eliminar
+        registros_despues = Actividad.objects.count()
+        registros_eliminados = registros_antes - registros_despues
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Se eliminaron {registros_eliminados} actividades de pago exitosamente.',
+            'registros_eliminados': registros_eliminados
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividades de pago: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar las actividades de pago.'
+        })
+
+
+@csrf_exempt
+@require_POST
+def cargar_datos_precargados(request, crucero_id):
+    """Vista para cargar datos precargados de actividades según el tipo de crucero"""
+
+    try:
+        # Verificar que el request sea AJAX
+        if not request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta vista solo acepta peticiones AJAX.'
+            })
+
+        # Parsear los datos JSON del request
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Los datos enviados no son un JSON válido.'
+            })
+
+        # Validar que se proporcione el tipo de actividad
+        if 'tipo_actividad' not in data:
+            return JsonResponse({
+                'success': False,
+                'message': 'El tipo de actividad es requerido.'
+            })
+
+        tipo_actividad = data['tipo_actividad']
+
+        # Validar que el tipo sea válido
+        if tipo_actividad not in ['rutinaria', 'pago']:
+            return JsonResponse({
+                'success': False,
+                'message': 'El tipo de actividad debe ser "rutinaria" o "pago".'
+            })
+
+        # Obtener la embarcación
+        try:
+            embarcacion = Embarcacion.objects.get(pk=crucero_id)
+        except Embarcacion.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'La embarcación especificada no existe.'
+            })
+
+        # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+        # Por ahora, no podemos cargar actividades sin viajes
+        viaje = None
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
+            })
+
+        # Llamar a la función para cargar actividades
+        try:
+            resultado = cargar_actividades_entretenimiento(viaje)
+
+            # Contar actividades creadas según el tipo solicitado
+            if tipo_actividad == 'rutinaria':
+                actividades_creadas = len(resultado.get('rutinarias', []))
+                mensaje = f'Se cargaron {actividades_creadas} actividades rutinarias exitosamente.'
+            else:  # tipo_actividad == 'pago'
+                actividades_creadas = len(resultado.get('pago', []))
+                mensaje = f'Se cargaron {actividades_creadas} actividades de pago exitosamente.'
+
+            return JsonResponse({
+                'success': True,
+                'message': mensaje,
+                'actividades_creadas': actividades_creadas,
+                'tipo_embarcacion': embarcacion.tipo.nombre if embarcacion.tipo else 'No especificado',
+                'tipo_actividad': tipo_actividad
+            })
+
+        except Exception as e:
+            print(f"Error al cargar actividades: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'message': 'Ocurrió un error al cargar las actividades.'
+            })
+
+    except Exception as e:
+        print(f"Error crítico en cargar_datos_precargados: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error interno del servidor.'
+        })
+
+
+def crear_actividad_rutinaria_view(request, crucero_id):
+    """Vista para mostrar el formulario de creación de actividades rutinarias"""
+
+    # Obtener la embarcación
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+
+    # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+    viaje = None
+
+    if request.method == 'POST':
+        return crear_actividad_rutinaria_post(request, embarcacion)
+
+    context = {
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
+        'viaje': viaje,
+        'dias_opciones': [(i, f"Día {i}") for i in range(1, 9)],
+    }
+
+    return render(request, 'entretenimiento/crear_actividad_rutinaria.html', context)
+
+
+@csrf_exempt
+def crear_actividad_rutinaria_post(request, embarcacion):
+    """Vista para procesar la creación de actividades rutinarias"""
+
+    try:
+        # Para el modelo Embarcacion, no hay viajes, solo una ruta asignada
+        viaje = None
+        # Validar campos requeridos
+        required_fields = ['titulo', 'descripcion', 'dia_crucero', 'hora_inicio', 'hora_fin', 'maximo_actividad', 'ubicacion']
+        for field in required_fields:
+            if field not in request.POST or not request.POST[field].strip():
+                return JsonResponse({
+                    'success': False,
+                    'message': f'El campo {field.replace("_", " ").title()} es requerido.'
+                })
+
+        titulo = request.POST['titulo'].strip()
+        descripcion = request.POST['descripcion'].strip()
+        dia_crucero = int(request.POST['dia_crucero'])
+        hora_inicio_str = request.POST['hora_inicio']
+        hora_fin_str = request.POST['hora_fin']
+        maximo_actividad = int(request.POST['maximo_actividad'])
+        ubicacion = request.POST['ubicacion'].strip()
+
+        # Validar rangos
+        if dia_crucero < 1 or dia_crucero > 8:
+            return JsonResponse({
+                'success': False,
+                'message': 'El día del crucero debe estar entre 1 y 8.'
+            })
+
+        if maximo_actividad < 0:
+            return JsonResponse({
+                'success': False,
+                'message': 'El máximo de participantes debe ser mayor o igual a 0.'
+            })
+
+        # Convertir horas y validar minutos
+        try:
+            # Usar dt_time.fromisoformat para mejor compatibilidad
+            if len(hora_inicio_str) == 5:  # Formato HH:MM
+                hora_inicio_str += ':00'  # Agregar segundos si no están presentes
+            if len(hora_fin_str) == 5:  # Formato HH:MM
+                hora_fin_str += ':00'  # Agregar segundos si no están presentes
+
+            hora_inicio = dt_time.fromisoformat(hora_inicio_str)
+            hora_fin = dt_time.fromisoformat(hora_fin_str)
+
+            # Validar que los minutos estén entre 0 y 59
+            if hora_inicio.minute < 0 or hora_inicio.minute > 59:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Los minutos de la hora de inicio deben estar entre 00 y 59.'
+                })
+
+            if hora_fin.minute < 0 or hora_fin.minute > 59:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Los minutos de la hora de fin deben estar entre 00 y 59.'
+                })
+
+            # Validar que la hora de fin sea al menos 30 minutos después de la hora de inicio
+            minutos_inicio = hora_inicio.hour * 60 + hora_inicio.minute
+            minutos_fin = hora_fin.hour * 60 + hora_fin.minute
+
+            if minutos_fin < minutos_inicio + 30:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La hora de fin debe ser al menos 30 minutos después de la hora de inicio.'
+                })
+
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Formato de hora inválido. Use HH:MM.'
+            })
+
+        # Manejar la imagen si se subió
+        img_src = None
+        if 'imagen' in request.FILES:
+            imagen = request.FILES['imagen']
+
+            # Validar formato JPG
+            if not imagen.content_type == 'image/jpeg':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Solo se permiten imágenes en formato JPG.'
+                })
+
+            # Validar tamaño máximo 500KB
+            if imagen.size > 500 * 1024:  # 500KB en bytes
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La imagen no puede superar los 500KB.'
+                })
+
+            # Generar nombre único para la imagen
+            extension = os.path.splitext(imagen.name)[1]
+            nombre_unico = f"{uuid.uuid4().hex}{extension}"
+
+            # Guardar la imagen
+            file_path = os.path.join('img', nombre_unico)
+            file_name = default_storage.save(file_path, ContentFile(imagen.read()))
+
+            # Guardar solo el nombre del archivo en img_src
+            img_src = nombre_unico
+
+        # Crear la actividad rutinaria
+        actividad = ActividadRutinaria.objects.create(
+            embarcacion=embarcacion,
+            titulo=titulo,
+            descripcion=descripcion,
+            dia_crucero=dia_crucero,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+            maximo_actividad=maximo_actividad,
+            ubicacion=ubicacion,
+            img_src=img_src
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Actividad rutinaria "{titulo}" creada exitosamente.',
+            'actividad_id': actividad.id_actividad
+        })
+
+    except Exception as e:
+        print(f"Error al crear actividad rutinaria: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        # Debug: imprimir los datos que se están intentando guardar
+        print("Datos que se intentaron guardar:")
+        try:
+            print(f"- embarcacion: {embarcacion}")
+            print(f"- titulo: {titulo}")
+            print(f"- descripcion: {descripcion}")
+            print(f"- dia_crucero: {dia_crucero}")
+            print(f"- hora_inicio: {hora_inicio}")
+            print(f"- hora_fin: {hora_fin}")
+            print(f"- maximo_actividad: {maximo_actividad}")
+            print(f"- ubicacion: {ubicacion}")
+            print(f"- img_src: {img_src}")
+        except NameError:
+            print("Algunos datos no están definidos")
+
+        return JsonResponse({
+            'success': False,
+            'message': f'Ocurrió un error al crear la actividad rutinaria: {str(e)}'
+        })
+
+
+def crear_actividad_pago_view(request, crucero_id):
+    """Vista para mostrar y procesar el formulario de creación de actividades de pago"""
+    embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+    viaje = None  # No hay viajes en el modelo Embarcacion
+
+    if request.method == 'POST':
+        return crear_actividad_pago_post(request, crucero_id)
+
+    context = {
+        'crucero': embarcacion,  # Mantener 'crucero' por compatibilidad con templates
+        'embarcacion': embarcacion,
+        'viaje': viaje,
+        'tipo_actividad': 'pago'
+    }
+
+    return render(request, 'entretenimiento/crear_actividad_pago.html', context)
+
+
+def crear_actividad_pago_post(request, crucero_id):
+    """Vista para procesar la creación de actividades de pago"""
+
+    try:
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion, usaremos embarcacion directamente
+        # Validar datos requeridos
+        required_fields = ['titulo', 'descripcion', 'dia_crucero', 'coste', 'hora_inicio', 'hora_fin', 'maximoActividad']
+        for field in required_fields:
+            if field not in request.POST or not request.POST[field].strip():
+                return JsonResponse({
+                    'success': False,
+                    'message': f'El campo {field} es requerido.'
+                })
+
+        # Extraer datos del formulario
+        titulo = request.POST['titulo'].strip()
+        descripcion = request.POST['descripcion'].strip()
+        dia_crucero = int(request.POST['dia_crucero'])
+        coste_str = request.POST['coste'].strip()
+        hora_inicio_str = request.POST['hora_inicio']
+        hora_fin_str = request.POST['hora_fin']
+        maximoActividad = int(request.POST['maximoActividad'])
+
+        # Validar y convertir coste
+        try:
+            coste = Decimal(coste_str)
+            if coste < 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El coste debe ser mayor o igual a 0.'
+                })
+        except (ValueError, Decimal.InvalidOperation):
+            return JsonResponse({
+                'success': False,
+                'message': 'El coste debe ser un número válido.'
+            })
+
+        # Validar rangos
+        if dia_crucero < 1 or dia_crucero > 8:
+            return JsonResponse({
+                'success': False,
+                'message': 'El día del crucero debe estar entre 1 y 8.'
+            })
+
+        if maximoActividad < 0:
+            return JsonResponse({
+                'success': False,
+                'message': 'El máximo de participantes debe ser mayor o igual a 0.'
+            })
+
+        # Convertir horas y validar minutos
+        try:
+            # Usar dt_time.fromisoformat para mejor compatibilidad
+            if len(hora_inicio_str) == 5:  # Formato HH:MM
+                hora_inicio_str += ':00'  # Agregar segundos si no están presentes
+            if len(hora_fin_str) == 5:  # Formato HH:MM
+                hora_fin_str += ':00'  # Agregar segundos si no están presentes
+
+            hora_inicio = dt_time.fromisoformat(hora_inicio_str)
+            hora_fin = dt_time.fromisoformat(hora_fin_str)
+
+            # Validar que los minutos estén entre 0 y 59
+            if hora_inicio.minute < 0 or hora_inicio.minute > 59:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Los minutos de la hora de inicio deben estar entre 00 y 59.'
+                })
+
+            if hora_fin.minute < 0 or hora_fin.minute > 59:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Los minutos de la hora de fin deben estar entre 00 y 59.'
+                })
+
+            # Validar que la hora de fin sea al menos 30 minutos después de la hora de inicio
+            minutos_inicio = hora_inicio.hour * 60 + hora_inicio.minute
+            minutos_fin = hora_fin.hour * 60 + hora_fin.minute
+
+            if minutos_fin < minutos_inicio + 30:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La hora de fin debe ser al menos 30 minutos después de la hora de inicio.'
+                })
+
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Formato de hora inválido. Use HH:MM.'
+            })
+
+        # Validar imagen si se proporciona
+        img_src = None
+        if 'imagen' in request.FILES:
+            imagen = request.FILES['imagen']
+
+            # Validar tipo de archivo
+            if not imagen.content_type in ['image/jpeg', 'image/jpg']:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Solo se permiten imágenes JPG.'
+                })
+
+            # Validar tamaño (500KB máximo)
+            if imagen.size > 500 * 1024:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La imagen debe ser menor a 500KB.'
+                })
+
+            # Generar nombre único para la imagen
+            extension = os.path.splitext(imagen.name)[1]
+            nombre_unico = f"{uuid.uuid4().hex}{extension}"
+
+            # Guardar la imagen
+            file_path = os.path.join('img', nombre_unico)
+            file_name = default_storage.save(file_path, ContentFile(imagen.read()))
+
+            # Guardar solo el nombre del archivo en img_src
+            img_src = nombre_unico
+
+        # Debug: verificar que todos los campos sean válidos antes de crear
+        print("Verificando campos antes de crear actividad:")
+        print(f"embarcacion type: {type(embarcacion)}, value: {embarcacion}")
+        print(f"titulo type: {type(titulo)}, value: {titulo}")
+        print(f"dia_crucero type: {type(dia_crucero)}, value: {dia_crucero}")
+        print(f"coste type: {type(coste)}, value: {coste}")
+        print(f"hora_inicio type: {type(hora_inicio)}, value: {hora_inicio}")
+        print(f"hora_fin type: {type(hora_fin)}, value: {hora_fin}")
+        print(f"maximoActividad type: {type(maximoActividad)}, value: {maximoActividad}")
+
+        # Crear la actividad de pago
+        actividad = Actividad.objects.create(
+            embarcacion=embarcacion,
+            titulo=titulo,
+            descripcion=descripcion,
+            dia_crucero=dia_crucero,
+            coste=coste,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+            maximoActividad=maximoActividad,
+            img_src=img_src
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Actividad de pago "{titulo}" creada exitosamente.',
+            'actividad_id': actividad.id_actividad
+        })
+
+    except Exception as e:
+        print(f"Error al crear actividad de pago: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        # Debug: imprimir los datos que se están intentando guardar
+        print("Datos que se intentaron guardar:")
+        print(f"- embarcacion: {embarcacion}")
+        print(f"- titulo: {titulo}")
+        print(f"- descripcion: {descripcion}")
+        print(f"- dia_crucero: {dia_crucero}")
+        print(f"- coste: {coste}")
+        print(f"- hora_inicio: {hora_inicio}")
+        print(f"- hora_fin: {hora_fin}")
+        print(f"- maximoActividad: {maximoActividad}")
+        print(f"- img_src: {img_src}")
+
+        return JsonResponse({
+            'success': False,
+            'message': f'Ocurrió un error al crear la actividad de pago: {str(e)}'
+        })
+
+
+@csrf_exempt
+def api_get_activities(request, crucero_id):
+    """Vista API para obtener todas las actividades de un crucero"""
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion, usaremos embarcacion directamente
+
+        activities_data = []
+
+        # Debug: imprimir información sobre las actividades que se van a cargar
+        print(f"Cargando actividades para embarcación ID: {crucero_id}")
+        print(f"Embarcación: {embarcacion.nombre}")
+
+        # Obtener actividades de pago
+        actividades_pago = Actividad.objects.filter(embarcacion=embarcacion).order_by('dia_crucero', 'hora_inicio')
+        print(f"Actividades de pago encontradas: {actividades_pago.count()}")
+        for actividad in actividades_pago:
+            activities_data.append({
+                'id_actividad': actividad.id_actividad,
+                'titulo': actividad.titulo,
+                'descripcion': actividad.descripcion,
+                'dia_crucero': actividad.dia_crucero,
+                'hora_inicio': str(actividad.hora_inicio),
+                'hora_fin': str(actividad.hora_fin),
+                'maximo_participantes': actividad.maximoActividad,
+                'coste': str(actividad.coste) if actividad.coste else None,
+                'ubicacion': None,
+                'img_src': actividad.img_src,
+                'type': 'pago'
+            })
+
+        # Obtener actividades rutinarias
+        actividades_rutinarias = ActividadRutinaria.objects.filter(embarcacion=embarcacion).order_by('dia_crucero', 'hora_inicio')
+        print(f"Actividades rutinarias encontradas: {actividades_rutinarias.count()}")
+
+        # Debug: listar todas las actividades rutinarias encontradas
+        for act in actividades_rutinarias:
+            print(f"  - ID: {act.id_actividad}, Título: {act.titulo}, Día: {act.dia_crucero}")
+
+        print(f"Total de actividades encontradas: {len(activities_data) + actividades_rutinarias.count()}")
+        for actividad in actividades_rutinarias:
+            activities_data.append({
+                'id_actividad': actividad.id_actividad,
+                'titulo': actividad.titulo,
+                'descripcion': actividad.descripcion,
+                'dia_crucero': actividad.dia_crucero,
+                'hora_inicio': str(actividad.hora_inicio),
+                'hora_fin': str(actividad.hora_fin),
+                'maximo_participantes': actividad.maximo_actividad,
+                'coste': None,
+                'ubicacion': actividad.ubicacion,
+                'img_src': actividad.img_src,
+                'type': 'rutinaria'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'activities': activities_data,
+            'total': len(activities_data)
+        })
+
+    except Exception as e:
+        print(f"Error al obtener actividades: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al obtener las actividades.'
+        })
+
+
+@csrf_exempt
+def api_delete_activity(request, crucero_id):
+    """Vista API para eliminar una actividad específica"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        import json
+        data = json.loads(request.body)
+        activity_id = data.get('activity_id')
+        activity_type = data.get('activity_type')
+
+        if not activity_id or not activity_type:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de actividad y tipo son requeridos.'
+            })
+
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
+            })
+
+        # Eliminar la actividad según su tipo
+        if activity_type == 'pago':
+            actividad = get_object_or_404(Actividad, id_actividad=activity_id, viaje=viaje)
+            actividad.delete()
+            message = f'Actividad de pago "{actividad.titulo}" eliminada exitosamente.'
+
+        elif activity_type == 'rutinaria':
+            actividad = get_object_or_404(ActividadRutinaria, id_actividad=activity_id, viaje=viaje)
+            actividad.delete()
+            message = f'Actividad rutinaria "{actividad.titulo}" eliminada exitosamente.'
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad no válido.'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': message
+        })
+
+    except Actividad.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Actividad de pago no encontrada.'
+        })
+
+    except ActividadRutinaria.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Actividad rutinaria no encontrada.'
+        })
+
+    except Exception as e:
+        print(f"Error al eliminar actividad: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al eliminar la actividad.'
+        })
+
+
+def api_get_reservas(request, crucero_id):
+    """Vista API para obtener todas las reservas relacionadas con actividades de entretenimiento"""
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        # Obtener embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+        viaje = None  # No hay viajes en el modelo Embarcacion
+
+        if not viaje:
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta funcionalidad no está disponible para embarcaciones sin viajes asignados.'
+            })
+
+        reservas_data = []
+
+        # Obtener reservas de actividades de pago
+        reservas_pago = Reserva.objects.filter(
+            actividad_pago__viaje=viaje,
+            actividad_pago__isnull=False
+        ).select_related('actividad_pago').order_by('-fecha_creacion')
+
+        for reserva in reservas_pago:
+            reservas_data.append({
+                'id': reserva.id,
+                'nombre': reserva.nombre_cliente or '',
+                'apellido': reserva.apellido_cliente or '',
+                'n_habitacion': reserva.codigo_ubicacion_habitacion or '',
+                'n_personas': reserva.numero_personas,
+                'fecha_reserva': reserva.fecha_creacion.strftime('%Y-%m-%d'),
+                'hora_reserva': reserva.fecha_creacion.strftime('%H:%M'),
+                'dia_actividad': reserva.actividad_pago.dia_crucero,
+                'nombre_actividad': reserva.actividad_pago.titulo,
+                'tipo_actividad': 'pago',
+                'coste': str(reserva.actividad_pago.coste) if reserva.actividad_pago.coste else None,
+                'ubicacion': None,
+                'descripcion_actividad': reserva.actividad_pago.descripcion
+            })
+
+        # Obtener reservas de actividades rutinarias
+        reservas_rutinarias = Reserva.objects.filter(
+            actividad_rutinaria__viaje=viaje,
+            actividad_rutinaria__isnull=False
+        ).select_related('actividad_rutinaria').order_by('-fecha_creacion')
+
+        for reserva in reservas_rutinarias:
+            reservas_data.append({
+                'id': reserva.id,
+                'nombre': reserva.nombre_cliente or '',
+                'apellido': reserva.apellido_cliente or '',
+                'n_habitacion': reserva.codigo_ubicacion_habitacion or '',
+                'n_personas': reserva.numero_personas,
+                'fecha_reserva': reserva.fecha_creacion.strftime('%Y-%m-%d'),
+                'hora_reserva': reserva.fecha_creacion.strftime('%H:%M'),
+                'dia_actividad': reserva.actividad_rutinaria.dia_crucero,
+                'nombre_actividad': reserva.actividad_rutinaria.titulo,
+                'tipo_actividad': 'rutinaria',
+                'coste': None,
+                'ubicacion': reserva.actividad_rutinaria.ubicacion,
+                'descripcion_actividad': reserva.actividad_rutinaria.descripcion
+            })
+
+        # Ordenar por fecha de creación (más recientes primero)
+        reservas_data.sort(key=lambda x: x['fecha_reserva'] + ' ' + x['hora_reserva'], reverse=True)
+
+        return JsonResponse({
+            'success': True,
+            'reservas': reservas_data,
+            'total': len(reservas_data)
+        })
+
+    except Exception as e:
+        print(f"Error al obtener reservas: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            'success': False,
+            'message': 'Ocurrió un error al obtener las reservas.'
+        })
+
+
+@require_POST
+@csrf_exempt
+def cargar_datos_precargados(request, crucero_id):
+    """Vista para cargar datos precargados desde archivos JSON a las tablas de actividades"""
+    try:
+        # Obtener la embarcación
+        embarcacion = get_object_or_404(Embarcacion, pk=crucero_id)
+
+        # Obtener el tipo de actividad desde el POST
+        tipo_actividad = request.POST.get('tipo_actividad')
+
+        if not tipo_actividad:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad no especificado.'
+            })
+
+        # Definir rutas de archivos JSON según el tipo
+        base_path = os.path.join(settings.BASE_DIR, 'apps', 'entretenimiento', 'json')
+
+        if tipo_actividad == 'pago':
+            json_file = os.path.join(base_path, 'actividades_pago_grande.json')
+            modelo = Actividad
+            campos_mapeo = {
+                'titulo': 'titulo',
+                'descripcion': 'descripcion',
+                'dia_crucero': 'dia_crucero',
+                'coste': 'coste',
+                'hora_inicio': 'hora_inicio',
+                'hora_fin': 'hora_fin',
+                'maximoActividad': 'maximoActividad',
+                'img_src': 'img_src'
+            }
+        elif tipo_actividad == 'rutinaria':
+            json_file = os.path.join(base_path, 'actividades_rutinarias_grande.json')
+            modelo = ActividadRutinaria
+            campos_mapeo = {
+                'titulo': 'titulo',
+                'descripcion': 'descripcion',
+                'dia_crucero': 'dia_crucero',
+                'hora_inicio': 'hora_inicio',
+                'hora_fin': 'hora_fin',
+                'maximo_actividad': 'maximo_actividad',
+                'ubicacion': 'ubicacion',
+                'img_src': 'img_src'
+            }
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de actividad inválido. Use "pago" o "rutinaria".'
+            })
+
+        # Verificar que el archivo JSON existe
+        if not os.path.exists(json_file):
+            return JsonResponse({
+                'success': False,
+                'message': f'Archivo JSON no encontrado: {os.path.basename(json_file)}'
+            })
+
+        # Leer el archivo JSON
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # Verificar estructura del JSON
+        if 'actividades' not in data:
+            return JsonResponse({
+                'success': False,
+                'message': 'Estructura del archivo JSON inválida.'
+            })
+
+        actividades = data['actividades']
+        actividades_creadas = 0
+        actividades_actualizadas = 0
+
+        # Procesar cada actividad
+        for actividad_data in actividades:
+            try:
+                # Preparar datos para el modelo
+                datos_modelo = {'embarcacion': embarcacion}
+
+                for json_field, model_field in campos_mapeo.items():
+                    if json_field in actividad_data:
+                        if json_field == 'coste':
+                            # Convertir a Decimal para campos de precio
+                            datos_modelo[model_field] = Decimal(str(actividad_data[json_field]))
+                        else:
+                            datos_modelo[model_field] = actividad_data[json_field]
+
+                # Verificar si ya existe una actividad con el mismo título y día
+                actividad_existente = modelo.objects.filter(
+                    embarcacion=embarcacion,
+                    titulo=datos_modelo['titulo'],
+                    dia_crucero=datos_modelo['dia_crucero']
+                ).first()
+
+                if actividad_existente:
+                    # Actualizar actividad existente
+                    for field, value in datos_modelo.items():
+                        setattr(actividad_existente, field, value)
+                    actividad_existente.save()
+                    actividades_actualizadas += 1
+                else:
+                    # Crear nueva actividad
+                    modelo.objects.create(**datos_modelo)
+                    actividades_creadas += 1
+
+            except Exception as e:
+                print(f"Error al procesar actividad {actividad_data.get('titulo', 'desconocida')}: {str(e)}")
+                continue
+
+        # Preparar mensaje de resultado
+        mensaje = f"Datos cargados exitosamente. "
+        if actividades_creadas > 0:
+            mensaje += f"{actividades_creadas} actividades creadas. "
+        if actividades_actualizadas > 0:
+            mensaje += f"{actividades_actualizadas} actividades actualizadas."
+
+        return JsonResponse({
+            'success': True,
+            'message': mensaje,
+            'creadas': actividades_creadas,
+            'actualizadas': actividades_actualizadas
+        })
+
+    except Embarcacion.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Embarcación no encontrada.'
         })
 
     except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'message': 'Datos JSON inválidos.'
+            'message': 'Error al leer el archivo JSON.'
         })
 
     except Exception as e:
-        print(f"Error en registro_view: {e}")
+        print(f"Error en cargar_datos_precargados: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
         return JsonResponse({
             'success': False,
-            'message': 'Ocurrió un error interno. Por favor, intente nuevamente.'
+            'message': 'Ocurrió un error al cargar los datos.'
         })

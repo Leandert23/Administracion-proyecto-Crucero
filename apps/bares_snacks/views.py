@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db import IntegrityError
 from decimal import Decimal
+from django.http import JsonResponse
 
 @require_GET
 def productos_bar_api(request):
@@ -38,38 +39,40 @@ def productos_bar_api(request):
 
 @require_GET
 def bares_list_api(request):
-  # Lista instalaciones de tipo "Bares y Cafés" como opciones de punto de venta
-  from apps.cruceros.models import Instalacion
+  # Lista embarcaciones con bares como opciones de punto de venta
+  from apps.creador_embarcaciones.models import Embarcacion
   from apps.bares_snacks.models import Bar
-  instalaciones = Instalacion.objects.filter(tipo='bares_cafes').select_related('crucero')
+  embarcaciones = Embarcacion.objects.all()
   data = []
-  for inst in instalaciones:
-    bar = Bar.objects.filter(ubicacion_id=inst.id).only('id').first()
-    data.append({
-      'id': inst.id,  # este es el ID de Instalacion
-      'nombre': inst.nombre,
-      'crucero': inst.crucero.nombre if getattr(inst, 'crucero', None) else '',
-      'bar_id': bar.id if bar else None,
-    })
+  for emb in embarcaciones:
+    # Buscar bares asociados a esta embarcación a través de locales
+    bares = Bar.objects.filter(ubicacion__cubierta__embarcacion=emb).only('id').all()
+    if bares.exists():
+      data.append({
+        'id': emb.id,  # este es el ID de Embarcacion
+        'nombre': emb.nombre,
+        'identificador': emb.identificador,
+        'bar_count': bares.count(),
+      })
   return JsonResponse(data, safe=False)
 
 
 @require_GET
 def puntos_venta_bares_api(request):
-  # Trae los puntos de venta a partir de Instalaciones tipo "bares_cafes".
-  # Si falta el Bar para una instalación, lo crea para asegurar FK válida.
+  # Trae los puntos de venta a partir de Locales tipo "bar".
+  # Si falta el Bar para un local, lo crea para asegurar FK válida.
   from apps.bares_snacks.models import Bar
-  from apps.cruceros.models import Instalacion
+  from apps.creador_embarcaciones.models import Locales
   from datetime import timedelta
 
   ahora = timezone.now()
-  instalaciones = Instalacion.objects.filter(tipo='bares_cafes').select_related('crucero')
+  locales = Locales.objects.filter(tipo='bar').select_related('cubierta__embarcacion')
   data = []
-  for inst in instalaciones:
+  for local in locales:
     bar, _ = Bar.objects.get_or_create(
-      ubicacion=inst,
+      ubicacion=local,
       defaults={
-        'nombre': inst.nombre,
+        'nombre': local.nombre,
         'hora_aper': ahora,
         'hora_cierre': ahora + timedelta(hours=8),  # cumple la restricción hcierre>haper
       }
@@ -77,10 +80,10 @@ def puntos_venta_bares_api(request):
     data.append({
       'id': bar.id,
       'nombre': bar.nombre,
-      'instalacion_id': inst.id,
-      'instalacion_codigo': getattr(inst, 'codigo_ubicacion', ''),
-      'instalacion_nombre': str(inst),
-      'crucero': getattr(getattr(inst, 'crucero', None), 'nombre', ''),
+      'local_id': local.id,
+      'local_codigo': local.ID_local,
+      'local_nombre': str(local),
+      'embarcacion': getattr(getattr(local.cubierta, 'embarcacion', None), 'nombre', ''),
     })
   return JsonResponse(data, safe=False)
 
@@ -89,35 +92,38 @@ def puntos_venta_bares_api(request):
 def eliminar_producto_bar_api(request):
   from apps.bares_snacks.models import Menu, ProductoBar
   import json
-  data = json.loads(request.body or '{}')
-  producto_id = data.get('id')
-  origen = data.get('origen')  # 'producto_bar' | 'menu' | None
-  if not producto_id:
-    return JsonResponse({'success': False, 'error': 'ID requerido'}, status=400)
-  # Estrategia: si se especifica origen, intentar sólo ese; si no, probar ProductoBar y luego Menu
-  if origen == 'producto_bar':
+  try:
+    data = json.loads(request.body or '{}')
+    producto_id = data.get('id')
+    origen = data.get('origen')  # 'producto_bar' | 'menu' | None
+    if not producto_id:
+      return JsonResponse({'success': False, 'error': 'ID requerido'}, status=400)
+    # Estrategia: si se especifica origen, intentar sólo ese; si no, probar ProductoBar y luego Menu
+    if origen == 'producto_bar':
+      try:
+        ProductoBar.objects.get(id=producto_id).delete()
+        return JsonResponse({'success': True, 'deleted_origin': 'producto_bar'})
+      except ProductoBar.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'ProductoBar no encontrado'}, status=404)
+    if origen == 'menu':
+      try:
+        Menu.objects.get(id=producto_id).delete()
+        return JsonResponse({'success': True, 'deleted_origin': 'menu'})
+      except Menu.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Menu no encontrado'}, status=404)
+    # Sin origen: intentar ambos
     try:
       ProductoBar.objects.get(id=producto_id).delete()
       return JsonResponse({'success': True, 'deleted_origin': 'producto_bar'})
     except ProductoBar.DoesNotExist:
-      return JsonResponse({'success': False, 'error': 'ProductoBar no encontrado'}, status=404)
-  if origen == 'menu':
+      pass
     try:
       Menu.objects.get(id=producto_id).delete()
       return JsonResponse({'success': True, 'deleted_origin': 'menu'})
     except Menu.DoesNotExist:
-      return JsonResponse({'success': False, 'error': 'Menu no encontrado'}, status=404)
-  # Sin origen: intentar ambos
-  try:
-    ProductoBar.objects.get(id=producto_id).delete()
-    return JsonResponse({'success': True, 'deleted_origin': 'producto_bar'})
-  except ProductoBar.DoesNotExist:
-    pass
-  try:
-    Menu.objects.get(id=producto_id).delete()
-    return JsonResponse({'success': True, 'deleted_origin': 'menu'})
-  except Menu.DoesNotExist:
-    return JsonResponse({'success': False, 'error': 'Producto no encontrado'}, status=404)
+      return JsonResponse({'success': False, 'error': 'Producto no encontrado'}, status=404)
+  except Exception as e:
+    return JsonResponse({'success': False, 'error': f'Error inesperado: {str(e)}'}, status=500)
 
 
 @csrf_exempt
@@ -184,7 +190,7 @@ def actualizar_producto_bar_api(request):
       'tipo_categoria': p.tipo_almacen,
       'subtipo_categoria': p.subtipo_almacen,
       'receta': p.receta,
-    }
+  }
   })
 from django.views.decorators.http import require_GET
 @require_GET
@@ -224,7 +230,7 @@ def crear_producto_bar_api(request):
   if not nombre or not tipo_categoria or not subtipo_categoria:
     return JsonResponse({'success': False, 'error': 'Faltan campos obligatorios'}, status=400)
   from apps.almacen.models import Producto
-  from apps.bares_snacks.models import ProductoBar
+  from apps.bares_snacks.models import ProductoBar, IngredienteReceta
   ingredientes = Producto.objects.filter(id__in=ingredientes_ids)
   sin_stock = [i for i in ingredientes if i.cantidad <= 0]
   # Crear registro ProductoBar
@@ -237,6 +243,11 @@ def crear_producto_bar_api(request):
     precio_vta= precio if precio else 0,
     receta=''  # pendiente de implementar
   )
+  # Crear ingredientes de receta (por defecto cantidad=1, unidad=medida del producto)
+  for ing in ingredientes:
+    # Buscar la descripción de la unidad
+    unidad = dict(ing.UNIDADES_MEDIDA).get(ing.medida, ing.medida)
+    IngredienteReceta.objects.create(producto_bar=producto, ingrediente=ing, cantidad=1, unidad=unidad)
   return JsonResponse({
     'success': True,
     'producto': {
@@ -256,11 +267,15 @@ from django.views.decorators.http import require_GET
 @require_GET
 def categorias_almacen_api(request):
   from apps.almacen.models import Producto
-  tipos = Producto.TIPOS_PRODUCTO
+  # Devuelve todos los tipos de producto, pero marca solo los tres requeridos con 'mostrar': True
+  tipos = [
+    (tipo_id, tipo_nombre, tipo_id in ("ALIMENTOS_FRESCOS", "ALIMENTOS_SECOS", "BEBIDAS"))
+    for tipo_id, tipo_nombre in Producto.TIPOS_PRODUCTO
+  ]
   subtipos = Producto.SUBTIPOS_PRODUCTO
   # Agrupar subtipos por tipo
   subtipos_por_tipo = {}
-  for tipo_id, tipo_nombre in tipos:
+  for tipo_id, tipo_nombre, _ in tipos:
     subtipos_por_tipo[tipo_id] = []
   for sub_id, sub_nombre in subtipos:
     # Buscar a qué tipo pertenece el subtipo
@@ -272,9 +287,10 @@ def categorias_almacen_api(request):
     {
       'id': tipo_id,
       'nombre': tipo_nombre,
-      'subtipos': subtipos_por_tipo[tipo_id]
+      'subtipos': subtipos_por_tipo[tipo_id],
+      'mostrar': mostrar
     }
-    for tipo_id, tipo_nombre in tipos
+    for tipo_id, tipo_nombre, mostrar in tipos
   ]
   return JsonResponse(data, safe=False)
 from django.views.decorators.http import require_http_methods
@@ -309,25 +325,31 @@ def guardar_receta_producto_bar_api(request, producto_id: int):
     p = ProductoBar.objects.get(id=producto_id)
   except ProductoBar.DoesNotExist:
     return JsonResponse({'success': False, 'error': 'ProductoBar no encontrado'}, status=404)
-  try:
-    payload = json.loads(request.body or '{}')
-  except json.JSONDecodeError:
-    return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
-  items = payload.get('items') or []
+  data = json.loads(request.body)
+  items = data.get('items') or data.get('ingredientes') or []
   # Reemplazar receta completa: simple y claro
   p.receta_items.all().delete()
+  from decimal import Decimal
   creados = []
+  from apps.almacen.models import Producto as ProdAlmacen
   for it in items:
-    ing_id = it.get('ingrediente_id') or it.get('id')
+    if isinstance(it, dict):
+      ing_id = it.get('ingrediente_id') or it.get('id')
+      cantidad = it.get('cantidad', 1)
+      unidad = it.get('unidad')
+    else:
+      ing_id = it
+      cantidad = 1
+      unidad = None
     if not ing_id:
       continue
     try:
       ing = ProdAlmacen.objects.get(id=ing_id)
     except ProdAlmacen.DoesNotExist:
       continue
-    cant = Decimal(str(it.get('cantidad') or 1))
-    unidad = str(it.get('unidad') or '')
-    obj = IngredienteReceta.objects.create(producto_bar=p, ingrediente=ing, cantidad=cant, unidad=unidad)
+    cant = Decimal(str(cantidad)) if cantidad is not None else 1
+    unidad_final = str(unidad or ing.medida)
+    obj = IngredienteReceta.objects.create(producto_bar=p, ingrediente=ing, cantidad=cant, unidad=unidad_final)
     creados.append({
       'id': obj.id,
       'ingrediente_id': obj.ingrediente_id,
@@ -336,20 +358,6 @@ def guardar_receta_producto_bar_api(request, producto_id: int):
       'unidad': obj.unidad
     })
   return JsonResponse({'success': True, 'producto_id': p.id, 'items': creados})
-from apps.bares_snacks.models import Menu
-
-def productos_disponibles_api(request):
-  productos = []
-  for menu in Menu.objects.all():
-    productos.append({
-      'id': menu.id,
-      'nombre': menu.nombre,
-      'categoria': menu.categoria.nombre if menu.categoria else '',
-      'tipo': 'pago' if menu.precio_vta > 0 else 'gratis',
-      'precio': float(menu.precio_vta),
-      'ingredientes': [],
-      'cantidad_posible': 0
-    })
   return JsonResponse(productos, safe=False)
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -370,17 +378,17 @@ from django.shortcuts import HttpResponse
 
 from apps.bares_snacks.models import Pedidos, DetallePedido
 from apps.almacen.models import Producto
-from apps.cruceros.models import Crucero
+from apps.creador_embarcaciones.models import Embarcacion
 
 def get_ingredientes_almacen():
   # Devuelve todos los productos de almacen como ingredientes
   return Producto.objects.all()
-#from apps.recursos_humanos.models import Personal
+from apps.recursos_humanos.models import Personal
 from django.db.models import Sum, Q
 
 
-def bares_view(request, crucero_id):
-  crucero = Crucero.objects.get(id=crucero_id)
+def bares_view(request, embarcacion_id):
+  embarcacion = Embarcacion.objects.get(id=embarcacion_id)
   # Ingresos totales: suma de todos los pedidos completados
   detalles_completados = DetallePedido.objects.select_related('producto').filter(pedido__estado='completado')
   ingresos_totales = 0
@@ -404,15 +412,26 @@ def bares_view(request, crucero_id):
   ]
   bajo_stock = [p for p in productos_stock if p['estado'] in ['CRITICO', 'BAJO', 'NO HAY STOCK']]
 
+  # Empleados
+  empleados = Personal.objects.all()
+  empleados_data = [
+    {
+      'nombre': f"{e.nombre} {e.apellido}",
+      'cargo': e.puesto,
+      'horario': '09:00 - 17:00', # Ajusta si tienes campo horario
+      'disponible': True # Ajusta si tienes campo de disponibilidad
+    } for e in empleados
+  ]
 
   ingredientes_almacen = get_ingredientes_almacen()
 
   context = {
-    'crucero': crucero,
+    'embarcacion': embarcacion,
     'ingresos_totales': ingresos_totales,
     'ingresos_reales': ingresos_reales,
     'productos_stock': productos_stock,
     'bajo_stock': bajo_stock,
+    'empleados': empleados_data,
     'ingredientes_almacen': ingredientes_almacen,
   }
   return render(request, 'bares_snacks/bares.html', context)
@@ -420,31 +439,31 @@ def bares_view(request, crucero_id):
 
 @require_GET
 def habitaciones_list_api(request):
-  """Devuelve habitaciones desde cruceros.Habitacion.
-  Opcional: filtrar por ?crucero_id=.
+  """Devuelve habitaciones desde creador_embarcaciones.Habitaciones.
+  Opcional: filtrar por ?embarcacion_id=.
   Formato: { id, codigo: codigo_ubicacion, lado, lado_code: EST|BAB, label }
   """
-  from apps.cruceros.models import Habitacion
+  from apps.creador_embarcaciones.models import Habitaciones
   try:
-    crucero_id = int(request.GET.get('crucero_id')) if request.GET.get('crucero_id') else None
+    embarcacion_id = int(request.GET.get('embarcacion_id')) if request.GET.get('embarcacion_id') else None
   except ValueError:
-    crucero_id = None
-  qs = Habitacion.objects.all()
-  if crucero_id:
-    qs = qs.filter(crucero_id=crucero_id)
+    embarcacion_id = None
+  qs = Habitaciones.objects.all()
+  if embarcacion_id:
+    qs = qs.filter(cubierta__embarcacion_id=embarcacion_id)
   data = []
-  for h in qs.select_related('crucero', 'tipo_habitacion'):
-    lado_code = 'BAB' if h.lado == 'babor' else 'EST'
-    codigo = h.codigo_ubicacion or ''
+  for h in qs.select_related('cubierta__embarcacion', 'tipo_habitacion'):
+    lado_code = 'BAB' if h.posicion == 'babor' else 'EST'
+    codigo = h.ID_local or ''
     label = f"HAB: {codigo} {lado_code}"
     data.append({
       'id': h.id,
       'codigo': codigo,
-      'lado': h.lado,
+      'lado': h.posicion,
       'lado_code': lado_code,
       'label': label,
       'numero': h.numero,
-      'crucero': getattr(h.crucero, 'nombre', ''),
+      'embarcacion': getattr(getattr(h.cubierta, 'embarcacion', None), 'nombre', ''),
     })
   return JsonResponse(data, safe=False)
 
@@ -462,56 +481,100 @@ def crear_pedido_api(request):
 
     # Campos básicos
     cliente_id = payload.get('cliente_id')
+    empleado_id = payload.get('empleado_id')
     tipo_consumo = payload.get('tipo_consumo')  # 'bar' | 'camarote'
     lugarentrega_id = payload.get('lugarentrega_id')  # requerido si bar
+    habitacion_id = payload.get('habitacion_id')  # requerido si camarote
     nota = (payload.get('nota') or '').strip()
     productos = payload.get('productos') or []  # [{producto_id, cantidad}]
 
+    # Validaciones mínimas: ahora cliente y empleado son opcionales
     if not productos:
       return JsonResponse({'success': False, 'error': 'Debe incluir al menos un producto'}, status=400)
 
     from apps.bares_snacks.models import ProductoBar
     from apps.ventas.models import Cliente
-    #from apps.recursos_humanos.models import Personal
-    from apps.cruceros.models import Instalacion
+    from apps.recursos_humanos.models import Personal
+    from apps.creador_embarcaciones.models import Embarcacion, Habitaciones, Locales
 
     # Verificar existencia entidades si se enviaron
     cliente = None
+    empleado = None
     if cliente_id:
       try:
         cliente = Cliente.objects.get(id=cliente_id)
       except Cliente.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Entidad no encontrada: Cliente'}, status=404)
+    if empleado_id:
+      try:
+        empleado = Personal.objects.get(id=empleado_id)
+      except Personal.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Entidad no encontrada: Personal'}, status=404)
 
-    instalacion = None
+    local = None
+    habitacion = None
     if tipo_consumo == 'bar':
       if not lugarentrega_id:
         return JsonResponse({'success': False, 'error': 'lugarentrega_id es requerido para consumo en bar'}, status=400)
       try:
-        instalacion = Instalacion.objects.get(id=lugarentrega_id)
-      except Instalacion.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Instalación no encontrada'}, status=404)
+        local = Locales.objects.get(id=lugarentrega_id)
+      except Locales.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Local no encontrado'}, status=404)
+    elif tipo_consumo == 'camarote':
+      if not habitacion_id:
+        return JsonResponse({'success': False, 'error': 'habitacion_id es requerido para consumo en camarote'}, status=400)
+      try:
+        habitacion = Habitaciones.objects.get(id=habitacion_id)
+      except Habitaciones.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Habitación no encontrada'}, status=404)
 
     # Crear pedido
     try:
+      # Generar número de factura
+      def generar_numero_factura(pedido_id, lugar_nombre, productos):
+          lugarCod = (lugar_nombre or '').upper().replace(" ","").replace("Á","A").replace("É","E").replace("Í","I").replace("Ó","O").replace("Ú","U")
+          lugarCod = ''.join([c for c in lugarCod if c.isalpha()])[:3]
+          if len(lugarCod) < 3:
+              lugarCod = (lugarCod + 'XXX')[:3]
+          correlativo = str(pedido_id).zfill(4)
+          es_premium = any((d.get('plan') == 'pago' or d.get('plan') == 'premium') for d in productos)
+          factura = f"BR-{lugarCod}-{correlativo}"
+          if es_premium:
+              factura += "-PR"
+          return factura
+
       pedido = Pedidos.objects.create(
+        empleado=empleado,
         cliente=cliente,
-        lugarentrega=instalacion,
+        lugarentrega=local if tipo_consumo == 'bar' else None,
+        habitacion=habitacion if tipo_consumo == 'camarote' else None,
         estado='pendiente'
       )
+      # Asignar número de factura
+      lugar_nombre = str(local.nombre) if local else None
+      numero_factura = generar_numero_factura(pedido.id, lugar_nombre, productos)
+      pedido.numero_factura = numero_factura
+      pedido.save(update_fields=['numero_factura'])
     except IntegrityError as ie:
       diag = {
+        'empleado_id': getattr(empleado, 'id', None),
         'cliente_id': getattr(cliente, 'id', None),
-        'lugarentrega_id': getattr(instalacion, 'id', None),
+        'lugarentrega_id': getattr(local, 'id', None),
+        'habitacion_id': getattr(habitacion, 'id', None),
       }
+      try:
+        from apps.recursos_humanos.models import Personal as PersM
+        diag['empleado_exists'] = bool(PersM.objects.filter(id=diag['empleado_id']).exists()) if diag['empleado_id'] else False
+      except Exception:
+        diag['empleado_exists'] = 'unknown'
       try:
         from apps.ventas.models import Cliente as CliM
         diag['cliente_exists'] = bool(CliM.objects.filter(id=diag['cliente_id']).exists()) if diag['cliente_id'] else False
       except Exception:
         diag['cliente_exists'] = 'unknown'
       try:
-        from apps.cruceros.models import Instalacion as InstM
-        diag['lugarentrega_exists'] = bool(InstM.objects.filter(id=diag['lugarentrega_id']).exists()) if diag['lugarentrega_id'] else True
+        from apps.creador_embarcaciones.models import Embarcacion as InstM
+        diag['lugarentrega_exists'] = bool(Locales.objects.filter(id=diag['lugarentrega_id']).exists()) if diag['lugarentrega_id'] else True
       except Exception:
         diag['lugarentrega_exists'] = 'unknown'
       return JsonResponse({'success': False, 'error': f'FK error al crear pedido: {ie}', 'diagnostico': diag}, status=400)
@@ -548,9 +611,11 @@ def crear_pedido_api(request):
         'nombre': prod.nombre,
         'cantidad': detalle.cantidad,
         'precio': precio_actual,
+        'plan': getattr(prod, 'plan', None),
+        'receta': getattr(prod, 'receta', '') or '',
         'subtotal': float(detalle.cantidad * (prod.precio_vta or 0))
       })
-
+    
     total = sum(d['subtotal'] for d in detalles_resp)
     fecha_hora = timezone.localtime(pedido.fecha_hora)
     return JsonResponse({
@@ -558,9 +623,15 @@ def crear_pedido_api(request):
       'pedido': {
         'id': pedido.id,
         'estado': pedido.estado,
-  'cliente_id': cliente.id if cliente else None,
-        'lugarentrega_id': instalacion.id if instalacion else None,
-        'lugarentrega_nombre': str(instalacion) if instalacion else None,
+        'cliente_id': cliente.id if cliente else None,
+        'empleado_id': empleado.id if empleado else None,
+  'empleado_nombre': (f"{empleado.nombre} {empleado.apellido}".strip() if empleado else None),
+  'empleado_categoria': (empleado.categoria if empleado else None),
+  'empleado_puesto': (empleado.puesto if empleado else None),
+  'lugarentrega_id': local.id if local else None,
+  'lugarentrega_nombre': str(local) if local else None,
+  'habitacion_id': habitacion.id if habitacion else None,
+  'habitacion_nombre': (f"Hab. {habitacion.numero} ({habitacion.ID_local})" if habitacion else None),
         'tipo_consumo': tipo_consumo,
         'productos': detalles_resp,
         'total': total,
@@ -589,6 +660,81 @@ def eliminar_pedido_api(request, pedido_id: int):
   return JsonResponse({'success': True, 'deleted_id': pedido_id})
 
 
+@csrf_exempt
+@require_POST
+def actualizar_pedido_api(request, pedido_id: int):
+  """Permite modificar un pedido solo si está en estado 'pendiente'. Reemplaza los detalles y puede actualizar empleado, lugar/nota."""
+  import json
+  from django.db import transaction
+  try:
+    p = Pedidos.objects.get(id=pedido_id)
+  except Pedidos.DoesNotExist:
+    return JsonResponse({'success': False, 'error': 'Pedido no encontrado'}, status=404)
+  if p.estado != 'pendiente':
+    return JsonResponse({'success': False, 'error': 'Solo se puede modificar un pedido en estado pendiente'}, status=400)
+  try:
+    payload = json.loads(request.body or '{}')
+  except json.JSONDecodeError:
+    return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+  empleado_id = payload.get('empleado_id')
+  tipo_consumo = payload.get('tipo_consumo')
+  lugarentrega_id = payload.get('lugarentrega_id')
+  habitacion_id = payload.get('habitacion_id')
+  nota = (payload.get('nota') or '').strip()
+  items = payload.get('productos') or []
+  from apps.bares_snacks.models import ProductoBar
+  from apps.recursos_humanos.models import Personal
+  from apps.creador_embarcaciones.models import Embarcacion, Habitaciones, Locales
+  # Validar empleado si se envió
+  if empleado_id is not None:
+    if empleado_id:
+      try:
+        p.empleado = Personal.objects.get(id=empleado_id)
+      except Personal.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
+    else:
+      p.empleado = None
+  # Actualizar lugarentrega según tipo
+  if tipo_consumo == 'bar':
+    if lugarentrega_id:
+      try:
+        p.lugarentrega = Locales.objects.get(id=lugarentrega_id)
+      except Locales.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Local no encontrado'}, status=404)
+    else:
+      return JsonResponse({'success': False, 'error': 'lugarentrega_id requerido para consumo en bar'}, status=400)
+  elif tipo_consumo == 'camarote':
+    p.lugarentrega = None
+    if habitacion_id:
+      try:
+        p.habitacion = Habitaciones.objects.get(id=habitacion_id)
+      except Habitaciones.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Habitación no encontrada'}, status=404)
+    else:
+      return JsonResponse({'success': False, 'error': 'habitacion_id requerido para consumo en camarote'}, status=400)
+  # Nota (si quieres persistirla; actualmente _serialize pone nota None)
+  # Si el modelo Pedidos no tiene campo nota, puedes omitir guardarla.
+  try:
+    with transaction.atomic():
+      # Reemplazar detalles
+      p.detalles.all().delete()
+      detalles_resp = []
+      for it in items:
+        pid = it.get('producto_id') or it.get('id')
+        cant = int(it.get('cantidad') or 0)
+        if not pid or cant <= 0:
+          continue
+        try:
+          prod = ProductoBar.objects.get(id=pid)
+        except ProductoBar.DoesNotExist:
+          continue
+        DetallePedido.objects.create(pedido=p, producto=prod, cantidad=cant)
+      p.save()
+  except IntegrityError as ie:
+    return JsonResponse({'success': False, 'error': f'Error al actualizar: {ie}'}, status=400)
+  return JsonResponse({'success': True, 'pedido': _serialize_pedido(p)})
+
+
 def _serialize_pedido(p):
   detalles_resp = []
   total = 0.0
@@ -601,16 +747,35 @@ def _serialize_pedido(p):
       'nombre': getattr(d.producto, 'nombre', ''),
       'cantidad': d.cantidad,
       'precio': precio,
+      'plan': getattr(d.producto, 'plan', None),
+      'receta': getattr(d.producto, 'receta', '') or '',
       'subtotal': subtotal,
     })
     total += subtotal
   fecha_hora = timezone.localtime(p.fecha_hora)
+  # Datos de empleado, si existe
+  emp_nombre = None
+  emp_categoria = None
+  emp_puesto = None
+  try:
+    if p.empleado_id and getattr(p, 'empleado', None):
+      emp_nombre = f"{getattr(p.empleado, 'nombre', '')} {getattr(p.empleado, 'apellido', '')}".strip()
+      emp_categoria = getattr(p.empleado, 'categoria', None)
+      emp_puesto = getattr(p.empleado, 'puesto', None)
+  except Exception:
+    pass
   return {
     'id': p.id,
     'estado': p.estado,
     'cliente_id': p.cliente_id,
+    'empleado_id': p.empleado_id,
+    'empleado_nombre': emp_nombre,
+    'empleado_categoria': emp_categoria,
+    'empleado_puesto': emp_puesto,
     'lugarentrega_id': p.lugarentrega_id,
     'lugarentrega_nombre': str(p.lugarentrega) if p.lugarentrega_id else None,
+    'habitacion_id': getattr(p, 'habitacion_id', None),
+    'habitacion_nombre': (f"Hab. {getattr(p.habitacion, 'numero', '')} ({getattr(p.habitacion, 'ID_local', '')})" if getattr(p, 'habitacion_id', None) else None),
     'tipo_consumo': 'bar' if p.lugarentrega_id else 'camarote',
     'productos': detalles_resp,
     'total': total,
@@ -618,6 +783,7 @@ def _serialize_pedido(p):
     'fecha_hora': fecha_hora.isoformat(),
     'fecha': fecha_hora.date().isoformat(),
     'hora': fecha_hora.strftime('%H:%M'),
+    'numero_factura': getattr(p, 'numero_factura', None),
   }
 
 
@@ -666,9 +832,76 @@ def actualizar_estado_pedido_api(request, pedido_id: int):
   )
   if not valido:
     return JsonResponse({'success': False, 'error': f'Transición no permitida: {actual} → {nuevo}'}, status=400)
-  p.estado = nuevo
-  p.save(update_fields=['estado'])
+  # Si vamos a completar, intentamos actualizar stock de los ingredientes de cada producto
+  if nuevo == 'completado' and actual != 'completado':
+    from django.db import transaction
+    try:
+      with transaction.atomic():
+        # cambiar estado primero en memoria, aplicar stock y persistir al final si todo ok
+        # Construir requerimientos por ingrediente de almacén
+        from apps.bares_snacks.models import IngredienteReceta
+        from collections import defaultdict
+        requeridos = defaultdict(float)  # producto_almacen_id -> cantidad total
+        detalles = list(p.detalles.select_related('producto').all())
+        # Para cada detalle, acumular ingredientes
+        for det in detalles:
+          prod = det.producto
+          if not prod:
+            continue
+          for ir in prod.receta_items.select_related('ingrediente').all():
+            if not ir.ingrediente_id:
+              continue
+            # cantidad puede ser decimal; multiplicar por cantidad del detalle
+            try:
+              cantidad_need = float(ir.cantidad) * float(det.cantidad)
+            except Exception:
+              cantidad_need = float(det.cantidad)
+            requeridos[ir.ingrediente_id] += cantidad_need
+        # Ejecutar retiros FIFO en almacén
+        from apps.almacen.Services.products import retirar_producto_fifo
+        import math
+        for prod_id, cant in requeridos.items():
+          # Convertir a entero, redondeando hacia arriba para garantizar disponibilidad
+          cant_int = int(math.ceil(cant)) if cant > 0 else 0
+          if cant_int <= 0:
+            continue
+          retirar_producto_fifo(prod_id, cant_int, modulo='BARES_SNACKS', descripcion=f'Pedido #{p.id}')
+        # Finalmente, persistir estado
+        p.estado = nuevo
+        p.save(update_fields=['estado'])
+    except Exception as e:
+      return JsonResponse({'success': False, 'error': f'No se pudo completar el pedido por stock: {e}'}, status=400)
+  else:
+    p.estado = nuevo
+    p.save(update_fields=['estado'])
   return JsonResponse({'success': True, 'pedido': _serialize_pedido(p)})
+
+
+@csrf_exempt
+@require_POST
+def eliminar_detalle_pedido_api(request, pedido_id: int, detalle_id: int):
+  """Elimina un solo detalle (producto) de un pedido pendiente. Si el pedido queda sin detalles, elimina el pedido.
+  Respuestas:
+    - { success: true, pedido_deleted: true, deleted_detalle_id }
+    - { success: true, pedido: <pedido actualizado>, deleted_detalle_id }
+  """
+  try:
+    p = Pedidos.objects.get(id=pedido_id)
+  except Pedidos.DoesNotExist:
+    return JsonResponse({'success': False, 'error': 'Pedido no encontrado'}, status=404)
+  if p.estado != 'pendiente':
+    return JsonResponse({'success': False, 'error': 'Solo se puede modificar un pedido en estado pendiente'}, status=400)
+  try:
+    det = p.detalles.get(id=detalle_id)
+  except DetallePedido.DoesNotExist:
+    return JsonResponse({'success': False, 'error': 'Detalle no encontrado en el pedido'}, status=404)
+  det.delete()
+  if not p.detalles.exists():
+    pid = p.id
+    p.delete()
+    return JsonResponse({'success': True, 'pedido_deleted': True, 'deleted_detalle_id': detalle_id, 'pedido_id': pid})
+  # Pedido aún tiene otros detalles; devolver serializado
+  return JsonResponse({'success': True, 'pedido': _serialize_pedido(p), 'deleted_detalle_id': detalle_id})
 
 
 @require_POST
@@ -724,3 +957,157 @@ def disponibilidad_productos_api(request):
       'detalle': detalle
     })
   return JsonResponse({'success': True, 'items': resp})
+
+
+@require_GET
+def empleado_info_api(request, empleado_id: int):
+  """Devuelve info básica del empleado (Personal): nombre completo, categoria (cargo) y puesto."""
+  try:
+    from apps.recursos_humanos.models import Personal
+    e = Personal.objects.get(id=empleado_id)
+  except Exception:
+    return JsonResponse({'success': False, 'error': 'Empleado no encontrado'}, status=404)
+  return JsonResponse({
+    'success': True,
+    'empleado': {
+      'id': e.id,
+      'nombre': e.nombre,
+      'apellido': e.apellido,
+      'nombre_completo': f"{e.nombre} {e.apellido}",
+      'categoria': e.categoria,
+      'puesto': e.puesto,
+    }
+  })
+
+
+# ===================== ANALÍTICAS ===================== #
+@require_GET
+def analisis_mas_vendidos_api(request):
+  """Devuelve productos más vendidos agrupados por categoría (historial = pedidos completados).
+  Query params: limit (por categoría), default 5.
+  Respuesta: { success, categorias: [{ categoria, items: [{producto_id,nombre,total}]}] }
+  """
+  from apps.bares_snacks.models import DetallePedido
+  try:
+    limit = int(request.GET.get('limit') or 5)
+    if limit <= 0:
+      limit = 5
+  except ValueError:
+    limit = 5
+  # Aggregate total vendido por producto en pedidos completados
+  qs = (DetallePedido.objects
+        .filter(pedido__estado='completado')
+        .values('producto_id', 'producto__nombre', 'producto__categoria')
+        .annotate(total=Sum('cantidad'))
+        .order_by('producto__categoria', '-total'))
+  # Agrupar por categoría
+  categorias = {}
+  for row in qs:
+    cat = row.get('producto__categoria') or 'Sin categoría'
+    categorias.setdefault(cat, [])
+    categorias[cat].append({
+      'producto_id': row['producto_id'],
+      'nombre': row.get('producto__nombre') or '',
+      'total': int(row['total'] or 0),
+    })
+  # Limitar por categoría
+  resp = []
+  for cat, items in categorias.items():
+    resp.append({
+      'categoria': cat,
+      'items': items[:limit]
+    })
+  # Orden alfabético por categoría
+  resp.sort(key=lambda x: (x['categoria'] or '').lower())
+  return JsonResponse({'success': True, 'categorias': resp})
+
+
+@require_GET
+def analisis_stock_api(request):
+  """Devuelve resumen de stock: bajo (CRITICO/BAJO) y lista de productos con stock ideal (>= cantidad_ideal).
+  Query params: limit_ideal (default 10)
+  Respuesta: { success, bajo: [...], ideal: [...] }
+  """
+  from apps.almacen.models import Producto as ProdAlm
+  try:
+    limit_ideal = int(request.GET.get('limit_ideal') or 10)
+  except ValueError:
+    limit_ideal = 10
+  bajo = []
+  ideal = []
+  for p in ProdAlm.objects.select_related('seccion__almacen').all():
+    try:
+      actual = int(p.cantidad)
+    except Exception:
+      actual = 0
+    item = {
+      'id': p.id,
+      'nombre': p.nombre,
+      'tipo': p.tipo,
+      'subtipo': p.subtipo,
+      'cantidad': actual,
+      'cantidad_ideal': int(p.cantidad_ideal or 0),
+      'estado': p.estado,
+    }
+    # Bajo: estrictamente por debajo del 30% del ideal
+    try:
+      ci = int(p.cantidad_ideal or 0)
+    except Exception:
+      ci = 0
+    if ci > 0 and actual < (0.3 * ci):
+      bajo.append(item)
+    if actual >= (p.cantidad_ideal or 0):
+      ideal.append(item)
+  # ordenar bajo por % faltante desc
+  def falta_ratio(it):
+    ideal = it['cantidad_ideal'] or 1
+    return max(0.0, 1.0 - (it['cantidad'] / ideal if ideal else 0))
+  bajo.sort(key=falta_ratio, reverse=True)
+  # ordenar ideal por cantidad_ideal desc y limitar
+  ideal.sort(key=lambda it: it['cantidad_ideal'], reverse=True)
+  if limit_ideal and limit_ideal > 0:
+    ideal = ideal[:limit_ideal]
+  return JsonResponse({'success': True, 'bajo': bajo, 'ideal': ideal})
+
+
+@csrf_exempt
+@require_POST
+def solicitar_restock_api(request):
+  """Crea una o varias Órdenes de Compra para reponer stock de productos de almacén.
+  Entrada:
+    - { producto_id, cantidad, comentario? }
+    - o { items: [{ producto_id, cantidad }], comentario? }
+  Salida: { success, creados: [{ id, producto_id, cantidad, estado }] }
+  """
+  import json
+  try:
+    payload = json.loads(request.body or '{}')
+  except json.JSONDecodeError:
+    return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+  items = payload.get('items')
+  if not items:
+    pid = payload.get('producto_id')
+    cant = payload.get('cantidad')
+    if pid and cant:
+      items = [{ 'producto_id': pid, 'cantidad': cant }]
+  if not items or not isinstance(items, list):
+    return JsonResponse({'success': False, 'error': 'items vacío'}, status=400)
+  from apps.almacen.models import Producto as ProdAlm, OrdenCompra
+  creados = []
+  for it in items:
+    try:
+      pid = int(it.get('producto_id'))
+      cant = int(it.get('cantidad'))
+    except Exception:
+      continue
+    if pid <= 0 or cant <= 0:
+      continue
+    try:
+      prod = ProdAlm.objects.get(id=pid)
+    except ProdAlm.DoesNotExist:
+      continue
+    oc = OrdenCompra.objects.create(producto=prod, cantidad_productos=cant, precio_lote=0, estado='PENDIENTE')
+    creados.append({ 'id': oc.id, 'producto_id': prod.id, 'cantidad': cant, 'estado': oc.estado })
+  if not creados:
+    return JsonResponse({'success': False, 'error': 'No se pudo crear ninguna orden'}, status=400)
+  return JsonResponse({'success': True, 'creados': creados})

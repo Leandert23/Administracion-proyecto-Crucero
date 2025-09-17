@@ -70,24 +70,23 @@
     }
 
     function recargarInventario() {
-            try {
-                // Solo refrescar si el modal de inventario está visible (evita fetch innecesario)
-                if (!window.GestorModales || !GestorModales.estaAbierto || !GestorModales.estaAbierto('inventario')) return;
+        try {
+            // Solo refrescar si el modal de inventario está visible (evita fetch innecesario)
+            if (!window.GestorModales || !GestorModales.estaAbierto || !GestorModales.estaAbierto('inventario')) return;
+            // Compatibilidad: diferentes nombres posibles del gestor de inventario
+            const gestor = window.GestorInventario || window.InventarioManager || window.InventoryManager;
+            if (!gestor) return;
 
-                // Compatibilidad: diferentes nombres posibles del gestor de inventario
-                const gestor = window.GestorInventario || window.InventarioManager || window.InventoryManager;
-                if (!gestor) return;
+            // Detectar función de recarga disponible
+            const fnPagina = gestor.cargarPagina || gestor.loadInventoryPage || gestor.loadPage;
+            if (typeof fnPagina !== 'function') return;
 
-                // Detectar función de recarga disponible
-                const fnPagina = gestor.cargarPagina || gestor.loadInventoryPage || gestor.loadPage;
-                if (typeof fnPagina !== 'function') return;
-
-                const paginaActual = gestor.paginaActual || gestor.currentPage || 1;
-                // Pequeño delay para asegurar commit en backend antes de reflejar (evita ver lista sin nuevo item)
-                setTimeout(() => {
-                    try { fnPagina.call(gestor, paginaActual); } catch(e) {}
-                }, 180);
-            } catch (error) {}
+            const paginaActual = gestor.paginaActual || gestor.currentPage || 1;
+            // Pequeño delay para asegurar commit en backend antes de reflejar (evita ver lista sin nuevo item)
+            setTimeout(() => {
+                try { fnPagina.call(gestor, paginaActual); } catch(e) {}
+            }, 180);
+        } catch (error) {}
     }
 
         // Refresca el historial de movimientos si el modal está abierto
@@ -134,26 +133,26 @@
 
         try {
             const root = document.getElementById('almacen-root');
-            const cruceroId = root ? root.dataset.cruceroId : null;
-            if (!cruceroId) return console.warn('No se encontró crucero-id en el root');
-            fetch('/almacen/instalaciones/' + cruceroId + '/')
+            const embarcacionId = root ? root.dataset.embarcacionId : null;
+            if (!embarcacionId) return console.warn('No se encontró embarcacion_id en el root');
+            fetch('/almacen/locales-tipo-almacen/' + embarcacionId + '/')
                 .then(resp => resp.json())
                 .then(data => {
-                    if (!data || !Array.isArray(data.instalaciones)) return;
+                    if (!data || !Array.isArray(data.locales)) return;
                     const select = document.getElementById('select-almacen');
                     if (!select) return;
                     // conservar la primera opción por defecto
                     const defaultOpt = select.querySelector('option');
                     select.innerHTML = '';
                     if (defaultOpt) select.appendChild(defaultOpt);
-                    data.instalaciones.forEach(inst => {
+                    data.locales.forEach(local => {
                         const opt = document.createElement('option');
-                        opt.value = inst.id;
-                        opt.textContent = inst.nombre;
+                        opt.value = local.id;
+                        opt.textContent = local.nombre;
                         select.appendChild(opt);
                     });
                 })
-                .catch(err => console.error('Error cargando instalaciones:', err));
+                .catch(err => console.error('Error cargando locales:', err));
         } catch (e) { console.error(e); }
     }
 
@@ -228,6 +227,39 @@
 
     const GestorFormularios = {
         configuraciones: {
+            lote: {
+                idFormulario: 'form-crear-lote',
+                claveModal: 'lote',
+                endpoint: '/almacen/registrar-lote/',
+                inicializar(contexto) {
+                    aplicarEstilosEnfoque(contexto.formulario);
+                },
+                validar(contexto) {
+                    let valido = true;
+                    const producto = obtenerElementoPorId('id_producto');
+                    const cantidad = obtenerElementoPorId('id_cantidad_productos');
+                    if (!producto || !producto.value) {
+                        mostrarError(contexto.formulario, 'producto', 'Selecciona un producto');
+                        valido = false;
+                    }
+                    if (!cantidad || !cantidad.value || parseInt(cantidad.value, 10) <= 0) {
+                        mostrarError(contexto.formulario, 'cantidad_productos', 'Ingresa una cantidad válida (>0)');
+                        valido = false;
+                    }
+                    return valido;
+                },
+                exito(contexto, datos) {
+                    contexto.formulario.reset();
+                    limpiarErrores(contexto.formulario);
+                    cerrarModalClave('lote');
+                    recargarInventario();
+                    recargarHistorial();
+                },
+                reiniciar(contexto) {
+                    contexto.formulario.reset();
+                    limpiarErrores(contexto.formulario);
+                }
+            },
             producto: {
                 idFormulario: 'form-crear-producto',
                 claveModal: 'producto',

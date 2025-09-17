@@ -743,7 +743,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"entretenimiento" %}
                 <li class="nav-item {% if active_module == 'entretenimiento' %}active{% endif %}">
-                    <a href="{% url 'entretenimiento:entretenimiento' %}" class="nav-link">
+                    <a href="{% url 'entretenimiento:entretenimiento_main' %}" class="nav-link">
                         <img src="{% static 'svg/icono__entretenimiento.svg' %}" alt="Icono de entretenimiento" class="nav-icon">
                         <span class="nav-text">Entretenimiento</span>
                     </a>

@@ -32,7 +32,8 @@
                     </div>
                 </div>
                 <!-- Botones -->
-                <div class="modal-footer" style="grid-column:1 / -1; display:flex; justify-content:flex-end;">
+                <div class="modal-footer" style="grid-column:1 / -1; display:flex; justify-content:flex-end; gap:.5rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-reportar-defecto" style="display:none;">Reportar defecto del lote</button>
                     <button type="button" class="btn btn-danger" id="btn-cancelar-lote">Cancelar</button>
                     <button type="submit" class="btn btn-primary" style="background-color: #3b82f6;">Guardar Lote</button>
                 </div>
@@ -40,3 +41,71 @@
         </div><!-- /.modal-body -->
     </div><!-- /.modal-container -->
 </div><!-- /#modalCrearLote -->
+
+    <script>
+        (function(){
+            var modal = document.getElementById('modalCrearLote');
+            if(!modal) return;
+
+            function actualizarBotonReporte(){
+                var inputOrden = modal.querySelector('#id_orden_compra_id');
+                var btnReport = modal.querySelector('#btn-reportar-defecto');
+                if(!btnReport) return;
+                if(inputOrden && inputOrden.value){
+                    btnReport.style.display = '';
+                } else {
+                    btnReport.style.display = 'none';
+                }
+            }
+
+            // Observe attribute changes to detect open/close
+            var mo = new MutationObserver(function(muts){
+                muts.forEach(function(m){
+                    if(m.attributeName === 'aria-hidden'){
+                        actualizarBotonReporte();
+                    }
+                });
+            });
+            mo.observe(modal, {attributes:true});
+
+            // Initial check
+            actualizarBotonReporte();
+
+            // Wire click to open defect modal
+            var btn = modal.querySelector('#btn-reportar-defecto');
+            if(btn){
+                btn.addEventListener('click', function(e){
+                    e.preventDefault();
+                    console.log('btn-reportar-defecto clicked');
+                    var orden = modal.querySelector('#id_orden_compra_id')?.value || '';
+                    var producto = modal.querySelector('#id_producto')?.value || '';
+                    var cantidad = modal.querySelector('#id_cantidad_productos')?.value || '';
+                    // try to open defect modal and prefill fields if function exists
+                    if(typeof window.abrirModalReportarDefecto === 'function'){
+                        console.debug('Llamando a abrirModalReportarDefecto con', {orden:orden, producto:producto, cantidad:cantidad});
+                        window.abrirModalReportarDefecto({orden:orden, producto:producto, cantidad:cantidad});
+                    } else {
+                        // fallback: try to find modal by id and set fields
+                        var defectModal = document.getElementById('modalReportarDefectoLote');
+                        if(defectModal){
+                            var fOrden = defectModal.querySelector('#id_defecto_orden');
+                            var fProducto = defectModal.querySelector('#id_defecto_producto');
+                            var fCantidad = defectModal.querySelector('#id_cantidad_llegada');
+                            if(fOrden) fOrden.value = orden;
+                            if(fProducto) fProducto.value = producto;
+                            if(fCantidad) fCantidad.value = cantidad;
+                            // open defect modal via GestorModales or fallback
+                            if(window.GestorModales && typeof window.GestorModales.abrir === 'function'){
+                                window.GestorModales.abrir('defecto_lote');
+                            } else {
+                                defectModal.setAttribute('aria-hidden','false');
+                                defectModal.style.display = '';
+                            }
+                        } else {
+                            console.debug('modalReportarDefectoLote no encontrado');
+                        }
+                    }
+                });
+            }
+        })();
+    </script>

@@ -1,14 +1,181 @@
+import json
 from datetime import time
 from .models import Actividad, ActividadRutinaria, RegistroActividadPago, RegistroActividadRut
+from ..cruceros.models import Viaje
+from ..creador_embarcaciones.models import Embarcacion
 
-def actividadPagoGrandeInit():
+# JSON de actividades de pago para cruceros grandes
+actividades_pago_grande = """{
+  "mensaje": "Datos de actividades de crucero grande preparados para inserción",
+  "total_actividades": 12,
+  "tipo_crucero": "grande",
+  "viaje_id": null,
+  "actividades": [
+    {
+      "titulo": "Excursión a las Islas del Rosario",
+      "descripcion": "Disfruta de un día en el paraíso con un viaje a las famosas Islas del Rosario, un archipiélago conocido por sus playas de arena blanca y aguas cristalinas. La excursión de 7 horas incluye el transporte y el almuerzo.",
+      "dia_crucero": 2,
+      "coste": 120.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "16:00:00",
+      "maximoActividad": 180,
+      "img_src": "islasdelrosario.jpg"
+    },
+    {
+      "titulo": "Tour Histórico por la Ciudad Amurallada",
+      "descripcion": "Recorre las calles históricas y los muros antiguos de la Ciudad Amurallada de Cartagena. Aprende sobre la historia colonial y la arquitectura de esta impresionante ciudad. Una visita guiada llena de cultura y belleza.",
+      "dia_crucero": 2,
+      "coste": 60.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "11:30:00",
+      "maximoActividad": 90,
+      "img_src": "ciudadmuralla.jpg"
+    },
+    {
+      "titulo": "Excursión de Cuatrimoto en la playa",
+      "descripcion": "Siente la adrenalina mientras conduces una cuatrimoto a través de la playa. Explora los paisajes costeros de una manera emocionante y divertida. ¡Una aventura para los amantes de la velocidad y la naturaleza!",
+      "dia_crucero": 2,
+      "coste": 240.00,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "13:00:00",
+      "maximoActividad": 90,
+      "img_src": "excursioncuatrimoto.jpg"
+    },
+    {
+      "titulo": "Día de playa con Snorkel y Buceo en el Naufragio de Antilla",
+      "descripcion": "Disfruta de un día de sol y mar en una playa paradisíaca. La actividad incluye una experiencia de snorkel y buceo para explorar el famoso Naufragio de Antilla, un tesoro sumergido lleno de vida marina. ¡Una aventura inolvidable bajo el agua!",
+      "dia_crucero": 4,
+      "coste": 95.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "15:00:00",
+      "maximoActividad": 25,
+      "img_src": "naufragioantilla.jpg"
+    },
+    {
+      "titulo": "Jeep al Parque Nacional Arikok",
+      "descripcion": "Embárcate en una emocionante aventura en jeep por el Parque Nacional Arikok. Descubre los paisajes áridos, las formaciones rocosas y las cuevas escondidas de este impresionante parque natural. Una experiencia ideal para los amantes de la naturaleza y la aventura.",
+      "dia_crucero": 4,
+      "coste": 75.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "12:30:00",
+      "maximoActividad": 18,
+      "img_src": "parquenacionalarikok.jpg"
+    },
+    {
+      "titulo": "Paseo a Caballo por la costa",
+      "descripcion": "Disfruta de un tranquilo y pintoresco paseo a caballo a lo largo de la costa. Admira las vistas panorámicas del océano mientras cabalgas por la orilla. Una actividad relajante y memorable para todos los niveles de jinetes.",
+      "dia_crucero": 4,
+      "coste": 60.00,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "12:00:00",
+      "maximoActividad": 10,
+      "img_src": "paseocaballo.jpg"
+    },
+    {
+      "titulo": "Día de playa con Snorkel y Buceo en el Parque Marino",
+      "descripcion": "Disfruta de un día de relajación en la playa y exploración submarina en un hermoso parque marino. Practica snorkel y buceo para descubrir la colorida vida marina y los arrecifes de coral. Una experiencia acuática ideal para todas las edades.",
+      "dia_crucero": 5,
+      "coste": 105.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "15:00:00",
+      "maximoActividad": 30,
+      "img_src": "snorkelbonaire.jpg"
+    },
+    {
+      "titulo": "Tour Terrestre por Salinas y Flamencos",
+      "descripcion": "Explora los fascinantes paisajes de salinas y admira las colonias de flamencos en su hábitat natural. Este tour terrestre te llevará a través de un ecosistema único, perfecto para la fotografía y la observación de aves. ¡No olvides tu cámara!",
+      "dia_crucero": 5,
+      "coste": 65.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "11:30:00",
+      "maximoActividad": 20,
+      "img_src": "salinas.jpg"
+    },
+    {
+      "titulo": "Paseo en Barco con Fondo de Cristal",
+      "descripcion": "Observa el mundo submarino sin mojarte en un emocionante paseo en barco con fondo de cristal. Podrás ver peces tropicales, corales y otras especies marinas a través del suelo transparente de la embarcación. Una actividad ideal para toda la familia.",
+      "dia_crucero": 5,
+      "coste": 55.00,
+      "hora_inicio": "11:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "paseobarcocristal.jpg"
+    },
+    {
+      "titulo": "Paseo en catamaran por la costa",
+      "descripcion": "Disfruta de un paseo en catamaran por la costa. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "catamaran.jpg"
+    },
+    {
+      "titulo": "Tour por el acuario marino y nado con delfines",
+      "descripcion": "Disfruta de un tour por el acuario marino de Curacao y nado con delfines. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "acuariocurazao.jpg"
+    },
+    {
+      "titulo": "Tour por Willemstad",
+      "descripcion": "Disfruta de un tour por Willemstad. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "willemstad.jpg"
+    }
+  ]
+}"""
+
+def cargar_actividades_entretenimiento(viaje: Viaje):
+    """Carga actividades (pago y rutinarias) asociándolas al viaje según el tipo de crucero.
+    Evita duplicados si ya existen para ese viaje. Devuelve dict con listas creadas."""
+    crucero = viaje.crucero
+    if crucero.tipo_crucero == "pequeno":
+        pago = actividadPagoPeqInit(viaje)
+        rut = actividadRutPequenoInit(viaje)
+    elif crucero.tipo_crucero == "mediano":
+        pago = actividadPagoMedianoInit(viaje)
+        rut = actividadRutMedianoInit(viaje)
+    else:
+        pago = actividadPagoGrandeInit(viaje)
+        rut = actividadRutGrandeInit(viaje)
+    return {"pago": pago, "rutinarias": rut}
+
+def cargar_actividades_embarcacion(embarcacion: Embarcacion):
+    """Carga actividades (pago y rutinarias) asociándolas a la embarcación según su tipo.
+    Evita duplicados si ya existen para esa embarcación. Devuelve dict con listas creadas."""
+
+    # Determinar el tipo de embarcación basado en el nombre del tipo
+    tipo_embarcacion = embarcacion.tipo.nombre.lower() if embarcacion.tipo else "grande"
+
+    # Mapear tipos de embarcación a categorías de actividades
+    if "pequeño" in tipo_embarcacion or "pequeña" in tipo_embarcacion:
+        pago = actividadPagoPeqInitEmbarcacion(embarcacion)
+        rut = actividadRutPequenoInitEmbarcacion(embarcacion)
+    elif "mediano" in tipo_embarcacion or "mediana" in tipo_embarcacion:
+        pago = actividadPagoMedianoInitEmbarcacion(embarcacion)
+        rut = actividadRutMedianoInitEmbarcacion(embarcacion)
+    else:
+        pago = actividadPagoGrandeInitEmbarcacion(embarcacion)
+        rut = actividadRutGrandeInitEmbarcacion(embarcacion)
+
+    return {"pago": pago, "rutinarias": rut}
+
+def actividadPagoGrandeInit(viaje: Viaje):
     """
-    Función que inicializa la tabla de actividades con datos de ejemplo
+    Función que inicializa la tabla de actividades con datos de ejemplo y retorna JSON
     """
     # Verificar si ya existen actividades para evitar duplicados
-    if Actividad.objects.exists():
-        print("ERROR:La tabla ya contiene actividades. No se crearán datos de ejemplo.")
-        return
+    if Actividad.objects.filter(viaje=viaje).exists():
+        return json.dumps({"error": "Ya existen actividades para este viaje", "actividades": []})
 
     # Crear actividades de ejemplo
     actividades_data = [
@@ -134,18 +301,236 @@ def actividadPagoGrandeInit():
         }
     ]
 
-    # Crear las actividades en la base de datos
-    actividades_creadas = []
-    for actividad_data in actividades_data:
-        actividad = Actividad.objects.create(**actividad_data)
-        actividades_creadas.append(actividad)
-        print(f"✓ Creada actividad: {actividad.titulo}")
+    # JSON MANUAL de las actividades de crucero grande
+    json_manual = """{
+  "mensaje": "Datos de actividades de crucero grande preparados para inserción",
+  "total_actividades": 12,
+  "tipo_crucero": "grande",
+  "viaje_id": null,
+  "actividades": [
+    {
+      "titulo": "Excursión a las Islas del Rosario",
+      "descripcion": "Disfruta de un día en el paraíso con un viaje a las famosas Islas del Rosario, un archipiélago conocido por sus playas de arena blanca y aguas cristalinas. La excursión de 7 horas incluye el transporte y el almuerzo.",
+      "dia_crucero": 2,
+      "coste": 120.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "16:00:00",
+      "maximoActividad": 180,
+      "img_src": "islasdelrosario.jpg"
+    },
+    {
+      "titulo": "Tour Histórico por la Ciudad Amurallada",
+      "descripcion": "Recorre las calles históricas y los muros antiguos de la Ciudad Amurallada de Cartagena. Aprende sobre la historia colonial y la arquitectura de esta impresionante ciudad. Una visita guiada llena de cultura y belleza.",
+      "dia_crucero": 2,
+      "coste": 60.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "11:30:00",
+      "maximoActividad": 90,
+      "img_src": "ciudadmuralla.jpg"
+    },
+    {
+      "titulo": "Excursión de Cuatrimoto en la playa",
+      "descripcion": "Siente la adrenalina mientras conduces una cuatrimoto a través de la playa. Explora los paisajes costeros de una manera emocionante y divertida. ¡Una aventura para los amantes de la velocidad y la naturaleza!",
+      "dia_crucero": 2,
+      "coste": 240.00,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "13:00:00",
+      "maximoActividad": 90,
+      "img_src": "excursioncuatrimoto.jpg"
+    },
+    {
+      "titulo": "Día de playa con Snorkel y Buceo en el Naufragio de Antilla",
+      "descripcion": "Disfruta de un día de sol y mar en una playa paradisíaca. La actividad incluye una experiencia de snorkel y buceo para explorar el famoso Naufragio de Antilla, un tesoro sumergido lleno de vida marina. ¡Una aventura inolvidable bajo el agua!",
+      "dia_crucero": 4,
+      "coste": 95.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "15:00:00",
+      "maximoActividad": 25,
+      "img_src": "naufragioantilla.jpg"
+    },
+    {
+      "titulo": "Jeep al Parque Nacional Arikok",
+      "descripcion": "Embárcate en una emocionante aventura en jeep por el Parque Nacional Arikok. Descubre los paisajes áridos, las formaciones rocosas y las cuevas escondidas de este impresionante parque natural. Una experiencia ideal para los amantes de la naturaleza y la aventura.",
+      "dia_crucero": 4,
+      "coste": 75.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "12:30:00",
+      "maximoActividad": 18,
+      "img_src": "parquenacionalarikok.jpg"
+    },
+    {
+      "titulo": "Paseo a Caballo por la costa",
+      "descripcion": "Disfruta de un tranquilo y pintoresco paseo a caballo a lo largo de la costa. Admira las vistas panorámicas del océano mientras cabalgas por la orilla. Una actividad relajante y memorable para todos los niveles de jinetes.",
+      "dia_crucero": 4,
+      "coste": 60.00,
+      "hora_inicio": "10:00:00",
+      "hora_fin": "12:00:00",
+      "maximoActividad": 10,
+      "img_src": "paseocaballo.jpg"
+    },
+    {
+      "titulo": "Día de playa con Snorkel y Buceo en el Parque Marino",
+      "descripcion": "Disfruta de un día de relajación en la playa y exploración submarina en un hermoso parque marino. Practica snorkel y buceo para descubrir la colorida vida marina y los arrecifes de coral. Una experiencia acuática ideal para todas las edades.",
+      "dia_crucero": 5,
+      "coste": 105.00,
+      "hora_inicio": "09:00:00",
+      "hora_fin": "15:00:00",
+      "maximoActividad": 30,
+      "img_src": "snorkelbonaire.jpg"
+    },
+    {
+      "titulo": "Tour Terrestre por Salinas y Flamencos",
+      "descripcion": "Explora los fascinantes paisajes de salinas y admira las colonias de flamencos en su hábitat natural. Este tour terrestre te llevará a través de un ecosistema único, perfecto para la fotografía y la observación de aves. ¡No olvides tu cámara!",
+      "dia_crucero": 5,
+      "coste": 65.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "11:30:00",
+      "maximoActividad": 20,
+      "img_src": "salinas.jpg"
+    },
+    {
+      "titulo": "Paseo en Barco con Fondo de Cristal",
+      "descripcion": "Observa el mundo submarino sin mojarte en un emocionante paseo en barco con fondo de cristal. Podrás ver peces tropicales, corales y otras especies marinas a través del suelo transparente de la embarcación. Una actividad ideal para toda la familia.",
+      "dia_crucero": 5,
+      "coste": 55.00,
+      "hora_inicio": "11:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "paseobarcocristal.jpg"
+    },
+    {
+      "titulo": "Paseo en catamaran por la costa",
+      "descripcion": "Disfruta de un paseo en catamaran por la costa. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "catamaran.jpg"
+    },
+    {
+      "titulo": "Tour por el acuario marino y nado con delfines",
+      "descripcion": "Disfruta de un tour por el acuario marino de Curacao y nado con delfines. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "acuariocurazao.jpg"
+    },
+    {
+      "titulo": "Tour por Willemstad",
+      "descripcion": "Disfruta de un tour por Willemstad. Podrás disfrutar de las vistas al mar y del sol mientras navegas por la costa.",
+      "dia_crucero": 6,
+      "coste": 55.00,
+      "hora_inicio": "09:30:00",
+      "hora_fin": "13:30:00",
+      "maximoActividad": 45,
+      "img_src": "willemstad.jpg"
+    }
+  ]
+}"""
 
-    print(f"\n🎉 Se han creado {len(actividades_creadas)} actividades exitosamente!")
-    return actividades_creadas
+    return json_manual
 
+def insertarActividadesDesdeJSON(json_data: str):
+    """
+    Función que toma un JSON generado por actividadPagoGrandeInit y lo inserta en la base de datos
+    """
+    try:
+        # Parsear el JSON
+        data = json.loads(json_data)
 
-def actividadRutMedianoInit():
+        # Verificar que no hay error en los datos
+        if "error" in data:
+            print(f"Error en los datos: {data['error']}")
+            return []
+
+        # Obtener el viaje
+        viaje_id = data.get("viaje_id")
+        if not viaje_id:
+            raise ValueError("No se encontró viaje_id en el JSON")
+
+        try:
+            viaje = Viaje.objects.get(id=viaje_id)
+        except Viaje.DoesNotExist:
+            raise ValueError(f"No existe un viaje con ID {viaje_id}")
+
+        # Verificar si ya existen actividades para evitar duplicados
+        if Actividad.objects.filter(viaje=viaje).exists():
+            print("Ya existen actividades para este viaje")
+            return []
+
+        # Insertar actividades desde el JSON
+        actividades_creadas = []
+        for actividad_json in data.get("actividades", []):
+            # Convertir strings de tiempo a objetos time
+            from datetime import datetime
+            hora_inicio = datetime.strptime(actividad_json["hora_inicio"], "%H:%M:%S").time()
+            hora_fin = datetime.strptime(actividad_json["hora_fin"], "%H:%M:%S").time()
+
+            # Crear la actividad en la base de datos
+            actividad = Actividad.objects.create(
+                viaje=viaje,
+                titulo=actividad_json["titulo"],
+                descripcion=actividad_json["descripcion"],
+                dia_crucero=actividad_json["dia_crucero"],
+                coste=actividad_json["coste"],
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin,
+                maximoActividad=actividad_json["maximoActividad"],
+                img_src=actividad_json["img_src"]
+            )
+            actividades_creadas.append(actividad)
+
+        print(f"Se insertaron {len(actividades_creadas)} actividades exitosamente")
+        return actividades_creadas
+
+    except json.JSONDecodeError as e:
+        print(f"Error al parsear JSON: {e}")
+        return []
+    except Exception as e:
+        print(f"Error al insertar actividades: {e}")
+        return []
+
+# Ejemplo de uso de las nuevas funciones:
+"""
+Ejemplo de cómo usar las nuevas funciones para generar JSON y luego insertar en BD:
+
+# 1. Generar JSON con los datos de actividades
+viaje = Viaje.objects.get(id=1)  # Obtener un viaje existente
+json_actividades = actividadPagoGrandeInit(viaje)
+
+# Esto retorna un JSON como:
+# {
+#   "mensaje": "Datos de actividades preparados para inserción",
+#   "total_actividades": 12,
+#   "tipo_crucero": "grande",
+#   "viaje_id": 1,
+#   "actividades": [
+#     {
+#       "titulo": "Excursión a las Islas del Rosario",
+#       "descripcion": "...",
+#       "dia_crucero": 2,
+#       "coste": 120.00,
+#       "hora_inicio": "09:00:00",
+#       "hora_fin": "16:00:00",
+#       "maximoActividad": 180,
+#       "img_src": "islasdelrosario.jpg",
+#       "viaje_id": 1
+#     },
+#     ... más actividades
+#   ]
+# }
+
+# 2. Insertar los datos desde el JSON a la base de datos
+actividades_creadas = insertarActividadesDesdeJSON(json_actividades)
+
+# Esto creará las actividades en la tabla "actividades_pago" y retornará
+# una lista con los objetos Actividad creados
+"""
+
+def actividadRutMedianoInit(viaje: Viaje):
     """
     Función que inicializa la tabla de actividades rutinarias con datos de ejemplo
     """
