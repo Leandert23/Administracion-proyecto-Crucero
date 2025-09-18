@@ -827,16 +827,7 @@
                 </li>
                 {% endif %}
             {% endif %}
-            {% if request.user.is_authenticated %}
-                {% if request.user|tiene_acceso_embarcaciones %}
-                <li class="nav-item {% if active_module == 'embarcaciones' %}active{% endif %}">
-                    <a href="{% url 'creador_embarcaciones:home' %}" class="nav-link">
-                        <img src="{% static 'svg/icono__embarcaciones.svg' %}" alt="Icono de embarcaciones" class="nav-icon">
-                        <span class="nav-text">Embarcaciones</span>
-                    </a>
-                </li>
-                {% endif %}
-            {% endif %}
+            
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"rh" %}
                 <li class="nav-item {% if active_module == 'recursos_humanos' %}active{% endif %}">
