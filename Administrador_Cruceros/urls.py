@@ -44,7 +44,7 @@ urlpatterns = [
     path('servicio-medico/', include('apps.servicio_medico.urls')),
     path('bares-snacks/', include(('apps.bares_snacks.urls', 'bares_snacks'), namespace='bares_snacks')),
     path('recursos-humanos/', include(('apps.recursos_humanos.urls', 'recursos_humanos'), namespace='recursos_humanos')),
-    path("restaurantes/", include(("apps.restaurante.urls", "restaurantes"), namespace="restaurantes")),
+    path("restaurantes/", include(("apps.restaurante.urls", "restaurantes"), namespace="restaurant")),
     path('embarcaciones/', include('apps.creador_embarcaciones.urls')),
 ]
 

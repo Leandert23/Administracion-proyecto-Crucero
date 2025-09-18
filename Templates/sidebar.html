@@ -721,7 +721,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"administracion" %}
                 <li class="nav-item {% if active_module == 'dashboard' %}active{% endif %}">
-                    <a href="{% url 'administracion:dashboard' 1 %}" class="nav-link">
+                    <a href="{% url 'administracion:dashboard' 9 %}" class="nav-link">
                         <img src="{% static 'svg/icono__admin.svg' %}" alt="Icono de dashboard - panel de administración" class="nav-icon">
                         <span class="nav-text">Dashboard</span>
                     </a>
@@ -733,7 +733,7 @@
                     {% if request.user.crucero_id %}
                     <a href="{% url 'gestion_crucero' request.user.crucero_id %}" class="nav-link">
                     {% else %}
-                    <a href="{% url 'gestion_crucero' 1 %}" class="nav-link">
+                    <a href="{% url 'gestion_crucero' 9 %}" class="nav-link">
                     {% endif %}
                         <img src="{% static 'svg/icono__gestion.svg' %}" alt="Icono de gestión de crucero" class="nav-icon">
                         <span class="nav-text">Inicio</span>
@@ -756,7 +756,7 @@
                     {% if request.user.crucero_id %}
                     <a href="{% url 'ventas:ventas_habitaciones_home' request.user.crucero_id %}" class="nav-link">
                     {% else %}
-                    <a href="{% url 'ventas:ventas_habitaciones_home' 1 %}" class="nav-link">
+                    <a href="{% url 'ventas:ventas_habitaciones_home' 9 %}" class="nav-link">
                     {% endif %}
                         <img src="{% static 'svg/icono__ventas.svg' %}" alt="Icono de ventas de habitaciones" class="nav-icon">
                         <span class="nav-text">Ventas Habitaciones</span>
@@ -767,7 +767,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.is_superuser or request.user|tiene_acceso_modulo:"reservas" %}
                 <li class="nav-item {% if active_module == 'reservas' %}active{% endif %}">
-                    <a href="{% url 'reservas' 1 %}" class="nav-link">
+                    <a href="{% url 'reservas' 9 %}" class="nav-link">
                         <img src="{% static 'svg/icono__reserva.svg' %}" alt="Icono de reservas" class="nav-icon">
                         <span class="nav-text">Reservas</span>
                     </a>
@@ -790,7 +790,7 @@
                     {% if request.user.crucero_id %}
                     <a href="{% url 'bares_snacks:bares' request.user.crucero_id %}" class="nav-link">
                     {% else %}
-                    <a href="{% url 'bares_snacks:bares' 1 %}" class="nav-link">
+                    <a href="{% url 'bares_snacks:bares' 9 %}" class="nav-link">
                     {% endif %}
                         <img src="{% static 'svg/icono__bares.svg' %}" alt="Icono de bares" class="nav-icon">
                         <span class="nav-text">Bares</span>
@@ -804,7 +804,7 @@
                     {% if request.user.crucero_id %}
                     <a href="{% url 'compras:compras' request.user.crucero_id %}" class="nav-link">
                     {% else %}
-                    <a href="{% url 'compras:compras' 1 %}" class="nav-link">
+                    <a href="{% url 'compras:compras' 9 %}" class="nav-link">
                     {% endif %}
                         <img src="{% static 'svg/icono__compras.svg' %}" alt="Icono de compras" class="nav-icon">
                         <span class="nav-text">Compras</span>
@@ -818,7 +818,7 @@
                     {% if request.user.crucero_id %}
                     <a href="{% url 'vista_almacen' request.user.crucero_id %}" class="nav-link">
                     {% else %}
-                    <a href="{% url 'vista_almacen' 1 %}" class="nav-link">
+                    <a href="{% url 'vista_almacen' 9 %}" class="nav-link">
                     {% endif %}
                         <img src="{% static 'svg/icono__almacen.svg' %}" alt="Icono de almacén" class="nav-icon">
                         <span class="nav-text">Almacen</span>

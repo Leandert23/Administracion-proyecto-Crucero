@@ -13,7 +13,7 @@
     </header>
 
     <div class="menu-grid">
-        <a class="menu-card cons" href="{% url 'restaurantes:consumption' %}">
+        <a class="menu-card cons" href="{% url 'restaurant:consumption' %}">
             <div class="icon-wrap cons"><i class="fas fa-utensils"></i></div>
             <div class="card-body">
                 <h3>Consumo</h3>
@@ -21,7 +21,7 @@
             </div>
         </a>
 
-        <a class="menu-card inv" href="{% url 'restaurantes:records' %}">
+        <a class="menu-card inv" href="{% url 'restaurant:records' %}">
             <div class="icon-wrap inv"><i class="fas fa-chart-bar"></i></div>
             <div class="card-body">
                 <h3>Registro</h3>
@@ -29,7 +29,7 @@
             </div>
         </a>
 
-        <a class="menu-card emp" href="{% url 'restaurantes:employees' %}">
+        <a class="menu-card emp" href="{% url 'restaurant:employees' %}">
             <div class="icon-wrap emp"><i class="fas fa-user-group"></i></div>
             <div class="card-body">
                 <h3>Empleados</h3>
@@ -42,19 +42,19 @@
     <div class="restaurant-images-section">
         <h3>Nuestros Restaurantes</h3>
         <div class="restaurant-images-grid">
-            <a href="{% url 'restaurantes:buffet' %}" class="restaurant-image-card">
+            <a href="{% url 'restaurant:buffet' %}" class="restaurant-image-card">
                 <img src="{% static 'img/Buffet.png' %}" alt="Buffet" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
             </a>
 
-            <a href="{% url 'restaurantes:main_dining_room' %}" class="restaurant-image-card">
+            <a href="{% url 'restaurant:main_dining_room' %}" class="restaurant-image-card">
                 <img src="{% static 'img/MainDiningRoom.png' %}" alt="Main Dining Room" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
             </a>
 
-            <a href="{% url 'restaurantes:especialidades' %}" class="restaurant-image-card">
+            <a href="{% url 'restaurant:especialidades' %}" class="restaurant-image-card">
                 <img src="{% static 'img/especialidades.png' %}" alt="Restaurante Especializado" class="restaurant-img">
                 <div class="image-overlay">
                 </div>
