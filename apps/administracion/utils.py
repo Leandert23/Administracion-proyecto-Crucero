@@ -118,3 +118,26 @@ def requerir_administrador_modulo(modulo_nombre):
     Decorador específico para requerir rol de administrador en un módulo.
     """
     return requerir_rol(modulo_nombre, 'admin')
+
+def requerir_acceso_modulo(modulo_codigo):
+    """
+    Decorador para requerir acceso a un módulo específico usando el nuevo sistema de permisos.
+    """
+    def decorator(view_func):
+        from functools import wraps
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                from django.contrib.auth.views import redirect_to_login
+                return redirect_to_login(request.get_full_path())
+            
+            if not (request.user.is_superuser or request.user.tiene_acceso_modulo(modulo_codigo)):
+                from django.core.exceptions import PermissionDenied
+                raise PermissionDenied(
+                    f"No tienes permisos para acceder a esta sección. "
+                    f"Se requiere acceso al módulo {modulo_codigo}."
+                )
+            
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator

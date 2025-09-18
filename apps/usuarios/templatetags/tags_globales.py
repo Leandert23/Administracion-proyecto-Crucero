@@ -5,6 +5,17 @@ from django.urls import reverse, NoReverseMatch
 register = template.Library()
 
 @register.filter
+def tiene_acceso_embarcaciones(user):
+    """
+    Check if user has access to embarcaciones (any of: administracion, compras, almacen) and is not superuser
+    """
+    if user.is_superuser:
+        return False
+    return (user.tiene_acceso_modulo('administracion') or
+            user.tiene_acceso_modulo('compras') or
+            user.tiene_acceso_modulo('almacen'))
+
+@register.filter
 def tiene_acceso_modulo(user, codigo_modulo):
     """Verifica si usuario tiene acceso a un módulo específico"""
     return user.tiene_acceso_modulo(codigo_modulo)

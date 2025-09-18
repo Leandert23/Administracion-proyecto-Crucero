@@ -10,11 +10,11 @@ from django.contrib.auth.models import User
 import json
 from apps.cruceros.models import Crucero
 from .models import Administracion, Alerta, Modulo, Rol, UsuarioRol, SolicitudCompra
-from .utils import requerir_administrador_modulo, usuario_tiene_rol, usuario_es_administrador_modulo, obtener_roles_usuario
+from .utils import requerir_administrador_modulo, usuario_tiene_rol, usuario_es_administrador_modulo, obtener_roles_usuario, requerir_acceso_modulo
 from .forms import RegistroUsuarioForm
 
 @login_required
-@requerir_administrador_modulo('administracion')
+@requerir_acceso_modulo('administracion')
 def cruceros_dashboard_data(request):
     """API endpoint para obtener datos del dashboard de cruceros - Solo administradores"""
     cruceros = Crucero.objects.all()
@@ -63,8 +63,8 @@ def cruceros_dashboard_data(request):
 def dashboard_empresa(request, crucero_id=None):
     """Dashboard principal de administración"""
     # Verificación simplificada de permisos
-    # Permitir acceso si es superusuario O si tiene rol de administrador (tipo 'admin')
-    es_administrador = request.user.is_superuser or usuario_es_administrador_modulo(request.user, 'administracion')
+    # Permitir acceso si es superusuario O si tiene acceso al módulo administración
+    es_administrador = request.user.is_superuser or request.user.tiene_acceso_modulo('administracion')
     
     if not es_administrador:
         # Para usuarios sin permisos, mostrar mensaje informativo
@@ -101,7 +101,7 @@ def dashboard_empresa(request, crucero_id=None):
 
 # Vistas para gestión de roles
 @login_required
-@requerir_administrador_modulo('administracion')
+@requerir_acceso_modulo('administracion')
 def gestion_roles(request):
     """Vista para gestionar roles de usuarios - Solo administradores"""
     if request.method == 'POST':

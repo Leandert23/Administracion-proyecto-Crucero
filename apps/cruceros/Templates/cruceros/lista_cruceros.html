@@ -1,4 +1,5 @@
 {% load static %}
+{% load tags_globales %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -105,12 +106,15 @@
         </div>
 
         <div class="cruceros-list__actions">
-            <a href="{% url 'creador_embarcaciones:home' %}" class="cruceros-list__btn cruceros-list__btn--nuevo">Crear Embarcación</a>
+            {% if request.user|tiene_acceso_embarcaciones %}
+            <a href="{% url 'creador_embarcaciones:home' %}" class="cruceros-list__btn cruceros-list__btn--nuevo">Sistema de Embarcaciones</a>
+            {% endif %}
             {% if user.is_superuser %}
 <button class="cruceros-list__btn cruceros-list__btn--usuarios" style="margin-left: 10px; background-color: #1976d2; color: white;" onclick="openModalUserManagement('modalUserManagement')">Gestión de Usuarios</button>
 {% endif %}
         </div>
 
+    {% if request.user|tiene_acceso_embarcaciones %}
     <div class="tarjetas-cruceros">
             {% for crucero in cruceros %}
             <a href="{% url 'gestion_crucero' crucero.id %}" class="tarjeta-crucero-link">
@@ -134,12 +138,19 @@
             <div class="sin-cruceros">No hay embarcaciones registradas.</div>
             {% endfor %}
         </div>
+    {% endif %}
 
     </div>
     {% include 'usuarios/_modal_user_management.html' %}
     <script>
+        var isSuperuser = {{ is_superuser|yesno:"true,false" }};
+        
         // Helpers para abrir/cerrar el modal global
         function openModalUserManagement(modalId){
+            if (!isSuperuser) {
+                alert('No tienes permisos de superusuario para acceder a la gestión de usuarios.');
+                return;
+            }
             var id = modalId || 'modalUserManagement';
             var el = document.getElementById(id);
             if(el) el.classList.add('active');

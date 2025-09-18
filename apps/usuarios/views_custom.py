@@ -122,8 +122,8 @@ def crear_usuario_custom(request):
             modulos = ModuloSistema.objects.filter(codigo__in=modulos_codigos)
             rol_django.modulos_acceso.set(modulos)
             rol_django.save()
-        except Exception:
-            pass
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'Error al sincronizar rol: {str(e)}'})
         empleado = Empleado.objects.create_user(
             username=username,
             password=password,

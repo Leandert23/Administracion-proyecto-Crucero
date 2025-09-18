@@ -86,14 +86,15 @@
             <h4>¿Qué significa esto?</h4>
             <p>Tu cuenta no tiene los permisos necesarios para acceder al dashboard de administración. Necesitas ser asignado como administrador del módulo.</p>
             
-            {% if usuario_roles %}
+            {% if request.user.is_superuser %}
             <div class="roles-info">
-                <h6><i class="fas fa-user-tag"></i> Tus roles actuales:</h6>
-                <ul class="mb-0">
-                    {% for rol in usuario_roles %}
-                    <li>{{ rol.rol.nombre }} ({{ rol.rol.modulo.nombre }})</li>
-                    {% endfor %}
-                </ul>
+                <h6><i class="fas fa-info-circle"></i> Información:</h6>
+                <p class="mb-0">Eres superusuario, tienes acceso completo al sistema.</p>
+            </div>
+            {% elif request.user.rol %}
+            <div class="roles-info">
+                <h6><i class="fas fa-info-circle"></i> Información:</h6>
+                <p class="mb-0">Tu cuenta no tiene los permisos necesarios para acceder a esta sección. Tu rol actual es: {{ request.user.rol.nombre }}</p>
             </div>
             {% else %}
             <div class="roles-info">

@@ -1,4 +1,20 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render
+from functools import wraps
+
+def _check_embarcaciones_access(request):
+    """Helper function to check if user has access to embarcaciones views (excluding superusers)"""
+    if request.user.is_superuser:
+        return render(request, 'administracion/sin_permisos.html', status=403)
+    return None
+
+def require_embarcaciones_access(view_func):
+    """Decorator to ensure user has access to embarcaciones views (excluding superusers)"""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_superuser:
+            return render(request, 'administracion/sin_permisos.html', status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 from django.contrib import messages
 from django.urls import reverse
 from django.views.generic import ListView, CreateView
@@ -176,6 +192,10 @@ def ruta_detail(request, pk):
     """
     Vista para ver los detalles de una ruta específica
     """
+    access_check = _check_embarcaciones_access(request)
+    if access_check:
+        return access_check
+    
     ruta = get_object_or_404(Ruta, pk=pk)
     context = {
         'ruta': ruta,
@@ -362,10 +382,10 @@ from django.shortcuts import render
 @login_required
 def home(request):
     """
-    Vista de inicio que muestra ambas tablas (embarcaciones y rutas), solo para superusuarios, administracion o compras
+    Vista de inicio que muestra ambas tablas (embarcaciones y rutas), solo para administracion, compras o almacen (NO superusuarios)
     """
     user = request.user
-    if not (user.is_superuser or user.tiene_acceso_modulo('administracion') or user.tiene_acceso_modulo('compras')):
+    if user.is_superuser or not (user.tiene_acceso_modulo('administracion') or user.tiene_acceso_modulo('compras') or user.tiene_acceso_modulo('almacen')):
         return render(request, 'administracion/sin_permisos.html', status=403)
     # Obtener las primeras 10 embarcaciones y rutas para mostrar en la página de inicio
     embarcaciones = Embarcacion.objects.all()[:10]
@@ -386,6 +406,7 @@ def home(request):
 
 # ========== VISTAS PARA GESTIÓN DE ESTRUCTURA DE EMBARCACIONES ==========
 
+@require_embarcaciones_access
 def embarcacion_detail(request, pk):
     """
     Vista para mostrar detalles de una embarcación con sus cubiertas
@@ -404,6 +425,7 @@ def embarcacion_detail(request, pk):
     return render(request, 'creador_embarcaciones/embarcacion_detail.html', context)
 
 
+@require_embarcaciones_access
 def cubierta_detail(request, embarcacion_pk, cubierta_pk):
     """
     Vista para mostrar detalles de una cubierta específica con sus locales y habitaciones
@@ -553,6 +575,7 @@ def local_delete(request, pk):
 
 # ========== VISTAS PARA DETALLES ESPECÍFICOS ==========
 
+@require_embarcaciones_access
 def local_detail(request, pk):
     """
     Vista para mostrar detalles específicos de un local
@@ -687,6 +710,7 @@ def habitacion_delete(request, pk):
     return render(request, 'creador_embarcaciones/habitacion_confirm_delete.html', context)
 
 
+@require_embarcaciones_access
 def habitacion_detail(request, pk):
     """
     Vista para mostrar detalles específicos de una habitación
@@ -706,6 +730,7 @@ def habitacion_detail(request, pk):
 
 # ========== VISTAS MODALES PARA ESTÁNDARES ==========
 
+@require_embarcaciones_access
 def crear_tipo_habitacion(request):
     """
     Vista modal para crear un nuevo tipo de habitación estándar
@@ -766,6 +791,7 @@ def crear_tipo_habitacion(request):
     return render(request, 'creador_embarcaciones/modals/crear_tipo_habitacion.html', context)
 
 
+@require_embarcaciones_access
 def crear_tipo_local(request):
     """
     Vista modal para crear un nuevo tipo de local estándar

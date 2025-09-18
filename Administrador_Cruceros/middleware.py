@@ -29,6 +29,7 @@ class ModuleAccessMiddleware:
             '/bares/': 'bares',
             '/compras/': 'compras',
             '/almacen/': 'almacen',
+            '/embarcaciones/': 'almacen',
             '/rh/': 'rh',
             '/recursos-humanos/': 'rh',
             '/medico/': 'medico',
@@ -89,6 +90,12 @@ class ModuleAccessMiddleware:
             # En cualquier otro caso, redirigir al panel de superusuarios
             return HttpResponseRedirect(reverse('admin_superusers'))
         if request.user.is_superuser:
+            # Special restrictions for superusers
+            if request.path.startswith('/embarcaciones/'):
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return HttpResponseForbidden("Acceso denegado")
+                else:
+                    return HttpResponseRedirect(reverse('acceso_denegado'))
             return None
             
         for path_prefix, modulo in self.path_modulo_mapping.items():
@@ -98,5 +105,14 @@ class ModuleAccessMiddleware:
                         return HttpResponseForbidden("Acceso denegado")
                     else:
                         return HttpResponseRedirect(reverse('acceso_denegado'))
+        
+        # Special check for root path '/'
+        if request.path == '/':
+            required_modules = ['compras', 'almacen', 'administracion']
+            if not any(request.user.tiene_acceso_modulo(mod) for mod in required_modules):
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return HttpResponseForbidden("Acceso denegado")
+                else:
+                    return HttpResponseRedirect(reverse('acceso_denegado'))
         
         return None

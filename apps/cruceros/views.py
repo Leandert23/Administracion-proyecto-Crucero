@@ -30,6 +30,7 @@ def _renderizar_lista_cruceros(request, embarcaciones, fecha_sistema):
     return render(request, 'cruceros/lista_cruceros.html', {
         'cruceros': embarcaciones,
         'fecha_sistema': fecha_sistema.fecha_actual,
+        'is_superuser': request.user.is_superuser if request.user.is_authenticated else False,
     })
 
 def mostrar_inicio(request, crucero_id):
